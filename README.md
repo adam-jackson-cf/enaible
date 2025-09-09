@@ -576,7 +576,7 @@ The principles for this project are designed around the realities of coding with
 # reports saved to specified files for later review and integration
 ```
 
-</details>
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 ---
 
@@ -584,7 +584,7 @@ The principles for this project are designed around the realities of coding with
 
 <div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
-These examples give a flavour, I would recommend exploring and adapting the features to the way you work.
+These examples give a flavour, explore the repo and find what works for you.
 
 ---
 
