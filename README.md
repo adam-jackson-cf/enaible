@@ -75,23 +75,6 @@ The principles for this project are designed around the realities of coding with
 
 ---
 
-## ✨ Key Features
-
-**A comprehensive development automation system** that supports common activities through:
-
-<div align="center">
-
-|  **💻 Development Activities**  |  **🤖 AI Capabilities**   | **🔧 Automation Tools** |
-| :-----------------------------: | :-----------------------: | :---------------------: |
-| Code Review & Quality Analysis  |   19 Specialized Agents   |    22 Analysis Tools    |
-|   Feature & Product Planning    | Multi-Agent Orchestration | Programmatic Validation |
-|     Security & Performance      |   OWASP Top 10 Coverage   |  Cross-Platform CI/CD   |
-| Debugging & Root Cause Analysis |    Pattern Recognition    |   5 Language Support    |
-
-</div>
-
----
-
 ## 💡 Example Use Cases
 
 > _Comprehensive workflows demonstrating AI-assisted development_
@@ -589,8 +572,6 @@ These examples give a flavour, explore the repo and find what works for you.
 <div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 <div align="center">
-
-### 📚 Complete Documentation Library
 
 |    **Category**    | **Document**                                   | **Description**                                 |
 | :----------------: | :--------------------------------------------- | :---------------------------------------------- |
