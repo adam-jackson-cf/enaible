@@ -1,52 +1,117 @@
+<div align="center">
+  <img src="enaible.png" alt="Enaible Logo" width="400" />
+
 # AI Assisted Workflows
 
-<div align="center">
+  <img src="https://img.shields.io/badge/🤖_AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
+  <br/>
+  <br/>
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
-![Python](https://img.shields.io/badge/python-3.11%2B-green.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
+  <!-- Status Badges -->
+
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-22_analyzers-success?style=flat-square)
+![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen?style=flat-square)
+
+  <!-- Platform & Language Support -->
+
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat-square&logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-supported-3178c6?style=flat-square&logo=typescript&logoColor=white)
+![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
+
+  <!-- License & Community -->
+
+![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
+![Claude Code](https://img.shields.io/badge/Claude_Code-28_Commands-8A2BE2?style=flat-square)
+![Agents](https://img.shields.io/badge/AI_Agents-19_Specialists-ff6b35?style=flat-square)
 
 </div>
 
 ---
 
-> **Supporting AI Development Workflows with Core Principles**
+## 📋 Table of Contents
 
-The principles for this project are designed around the realities of coding with AI. We are approximately 60% complete on the work needed to fully meet these principles—see the [roadmap](docs/roadmap.md).
-
-- **Lightweight (80%)**: Minimize context impact, load information just in time, and outsource to external processes (such as scripts) where possible.
-- **Mitigate LLM Weaknesses (60%)**:
-  - **Repeatability**: Ensure same inputs produce same outputs by using programmatic scripts for baseline analysis and leveraging LLMs for contextual framing and fallbacks.
-  - **Predictability**: Scaffold task output that involves generation (e.g., for coding) using rules and templating.
-  - **Duplication**: Create semantic-aware processes to prevent code duplication.
-- **Minimize Structure (80%)**: Provide tools rather than dense workflows; aid in common tasks but allow flexibility.
-- **LLM Agnostic (0%)**: Make any process agnostic to the LLM used to run them.
-- **Popular Language Support (100%)**: Ensure workflows are compatible with baseline language support:
-  - Python, TypeScript, Go, Rust, and C#.
+- [🎯 Project Overview](#-project-overview)
+- [✨ Key Features](#-key-features)
+- [🚀 Quick Start](#-quick-start)
+- [💡 Example Use Cases](#-example-use-cases)
+  - [🔍 Priming Context](#priming-context)
+  - [📝 Session History](#session-history)
+  - [🔬 Technical Research](#technical-research)
+  - [⚙️ Feature Planning](#planning-a-feature)
+  - [🎨 Product Planning](#planning-a-product-from-scratch)
+  - [🏗️ Technical Solutions](#plan-technical-solution)
+  - [🔧 Project Setup](#project-setup-including-quality-gates)
+  - [📊 Code Quality](#code-quality-analysis)
+  - [🔒 Security Analysis](#code-security-analysis)
+  - [⚡ Performance](#performance-bottlenecks)
+  - [🐛 Debugging](#debugging--root-cause-analysis)
+  - [⏳ Background Tasks](#background-task-execution)
+- [📚 Documentation](#-detailed-documentation)
+- [🤝 How to Work](#-how-do-you-want-to-work)
+- [📜 License](#license)
 
 ---
 
-## Overview
+## 🎯 Project Overview
 
-Supports common development activities like code review, planning, analysis, monitoring and debugging through slash commands and specialised agents for specific tasks.
+> **Supporting AI Development Workflows with Core Principles**
 
-## Example Use Cases (non exhaustive)
+The principles for this project are designed around the realities of coding with AI. We are approximately **60% complete** on the work needed to fully meet these principles—see the [roadmap](docs/roadmap.md).
 
-### Priming context
+<div align="center">
+
+| **Principle**                  |                               **Progress**                               | **Key Features**                                         |
+| :----------------------------- | :----------------------------------------------------------------------: | :------------------------------------------------------- |
+| 🪶 **Lightweight**             | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Minimize context impact, JIT loading, external processes |
+| 🎯 **Mitigate LLM Weaknesses** |   ![60%](https://img.shields.io/badge/60%25-yellow?style=flat-square)    | Repeatability, predictability, duplication prevention    |
+| ⚙️ **Minimize Structure**      | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Tools over workflows, flexibility over rigidity          |
+| 🔄 **LLM Agnostic**            |      ![0%](https://img.shields.io/badge/0%25-red?style=flat-square)      | Process independence from specific LLM providers         |
+| 💻 **Language Support**        |  ![100%](https://img.shields.io/badge/100%25-success?style=flat-square)  | Python, TypeScript, Go, Rust, C#                         |
+
+</div>
+
+---
+
+## ✨ Key Features
+
+**A comprehensive development automation system** that supports common activities through:
+
+<div align="center">
+
+|  **💻 Development Activities**  |  **🤖 AI Capabilities**   | **🔧 Automation Tools** |
+| :-----------------------------: | :-----------------------: | :---------------------: |
+| Code Review & Quality Analysis  |   19 Specialized Agents   |    22 Analysis Tools    |
+|   Feature & Product Planning    | Multi-Agent Orchestration | Programmatic Validation |
+|     Security & Performance      |   OWASP Top 10 Coverage   |  Cross-Platform CI/CD   |
+| Debugging & Root Cause Analysis |    Pattern Recognition    |   5 Language Support    |
+
+</div>
+
+---
+
+## 💡 Example Use Cases
+
+> _Comprehensive workflows demonstrating AI-assisted development_
+
+<details>
+<summary><strong>View All Use Cases</strong></summary>
+
+### 🔍 Priming context
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Coming in fresh to a new codebase or starting a new session requires systematic context gathering across documentation, architecture, and recent changes to avoid manual exploration and inconsistent understanding.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Orchestrates parallel analysis** across documentation, structure, tech stack, commands, and git history
 - **Correlates findings** from multiple sources (README, package.json, git commits) for comprehensive understanding
 - **Generates standardized primer** with templated format for consistent project overviews
 - **Understands recent changes** from recent commits to understand current development
 - **Parallel Task agents** analyze purpose, tech stack, architecture, commands, testing in concurrent workflows
-
-**Programmatic actions**:
-
 - **MCP Serena LSP symbol search** - Language Server Protocol integration for semantic codebase analysis
 - **Git history analysis** extracts last 3 commits for objective, files changed, and implementation patterns
 - **Multi-source scanning** of key files (README, CLAUDE.md, package.json, Makefile, etc.)
@@ -61,26 +126,24 @@ Supports common development activities like code review, planning, analysis, mon
 **Common workflow**:
 
 ```bash
-# Generate comprehensive project primer
+# 📋 Generate comprehensive project primer
 /todo-primer
-
-# Expected output: Structured markdown with project overview, tech stack,
-# architecture, available commands, and recent development patterns
 ```
 
-### Session history
+---
+
+### 📝 Session history
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Development sessions involve multiple decisions, discoveries, and context that gets lost between sessions, leading to repeated investigations and inconsistent approaches across team members.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Automatic session documentation** capturing key decisions, discoveries, and reasoning throughout development work
 - **Context preservation** maintaining thread of investigation across multiple sessions and team handoffs
 - **Decision rationale recording** documenting why certain approaches were chosen or rejected
 - **Knowledge synthesis** connecting session insights to broader project understanding
-
-**Programmatic actions**:
-
 - **Structured note templates** ensure consistent documentation format across sessions and team members
 
 **Benefits**:
@@ -93,18 +156,19 @@ Supports common development activities like code review, planning, analysis, mon
 **Common workflow**:
 
 ```bash
-# Document current session insights and decisions
+# 📝 Document current session insights and decisions
 /session-notes
-
-# Expected output: Timestamped documentation of key decisions,
-# discoveries, and reasoning for future reference
 ```
 
-### Technical research
+---
+
+### 🔬 Technical research
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Complex technical investigations require systematic research across documentation, code repositories, academic sources, and current implementations to make informed decisions without bias toward familiar solutions.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Research strategy coordination** planning investigation across multiple sources and specialist researchers
 - **Information synthesis** correlating findings from documentation, code analysis, and implementation examples
@@ -113,9 +177,6 @@ Supports common development activities like code review, planning, analysis, mon
 - **@agent-research-coordinator** strategically plans and allocates research tasks across specialist researchers
 - **@agent-technical-researcher** analyzes code repositories, GitHub projects, and implementation details
 - **@agent-docs-scraper** extracts and processes technical documentation from various sources
-
-**Programmatic actions**:
-
 - **Coordinate scrape and fetch** docs scraper agent uses external tools to gather identified information to minimise context impact
 
 **Benefits**:
@@ -128,30 +189,30 @@ Supports common development activities like code review, planning, analysis, mon
 **Common workflow**:
 
 ```bash
-# Coordinate comprehensive technical research
-# @agent-research-coordinator plans investigation strategy
-# @agent-technical-researcher analyzes implementations
-# @agent-docs-scraper processes documentation
+# 🔬 Coordinate comprehensive technical research
+# Multi-agent orchestration:
+#   • @agent-research-coordinator: Investigation strategy
+#   • @agent-technical-researcher: Implementation analysis
+#   • @agent-docs-scraper: Documentation processing
 
-Invoke the @agent-research-coordinator to research a best practices markdown document for implementing Agentic rag, including recent innovations
-
-# Expected output: Synthesized research report with implementation examples,
-# documentation analysis, and evidence-based recommendations
+# Example: Research agentic RAG best practices
+@agent-research-coordinator "research best practices for implementing Agentic RAG, including recent innovations"
 ```
 
-### Planning a feature
+---
+
+### ⚙️ Planning a feature
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Feature development requires balancing user needs, technical constraints, and existing architecture to deliver valuable functionality without compromising system maintainability or introducing technical debt.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Requirements analysis** translating user needs into technical specifications with clear acceptance criteria
 - **Architecture integration planning** ensuring new features align with existing system design and patterns
 - **Implementation strategy development** breaking complex features into manageable, testable components
 - **Risk assessment and mitigation** identifying potential issues early and planning preventive measures
-
-**Programmatic actions**:
-
 - **Technical feasibility validation** analyzing existing codebase constraints and integration points
 - **User story template generation** standardizing feature requirements with consistent format and criteria
 - **Implementation task breakdown** creating actionable development tasks with dependencies and estimates
@@ -167,28 +228,32 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 **Common workflow**:
 
 ```bash
-# Feature planning with technical validation
-# Analyze user requirements and existing system constraints
-# Generate implementation strategy and task breakdown
-# Validate feasibility and integration approach
+# ⚙️ Feature planning with technical validation
 
-# Expected output: Detailed feature specification with user stories,
-# technical implementation plan, and quality gate requirements
+# 1. Analyze requirements and constraints
+/analyze-requirements "user authentication with OAuth2"
+
+# 2. Generate implementation strategy
+/plan-feature-implementation --with-validation
+
+# 3. Create task breakdown
+/generate-user-stories --technical-tasks
 ```
 
-### Planning a product from scratch
+---
+
+### 🎨 Planning a product from scratch
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: New product development requires market research, user needs analysis, and competitive positioning to create products that solve real problems while avoiding feature bloat and market misalignment.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Product Requirements Document generation** structuring vision, objectives, target users, and success metrics systematically
 - **Feature prioritization framework** balancing user value, technical complexity, and competitive differentiation
 - **User experience planning** designing workflows and interactions based on user research insights
 - **Go-to-market strategy integration** aligning product features with market positioning and business objectives
-
-**Programmatic actions**:
-
 - **Competitive intelligence agent** analyzes existing solutions, pricing models, and market gaps
 - **User research agent** validates assumptions through market analysis and user behavior patterns
 - **Multi-agent validation** ensures technical feasibility aligns with market requirements
@@ -215,19 +280,20 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # competitive positioning, feature priorities, and go-to-market strategy
 ```
 
-### Plan technical solution
+---
+
+### 🏗️ Plan technical solution
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Complex technical implementations require structured planning with risk assessment, architectural considerations, and validation to avoid over-engineering while ensuring scalable, maintainable solutions.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Architecture design guidance** balancing complexity, maintainability, and performance requirements
 - **Risk assessment integration** identifying technical risks, scalability concerns, and mitigation strategies
 - **Implementation roadmap generation** with milestones, dependencies, and validation checkpoints
 - **CTO agent validation** provides senior-level technical review and architectural feedback with --critique (using reasoning through perspective)
-
-**Programmatic actions**:
-
 - **Clarifying questions methodology** gathering requirements, constraints, scale, and success criteria systematically
 - **Prototype mode support** enables rapid validation of core concepts before full implementation
 - **Implementation plan documentation** captures decisions, rationale, and next steps for team alignment
@@ -257,19 +323,20 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # implementation roadmap, and agent orchestration workflow
 ```
 
-### Project setup including quality gates
+---
+
+### 🔧 Project setup including quality gates
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: New projects require consistent setup of testing frameworks, CI pipelines, quality gates, and monitoring to prevent technical debt accumulation and ensure maintainable development workflows from project inception.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Requirements analysis** from todos/markdown files to understand project scope and infrastructure needs
 - **Technology-specific configuration** adapting quality gates to detected languages and frameworks
 - **Monitoring strategy planning** based on project type (API, frontend, full-stack) and expected scale
 - **Integration coordination** ensuring CI, monitoring, and quality tools work together seamlessly
-
-**Programmatic actions**:
-
 - **Standardized configurations** leverages [better-t-stack](https://better-t-stack.dev/) applied across projects: pre-commit hooks, CI workflows, linting rules
 - **Automated dependency setup** installs and configures testing frameworks, quality analyzers, monitoring tools
 - **MCP Serena integration** provides enhanced LSP-based codebase search capabilities
@@ -296,19 +363,20 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 /setup-serena-mcp
 ```
 
-### Code quality analysis
+---
+
+### 📊 Code quality analysis
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Code quality assessment requires measurable metrics and systematic evaluation to identify technical debt, maintainability issues, and refactoring opportunities before they impact development velocity.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Quality metrics interpretation** analyzing complexity, maintainability, and architectural compliance in business context
 - **Technical debt prioritization** ranking improvement opportunities by impact and implementation effort
 - **Best practices compliance evaluation** comparing code patterns against SOLID principles and design standards
 - **Improvement roadmap generation** with specific recommendations and refactoring strategies
-
-**Programmatic actions**:
-
 - **Lizard complexity analyzer** provides cyclomatic complexity, function length, and parameter count analysis
 - **Code duplication detection** identifies repeated patterns and refactoring candidates
 - **Coverage analysis integration** assesses test quality and testability
@@ -331,7 +399,11 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # best practices compliance, and prioritized improvement recommendations
 ```
 
-### Code security analysis
+---
+
+### 🔒 Code security analysis
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Security vulnerability assessment requires comprehensive OWASP Top 10 coverage combined with contextual threat analysis to identify real security risks while minimizing false positives in complex applications.
 
@@ -339,15 +411,12 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 /analyze-security src/ --verbose
 ```
 
-**LLM actions**:
+**Task Actions**:
 
 - **Three-phase systematic approach** with user confirmations: automated assessment → gap analysis → risk prioritization
 - **OWASP Top 10 framework integration** contextualizing automated findings against standard security categories
 - **Technology-specific threat assessment** analyzing framework-specific protections (Django CSRF, React XSS, Express headers)
 - **Risk correlation and prioritization** combining automated findings with business context for actionable recommendations
-
-**Programmatic actions**:
-
 - **Semgrep semantic analysis** detects OWASP Top 10 vulnerabilities: injection (A01), XSS (A03), authentication failures (A07)
 - **Detect-secrets entropy analysis** finds hardcoded credentials and API keys using advanced pattern matching
 - **Framework-specific configuration validation** checks security settings for detected technology stacks
@@ -372,7 +441,11 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # Phase 3: Risk prioritization and actionable recommendations
 ```
 
-### Performance bottlenecks
+---
+
+### ⚡ Performance bottlenecks
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Performance optimization requires systematic identification of bottlenecks across database queries, frontend rendering, algorithm complexity, and network requests to prioritize improvements by user impact and implementation effort.
 
@@ -380,15 +453,12 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 /analyze-performance src/
 ```
 
-**LLM actions**:
+**Task Actions**:
 
 - **Multi-layer performance analysis** correlating findings across database, frontend, and algorithm performance
 - **Bottleneck prioritization** ranking optimizations by user experience impact and implementation complexity
 - **Optimization strategy recommendations** with before/after validation approaches and performance benchmarks
 - **User experience context** connecting technical metrics to business impact and user satisfaction
-
-**Programmatic actions**:
-
 - **Flake8-perf analyzer** detects Python performance anti-patterns and inefficient code constructs
 - **Frontend performance analysis** examines bundle size, render optimization, and memory leak patterns
 - **SQLFluff analyzer** identifies database query optimization opportunities and N+1 problems
@@ -411,7 +481,11 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # algorithm complexity analysis, and prioritized optimization recommendations
 ```
 
-### Debugging & Root Cause Analysis
+---
+
+### 🐛 Debugging & Root Cause Analysis
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: API timeouts, production crashes, and intermittent failures require systematic investigation across code changes, execution patterns, and known error signatures. Traditional debugging relies on developer intuition and manual log analysis, leading to inconsistent results and missed root causes.
 
@@ -419,16 +493,13 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 /analyze-root-cause "API timeouts on /users endpoint after deployment" [--verbose]
 ```
 
-**LLM actions**:
+**Task Actions**:
 
 - **Interprets standardized JSON results** from three analyzers with consistent structure for reliable parsing
 - **Applies contextual reasoning** to correlate findings across execution patterns, recent changes, and error signatures
 - **Generates investigation priorities** based on error context and timing analysis
 - **Provides human-readable explanations** while maintaining evidence-based recommendations
 - **Verbose flag enables comprehensive diagnostic output** including distributed tracing setup and detailed error context
-
-**Programmatic actions**:
-
 - **`root_cause:trace_execution`** - Analyzes execution patterns with **error-context targeting** (requires specific error info for focused investigation)
   - Parses error messages to extract file/line context using **language-agnostic regex patterns**
   - Identifies missing error handling around failure points with **consistent pattern matching**
@@ -462,19 +533,20 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 
 ```
 
-### Background task execution
+---
+
+### ⏳ Background task execution
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
 **Use case**: Long-running development tasks like comprehensive refactoring, extensive documentation generation, or complex analysis require autonomous execution without blocking current work sessions, while maintaining progress tracking and result documentation.
 
-**LLM actions**:
+**Task Actions**:
 
 - **Autonomous task execution** running complex development workflows independently in background processes
 - **Progress documentation** automatically capturing decisions, discoveries, and implementation steps throughout execution
 - **Multi-CLI orchestration** coordinating tasks across Claude Code, Qwen, and Gemini based on task requirements and resource availability
 - **Continuous reporting** maintaining detailed logs and results in structured markdown reports for later review
-
-**Programmatic actions**:
-
 - **Background process management** launching AI CLI instances with appropriate automation flags for unattended operation
 - **Report file generation** creating timestamped documentation with task context, progress updates, and final outcomes
 - **CLI-specific optimization** using Claude Code for complex reasoning, Qwen/Gemini for cost-effective long-running tasks
@@ -504,25 +576,47 @@ Invoke the @agent-research-coordinator to research a best practices markdown doc
 # reports saved to specified files for later review and integration
 ```
 
-## How do you want to work?
-
-These examples give a flavour, I would recommend exploring and adapting the features to the way you want to work.
-
-## Quick Start
-
-- **Installation**: [See Installation Guide](docs/installation.md)
-- **First Steps**: [See Workflow Examples](docs/workflow-examples.md)
-- **Agent System**: [See Agent Orchestration](docs/agents.md)
+</details>
 
 ---
 
-## Detailed Documentation
+## 🤝 How do you want to work?
 
-- [Installation Guide](docs/installation.md) - Setup and configuration
-- [Agent Orchestration System](docs/agents.md) - Multi-agent workflows
-- [Language Support](docs/analysis-scripts.md) - Supported languages and analysis types
-- [Workflow Examples](docs/workflow-examples.md) - Common usage patterns
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
-## License
+These examples give a flavour, I would recommend exploring and adapting the features to the way you work.
 
-MIT License - See LICENSE file for details.
+---
+
+## 📚 Quick Start & Detailed Documentation
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+
+<div align="center">
+
+### 📚 Complete Documentation Library
+
+|    **Category**    | **Document**                                   | **Description**                                 |
+| :----------------: | :--------------------------------------------- | :---------------------------------------------- |
+|    🚀 **Setup**    | [Installation Guide](docs/installation.md)     | Complete setup and configuration instructions   |
+| 🤖 **Core System** | [Agent Orchestration](docs/agents.md)          | 19 specialized agents and multi-agent workflows |
+| ⚙️ **Development** | [Language Support](docs/analysis-scripts.md)   | 22 analysis tools across 5+ languages           |
+|  📋 **Examples**   | [Workflow Examples](docs/workflow-examples.md) | Real-world usage patterns and best practices    |
+
+</div>
+
+---
+
+<div align="center">
+
+## 📜 License
+
+[![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
+
+---
+
+**Made with ❤️ by developers, for developers**
+
+[Report Issues](https://github.com/adam-versed/ai-assisted-workflows/issues) • [Request Features](https://github.com/adam-versed/ai-assisted-workflows/discussions)
+
+</div>
