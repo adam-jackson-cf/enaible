@@ -576,15 +576,11 @@ The principles for this project are designed around the realities of coding with
 # reports saved to specified files for later review and integration
 ```
 
-</details>
-
----
-
-## 🤝 How do you want to work?
-
-<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+### 🤝 How do you want to work?
 
 These examples give a flavour, explore the repo and find what works for you.
+
+</details>
 
 ---
 
