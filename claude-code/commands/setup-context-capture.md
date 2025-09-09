@@ -31,10 +31,7 @@ Each file contains an array of captured actions:
   {
     "operation": "read",
     "timestamp": "2024-12-14T10:30:45.123Z",
-    "file_path": "/path/to/file.py",
-    "tool_input": {
-      /* full tool parameters */
-    }
+    "file_path": "/path/to/file.py"
   },
   {
     "operation": "bash",
@@ -110,7 +107,10 @@ def capture_action(event_type):
 
         # Create entry based on event type
         entry = {
-            "timestamp": datetime.utcnow().isoformat() + 'Z'
+            "timestamp": datetime.now().isoformat() + 'Z',
+            "command": None,
+            "prompt": None,
+            "description": None
         }
 
         # Add context based on event
@@ -118,7 +118,7 @@ def capture_action(event_type):
             tool_name = data.get('tool_name', '').lower()
             entry["operation"] = tool_name
 
-            # Capture key tool inputs
+            # Capture key tool inputs directly at top level
             if 'tool_input' in data:
                 tool_input = data['tool_input']
 
@@ -132,8 +132,10 @@ def capture_action(event_type):
                     if 'description' in tool_input:
                         entry["description"] = tool_input['description']
 
-                # Store full input for reference
-                entry["tool_input"] = tool_input
+                # Add other relevant fields directly
+                for field in ['old_string', 'new_string', 'pattern', 'url', 'target']:
+                    if field in tool_input:
+                        entry[field] = tool_input[field]
 
         elif event_type == "user-prompt":
             entry["operation"] = "prompt"
@@ -145,7 +147,8 @@ def capture_action(event_type):
             SESSION_UUID_FILE.unlink(missing_ok=True)
             get_session_uuid()  # Generate new one
 
-        # Only add if we have meaningful data
+        # Clean up null fields and only add if we have meaningful data
+        entry = {k: v for k, v in entry.items() if v is not None}
         if len(entry) > 1:  # More than just timestamp
             entries.append(entry)
             with open(bundle_file, 'w') as f:
