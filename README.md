@@ -576,7 +576,7 @@ The principles for this project are designed around the realities of coding with
 # reports saved to specified files for later review and integration
 ```
 
-<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+</details>
 
 ---
 
