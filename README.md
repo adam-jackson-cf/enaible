@@ -34,8 +34,6 @@
 ## 📋 Table of Contents
 
 - [🎯 Project Overview](#-project-overview)
-- [✨ Key Features](#-key-features)
-- [🚀 Quick Start](#-quick-start)
 - [💡 Example Use Cases](#-example-use-cases)
   - [🔍 Priming Context](#priming-context)
   - [📝 Session History](#session-history)
@@ -50,8 +48,6 @@
   - [🐛 Debugging](#debugging--root-cause-analysis)
   - [⏳ Background Tasks](#background-task-execution)
 - [📚 Documentation](#-detailed-documentation)
-- [🤝 How to Work](#-how-do-you-want-to-work)
-- [📜 License](#license)
 
 ---
 
