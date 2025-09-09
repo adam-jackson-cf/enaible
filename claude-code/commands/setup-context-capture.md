@@ -65,19 +65,15 @@ import sys
 import os
 from pathlib import Path
 from datetime import datetime
-import uuid
+def get_session_id_from_data(data):
+    """Extract Claude's session ID from hook data, with fallback."""
+    claude_session_id = data.get('session_id')
+    if claude_session_id:
+        # Use Claude's full session ID
+        return claude_session_id
 
-# Session UUID persisted in temp file
-SESSION_UUID_FILE = Path.home() / ".claude" / ".current_session_uuid"
-
-def get_session_uuid():
-    """Get or create session UUID."""
-    if SESSION_UUID_FILE.exists():
-        return SESSION_UUID_FILE.read_text().strip()
-    new_uuid = str(uuid.uuid4())[:8]
-    SESSION_UUID_FILE.parent.mkdir(exist_ok=True)
-    SESSION_UUID_FILE.write_text(new_uuid)
-    return new_uuid
+    # Fallback: use timestamp-based ID if no session_id in data
+    return datetime.now().strftime('%H%M%S%f')
 
 def capture_action(event_type):
     """Capture action based on event type."""
@@ -94,7 +90,7 @@ def capture_action(event_type):
         now = datetime.now()
         day_name = now.strftime('%a').upper()[:3]  # MON, TUE, etc.
         day_num = now.strftime('%d')
-        session_id = get_session_uuid()
+        session_id = get_session_id_from_data(data)
         filename = f"{day_name}_{day_num}_{session_id}.json"
         bundle_file = bundle_dir / filename
 
@@ -143,9 +139,8 @@ def capture_action(event_type):
 
         elif event_type == "session-start":
             entry["operation"] = "session_start"
-            # Reset UUID for new session
-            SESSION_UUID_FILE.unlink(missing_ok=True)
-            get_session_uuid()  # Generate new one
+            # Add session source information
+            entry["source"] = data.get('source', 'unknown')
 
         # Clean up null fields and only add if we have meaningful data
         entry = {k: v for k, v in entry.items() if v is not None}
