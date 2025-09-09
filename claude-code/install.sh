@@ -1006,6 +1006,9 @@ show_completion() {
     echo "  3. Review ci_config.json   (configure directory exclusions)"
     echo ""
 
+    echo "IMPORTANT: Commands require 'python' command pointing to Python 3.11+ for scripts to function properly."
+    echo "If commands fail with 'python: command not found', configure your system's default python version."
+    echo ""
     echo "For more information:"
     echo "  View commands: ls $INSTALL_DIR/commands/"
     echo "  Documentation: cat $INSTALL_DIR/CLAUDE.md"

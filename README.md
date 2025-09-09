@@ -36,7 +36,7 @@
 - [🎯 Project Overview](#-project-overview)
 - [💡 Example Use Cases](#-example-use-cases)
   - [🔍 Priming Context](#priming-context)
-  - [📝 Session History](#session-history)
+  - [📝 Session Context Capture](#session-context-capture)
   - [🔬 Technical Research](#technical-research)
   - [⚙️ Feature Planning](#planning-a-feature)
   - [🎨 Product Planning](#planning-a-product-from-scratch)

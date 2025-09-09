@@ -794,6 +794,9 @@ function Show-CompletionMessage {
     Write-Output "  3. Review ci_config.json   (configure directory exclusions)"
     Write-Output ""
 
+    Write-ColorOutput "IMPORTANT: Commands require 'python' command pointing to Python 3.11+ for scripts to function properly." -Color $Colors.Yellow
+    Write-Output "If commands fail with 'python: command not found', ensure Python is in your PATH."
+    Write-Output ""
     Write-ColorOutput "For help and support:" -Color $Colors.Yellow
     Write-Output "  • Documentation: $ClaudePath\README.md"
     Write-Output "  • Log file: $LOG_FILE"
