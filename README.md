@@ -110,32 +110,40 @@ The principles for this project are designed around the realities of coding with
 
 ---
 
-### 📝 Session history
+### 📝 Session context capture
 
 <div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
 
-**Use case**: Development sessions involve multiple decisions, discoveries, and context that gets lost between sessions, leading to repeated investigations and inconsistent approaches across team members.
+**Use case**: Development sessions involve multiple decisions, actions, and context that gets lost between sessions, leading to repeated investigations and lost continuity across sessions.
 
 **Task Actions**:
 
-- **Automatic session documentation** capturing key decisions, discoveries, and reasoning throughout development work
-- **Context preservation** maintaining thread of investigation across multiple sessions and team handoffs
-- **Decision rationale recording** documenting why certain approaches were chosen or rejected
-- **Knowledge synthesis** connecting session insights to broader project understanding
-- **Structured note templates** ensure consistent documentation format across sessions and team members
+- **Automatic session tracking** using Claude Code hooks to capture key operations (reads, writes, edits, bash commands, user prompts)
+- **Context bundle generation** creating daily JSON files with session UUID tracking for continuity across multiple sessions
+- **Recent activity analysis** reviewing captured operations and git history to understand current development focus
+- **Workflow pattern identification** analyzing operation sequences to identify common development patterns and bottlenecks
+- **Hook-based capture system** leveraging PostToolUse, UserPromptSubmit, and SessionStart events for comprehensive tracking
+- **Cross-session continuity** maintaining session context through UUID persistence and append-only logging
 
 **Benefits**:
 
-- Prevents repeated investigation of the same issues
-- Enables smooth handoffs between team members and sessions
-- Creates searchable knowledge base of project decisions and discoveries
-- Maintains development context across extended timeframes
+- Prevents repeated investigation by maintaining searchable action history
+- Enables quick orientation on recent work through automated activity summaries
+- Creates objective record of development actions beyond git commits
+- Maintains workflow context across extended development periods and team handoffs
+- Provides data-driven insights into development patterns and productivity
 
 **Common workflow**:
 
 ```bash
-# 📝 Document current session insights and decisions
-/session-notes
+# 🔧 Setup automatic session context capture
+/setup-context-capture enable
+
+# 📊 Review recent activity for quick orientation
+/todo-recent-context
+
+# 📝 Check capture system status and recent bundles
+/setup-context-capture status
 ```
 
 ---
