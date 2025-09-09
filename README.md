@@ -47,7 +47,6 @@
   - [⚡ Performance](#performance-bottlenecks)
   - [🐛 Debugging](#debugging--root-cause-analysis)
   - [⏳ Background Tasks](#background-task-execution)
-- [📚 Documentation](#-detailed-documentation)
 
 ---
 
