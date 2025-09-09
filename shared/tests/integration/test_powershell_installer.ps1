@@ -117,7 +117,7 @@ function Test-InstallerDryRun {
         $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "dry-run-test"
 
-        $output = & $installerPath $testPath -DryRun -SkipMcp -SkipPython 2>&1
+        $output = & $installerPath $testPath -DryRun -SkipPython 2>&1
 
         # Check that no files were actually created
         $clauseDir = Join-Path $testPath ".claude"
@@ -145,7 +145,7 @@ function Test-FreshInstallation {
 
         # Measure installation time
         $startTime = Get-Date
-        $output = & $installerPath $testPath -SkipMcp -SkipPython -Verbose 2>&1
+        $output = & $installerPath $testPath -SkipPython -Verbose 2>&1
         $endTime = Get-Date
         $installTime = ($endTime - $startTime).TotalSeconds
 
@@ -206,7 +206,7 @@ More custom content here.
         "# Custom Test Command`nThis is a custom command." | Out-File -FilePath (Join-Path $commandsDir "test-custom.md") -Encoding UTF8
 
         # Run merge installation using InstallMode parameter
-        $output = & $installerPath $testPath -InstallMode Merge -SkipMcp -SkipPython 2>&1
+        $output = & $installerPath $testPath -InstallMode Merge -SkipPython 2>&1
 
         # Verify custom content preserved
         $claudeContent = Get-Content $claudeFile -Raw -ErrorAction SilentlyContinue
@@ -246,7 +246,7 @@ function Test-UpdateWorkflowsMode {
         "# Custom Command" | Out-File -FilePath (Join-Path $commandsDir "custom-cmd.md") -Encoding UTF8
 
         # Run update workflows using InstallMode parameter
-        $output = & $installerPath $testPath -InstallMode UpdateWorkflows -SkipMcp -SkipPython 2>&1
+        $output = & $installerPath $testPath -InstallMode UpdateWorkflows -SkipPython 2>&1
 
         # Verify custom command preserved and claude.md preserved
         $customCommandExists = Test-Path (Join-Path $commandsDir "custom-cmd.md")
@@ -275,7 +275,7 @@ function Test-ErrorHandling {
         $invalidPath = "Z:\NonExistent\Path\That\Should\Not\Exist"
 
         try {
-            $output = & $installerPath $invalidPath -SkipMcp -SkipPython 2>&1
+            $output = & $installerPath $invalidPath -SkipPython 2>&1
             # If we get here, the installer should have handled the error gracefully
             Complete-Test "Error Handling" $true "Installer handled invalid path gracefully"
         } catch {
@@ -310,7 +310,7 @@ function Test-PerformanceMetrics {
             # Measure installation time
             $startTime = Get-Date
             try {
-                $output = & $installerPath $testPath -SkipMcp -SkipPython 2>&1 | Out-Null
+                $output = & $installerPath $testPath -SkipPython 2>&1 | Out-Null
                 $endTime = Get-Date
                 $duration = ($endTime - $startTime).TotalSeconds
                 $times += $duration
