@@ -568,12 +568,12 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|   **Category**    | **Document**                                 | **Description**                                 |
-| :---------------: | :------------------------------------------- | :---------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md)   | Complete setup and configuration instructions   |
-|   🤖 **Agents**   | [Agent Orchestration](docs/agents.md)        | 19 specialized agents and multi-agent workflows |
-|  ⚙️ **Commands**  | [Language Support](docs/analysis-scripts.md) | 22 analysis tools across 5+ languages           |
-| ⚙️ **Monitoring** | [Language Support](docs/monitoring.md)       | 22 analysis tools across 5+ languages           |
+|   **Category**    | **Document**                                    | **Description**                                 |
+| :---------------: | :---------------------------------------------- | :---------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
+|   🤖 **Agents**   | [Agent Orchestration](docs/agents.md)           | 19 specialized agents and multi-agent workflows |
+|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 22 analysis tools across 5+ languages           |
+| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
 
 ---
 
