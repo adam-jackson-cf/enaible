@@ -568,12 +568,12 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|    **Category**    | **Document**                                   | **Description**                                 |
-| :----------------: | :--------------------------------------------- | :---------------------------------------------- |
-|    🚀 **Setup**    | [Installation Guide](docs/installation.md)     | Complete setup and configuration instructions   |
-| 🤖 **Core System** | [Agent Orchestration](docs/agents.md)          | 19 specialized agents and multi-agent workflows |
-| ⚙️ **Development** | [Language Support](docs/analysis-scripts.md)   | 22 analysis tools across 5+ languages           |
-|  📋 **Examples**   | [Workflow Examples](docs/workflow-examples.md) | Real-world usage patterns and best practices    |
+|   **Category**    | **Document**                                 | **Description**                                 |
+| :---------------: | :------------------------------------------- | :---------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md)   | Complete setup and configuration instructions   |
+|   🤖 **Agents**   | [Agent Orchestration](docs/agents.md)        | 19 specialized agents and multi-agent workflows |
+|  ⚙️ **Commands**  | [Language Support](docs/analysis-scripts.md) | 22 analysis tools across 5+ languages           |
+| ⚙️ **Monitoring** | [Language Support](docs/monitoring.md)       | 22 analysis tools across 5+ languages           |
 
 ---
 
