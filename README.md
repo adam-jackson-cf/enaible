@@ -599,19 +599,9 @@ These examples give a flavour, explore the repo and find what works for you.
 | ⚙️ **Development** | [Language Support](docs/analysis-scripts.md)   | 22 analysis tools across 5+ languages           |
 |  📋 **Examples**   | [Workflow Examples](docs/workflow-examples.md) | Real-world usage patterns and best practices    |
 
-</div>
-
----
-
-<div align="center">
-
-## 📜 License
-
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 ---
-
-**Made with ❤️ by developers, for developers**
 
 [Report Issues](https://github.com/adam-versed/ai-assisted-workflows/issues) • [Request Features](https://github.com/adam-versed/ai-assisted-workflows/discussions)
 
