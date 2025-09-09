@@ -36,17 +36,4 @@
 - **NEVER** implement fallback modes or temporary strategys to meet task requirements
 - **NEVER** bypass quality gates by using `--skip` or `--no-verify`
 
-### Positive Requirements:
-
-- **MUST** implement complete business logic that performs intended real-world operations
-- **MUST** return live, computed results that accurately reflect current state and user inputs
-- **MUST** handle all error scenarios through proper application logic, not silent failures or defaults
-- **MUST** maintain functional equivalence between test and production code paths
-
-### Verification Criteria:
-
-- All code must carry out real actions, no placeholder or mock code
-- All integrations must connect to real services or databases (not mocks/stubs in production)
-- All error handling must provide meaningful feedback and maintain system integrity
-
 ---

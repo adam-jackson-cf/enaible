@@ -59,7 +59,7 @@ argument-hint: <refactor-scope-or-area>
 
 ### Phase 2: Migration Strategy Development
 
-1. **Research proven refactoring patterns** - Use Context7 for industry-proven strategies
+1. **Research proven refactoring patterns** - Use web search for latest industry-proven strategies for the current scenario
 
    - Identify patterns: Strangler Fig, Module Federation, Blue-Green deployment
 

@@ -1,6 +1,6 @@
 ---
 description: "Todo orchestration with automated multi-agent coordination from implementation plan to delivery"
-argument-hint: <implementation-plan-path> [--prototype] [--parallel] [--max-retries=N]
+argument-hint: <implementation-plan-path> [--prototype] [--parallel]
 allowed-tools:
   ["Task", "Read", "Write", "Edit", "TodoWrite", "Bash", "Grep", "Glob", "LS"]
 ---
@@ -12,7 +12,7 @@ Execute complete build workflow using intelligent sub-agent coordination with qu
 ## Usage
 
 ```bash
-/build-orchestrate <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel] [--max-retries=3]
+/build-orchestrate <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel]
 ```
 
 ## Arguments
@@ -23,7 +23,6 @@ Execute complete build workflow using intelligent sub-agent coordination with qu
 
 - `--prototype`: Skip test execution, relaxed quality gates
 - `--parallel`: Enable concurrent task execution (future enhancement)
-- `--max-retries=3`: Override default retry count
 
 ## Context
 

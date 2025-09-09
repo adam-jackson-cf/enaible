@@ -134,7 +134,7 @@ Please provide your technical challenge and any relevant constraints, or confirm
 
 ## Flags
 
-- `--critique`: Critique your reasoning around the user request, the solution options you select and the final recommendation
+- `--critique`: Invoke the `@agent-cto` to critique your reasoning for the user request, the solution options you select and the final recommendation
 
 ## Templates
 

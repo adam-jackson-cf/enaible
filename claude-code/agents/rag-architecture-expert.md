@@ -165,9 +165,6 @@ Once I have this information, I'll research and recommend the best RAG architect
 ### Framework Documentation (2024-2025 Current)
 
 - [Pathway RAG Framework Comparison (2025)](https://pathway.com/rag-frameworks/)
-- [LangChain RAG Documentation](https://docs.langchain.com/docs/use-cases/question-answering)
-- [LlamaIndex Documentation](https://docs.llamaindex.ai/)
-- [Haystack Documentation](https://haystack.deepset.ai/)
 
 ### Cloud Platform RAG Services (Latest)
 

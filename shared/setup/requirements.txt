@@ -6,6 +6,10 @@ python-dotenv>=0.19.0          # Environment variable management
 requests>=2.25.0               # HTTP requests for external APIs
 pathlib2>=2.3.5; python_version < "3.4"  # Backport for older Python
 
+# Web crawling and scraping
+crawl4ai>=0.4.0                # Web crawling and scraping framework
+httpx>=0.28.1                  # Modern HTTP client for crawl4ai
+
 # Security analysis - Established Tools Integration
 bandit>=1.7.0                  # Python security linting
 safety>=2.0.0                  # Vulnerability scanning
