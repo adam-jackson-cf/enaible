@@ -6,3 +6,5 @@ radon>=6.0
 xenon>=0.9
 ruff>=0.5
 mypy>=1.10
+
+# Test comment to trigger package monitoring workflow
