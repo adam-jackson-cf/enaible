@@ -121,6 +121,8 @@ The principles for this project are designed around the realities of coding with
 
 - **Automatic session tracking** using Claude Code hooks to capture key operations (reads, writes, edits, bash commands, user prompts)
 - **Context bundle generation** creating timestamped daily JSON files (DAY_DD_HHMMSS_SESSIONID.json) for chronological sorting and session UUID tracking
+- **Intelligent exclusion system** filtering sensitive data, duplicate operations, and noise patterns through configurable exclusion rules
+- **Automatic redaction** detecting and masking API keys, passwords, tokens, and other sensitive data in captured context
 - **Recent activity analysis** reviewing captured operations and git history to understand current development focus
 - **Workflow pattern identification** analyzing operation sequences to identify common development patterns and bottlenecks
 - **Hook-based capture system** leveraging PostToolUse, UserPromptSubmit, and SessionStart events for comprehensive tracking
@@ -130,8 +132,10 @@ The principles for this project are designed around the realities of coding with
 
 - Prevents repeated investigation by maintaining searchable action history
 - Enables quick orientation on recent work through automated activity summaries with chronologically sorted bundle files
+- **Security-first design** with automatic redaction of sensitive data and configurable exclusion patterns
 - Creates objective record of development actions beyond git commits
 - Maintains workflow context across extended development periods and team handoffs
+- **Noise reduction** through intelligent filtering of duplicate operations and irrelevant system files
 - Provides data-driven insights into development patterns and productivity
 
 **Common workflow**:
