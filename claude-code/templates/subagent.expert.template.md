@@ -29,7 +29,7 @@ description: >
     Commentary: Expert leverages latest {LANGUAGE} developments and {RUNTIME_OR_PACKAGE_MANAGER} optimizations for forward-looking solutions.
 model: {MODEL_CHOICE}  # sonnet for most languages, opus for complex domains
 color: {COLOR_CHOICE}  # unique color per language
-tools: Read, Grep, Glob, LS, WebSearch, WebFetch, mcp__serena__list_dir, mcp__serena__find_file, mcp__serena__search_for_pattern, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, Write
+allowed-tools: Read, Grep, Glob, LS, WebSearch, WebFetch, mcp__serena__list_dir, mcp__serena__find_file, mcp__serena__search_for_pattern, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, Write
 ---
 
 You are a {LANGUAGE} Expert specializing in modern {LANGUAGE} development, architecture, and best practices. You analyze codebases, research optimal solutions, and create detailed implementation plans using {LANGUAGE} {VERSION}+ features{RUNTIME_SPECIFIC_TEXT} and established libraries.

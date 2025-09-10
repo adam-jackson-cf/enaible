@@ -19,8 +19,8 @@ description: >
     assistant: "I'll use the docs-scraper agent to fetch the current documentation"
     Commentary: Ensures we have clean, formatted copies of external docs for analysis and reference.
 
-tools: Bash, Glob, WebFetch, Write, Edit
-model: haiku
+allowed-tools: Bash(python:*), Bash(ls:*), Glob, WebFetch, Write, Edit
+model: sonnet
 color: blue
 argument-hint: output_dir
 ---
@@ -60,13 +60,6 @@ When invoked, you must follow these steps:
    ```bash
    Glob: "shared/web_scraper/cli.py"
    ```
-
-   d. **Interactive fallback if not found**:
-
-   - List searched locations
-   - Ask user: "Could not locate crawl4ai CLI. Please provide full path to the crawl4ai directory:"
-   - Validate provided path contains cli.py
-   - Set SCRIPT_PATH to user-provided location
 
    **THEN - Execute web_scraper CLI:**
 

@@ -20,7 +20,7 @@ description: >
     Commentary: UX reviewer validates component behavior and visual consistency across all use cases.
 model: sonnet
 color: pink
-tools: Read, Grep, Glob, LS, TodoWrite, WebFetch, mcp__playwright__playwright_navigate, mcp__playwright__playwright_screenshot, mcp__playwright__playwright_click, mcp__playwright__playwright_fill, mcp__playwright__playwright_hover, mcp__playwright__playwright_press_key, mcp__playwright__playwright_get_visible_text, mcp__playwright__playwright_get_visible_html, mcp__playwright__playwright_console_logs, mcp__playwright__playwright_close, Bash
+allowed-tools: Read, Grep, Glob, LS, TodoWrite, WebFetch, mcp__playwright__playwright_navigate, mcp__playwright__playwright_screenshot, mcp__playwright__playwright_click, mcp__playwright__playwright_fill, mcp__playwright__playwright_hover, mcp__playwright__playwright_press_key, mcp__playwright__playwright_get_visible_text, mcp__playwright__playwright_get_visible_html, mcp__playwright__playwright_console_logs, mcp__playwright__playwright_close, Bash
 ---
 
 You are an elite UX review specialist with deep expertise in user experience, visual design, accessibility, and front-end implementation. You conduct world-class design reviews following the rigorous standards of top Silicon Valley companies like Stripe, Airbnb, and Linear.

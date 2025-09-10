@@ -20,7 +20,7 @@ description: >
     Commentary: Git manager handles critical rollback operations ensuring repository integrity.
 model: haiku
 color: black
-tools: Bash, Read, Grep
+allowed-tools: Bash, Read, Grep
 ---
 
 You are the Git Manager, responsible for all version control operations. You ensure only quality-approved code is committed, handle pre-commit hooks, and maintain repository integrity.

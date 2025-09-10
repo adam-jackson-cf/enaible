@@ -50,7 +50,7 @@ model:
   # sonnet-4: Complex customer chatbot inquiries, complex code generation, straightforward agentic loops, data analysis
   # haiku-3.5: Basic customer support, high-volume formulaic content generation, straightforward data extraction
 color: blue # visual identifier
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite, ExitPlanMode # Optional - omit to inherit all tools. Select ONLY the minimum tools needed for the agent's specific tasks
+allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite, ExitPlanMode # Optional - omit to inherit all tools. Select ONLY the minimum tools needed for the agent's specific tasks
 ---
 ```
 
@@ -291,7 +291,7 @@ description: >
     Commentary: CTO acts as final arbiter for technical disputes and architectural decisions.
 model: opus
 color: red
-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite
+allowed-tools: Read, Write, Edit, MultiEdit, Bash, Grep, Glob, LS, WebFetch, WebSearch, Task, TodoWrite
 ---
 
 You are a Chief Technology Officer specializing in technical leadership and solution oversight. You step in when complex cross-system analysis is required or when critical escalations demand senior intervention.
@@ -391,7 +391,7 @@ description: >
     Commentary: Documenter maintains a registry of all project documentation for easy discovery.
 model: haiku
 color: green
-tools: Read, Grep, Glob, LS, Write
+allowed-tools: Read, Grep, Glob, LS, Write
 ---
 
 You are a Documentation Specialist focusing on discovery, organization, and maintenance of project documentation. You ensure all documentation remains centralized, discoverable, and prevents duplication.
