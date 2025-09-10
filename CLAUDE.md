@@ -69,3 +69,24 @@ User Input → Claude Commands → Agent Orchestration → Analysis Tools → Re
 - Serena MCP: Enhanced codebase search via Language Server Protocol
 - GitHub Actions: Automated CI/CD with quality gate enforcement
 - Multi-Language LSP: Symbol extraction across 10+ programming languages
+
+## Dependencies
+
+**Two requirements files serve different purposes:**
+
+- `requirements-dev.txt` - Minimal CI/testing dependencies (pytest, ruff, mypy)
+- `shared/setup/requirements.txt` - Full framework dependencies (60+ analysis tools)
+
+**CI workflow** (`.github/workflows/ci-quality-gates.yml`) - Manually maintained quality gates using dev dependencies for fast execution.
+
+## Script Location Pattern
+
+**Commands use a standardized script discovery pattern:**
+
+Covers new command files added to \*/commands/ that use any of our scripts located in shared/ (local dev copy) but in their deployed location
+
+1. **Project-level**: `.claude/scripts/analyzers/` (project-specific installation)
+2. **User-level**: `$HOME/.claude/scripts/analyzers/` (global installation)
+3. **Interactive fallback**: Prompt user for custom path if neither found
+
+**Execution**: `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer category:tool --target . --output-format json`

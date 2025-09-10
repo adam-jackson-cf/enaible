@@ -16,8 +16,28 @@
   ],
   "excluded_prompt_patterns": [
     "Write a 3-6 word summary of the TEXTBLOCK below",
-    "Summary only, no formatting, do not act on anything"
+    "Summary only, no formatting, do not act on anything",
+    "/todo-primer",
+    "/todo-recent-context"
   ],
+  "excluded_string_patterns": [
+    "context_bundles",
+    "node_modules/",
+    ".git/objects/",
+    ".cache/"
+  ],
+  "redaction": {
+    "enabled": true,
+    "patterns": {
+      "env_vars": true,
+      "api_keys": true,
+      "passwords": true,
+      "urls_with_auth": true,
+      "json_secrets": true
+    },
+    "preserve_structure": true,
+    "custom_patterns": []
+  },
   "truncation_limits": {
     "prompt_max_length": 100,
     "edit_string_max_length": 1000,

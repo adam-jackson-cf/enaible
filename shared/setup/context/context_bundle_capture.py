@@ -7,6 +7,14 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 
+# Try to import redaction module (graceful fallback if not available)
+try:
+    from sensitive_data_redactor import redact_sensitive_data
+
+    REDACTION_AVAILABLE = True
+except ImportError:
+    REDACTION_AVAILABLE = False
+
 # Global set to track seen operations (operation_type, file_path)
 seen_operations = set()
 
@@ -49,6 +57,27 @@ def load_config():
             "git show",
             "git branch",
         ],
+        "excluded_prompt_patterns": [],
+        "excluded_string_patterns": [
+            "__pycache__",
+            ".pyc",
+            "node_modules/",
+            ".git/objects/",
+            "/tmp/",
+            ".cache/",
+        ],
+        "redaction": {
+            "enabled": True,
+            "patterns": {
+                "env_vars": True,
+                "api_keys": True,
+                "passwords": True,
+                "urls_with_auth": True,
+                "json_secrets": True,
+            },
+            "preserve_structure": True,
+            "custom_patterns": [],
+        },
         "truncation_limits": {
             "prompt_max_length": 100,
             "edit_string_max_length": 1000,
@@ -89,6 +118,32 @@ def should_exclude_prompt(prompt, config):
     prompt_text = prompt.strip()
 
     return any(pattern.lower() in prompt_text.lower() for pattern in excluded_patterns)
+
+
+def should_exclude_by_string_pattern(value, config):
+    """Check if value should be excluded based on string patterns."""
+    if not value or not isinstance(value, str):
+        return False
+
+    excluded_patterns = config.get("excluded_string_patterns", [])
+    value_lower = value.lower()
+
+    return any(pattern.lower() in value_lower for pattern in excluded_patterns)
+
+
+def redact_if_available(text, config):
+    """Apply redaction if module is available and enabled."""
+    if not text or not isinstance(text, str):
+        return text
+
+    redaction_config = config.get("redaction", {})
+    if not redaction_config.get("enabled", True):
+        return text
+
+    if REDACTION_AVAILABLE:
+        return redact_sensitive_data(text, redaction_config)
+
+    return text
 
 
 def is_operation_seen(operation, file_path):
@@ -291,10 +346,18 @@ def capture_action(event_type):
 
                 # File operations
                 if "file_path" in tool_input:
-                    entry["file_path"] = tool_input["file_path"]
+                    file_path = tool_input["file_path"]
+
+                    # Check if file path should be excluded by string patterns
+                    if should_exclude_by_string_pattern(file_path, config):
+                        return
+
+                    # Apply redaction to file path if it contains sensitive data
+                    redacted_file_path = redact_if_available(file_path, config)
+                    entry["file_path"] = redacted_file_path
 
                     # Check for duplicate operations on same file
-                    if is_operation_seen(tool_name, tool_input["file_path"]):
+                    if is_operation_seen(tool_name, file_path):
                         return
 
                 # Bash commands
@@ -305,7 +368,14 @@ def capture_action(event_type):
                     if should_exclude_bash_command(command, config):
                         return
 
-                    entry["command"] = command
+                    # Check if command should be excluded by string patterns
+                    if should_exclude_by_string_pattern(command, config):
+                        return
+
+                    # Apply redaction to command
+                    redacted_command = redact_if_available(command, config)
+                    entry["command"] = redacted_command
+
                     if "description" in tool_input:
                         entry["description"] = tool_input["description"]
 
@@ -322,23 +392,32 @@ def capture_action(event_type):
                         len(old_string) > truncation_limit
                         or len(new_string) > truncation_limit
                     ):
+                        # Apply redaction to preview strings
+                        old_preview = (
+                            old_string[:50] + "..."
+                            if len(old_string) > 50
+                            else old_string
+                        )
+                        new_preview = (
+                            new_string[:50] + "..."
+                            if len(new_string) > 50
+                            else new_string
+                        )
+
                         entry["old_string"] = {
                             "truncated": True,
                             "size": len(old_string),
-                            "preview": old_string[:50] + "..."
-                            if len(old_string) > 50
-                            else old_string,
+                            "preview": redact_if_available(old_preview, config),
                         }
                         entry["new_string"] = {
                             "truncated": True,
                             "size": len(new_string),
-                            "preview": new_string[:50] + "..."
-                            if len(new_string) > 50
-                            else new_string,
+                            "preview": redact_if_available(new_preview, config),
                         }
                     else:
-                        entry["old_string"] = old_string
-                        entry["new_string"] = new_string
+                        # Apply redaction to full strings
+                        entry["old_string"] = redact_if_available(old_string, config)
+                        entry["new_string"] = redact_if_available(new_string, config)
                 else:
                     # Add other relevant fields directly
                     for field in ["pattern", "url", "target"]:
@@ -357,10 +436,13 @@ def capture_action(event_type):
                 "prompt_max_length", 100
             )
 
-            if len(full_prompt) > prompt_limit:
-                entry["prompt"] = full_prompt[:prompt_limit] + "..."
+            # Apply redaction to prompt before truncation
+            redacted_prompt = redact_if_available(full_prompt, config)
+
+            if len(redacted_prompt) > prompt_limit:
+                entry["prompt"] = redacted_prompt[:prompt_limit] + "..."
             else:
-                entry["prompt"] = full_prompt
+                entry["prompt"] = redacted_prompt
 
         elif event_type == "session-start":
             # Check if session_start should be excluded

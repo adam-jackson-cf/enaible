@@ -10,7 +10,6 @@ import argparse
 import json
 import subprocess
 import sys
-from datetime import datetime
 from pathlib import Path
 
 # Import base framework components for import validation
@@ -428,10 +427,6 @@ class PackageMonitoringSetup:
             if dependabot_path:
                 results["files_created"].append(str(dependabot_path))
 
-            # Generate security policy
-            security_path = self._generate_security_policy()
-            results["files_created"].append(str(security_path))
-
             # Setup branch protection if requested
             if self.setup_branch_protection:
                 self._setup_branch_protection(results)
@@ -710,124 +705,6 @@ updates:
 
         print(f"✅ Created {dependabot_path}")
         return dependabot_path
-
-    def _generate_security_policy(self) -> Path:
-        """Generate SECURITY.md documentation."""
-        security_path = Path("SECURITY.md")
-        current_date = datetime.now().strftime("%Y-%m-%d")
-
-        security_content = f"""# Security Policy
-
-## Supported Versions
-
-| Version | Supported          |
-| ------- | ------------------ |
-| Latest  | :white_check_mark: |
-| < Latest| :x:                |
-
-## Reporting a Vulnerability
-
-Please report security vulnerabilities by emailing: **security@yourorganization.com**
-
-### Response Times
-
-- **Critical**: Within 24 hours
-- **High**: Within 3 days
-- **Medium/Low**: Within 1 week
-
-## Automated Security Scanning
-
-This repository uses comprehensive automated security scanning:
-
-### 1. Continuous Monitoring
-- **GitHub Dependabot**: Monitors for vulnerable dependencies
-- **Automatic PRs**: Created immediately for security updates
-- **Weekly Updates**: Regular dependency updates every Monday
-
-### 2. CI/CD Validation
-- **Package Manager Audits**: Security scans on every PR and push
-- **Multi-Package Manager Support**: npm, yarn, pnpm, bun
-- **Audit Level**: {self.audit_level} (blocks {self.audit_level}+ severity vulnerabilities)
-- **Matrix Testing**: Node.js 18.x and 20.x versions
-
-### 3. Dependency Pinning
-- **Automatic Detection**: Identifies unpinned dependencies
-- **Automated PRs**: Creates PRs to pin dependencies to exact versions
-- **Security Benefits**: Prevents dependency confusion and ensures reproducible builds
-
-## Severity Thresholds
-
-### Build Blocking
-- **info**: ALL vulnerabilities block builds
-- **low**: Low+ severity vulnerabilities block builds
-- **moderate**: Moderate+ severity vulnerabilities block builds _(default)_
-- **high**: Only high and critical vulnerabilities block builds
-- **critical**: Only critical vulnerabilities block builds
-
-### Current Configuration
-- **Audit Level**: `{self.audit_level}`
-- **Weekly Scans**: Every Monday at 9 AM UTC
-- **Automatic Pinning**: Enabled for unpinned dependencies
-
-## False Positives
-
-If you encounter false positives that are blocking development:
-
-1. **Verify the vulnerability** is indeed a false positive
-2. **Document the reasoning** for why it's not applicable
-3. **Create an issue** to track the decision with justification
-4. **Document in team/project security decisions** for future reference
-
-## Security Best Practices
-
-### For Contributors
-- Keep dependencies up to date
-- Review Dependabot PRs promptly
-- Don't ignore security warnings
-- Pin dependencies to exact versions
-- Use `npm ci` instead of `npm install` in CI
-
-### For Maintainers
-- Review security PRs within 24 hours
-- Merge critical security updates immediately
-- Monitor security audit workflow results
-- Update this policy as needed
-
-## Workflow Configuration
-
-The security workflow (`.github/workflows/package-security.yml`) includes:
-
-- **Triggers**: Push, PR, weekly schedule, manual dispatch
-- **Package Managers**: Automatic detection and appropriate auditing
-- **Reports**: Uploaded as artifacts with 30-day retention
-- **PR Comments**: Automatic comments on security issues
-- **Branch Protection**: {'Enabled' if self.setup_branch_protection else 'Optional enforcement of security checks'}
-
-## Emergency Procedures
-
-### Critical Vulnerability Response
-1. **Immediate Response**: Apply patches or workarounds within 24 hours
-2. **Create Hotfix**: Deploy fix to production immediately
-3. **Update Dependencies**: Merge security updates
-4. **Verify Fix**: Ensure vulnerability is resolved
-5. **Document**: Record incident and response in security log
-
-### Contact Information
-- **Security Team**: security@yourorganization.com
-- **On-Call**: Available 24/7 for critical issues
-- **Escalation**: CTO/Security Lead for high-severity issues
-
----
-
-_Last Updated: {current_date}_
-_Security Workflow Version: 2.0_
-"""
-
-        with open(security_path, "w") as f:
-            f.write(security_content)
-
-        print(f"✅ Created {security_path}")
-        return security_path
 
     def _setup_branch_protection(self, results: dict):
         """Set up branch protection rules via GitHub API."""

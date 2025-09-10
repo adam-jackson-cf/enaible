@@ -43,12 +43,14 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
 # Create hooks directory
 mkdir -p "$CLAUDE_PROJECT_DIR/.claude/hooks"
 
-# Copy capture script and config from deployed location
+# Copy capture script, redaction module, and config from deployed location
 cp "$SCRIPTS_ROOT/setup/context/context_bundle_capture.py" "$CLAUDE_PROJECT_DIR/.claude/hooks/"
+cp "$SCRIPTS_ROOT/setup/context/sensitive_data_redactor.py" "$CLAUDE_PROJECT_DIR/.claude/hooks/"
 cp "$SCRIPTS_ROOT/setup/context/context_capture_config.json" "$CLAUDE_PROJECT_DIR/.claude/hooks/"
 
-# Make script executable
+# Make scripts executable
 chmod +x "$CLAUDE_PROJECT_DIR/.claude/hooks/context_bundle_capture.py"
+chmod +x "$CLAUDE_PROJECT_DIR/.claude/hooks/sensitive_data_redactor.py"
 ```
 
 ### Hook Configuration
