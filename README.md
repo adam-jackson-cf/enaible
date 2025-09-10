@@ -528,37 +528,44 @@ The principles for this project are designed around the realities of coding with
 
 **Use case**: Dependency vulnerabilities and outdated packages require continuous monitoring to prevent security breaches and compatibility issues, but manual tracking across multiple language ecosystems becomes unmanageable as projects scale.
 
+```bash
+/setup-package-monitoring --audit-level=critical
+```
+
 **Task Actions**:
 
-- **Multi-language ecosystem detection** automatically identifies Python, JavaScript, Go, Rust, and .NET package files
-- **Dependabot configuration generation** creates comprehensive dependency update automation across all detected languages
-- **Path-triggered CI auditing** runs security checks only when package files change, avoiding unnecessary CI runs
-- **Critical-only vulnerability blocking** focuses on high-impact security issues while Dependabot handles routine updates
-- **Efficient search optimization** with --package-file for direct specification and --exclude for skipping large directories
-- **Branch protection integration** optionally enforces security checks before merging dependency updates
-- **Minimal CI overhead** through smart path-based triggers that activate only on relevant file changes
+- **Dual-layer security approach** combining immediate commit-time auditing with ongoing vulnerability monitoring
+- **Path-triggered CI auditing** runs critical vulnerability checks only when package files change, preventing vulnerable dependencies from entering codebase
+- **Dependabot automation** provides continuous background monitoring with automated update PRs for all detected ecosystems
+- **Multi-language ecosystem detection** automatically identifies Python, JavaScript, Go, Rust, and .NET package files across project
+- **Critical-only vulnerability blocking** at commit time focuses on high-impact security issues while Dependabot handles routine maintenance
+- **Smart CI optimization** through path-based triggers that activate only on relevant file changes, avoiding unnecessary resource usage
+- **Enterprise-grade configuration** with optional branch protection enforcement and configurable audit severity levels
+- **Efficient search capabilities** with --package-file for direct specification and --exclude for skipping large directories
 
 **Benefits**:
 
-- No duplication between Dependabot monitoring and CI auditing reduces noise and conflicts
-- Multi-ecosystem support handles polyglot projects with single configuration
-- Path-triggered workflows minimize CI costs by running only when needed
-- Direct package file specification bypasses time-consuming searches in large codebases
+- **Immediate protection**: Commit-time auditing blocks critical vulnerabilities before they reach main branch
+- **Ongoing monitoring**: Dependabot provides continuous surveillance and automated updates for emerging threats
+- **No duplication**: Complementary approach reduces noise while ensuring comprehensive coverage
+- **Multi-ecosystem support**: Handles polyglot projects with unified configuration across Python, JavaScript, Go, Rust, .NET
+- **Cost-efficient CI**: Path-triggered workflows minimize CI costs by running only when dependencies actually change
+- **Zero maintenance**: Automated setup and configuration requires no ongoing developer intervention
 
 **Common workflow**:
 
 ```bash
-# Quick setup with automatic detection
+# Quick setup with automatic detection and critical-only blocking
 /setup-package-monitoring
 
-# Efficient setup for large monorepos
+# Efficient setup for large monorepos with targeted monitoring
 /setup-package-monitoring --package-file=package.json --exclude=node_modules
 
-# Enterprise setup with branch protection
+# Enterprise setup with branch protection and moderate sensitivity
 /setup-package-monitoring --audit-level=moderate --branch-protection=true
 
 # Expected output: Dependabot config for all ecosystems, path-triggered
-# audit workflow, and security policy documentation
+# audit workflow, and comprehensive security policy documentation
 ```
 
 ---
