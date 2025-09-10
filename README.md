@@ -46,6 +46,7 @@
   - [🔒 Security Analysis](#code-security-analysis)
   - [⚡ Performance](#performance-bottlenecks)
   - [🐛 Debugging](#debugging--root-cause-analysis)
+  - [📦 Package Monitoring](#package-monitoring)
   - [⏳ Background Tasks](#background-task-execution)
 
 ---
@@ -119,7 +120,7 @@ The principles for this project are designed around the realities of coding with
 **Task Actions**:
 
 - **Automatic session tracking** using Claude Code hooks to capture key operations (reads, writes, edits, bash commands, user prompts)
-- **Context bundle generation** creating daily JSON files with session UUID tracking for continuity across multiple sessions
+- **Context bundle generation** creating timestamped daily JSON files (DAY_DD_HHMMSS_SESSIONID.json) for chronological sorting and session UUID tracking
 - **Recent activity analysis** reviewing captured operations and git history to understand current development focus
 - **Workflow pattern identification** analyzing operation sequences to identify common development patterns and bottlenecks
 - **Hook-based capture system** leveraging PostToolUse, UserPromptSubmit, and SessionStart events for comprehensive tracking
@@ -128,7 +129,7 @@ The principles for this project are designed around the realities of coding with
 **Benefits**:
 
 - Prevents repeated investigation by maintaining searchable action history
-- Enables quick orientation on recent work through automated activity summaries
+- Enables quick orientation on recent work through automated activity summaries with chronologically sorted bundle files
 - Creates objective record of development actions beyond git commits
 - Maintains workflow context across extended development periods and team handoffs
 - Provides data-driven insights into development patterns and productivity
@@ -517,6 +518,47 @@ The principles for this project are designed around the realities of coding with
 # Focus on specific error with structured investigation
 /analyze-root-cause "TypeError: Cannot read property 'id' of undefined at UserService.js:42"
 
+```
+
+---
+
+### 📦 Package monitoring
+
+<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+
+**Use case**: Dependency vulnerabilities and outdated packages require continuous monitoring to prevent security breaches and compatibility issues, but manual tracking across multiple language ecosystems becomes unmanageable as projects scale.
+
+**Task Actions**:
+
+- **Multi-language ecosystem detection** automatically identifies Python, JavaScript, Go, Rust, and .NET package files
+- **Dependabot configuration generation** creates comprehensive dependency update automation across all detected languages
+- **Path-triggered CI auditing** runs security checks only when package files change, avoiding unnecessary CI runs
+- **Critical-only vulnerability blocking** focuses on high-impact security issues while Dependabot handles routine updates
+- **Efficient search optimization** with --package-file for direct specification and --exclude for skipping large directories
+- **Branch protection integration** optionally enforces security checks before merging dependency updates
+- **Minimal CI overhead** through smart path-based triggers that activate only on relevant file changes
+
+**Benefits**:
+
+- No duplication between Dependabot monitoring and CI auditing reduces noise and conflicts
+- Multi-ecosystem support handles polyglot projects with single configuration
+- Path-triggered workflows minimize CI costs by running only when needed
+- Direct package file specification bypasses time-consuming searches in large codebases
+
+**Common workflow**:
+
+```bash
+# Quick setup with automatic detection
+/setup-package-monitoring
+
+# Efficient setup for large monorepos
+/setup-package-monitoring --package-file=package.json --exclude=node_modules
+
+# Enterprise setup with branch protection
+/setup-package-monitoring --audit-level=moderate --branch-protection=true
+
+# Expected output: Dependabot config for all ecosystems, path-triggered
+# audit workflow, and security policy documentation
 ```
 
 ---

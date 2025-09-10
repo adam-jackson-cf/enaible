@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Context bundle capture for Claude Code session tracking."""
+import contextlib
 import json
 import os
 import sys
@@ -101,7 +102,7 @@ def is_operation_seen(operation, file_path):
 
 
 def parse_bundle_date(filename):
-    """Extract date from bundle filename format (DAY_DD_SESSIONID.json)."""
+    """Extract date from bundle filename format (DAY_DD_HHMMSS_SESSIONID.json)."""
     try:
         parts = filename.split("_")
         if len(parts) >= 2:
@@ -110,6 +111,27 @@ def parse_bundle_date(filename):
     except (ValueError, IndexError):
         pass
     return None
+
+
+def find_existing_session_file(bundle_dir, session_id):
+    """Find existing bundle file for a given session ID."""
+    try:
+        for bundle_file in bundle_dir.glob("*.json"):
+            # Check if the filename ends with the session ID
+            if bundle_file.name.endswith(f"_{session_id}.json"):
+                return bundle_file
+    except Exception:
+        pass
+    return None
+
+
+def generate_bundle_filename(session_id):
+    """Generate bundle filename with current timestamp."""
+    now = datetime.now()
+    day_name = now.strftime("%a").upper()[:3]  # MON, TUE, etc.
+    day_num = now.strftime("%d")
+    timestamp = now.strftime("%H%M%S")
+    return f"{day_name}_{day_num}_{timestamp}_{session_id}.json"
 
 
 def cleanup_expired_bundles(bundle_dir, config):
@@ -212,20 +234,39 @@ def capture_action(event_type):
         # Read hook data from stdin
         data = json.load(sys.stdin)
 
-        # Generate filename using Claude's session ID: DAY_DD_SESSIONID.json
-        now = datetime.now()
-        day_name = now.strftime("%a").upper()[:3]  # MON, TUE, etc.
-        day_num = now.strftime("%d")
+        # Get session ID and find/create bundle file
         session_id = get_session_id_from_data(data)
-        filename = f"{day_name}_{day_num}_{session_id}.json"
-        bundle_file = bundle_dir / filename
 
-        # Load existing or create new
-        if bundle_file.exists():
-            with open(bundle_file) as f:
+        # Look for existing bundle file for this session
+        existing_bundle_file = find_existing_session_file(bundle_dir, session_id)
+
+        # Generate new filename with current timestamp
+        new_filename = generate_bundle_filename(session_id)
+        new_bundle_file = bundle_dir / new_filename
+
+        # Load existing entries or create new
+        entries = []
+        if existing_bundle_file and existing_bundle_file.exists():
+            # Load existing entries
+            with open(existing_bundle_file) as f:
                 entries = json.load(f)
+
+            # If this is not the same file (timestamp changed), we need to rename
+            if existing_bundle_file.name != new_filename:
+                # We'll rename the file after writing the new entry
+                bundle_file = new_bundle_file
+                should_rename = True
+                old_bundle_file = existing_bundle_file
+            else:
+                # Same file, just update it
+                bundle_file = existing_bundle_file
+                should_rename = False
+                old_bundle_file = None
         else:
-            entries = []
+            # No existing file, create new
+            bundle_file = new_bundle_file
+            should_rename = False
+            old_bundle_file = None
 
         # Create entry based on event type
         entry = {
@@ -337,8 +378,13 @@ def capture_action(event_type):
             with open(bundle_file, "w") as f:
                 json.dump(entries, f, indent=2)
 
+            # If we need to rename (remove old file after writing new one)
+            if should_rename and old_bundle_file and old_bundle_file.exists():
+                with contextlib.suppress(Exception):
+                    # Silent fail - don't interrupt Claude's flow
+                    old_bundle_file.unlink()
+
             # Check if we should add conversation link
-            session_id = get_session_id_from_data(data)
             add_conversation_link(bundle_file, session_id, config)
 
     except Exception:

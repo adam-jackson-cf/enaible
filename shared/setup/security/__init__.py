@@ -1,11 +1,10 @@
 """
-Security setup utilities for the AI-Assisted Workflows framework.
+Package monitoring setup utilities for the AI-Assisted Workflows framework.
 
-This module provides tools for setting up comprehensive security CI pipelines
-with universal package manager support, dependency auditing, and automated
-security policy generation.
+This module provides tools for setting up package monitoring with Dependabot
+and minimal CI auditing across multiple programming languages.
 """
 
-from .setup_security_ci import SecurityCISetup
+from .setup_package_monitoring import PackageMonitoringSetup
 
-__all__ = ["SecurityCISetup"]
+__all__ = ["PackageMonitoringSetup"]
