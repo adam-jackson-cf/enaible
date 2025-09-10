@@ -24,6 +24,11 @@
 - `requests>=2.25.0` - HTTP requests for external API integrations
 - `pathlib2>=2.3.5` - Backport for older Python versions
 
+### Web Crawling and Scraping
+
+- `crawl4ai>=0.4.0` - Web crawling and scraping framework
+- `httpx>=0.28.1` - Modern HTTP client for crawl4ai
+
 ### Security Analysis
 
 - `bandit>=1.7.0` - Python security linting
@@ -81,26 +86,9 @@
 - `filelock>=3.8.0` - File-based locking for task coordination
 - `watchdog>=2.1.0` - File system monitoring for dynamic updates
 
-### Continuous Improvement Framework
+### Foundation Layer - State Management
 
-- `chromadb>=0.4.0` - Unified vector database with built-in persistence for semantic duplicate detection
-- `transformers>=4.21.0` - Pre-trained models for code analysis
-- `torch>=1.12.0` - Deep learning framework for embeddings
-- `sentence-transformers>=2.2.0` - Sentence embeddings for code similarity
-- `tokenizers>=0.13.0` - Fast tokenization for code analysis
-- `numpy>=1.21.0` - Scientific computing and array operations
-- `scipy>=1.7.0` - Advanced scientific computing
-- `scikit-learn>=1.0.0` - Machine learning algorithms
-- `datasets>=2.0.0` - Dataset management and processing
-- `uvx>=0.0.1` - Python package executor for MCP integration
-- `dataclasses>=0.6` - Backport for older Python versions
-
-### Continuous Improvement Framework
-
-- `multilspy>=0.1.0` - Language Server Protocol support for multi-language symbol extraction
-- Framework path reorganization: CI components moved from `shared/lib/scripts/continuous-improvement/` to `shared/ci/`
-- Integration with existing analysis tools for semantic duplicate detection
-- GitHub Actions workflow support for automated code quality monitoring
+- `dataclasses>=0.6` - Backport for older Python versions (Python <3.7)
 
 ### Frontend Analysis (Required - Node.js)
 
@@ -120,7 +108,7 @@ The analysis system is organized under `shared/` with the following structure:
 
 ```
 shared/
-├── analyzers/               # 19 Analysis Tools by Category
+├── analyzers/               # 22 Analysis Tools by Category
 │   ├── security/           # Security vulnerability detection
 │   │   ├── semgrep_analyzer.py
 │   │   └── detect_secrets_analyzer.py
@@ -140,7 +128,7 @@ shared/
 │   │   ├── code_duplication_analyzer.py
 │   │   ├── coverage_analysis.py
 │   │   ├── pattern_classifier.py
-│   │   └── analysis_engine.py
+│   │   └── result_aggregator.py
 │   └── root_cause/        # Debugging and error analysis
 │       ├── error_patterns.py
 │       ├── recent_changes.py
@@ -251,11 +239,11 @@ shared/
 - Anti-pattern detection and remediation suggestions
 - Machine learning-based pattern recognition
 
-**`analysis_engine.py`** - Unified Quality Analysis Engine
-- Orchestrates multiple quality analyzers
-- Aggregates results and provides unified scoring
-- Quality gate enforcement for CI/CD pipelines
-- Customizable quality rules and thresholds
+**`result_aggregator.py`** - Analysis Result Aggregator
+- Aggregates results from multiple quality analyzers
+- Provides unified scoring and reporting
+- Consolidates analysis data into standardized formats
+- Supports customizable aggregation rules and thresholds
 
 ### Root Cause Analysis (3 Analyzers)
 

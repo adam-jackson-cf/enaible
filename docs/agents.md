@@ -21,6 +21,25 @@
 | **typescript-expert**       | TypeScript Development | Expert planning for TypeScript tasks          |
 | **rag-architecture-expert** | RAG Systems            | Architecture planning for RAG implementations |
 | **terraform-gcp-expert**    | Infrastructure         | Terraform and GCP infrastructure planning     |
+| **git-action-expert**       | CI/CD & GitHub Actions | CI/CD pipeline and GitHub Actions specialist  |
+| **docker-expert**           | Containerization       | Docker containerization and orchestration     |
+
+## 📝 Research & Analysis Specialists
+
+| Subagent                           | Specialization            | Purpose                                        |
+| :--------------------------------- | :------------------------ | :--------------------------------------------- |
+| **user-researcher**                | User Research             | User behavior analysis and market research     |
+| **competitive-intelligence-analyst** | Market Intelligence      | Competitor analysis and market positioning     |
+| **technical-researcher**           | Technical Research        | Code analysis and implementation research      |
+| **research-coordinator**           | Research Management       | Multi-agent research workflow coordination     |
+| **docs-scraper**                   | Documentation            | Web documentation scraping and processing      |
+
+## 🎨 Design & User Experience
+
+| Subagent        | Specialization    | Purpose                              |
+| :-------------- | :---------------- | :----------------------------------- |
+| **ux-designer** | UX Design         | User experience design and planning  |
+| **ux-reviewer** | UX Analysis       | User interface review and validation |
 
 ## ⚡ Session Uptime Maximization Subagents
 
