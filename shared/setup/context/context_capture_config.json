@@ -14,6 +14,10 @@
     "git push",
     "git pull"
   ],
+  "excluded_prompt_patterns": [
+    "Write a 3-6 word summary of the TEXTBLOCK below",
+    "Summary only, no formatting, do not act on anything"
+  ],
   "truncation_limits": {
     "prompt_max_length": 100,
     "edit_string_max_length": 1000,

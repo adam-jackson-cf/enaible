@@ -75,6 +75,20 @@ def should_exclude_bash_command(command, config):
     return False
 
 
+def should_exclude_prompt(prompt, config):
+    """Check if prompt should be excluded based on pattern matching."""
+    if not prompt:
+        return False
+
+    excluded_patterns = config.get("excluded_prompt_patterns", [])
+    prompt_text = prompt.strip()
+
+    for pattern in excluded_patterns:
+        if pattern.lower() in prompt_text.lower():
+            return True
+    return False
+
+
 def is_operation_seen(operation, file_path):
     """Check if operation on file has already been captured."""
     global seen_operations
@@ -229,10 +243,15 @@ def capture_action(event_type):
 
         elif event_type == "user-prompt":
             entry["operation"] = "prompt"
+            full_prompt = data.get("prompt", "")
+
+            # Check if prompt should be excluded based on patterns
+            if should_exclude_prompt(full_prompt, config):
+                return
+
             prompt_limit = config.get("truncation_limits", {}).get(
                 "prompt_max_length", 100
             )
-            full_prompt = data.get("prompt", "")
 
             if len(full_prompt) > prompt_limit:
                 entry["prompt"] = full_prompt[:prompt_limit] + "..."
