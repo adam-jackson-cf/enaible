@@ -8,154 +8,47 @@ description: Setup session context capture for improved continuity
 
 Configure automatic session action tracking into JSON context bundles for improved session continuity and debugging.
 
-## Behavior
+## Script Integration
 
-Based on argument provided:
+**FIRST - Resolve SCRIPT_PATH:**
 
-- **enable**: Create capture script and configure hooks
-- **disable**: Remove hooks from settings (keep script)
-- **status**: Show current configuration and recent captures
+1. **Try project-level .claude folder**:
 
-## Implementation
+   ```bash
+   Glob: ".claude/scripts/setup/context/*.py"
+   ```
 
-The command will create a Python script at `$CLAUDE_PROJECT_DIR/.claude/hooks/context_bundle_capture.py` and configure Claude Code hooks to automatically capture key session events into daily JSON files stored in `.claude/agents/context_bundles/`.
+2. **Try user-level .claude folder**:
 
-### Context Bundle Format
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/setup/context/"
+   ```
 
-Files are named using the format: `DAY_DD_UUID.json` (e.g., `SAT_14_a1b2c3d4.json`)
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/setup/context/` and `$HOME/.claude/scripts/setup/context/`
+   - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (context_bundle_capture.py, context_capture_config.json)
+   - Set SCRIPT_PATH to user-provided location
 
-Each file contains an array of captured actions:
+**Pre-flight environment check (fail fast if imports not resolved):**
 
-```json
-[
-  {
-    "operation": "read",
-    "timestamp": "2024-12-14T10:30:45.123Z",
-    "file_path": "/path/to/file.py"
-  },
-  {
-    "operation": "bash",
-    "timestamp": "2024-12-14T10:31:02.456Z",
-    "command": "git status",
-    "description": "Check git status"
-  },
-  {
-    "operation": "prompt",
-    "timestamp": "2024-12-14T10:31:15.789Z",
-    "prompt": "User's input text..."
-  }
-]
+```bash
+SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
+PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
 ```
 
-### Captured Events
+**THEN - Copy files to hooks directory:**
 
-- **Tool Operations**: Read, Write, Edit, MultiEdit, Bash, Task, Grep, Glob
-- **User Prompts**: Full prompt submissions
-- **Session Lifecycle**: Session start markers
+```bash
+# Create hooks directory
+mkdir -p "$CLAUDE_PROJECT_DIR/.claude/hooks"
 
-### Script Creation
+# Copy capture script and config from deployed location
+cp "$SCRIPTS_ROOT/setup/context/context_bundle_capture.py" "$CLAUDE_PROJECT_DIR/.claude/hooks/"
+cp "$SCRIPTS_ROOT/setup/context/context_capture_config.json" "$CLAUDE_PROJECT_DIR/.claude/hooks/"
 
-When enabled, creates the following capture script:
-
-```python
-#!/usr/bin/env python3
-"""Context bundle capture for Claude Code session tracking."""
-import json
-import sys
-import os
-from pathlib import Path
-from datetime import datetime
-def get_session_id_from_data(data):
-    """Extract Claude's session ID from hook data, with fallback."""
-    claude_session_id = data.get('session_id')
-    if claude_session_id:
-        # Use Claude's full session ID
-        return claude_session_id
-
-    # Fallback: use timestamp-based ID if no session_id in data
-    return datetime.now().strftime('%H%M%S%f')
-
-def capture_action(event_type):
-    """Capture action based on event type."""
-    try:
-        # Read hook data from stdin
-        data = json.load(sys.stdin)
-
-        # Create context bundle directory
-        project_dir = os.environ.get('CLAUDE_PROJECT_DIR', '.')
-        bundle_dir = Path(project_dir) / '.claude' / 'agents' / 'context_bundles'
-        bundle_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate filename: DAY_DD_UUID.json
-        now = datetime.now()
-        day_name = now.strftime('%a').upper()[:3]  # MON, TUE, etc.
-        day_num = now.strftime('%d')
-        session_id = get_session_id_from_data(data)
-        filename = f"{day_name}_{day_num}_{session_id}.json"
-        bundle_file = bundle_dir / filename
-
-        # Load existing or create new
-        if bundle_file.exists():
-            with open(bundle_file, 'r') as f:
-                entries = json.load(f)
-        else:
-            entries = []
-
-        # Create entry based on event type
-        entry = {
-            "timestamp": datetime.now().isoformat() + 'Z',
-            "command": None,
-            "prompt": None,
-            "description": None
-        }
-
-        # Add context based on event
-        if event_type == "post-tool":
-            tool_name = data.get('tool_name', '').lower()
-            entry["operation"] = tool_name
-
-            # Capture key tool inputs directly at top level
-            if 'tool_input' in data:
-                tool_input = data['tool_input']
-
-                # File operations
-                if 'file_path' in tool_input:
-                    entry["file_path"] = tool_input['file_path']
-
-                # Bash commands
-                if tool_name == 'bash' and 'command' in tool_input:
-                    entry["command"] = tool_input['command']
-                    if 'description' in tool_input:
-                        entry["description"] = tool_input['description']
-
-                # Add other relevant fields directly
-                for field in ['old_string', 'new_string', 'pattern', 'url', 'target']:
-                    if field in tool_input:
-                        entry[field] = tool_input[field]
-
-        elif event_type == "user-prompt":
-            entry["operation"] = "prompt"
-            entry["prompt"] = data.get('prompt', '')[:500]  # Limit length
-
-        elif event_type == "session-start":
-            entry["operation"] = "session_start"
-            # Add session source information
-            entry["source"] = data.get('source', 'unknown')
-
-        # Clean up null fields and only add if we have meaningful data
-        entry = {k: v for k, v in entry.items() if v is not None}
-        if len(entry) > 1:  # More than just timestamp
-            entries.append(entry)
-            with open(bundle_file, 'w') as f:
-                json.dump(entries, f, indent=2)
-
-    except Exception as e:
-        # Silent fail - don't interrupt Claude's flow
-        pass
-
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        capture_action(sys.argv[1])
+# Make script executable
+chmod +x "$CLAUDE_PROJECT_DIR/.claude/hooks/context_bundle_capture.py"
 ```
 
 ### Hook Configuration
@@ -201,5 +94,7 @@ When enabled, adds the following hooks to `.claude/settings.local.json`:
   }
 }
 ```
+
+Users can customize the capture behavior by editing the deployed `context_capture_config.json` file to add or remove exclusions, adjust truncation limits, or modify the bundle size threshold.
 
 $ARGUMENTS

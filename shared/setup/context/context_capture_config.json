@@ -1,0 +1,22 @@
+{
+  "excluded_operations": ["session_start", "task", "glob"],
+  "excluded_bash_commands": [
+    "ls",
+    "pwd",
+    "cd",
+    "git status",
+    "git log",
+    "git diff",
+    "git show",
+    "git branch",
+    "git add",
+    "git commit",
+    "git push",
+    "git pull"
+  ],
+  "truncation_limits": {
+    "prompt_max_length": 100,
+    "edit_string_max_length": 1000,
+    "bundle_size_threshold": 10240
+  }
+}
