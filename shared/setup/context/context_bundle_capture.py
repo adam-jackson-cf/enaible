@@ -3,7 +3,7 @@
 import json
 import os
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 # Global set to track seen operations (operation_type, file_path)
@@ -53,6 +53,10 @@ def load_config():
             "edit_string_max_length": 1000,
             "bundle_size_threshold": 10240,
         },
+        "retention": {
+            "days_to_retain": 7,
+            "auto_cleanup": True,
+        },
     }
 
 
@@ -94,6 +98,65 @@ def is_operation_seen(operation, file_path):
         return True
     seen_operations.add(operation_key)
     return False
+
+
+def parse_bundle_date(filename):
+    """Extract date from bundle filename format (DAY_DD_SESSIONID.json)."""
+    try:
+        parts = filename.split("_")
+        if len(parts) >= 2:
+            day_num = int(parts[1])
+            return day_num
+    except (ValueError, IndexError):
+        pass
+    return None
+
+
+def cleanup_expired_bundles(bundle_dir, config):
+    """Remove context bundles older than configured retention period."""
+    try:
+        retention_config = config.get("retention", {})
+        if not retention_config.get("auto_cleanup", True):
+            return
+
+        days_to_retain = retention_config.get("days_to_retain", 7)
+        if days_to_retain <= 0:
+            return
+
+        now = datetime.now()
+        current_day = now.day
+        cutoff_date = now - timedelta(days=days_to_retain)
+
+        if not bundle_dir.exists():
+            return
+
+        for bundle_file in bundle_dir.glob("*.json"):
+            try:
+                # Parse day number from filename
+                day_num = parse_bundle_date(bundle_file.name)
+                if day_num is None:
+                    continue
+
+                # Get file modification time as fallback for age calculation
+                file_mtime = datetime.fromtimestamp(bundle_file.stat().st_mtime)
+
+                # Check if file is older than retention period
+                if file_mtime < cutoff_date:
+                    bundle_file.unlink()
+                    continue
+
+                # Additional check for month boundary cases
+                # If day_num > current_day, it's likely from previous month
+                if day_num > current_day and file_mtime < cutoff_date:
+                    bundle_file.unlink()
+
+            except Exception:
+                # Skip individual file errors
+                continue
+
+    except Exception:
+        # Silent fail - don't interrupt Claude's flow
+        pass
 
 
 def add_conversation_link(bundle_file, session_id, config):
@@ -138,13 +201,16 @@ def capture_action(event_type):
         # Load configuration
         config = load_config()
 
-        # Read hook data from stdin
-        data = json.load(sys.stdin)
-
         # Create context bundle directory
         project_dir = os.environ.get("CLAUDE_PROJECT_DIR", ".")
         bundle_dir = Path(project_dir) / ".claude" / "agents" / "context_bundles"
         bundle_dir.mkdir(parents=True, exist_ok=True)
+
+        # Cleanup expired bundles FIRST before any new logging
+        cleanup_expired_bundles(bundle_dir, config)
+
+        # Read hook data from stdin
+        data = json.load(sys.stdin)
 
         # Generate filename using Claude's session ID: DAY_DD_SESSIONID.json
         now = datetime.now()

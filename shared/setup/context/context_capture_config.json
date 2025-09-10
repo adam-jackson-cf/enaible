@@ -22,5 +22,9 @@
     "prompt_max_length": 100,
     "edit_string_max_length": 1000,
     "bundle_size_threshold": 10240
+  },
+  "retention": {
+    "days_to_retain": 7,
+    "auto_cleanup": true
   }
 }
