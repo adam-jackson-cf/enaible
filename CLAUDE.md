@@ -4,7 +4,7 @@ A comprehensive development automation system that combines Claude Code CLI work
 
 ## Tech Stack
 
-- Languages: Python 3.7+, TypeScript/JavaScript, Bash/Shell, SQL
+- Languages: Python 3.11+, TypeScript/JavaScript, Bash/Shell, SQL
 - Security Tools: Semgrep, Detect-secrets, Bandit, Safety, SQLFluff
 - Quality Analysis: Flake8, Pylint, Lizard, Radon, McCabe, Vulture
 - Testing: pytest, pytest-cov, Karma, Jasmine, Custom evaluation frameworks

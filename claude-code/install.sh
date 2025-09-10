@@ -1025,7 +1025,7 @@ cleanup() {
         echo "Installation failed. Check the log file for details: $LOG_FILE"
         echo ""
         echo "Common solutions:"
-        echo "  1. Ensure Python 3.7+ is installed"
+        echo "  1. Ensure Python 3.11+ is installed"
         echo "  2. Check internet connectivity"
         echo "  3. Run with --skip-python if Python deps are causing issues"
         echo ""

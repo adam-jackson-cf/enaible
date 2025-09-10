@@ -145,7 +145,7 @@ function Test-Prerequisites {
         }
     } catch {
         Write-ColorOutput "[ERROR] pip not found" -Color $Colors.Red
-        Write-Output "  pip should be included with Python 3.7+"
+        Write-Output "  pip should be included with Python 3.11+"
         Write-Output "  If missing, install with: python -m ensurepip --upgrade"
         Write-Log "pip not found: $($_.Exception.Message)" -Level "ERROR"
         $errors++

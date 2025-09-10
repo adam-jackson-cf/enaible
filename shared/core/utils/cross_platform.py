@@ -9,7 +9,6 @@ import platform
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
 
 class PlatformDetector:
@@ -59,7 +58,7 @@ class CommandExecutor:
 
     @staticmethod
     def run_command(
-        command: list[str], cwd: Optional[str] = None, timeout: Optional[int] = None
+        command: list[str], cwd: str | None = None, timeout: int | None = None
     ) -> tuple[int, str, str]:
         """
         Execute command and return (return_code, stdout, stderr).
@@ -87,7 +86,7 @@ class CommandExecutor:
 
     @staticmethod
     def run_python_script(
-        script_path: str, args: list[str] = None, cwd: Optional[str] = None
+        script_path: str, args: list[str] = None, cwd: str | None = None
     ) -> tuple[int, str, str]:
         """
         Execute Python script with cross-platform compatibility.
@@ -113,7 +112,7 @@ class PathUtils:
     """Utility functions for cross-platform path handling."""
 
     @staticmethod
-    def find_project_root(start_path: str = ".") -> Optional[str]:
+    def find_project_root(start_path: str = ".") -> str | None:
         """
         Find project root by looking for .github directory.
 
@@ -153,8 +152,8 @@ class DependencyChecker:
 
     @staticmethod
     def check_python_version() -> bool:
-        """Check if Python version is 3.8 or higher."""
-        return sys.version_info >= (3, 8)
+        """Check if Python version is 3.11 or higher."""
+        return sys.version_info >= (3, 11)
 
     @staticmethod
     def check_package_installed(package_name: str) -> bool:

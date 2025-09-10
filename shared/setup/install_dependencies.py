@@ -26,7 +26,7 @@ class DependencyInstaller:
     def check_python_version(self) -> bool:
         """Check if Python version meets requirements."""
         if not DependencyChecker.check_python_version():
-            print("❌ Python 3.7 or higher is required")
+            print("❌ Python 3.11 or higher is required")
             print(f"Current version: {sys.version}")
             return False
 
@@ -247,7 +247,7 @@ def main():
         return True
     else:
         print("\n🔧 Troubleshooting:")
-        print("1. Ensure Python 3.7+ is installed")
+        print("1. Ensure Python 3.11+ is installed")
         print("2. Check internet connectivity")
         print("3. Try running: python -m pip install --upgrade pip")
         print("4. Install system dependencies if needed")
