@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Security CI Setup Script
+Security CI Setup Script.
 
 Comprehensive security CI pipeline generator with universal package manager support,
 dependency auditing, pinning checks, and optional branch protection rules.
@@ -13,10 +13,11 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Import base framework components
+# Import base framework components for import validation
 try:
-    from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
-    from core.utils.output_formatter import AnalysisResult, ResultFormatter
+    # Import modules to validate environment but don't use them
+    import core.base.analyzer_base  # noqa: F401
+    import core.utils.output_formatter  # noqa: F401
 except ImportError as e:
     print(f"❌ Failed to import framework components: {e}")
     print("Ensure PYTHONPATH is set to the package root")
@@ -600,7 +601,7 @@ _Security Workflow Version: 2.0_
         return audit_ci_path
 
     def _setup_branch_protection(self, results: dict):
-        """Setup branch protection rules via GitHub API."""
+        """Set up branch protection rules via GitHub API."""
         print("🔧 Setting up branch protection rules...")
 
         # Check if gh CLI is available
@@ -743,7 +744,7 @@ _Security Workflow Version: 2.0_
 
 
 def main():
-    """Main entry point for the security CI setup script."""
+    """Run the security CI setup script."""
     parser = argparse.ArgumentParser(
         description="Setup comprehensive security CI pipeline for JavaScript projects"
     )

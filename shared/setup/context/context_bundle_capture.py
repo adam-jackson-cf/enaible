@@ -83,10 +83,7 @@ def should_exclude_prompt(prompt, config):
     excluded_patterns = config.get("excluded_prompt_patterns", [])
     prompt_text = prompt.strip()
 
-    for pattern in excluded_patterns:
-        if pattern.lower() in prompt_text.lower():
-            return True
-    return False
+    return any(pattern.lower() in prompt_text.lower() for pattern in excluded_patterns)
 
 
 def is_operation_seen(operation, file_path):
