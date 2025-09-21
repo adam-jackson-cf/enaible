@@ -1,167 +1,228 @@
 # OpenCode Commands Documentation
 
 **Source:** https://opencode.ai/docs/commands/
-**Scraped:** 2025-09-10
+**Scraped:** 2025-09-21 12:40:25
 
 ---
 
-## Overview
+## Intro
 
-Custom commands in OpenCode allow you to create specialized prompts for repetitive tasks that can be executed in the Terminal User Interface (TUI).
+Get started with opencode.
 
-## Creating Command Files
+**opencode** is an AI coding agent built for the terminal.
+![opencode TUI with the opencode theme](https://opencode.ai/docs/_astro/screenshot.Bs5D4atL_ZvsvFu.webp)
 
-Commands can be created in two primary ways:
-
-1. Markdown files in the `command/` directory
-2. JSON configuration in `opencode.jsonc`
-
-### Markdown Command Example
-
-Create a file `.opencode/command/test.md`:
-
-```markdown
----
-description: Run tests with coverage
-agent: build
-model: anthropic/claude-3-5-sonnet-20241022
 ---
 
-Run the full test suite with coverage report and show any failures.
-Focus on the failing tests and suggest fixes.
+#### Prerequisites
+
+To use opencode, you’ll need:
+
+1. A modern terminal emulator, such as:
+
+- [WezTerm](https://wezterm.org), cross-platform
+- [Alacritty](https://alacritty.org), cross-platform
+- [Ghostty](https://ghostty.org), Linux and macOS
+- [Kitty](https://sw.kovidgoyal.net/kitty/), Linux and macOS
+
+2. API keys for the LLM providers you want to use.
+
+---
+
+## Install
+
+The easiest way to install opencode is through the install script:
+
+```bash
+curl -fsSL https://opencode.ai/install | bash
 ```
 
-### JSON Command Configuration
+You can also install it with the following:
 
-In `opencode.jsonc`:
+- Using Node.js
 
-```json
-{
-  "command": {
-    "test": {
-      "template": "Run the full test suite with coverage report and show any failures.\nFocus on the failing tests and suggest fixes.",
-      "description": "Run tests with coverage",
-      "agent": "build",
-      "model": "anthropic/claude-3-5-sonnet-20241022"
-    }
-  }
-}
+  ```bash
+  npm install -g opencode-ai
+  ```
+
+  ```bash
+  bun install -g opencode-ai
+  ```
+
+  ```bash
+  pnpm install -g opencode-ai
+  ```
+
+  ```bash
+  yarn global add opencode-ai
+  ```
+
+- Using Homebrew on macOS and Linux
+
+  ```bash
+  brew install sst/tap/opencode
+  ```
+
+- Using Paru on Arch Linux
+  ```bash
+  paru -S opencode-bin
+  ```
+
+### Windows
+
+- Using Chocolatey
+
+  ```powershell
+  choco install opencode
+  ```
+
+- Using WinGet
+
+  ```powershell
+  winget install opencode
+  ```
+
+- Using Scoop
+
+  ```powershell
+  scoop bucket add extras
+  scoop install extras/opencode
+  ```
+
+- Using NPM
+  ```powershell
+  npm install -g opencode-ai
+  ```
+
+Support for installing opencode on Windows using Bun is currently in progress. You can also grab the binary from the [Releases](https://github.com/sst/opencode/releases).
+
+---
+
+## Configure
+
+With opencode you can use any LLM provider by configuring their API keys. If you are new to using LLM providers, we recommend using [opencode zen](https://opencode.ai/docs/zen) — a curated list of models tested by the opencode team.
+
+1. Run:
+
+```bash
+opencode auth login
 ```
 
-## Prompt Configuration
+Select "opencode" and open https://opencode.ai/auth. 2. Sign in, add billing details, and copy your API key. 3. Paste your API key when prompted.
 
-### Arguments
+Alternatively, you can select one of the other providers. [Learn more](https://opencode.ai/docs/providers#directory).
 
-Use `$ARGUMENTS` to pass dynamic arguments to commands:
-
-```markdown
----
-description: Create a new component
 ---
 
-Create a new React component named $ARGUMENTS with TypeScript support.
-Include proper typing and basic structure.
+## Initialize
+
+Navigate to the project you want to work on:
+
+```bash
+cd /path/to/project
 ```
 
-Example usage: `/component Button`
+Run opencode:
 
-### Shell Output
-
-Inject shell command output using _!`command`_:
-
-```markdown
----
-description: Analyze test coverage
----
-
-Here are the current test results:!`npm test`
-Based on these results, suggest improvements to increase coverage.
+```bash
+opencode
 ```
 
-### File References
+Initialize opencode for the project:
 
-Include file contents using `@` followed by filename:
-
-```markdown
----
-description: Review component
----
-
-Review the component in @src/components/Button.tsx.
-Check for performance issues and suggest improvements.
+```bash
+/init
 ```
 
-## Command Options
+This analyzes your project and creates an `AGENTS.md` file in the project root. Commit `AGENTS.md` to Git — it helps opencode understand your project structure and patterns.
 
-### Template (Required)
-
-Defines the prompt sent to the Language Model.
-
-### Description
-
-Provides a brief explanation of the command's purpose.
-
-### Agent (Optional)
-
-Specifies which agent executes the command. Defaults to "build".
-
-### Model (Optional)
-
-Overrides the default model for this specific command.
-
-## Usage Examples
-
-### Basic Command
-
-```markdown
----
-description: Generate documentation
 ---
 
-Generate comprehensive documentation for the current project.
-Include API references and usage examples.
+## Usage
+
+You are now ready to use opencode to work on your project. If you are new to AI coding agents, here are examples.
+
+### Ask questions
+
+Ask opencode to explain the codebase or fuzzy-search for files using `@`:
+
+```text
+How is authentication handled in @packages/functions/src/api/index.ts
 ```
 
-### Command with Arguments
+### Add features
 
-```markdown
----
-description: Create feature branch
----
+Ask opencode to create a plan (Plan mode disables change-making). Switch to Plan mode with the Tab key.
 
-Create a new feature branch named $ARGUMENTS and switch to it.
-Set up the initial commit structure.
+Example prompt (Plan mode):
+
+```text
+When a user deletes a note, we'd like to flag it as deleted in the database.
+
+Then create a screen that shows all the recently deleted notes.
+
+From this screen, the user can undelete a note or permanently delete it.
 ```
 
-### Complex Analysis Command
+Iterate on the plan and provide images or references by dragging them into the terminal.
 
-```markdown
+When ready, switch back to Build mode (Tab) and ask it to make the changes.
+
+Example (Build mode):
+
+```text
+Sounds good! Go ahead and make the changes.
+```
+
+### Make changes
+
+For straightforward changes, ask opencode to implement them directly:
+
+```text
+We need to add authentication to the /settings route. Take a look at how this is handled in the /notes route in @packages/functions/src/notes.ts and implement the same logic in @packages/functions/src/settings.ts
+```
+
+Provide sufficient context so opencode makes the correct changes.
+
+### Undo changes
+
+If a change isn't what you wanted, use `/undo` to revert it:
+
+```text
+/undo
+```
+
+You can run `/undo` multiple times. To redo, use `/redo`:
+
+```text
+/redo
+```
+
 ---
-description: Security audit
-agent: security
+
+## Share
+
+Conversations can be shared with your team:
+
+```text
+/share
+```
+
+This creates a link to the conversation and copies it to your clipboard. Conversations are not shared by default. Example conversation: https://opencode.ai/s/4XP1fce5
+
 ---
 
-Perform a comprehensive security audit of the codebase:!`npm audit`
-Analyze the results and provide remediation steps.
-```
+## Customize
 
-## Best Practices
+To make opencode your own, consider:
 
-1. **Clear Descriptions**: Always include descriptive titles for your commands
-2. **Specific Prompts**: Write detailed prompts to get better results
-3. **Use Arguments**: Leverage `$ARGUMENTS` for flexible commands
-4. **Agent Selection**: Choose appropriate agents for specialized tasks
-5. **Shell Integration**: Use shell output injection for dynamic context
+- picking a theme: https://opencode.ai/docs/themes
+- customizing keybinds: https://opencode.ai/docs/keybinds
+- configuring formatters: https://opencode.ai/docs/formatters
+- creating custom commands: https://opencode.ai/docs/commands
+- editing the opencode config: https://opencode.ai/docs/config
 
-## File Structure
+---
 
-```
-.opencode/
-├── command/
-│   ├── test.md
-│   ├── component.md
-│   └── audit.md
-└── opencode.jsonc
-```
-
-Commands defined in markdown files take precedence over JSON configurations when both exist for the same command name.
+© [Anomaly Innovations Inc.](https://anoma.ly)
+Last updated — Sep 21, 2025

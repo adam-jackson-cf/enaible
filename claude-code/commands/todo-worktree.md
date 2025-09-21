@@ -1,14 +1,10 @@
-# Todo Implementation Program
-
-# imported from https://github.com/badlogic/claude-commands
-
-# modified to use Claude.md rather than bespoke project desc
+# Todo Implementation Program (imported from https://github.com/badlogic/claude-commands)
 
 Structured workflow to transform vague todos into implemented features using git worktrees and subagent assignment. Supports task isolation, resumption, and clean commit history.
 
 ## Workflow
 
-**CRITICAL**
+### **CRITICAL**
 
 - You MUST follow workflow phases in order: INIT → SELECT → REFINE → IMPLEMENT → COMMIT
 - You MUST get user confirmation or input at each STOP

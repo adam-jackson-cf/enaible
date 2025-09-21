@@ -47,23 +47,50 @@
 
 ## Phase 4: System Dependencies Check and Install
 
-1. **Try project level first**: Use Glob tool to locate installer script: `**/scripts/setup/monitoring/install_monitoring_dependencies.py`
-2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py`
-3. Execute dependency check and installation (script includes integrated prerequisite checking):
+## Script Integration
+
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/setup/monitoring/*.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/setup/context/` and `$HOME/.claude/scripts/setup/context/`
+   - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
+   - Set SCRIPT_PATH to user-provided location
+
+**Pre-flight environment check (fail fast if imports not resolved):**
 
 ```bash
-python [resolved_path]/install_monitoring_dependencies.py --dry-run
+SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
+PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
 ```
 
-4. Parse dry-run output to identify:
+4. Execute dependency check and installation (script includes integrated prerequisite checking):
+
+```bash
+python [SCRIPT_PATH]/install_monitoring_dependencies.py --dry-run
+```
+
+5. Parse dry-run output to identify:
    - Prerequisites status (Python 3.x)
    - Core tools status (make, watchexec, foreman)
    - Only missing dependencies that need installation
-5. ONLY if missing dependencies found: 🛑 STOP - USER CONFIRMATION REQUIRED → “Install missing core tools: [list only missing tools]? (y/n)”
+6. ONLY if missing dependencies found: 🛑 STOP - USER CONFIRMATION REQUIRED → “Install missing core tools: [list only missing tools]? (y/n)”
    - Only proceed with installation if user approves:
 
 ```bash
-python [resolved_path]/install_monitoring_dependencies.py
+python [SCRIPT_PATH]/install_monitoring_dependencies.py
 ```
 
 ## Phase 5: Existing File Handling
@@ -92,12 +119,10 @@ python [resolved_path]/install_monitoring_dependencies.py
 
 ## Phase 6: Makefile Generation
 
-1. Use Glob tool to locate Makefile generation script: `**/scripts/generators/makefile.py`
-2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/generators/makefile.py`
-3. Execute Makefile generation using component analysis from Phases 1-3:
+1. Execute Makefile generation using component analysis from Phases 1-3:
 
 ```bash
-python [resolved_path]/generate_makefile.py \
+python [SCRIPT_PATH]/generators/makefile.py \
   --components '[
     {
       "name": "frontend",
@@ -121,16 +146,14 @@ python [resolved_path]/generate_makefile.py \
   --output-dir [current_directory]
 ```
 
-4. Review generated Makefile targets and safety warnings
+2. Review generated Makefile targets and safety warnings
 
 ## Phase 7: Procfile Generation
 
-1. Use Glob tool to locate Procfile generation script: `**/scripts/generators/procfile.py`
-2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/generators/procfile.py`
-3. Execute Procfile generation using same component analysis from Phases 1-3:
+1. Execute Procfile generation using same component analysis from Phases 1-3:
 
 ```bash
-python [resolved_path]/generate_procfile.py \
+python [SCRIPT_PATH]/generators/procfile.py \
   --components '[
     {
       "name": "frontend",
@@ -151,21 +174,19 @@ python [resolved_path]/generate_procfile.py \
   --output-dir [current_directory]
 ```
 
-4. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
+2. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
    - Every service MUST pipe output to `./dev.log` with timestamps
    - Format: `2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [SERVICE] $line"; done | tee -a ./dev.log`
    - **Port handling**: Next.js services should use both `PORT=X` and `-- --port X` for reliability
    - **No separate logs service**: Individual services handle their own logging via `tee`
-5. Review generated service definitions and log formatting
+3. Review generated service definitions and log formatting
 
 ## Phase 8: Project CLAUDE.md Integration
 
-1. Use Glob tool to locate CLAUDE.md update script: `~/.claude/scripts/setup/monitoring/update_claude_md.py`
-2. **If not found, try user level**: Use Bash tool to get home directory and construct path: `$HOME/.claude/scripts/setup/monitoring/update_claude_md.py`
-3. Execute CLAUDE.md update to add development workflow commands:
+1. Execute CLAUDE.md update to add development workflow commands:
 
 ```bash
-python [resolved_path]/update_claude_md.py \
+python [[SCRIPT_PATH]/setup/monitoring/update_claude_md.py \
   --project-dir [current_directory] \
   --components '[
     {

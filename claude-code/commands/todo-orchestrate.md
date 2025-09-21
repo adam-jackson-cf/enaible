@@ -40,18 +40,20 @@ You are the Build Orchestration Manager executing a comprehensive implementation
 
 **Parse and Initialize:**
 
-```
+```markdown
 First use the @agent-plan-manager sub agent to parse implementation plan and create task registry.
 
 # Intelligent expert routing with CTO fallback
+
 If implementation tasks match expert domain AND expert agent exists:
-  - Python development > @agent-python-expert
-  - TypeScript development > @agent-typescript-expert
-  - Infrastructure/Terraform > @agent-terraform-gcp-expert
-  - CI/CD workflows > @agent-git-action-expert
-  - RAG/Search systems > @agent-rag-architecture-expert
-Else:
-  - for all other technologies > @agent-cto
+
+- Python development > @agent-python-expert
+- TypeScript development > @agent-typescript-expert
+- Infrastructure/Terraform > @agent-terraform-gcp-expert
+- CI/CD workflows > @agent-git-action-expert
+- RAG/Search systems > @agent-rag-architecture-expert
+  Else:
+- for all other technologies > invoke a subagent with CTO role
 
 Invoke relevant Subagent with task context and instruction:
 "Enhance the existing implementation plan by directly modifying it with your expert recommendations, whilst keeping the document in its current location."
@@ -60,6 +62,7 @@ Then use the @agent-documenter sub agent to check existing documentation resourc
 Set prototype mode flag if --prototype argument present.
 
 # Plan-manager re-parses updated plan
+
 Use @agent-plan-manager to re-parse the updated implementation plan
 ```
 
@@ -67,11 +70,12 @@ Use @agent-plan-manager to re-parse the updated implementation plan
 
 **Execute continuous task processing through all phases until all tasks completed:**
 
-```
+```markdown
 while (phases remain with incomplete tasks):
 
-  # Process all tasks in current phase
-  while (tasks remain in current phase in non-completed states):
+# Process all tasks in current phase
+
+while (tasks remain in current phase in non-completed states):
 
     ## 1. Task Selection
     Use the @agent-plan-manager sub agent to get next highest priority pending task in current phase.
@@ -81,14 +85,14 @@ while (phases remain with incomplete tasks):
     Use the @agent-documenter sub agent to check existing documentation.
     Use the @agent-solution-validator sub agent to validate technical approach.
     Pass --prototype flag if set so validator knows quality expectations.
-    If rejected: retry up to 3 times, then escalate to @agent-cto sub agent.
+    If rejected: retry up to 3 times, then escalate to @agent-problem-escalation sub agent.
     Update task state to "validated" on approval.
 
     ## 3. Phase 2 - Implementation
-    Use the @agent-fullstack-developer sub agent with validated approach.
+    Use the @agent-senior-developer sub agent with validated approach.
     Developer implements feature and checks dev.log for runtime errors before completion.
     Update task state: in_progress → testing.
-    If implementation fails: retry up to 3 times, escalate to @agent-cto sub agent.
+    If implementation fails: retry up to 3 times, escalate to @agent-problem-escalation sub agent.
 
     ## 4. Phase 3 - Quality Verification
     Use the @agent-quality-monitor sub agent for verification.
@@ -100,7 +104,7 @@ while (phases remain with incomplete tasks):
     On PASS: Update task state to "approved".
     On FAIL: Update task state back to "in_progress".
             Use the @agent-fullstack-developer sub agent to fix specific quality failures.
-    If fails 3 times: escalate to @agent-cto sub agent with --prototype context.
+    If fails 3 times: escalate to @agent-problem-escalation sub agent with --prototype context.
 
     ## 5. Phase 4 - Commit
     Use the @agent-git-manager sub agent to attempt commit.
@@ -109,26 +113,22 @@ while (phases remain with incomplete tasks):
     On PRE-COMMIT FAILURE:
       Update task state back to "in_progress".
       Use the @agent-fullstack-developer sub agent to fix pre-commit issues.
-    If 3 pre-commit failures: escalate to @agent-cto sub agent.
+    If 3 pre-commit failures: escalate to @agent-problem-escalation sub agent.
 
     ## 6. Failure Escalation
     On 3rd failure at any phase:
-      Use the @agent-cto sub agent with full context including --prototype flag.
-      @agent-cto gets 2 attempts to resolve via guided agent interactions.
-      @agent-cto is aware of --prototype quality expectations.
-    After 2 @agent-cto failures: halt with human escalation message.
+      Use the @agent-problem-escalation sub agent with full context including --prototype flag.
+      @agent-problem-escalation gets 2 attempts to resolve via guided agent interactions.
+      @agent-problem-escalation is aware of --prototype quality expectations.
+    After 2 @agent-problem-escalation failures: halt with human escalation message.
 
-  end while (task loop)
+end while (task loop)
 
-  # Phase completed - generate user testing plan
-  Use the @agent-documenter sub agent to:
-    - Create phase[id]-user-testing-plan.md
-    - Document all features implemented in this phase
-    - Provide step-by-step validation instructions
-    - Include expected outcomes and success criteria
-    - Store in centralized documentation area
+# Phase completed - generate user testing plan
 
-  Log: "Phase completed. User testing plan created. Moving to next phase with incomplete tasks."
+Use the @agent-documenter sub agent to: - Create phase[id]-user-testing-plan.md - Document all features implemented in this phase - Provide step-by-step validation instructions - Include expected outcomes and success criteria - Store in centralized documentation area
+
+Log: "Phase completed. User testing plan created. Moving to next phase with incomplete tasks."
 
 end while (phase loop)
 ```
@@ -147,7 +147,7 @@ end while (phase loop)
 - **Continuous Orchestration**: Single command runs entire workflow to completion
 - **Dynamic Quality Gates**: @agent-quality-monitor adapts to project tech stack
 - **Prototype Mode Support**: Automatic test skipping with --prototype flag
-- **Intelligent Failure Handling**: 3 failures → CTO → 2 attempts → human escalation
+- **Intelligent Failure Handling**: 3 failures → problem-escalation → 2 attempts → human escalation
 - **State Persistence**: Progress tracked throughout execution via @agent-plan-manager
 - **Phase Testing Plans**: Automatic generation of user testing plans after each phase
 
@@ -183,7 +183,7 @@ Use the **@agent-plan-manager** sub agent to:
 - Create comprehensive task registry with dependencies
 - Initialize progress tracking system
 
-Use the **@agent-cto** sub agent to:
+Use the **@agent-solution-validator** sub agent to:
 
 - Perform comprehensive codebase and documentation review
 - Identify architecture gaps and documentation conflicts

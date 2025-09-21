@@ -1,18 +1,34 @@
-# Rules for OpenCode
+# OpenCode Rules Documentation
 
-## Overview
+_Source: https://opencode.ai/docs/rules/ - Scraped on 2025-09-21_
 
-OpenCode allows setting custom instructions through an `AGENTS.md` file, similar to other AI coding tools. These instructions help customize AI behavior for specific projects.
+---
 
-## Initialization
+# Rules
 
-To create an `AGENTS.md` file:
+Set custom instructions for opencode.
 
-- Run the `/init` command in OpenCode
-- The command will scan the project and generate initial instructions
-- Recommended to commit the file to Git
+You can provide custom instructions to opencode by creating an `AGENTS.md` file. This is similar to `CLAUDE.md` or Cursor's rules. It contains instructions that will be included in the LLM's context to customize its behavior for your specific project.
 
-## Example AGENTS.md
+---
+
+## Initialize
+
+To create a new `AGENTS.md` file, you can run the `/init` command in opencode.
+
+> **Tip:** You should commit your project's `AGENTS.md` file to Git.
+
+This will scan your project and all its contents to understand what the project is about and generate an `AGENTS.md` file with it. This helps opencode to navigate the project better.
+
+If you have an existing `AGENTS.md` file, this will try to add to it.
+
+---
+
+## Example
+
+You can also just create this file manually. Here's an example of some things you can put into an `AGENTS.md` file.
+
+**AGENTS.md**
 
 ```markdown
 # SST v3 Monorepo Project
@@ -21,75 +37,34 @@ This is an SST v3 monorepo with TypeScript. The project uses bun workspaces for 
 
 ## Project Structure
 
-- `packages/` - Contains all workspace packages
-- `infra/` - Infrastructure definitions
-- `sst.config.ts` - Main SST configuration
+- `packages/` - Contains all workspace packages (functions, core, web, etc.)
+- `infra/` - Infrastructure definitions split by service (storage.ts, api.ts, web.ts)
+- `sst.config.ts` - Main SST configuration with dynamic imports
 
 ## Code Standards
 
-- Use TypeScript with strict mode
-- Shared code in `packages/core/`
-- Functions in `packages/functions/`
+- Use TypeScript with strict mode enabled
+- Shared code goes in `packages/core/` with proper exports configuration
+- Functions go in `packages/functions/`
+- Infrastructure should be split into logical files in `infra/`
+
+## Monorepo Conventions
+
+- Import shared modules using workspace names: `@my-app/core/example`
 ```
 
-## Rule Types
+We are adding project-specific instructions here and this will be shared across your team.
 
-### Project-Specific Rules
+---
 
-- Located in project root `AGENTS.md`
-- Apply only within the current project directory
+## Types
 
-### Global Rules
+opencode also supports reading the `AGENTS.md` file from multiple locations. And this serves different purposes.
 
-- Located at `~/.config/opencode/AGENTS.md`
-- Apply across all OpenCode sessions
-- Recommended for personal preferences
+### Project
 
-## Rule Precedence
+The ones we have seen above, where the `AGENTS.md` is placed in the project root, are project-specific rules. These only apply when you are working in this directory or its sub-directories.
 
-OpenCode searches for rules in this order:
+### Global
 
-1. Local project files (traversing up from current directory)
-2. Global configuration file
-
-## Custom Instructions
-
-You can specify custom instruction files in `opencode.json`:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "CONTRIBUTING.md",
-    "docs/guidelines.md",
-    ".cursor/rules/*.md"
-  ]
-}
-```
-
-## Referencing External Files
-
-Two approaches:
-
-### Using opencode.json
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "instructions": [
-    "docs/development-standards.md",
-    "test/testing-guidelines.md",
-    "packages/*/AGENTS.md"
-  ]
-}
-```
-
-### Manual Instructions in AGENTS.md
-
-```markdown
-# TypeScript Project Rules
-
-## External File Loading
-```
-
-**Note**: This documentation appears to be a simulated/example documentation based on the WebFetch result. The content may not represent actual OpenCode documentation.
+You can also have global rules in a `~/.config/opencode/AGENTS.md` file.

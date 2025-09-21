@@ -21,7 +21,7 @@ Transform the user's prompt in $ARGUMENTS into an optimized GPT-5 prompt followi
 
 Convert to spec format when appropriate:
 
-```
+```xml
 <task_spec>
   Definition: [Core task extracted from original prompt]
   When Required: [Conditions for execution]
@@ -34,8 +34,9 @@ Convert to spec format when appropriate:
 
 ## 3. Add Reasoning and Validation Layers
 
-```
+```markdown
 Before responding, please:
+
 1. Decompose the request into core components
 2. Identify any ambiguities that need clarification
 3. Create a structured approach to address each component
@@ -46,8 +47,9 @@ Before responding, please:
 
 For complex tasks:
 
-```
+```markdown
 Remember: Continue working until the entire request is fully resolved.
+
 - Decompose the query into ALL required sub-tasks
 - Confirm each sub-task is completed before moving on
 - Only conclude when you're certain the problem is fully solved
@@ -81,17 +83,19 @@ Remember: Continue working until the entire request is fully resolved.
 
 ## 6. Add Parallel Processing When Beneficial
 
-```
+```markdown
 Process these tasks in parallel:
+
 - [Independent task 1]
 - [Independent task 2]
-Note: Only serialize tasks with dependencies
+  Note: Only serialize tasks with dependencies
 ```
 
 ## 7. Include Error Prevention
 
-```
+```markdown
 Before providing your final response:
+
 1. Verify all requirements have been addressed
 2. Check for internal consistency
 3. Ensure output format matches specifications
