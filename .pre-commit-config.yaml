@@ -53,7 +53,7 @@ repos:
     rev: v8.56.0
     hooks:
       - id: eslint
-        files: \.(js|jsx|ts|tsx)$
+        files: \\.(js|jsx|ts|tsx)$
         types: [file]
         exclude: ^(test_codebase/|node_modules/)
         additional_dependencies:
