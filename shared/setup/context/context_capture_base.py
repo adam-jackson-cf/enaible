@@ -332,7 +332,6 @@ class ContextCaptureRunner:
                 return
 
             now = datetime.now()
-            current_day = now.day
             cutoff_date = now - timedelta(days=days_to_retain)
             if not bundle_dir.exists():
                 return
@@ -348,8 +347,8 @@ class ContextCaptureRunner:
                         bundle_file.unlink()
                         continue
 
-                    if day_num > current_day and file_mtime < cutoff_date:
-                        bundle_file.unlink()
+                    # Remove the day_num check - rely on mtime only
+                    # The previous condition already handles expired files
                 except Exception:
                     continue
         except Exception:

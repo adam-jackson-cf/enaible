@@ -2,11 +2,11 @@
   "$schema": "https://opencode.ai/config.json",
   "formatter": {
     "black": {
-      "command": "black -q",
+      "command": ["black", "-q"],
       "extensions": [".py", ".pyi"]
     },
     "prettier": {
-      "command": "npx prettier --write",
+      "command": ["npx", "prettier", "--write"],
       "extensions": [".md", ".yaml", ".yml"]
     }
   }
