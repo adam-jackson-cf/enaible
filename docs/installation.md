@@ -2,9 +2,23 @@
 
 ## 📦 Installation
 
+### For Claude Code CLI
+
 ```bash
 ./claude-code/install.sh              # Install to current directory
 ./claude-code/install.sh ~            # Install globally
+```
+
+### For OpenCode Editor
+
+```bash
+./opencode/install.sh                 # Install to current directory
+./opencode/install.sh ~               # Install globally
+```
+
+### Post-Installation Setup
+
+```bash
 /setup-dev-monitoring                 # Optional: Setup unified dev logging
 /setup-ci-monitoring                  # Optional: Continuous improvement monitoring with duplicate detection
 /add-serena-mcp                       # Recommended per project mcp lsp tool
@@ -40,6 +54,8 @@ Full list of libraries used and languages supported found here: [Analysis Script
 
 ### Installation Options
 
+#### Claude Code CLI
+
 ```bash
 # Current directory (uses ./.claude/)
 ./claude-code/install.sh
@@ -56,6 +72,26 @@ Full list of libraries used and languages supported found here: [Analysis Script
 ./claude-code/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
 ./claude-code/install.sh --skip-python  # Skip Python dependencies installation
 ./claude-code/install.sh --help         # Show detailed help and usage information
+```
+
+#### OpenCode Editor
+
+```bash
+# Current directory (uses ./.claude/)
+./opencode/install.sh
+
+# User global (uses ~/.claude/)
+./opencode/install.sh ~
+
+# Custom location
+./opencode/install.sh /my/project/path
+
+# Advanced options
+./opencode/install.sh --dry-run       # Preview changes without making modifications
+./opencode/install.sh --verbose      # Enable detailed debug output
+./opencode/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
+./opencode/install.sh --skip-python  # Skip Python dependencies installation
+./opencode/install.sh --help         # Show detailed help and usage information
 ```
 
 ### Dependencies Installation
