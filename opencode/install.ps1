@@ -575,11 +575,11 @@ function Copy-WorkflowFiles {
 
                 # Track custom commands
                 $customCommands = @()
-                $commandsPath = Join-Path $OpenCodePath "commands"
+                $commandsPath = Join-Path $OpenCodePath "command"
 
                 if (Test-Path $commandsPath) {
                     foreach ($cmd in Get-ChildItem $commandsPath -Filter "*.md") {
-                        $sourceCmd = Join-Path $sourceOpenCodeDir "commands" $cmd.Name
+                        $sourceCmd = Join-Path $sourceOpenCodeDir "command" $cmd.Name
                         if (-not (Test-Path $sourceCmd)) {
                             $customCommands += $cmd.Name
                         }
@@ -623,16 +623,16 @@ function Copy-WorkflowFiles {
                 Write-ColorOutput "Update workflows mode: updating built-in commands, scripts, agents, templates, and rules" -Color $Colors.Green
 
                 # Update built-in commands while preserving custom commands
-                $commandsPath = Join-Path $OpenCodePath "commands"
-                $sourceCommandsPath = Join-Path $sourceOpenCodeDir "commands"
-                if (Test-Path $sourceCommandsPath) {
+                $commandsPath = Join-Path $OpenCodePath "command"
+                $sourceCommandPath = Join-Path $sourceOpenCodeDir "command"
+                if (Test-Path $sourceCommandPath) {
                     Write-Output "  Updating commands directory (preserving custom commands)..."
 
                     # Identify custom commands
                     $customCommands = @()
                     if (Test-Path $commandsPath) {
                         foreach ($cmd in Get-ChildItem $commandsPath -Filter "*.md") {
-                            $sourceCmd = Join-Path $sourceCommandsPath $cmd.Name
+                            $sourceCmd = Join-Path $sourceCommandPath $cmd.Name
                             if (-not (Test-Path $sourceCmd)) {
                                 $customCommands += @{Name = $cmd.Name; Path = $cmd.FullName}
                             }
@@ -651,7 +651,7 @@ function Copy-WorkflowFiles {
                     if (-not (Test-Path $commandsPath)) {
                         New-Item -ItemType Directory -Path $commandsPath -Force | Out-Null
                     }
-                    Copy-Item -Path (Join-Path $sourceCommandsPath "*") -Destination $commandsPath -Force
+                    Copy-Item -Path (Join-Path $sourceCommandPath "*") -Destination $commandsPath -Force
 
                     # Restore custom commands
                     foreach ($cmd in $tempCustomCommands) {
@@ -716,14 +716,14 @@ function Copy-WorkflowFiles {
                 }
 
                 # Update agents directory
-                $agentsPath = Join-Path $OpenCodePath "agents"
-                $sourceAgentsPath = Join-Path $sourceOpenCodeDir "agents"
-                if (Test-Path $sourceAgentsPath) {
+                $agentsPath = Join-Path $OpenCodePath "agent"
+                $sourceAgentPath = Join-Path $sourceOpenCodeDir "agent"
+                if (Test-Path $sourceAgentPath) {
                     Write-Output "  Updating agents directory..."
                     if (Test-Path $agentsPath) {
                         Remove-Item -Path $agentsPath -Recurse -Force
                     }
-                    Copy-Item -Path $sourceAgentsPath -Destination $agentsPath -Recurse -Force
+                    Copy-Item -Path $sourceAgentPath -Destination $agentsPath -Recurse -Force
                 }
 
                 # Update templates directory
@@ -782,7 +782,7 @@ Python Dependencies: $pythonStatus
     }
 
     # Ensure required directories exist
-    $commandsDir = Join-Path $OpenCodePath "commands"
+    $commandsDir = Join-Path $OpenCodePath "command"
     $scriptsDir = Join-Path $OpenCodePath "scripts"
 
     if (-not (Test-Path $commandsDir)) {
@@ -842,7 +842,7 @@ function Test-Installation {
     $errors = 0
 
     # Check main directories
-    $requiredDirs = @("commands", "scripts", "rules", "templates", "agents")
+    $requiredDirs = @("command", "scripts", "rules", "templates", "agent")
     foreach ($dir in $requiredDirs) {
         $dirPath = Join-Path $OpenCodePath $dir
         if (Test-Path $dirPath) {
@@ -857,7 +857,7 @@ function Test-Installation {
     # Note: OPENCODE.md is optional and may not exist
 
     # Count command files
-    $commandsPath = Join-Path $OpenCodePath "commands"
+    $commandsPath = Join-Path $OpenCodePath "command"
     if (Test-Path $commandsPath) {
         $commandCount = (Get-ChildItem $commandsPath -Filter "*.md" | Measure-Object).Count
         Write-ColorOutput "[INFO] Commands found: $commandCount" -Color $Colors.Green
@@ -908,7 +908,7 @@ function Show-CompletionMessage {
     }
 
     Write-ColorOutput "Available commands:" -Color $Colors.Yellow
-    $commandsPath = Join-Path $OpenCodePath "commands"
+    $commandsPath = Join-Path $OpenCodePath "command"
     if (Test-Path $commandsPath) {
         $commands = Get-ChildItem $commandsPath -Filter "*.md" | ForEach-Object { $_.BaseName }
         $commandCount = $commands.Count

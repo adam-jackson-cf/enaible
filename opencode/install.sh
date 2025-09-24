@@ -571,9 +571,9 @@ copy_files() {
     # Verify source files exist
     # Check if we have the expected subdirectories
     local shared_dir="$(dirname "$source_dir")/shared"
-    if [[ ! -d "$source_dir/commands" ]] || [[ ! -d "$shared_dir" ]]; then
+    if [[ ! -d "$source_dir/command" ]] || [[ ! -d "$shared_dir" ]]; then
         log_error "Source files not found"
-        log_error "Expected to find: $source_dir/commands/ and $shared_dir"
+        log_error "Expected to find: $source_dir/command/ and $shared_dir"
         exit 1
     fi
 
@@ -598,7 +598,7 @@ copy_files() {
             for cmd in "$INSTALL_DIR/commands"/*; do
                 if [[ -f "$cmd" ]]; then
                     local cmd_name=$(basename "$cmd")
-                    if ! [[ -f "$source_dir/commands/$cmd_name" ]]; then
+                    if ! [[ -f "$source_dir/command/$cmd_name" ]]; then
                         custom_commands+=("$cmd_name")
                     fi
                 fi
@@ -644,7 +644,7 @@ copy_files() {
                 for cmd in "$INSTALL_DIR/commands"/*; do
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
-                        if ! [[ -f "$source_dir/commands/$cmd_name" ]]; then
+                        if ! [[ -f "$source_dir/command/$cmd_name" ]]; then
                             custom_commands+=("$cmd_name")
                         fi
                     fi
@@ -655,7 +655,7 @@ copy_files() {
             mkdir -p "$INSTALL_DIR/commands"
 
             # Copy/overwrite built-in commands (this preserves any custom commands not in source)
-            cp "$source_dir/commands"/* "$INSTALL_DIR/commands/"
+            cp "$source_dir/commands"/* "$INSTALL_DIR/command/"
 
             # Report preserved custom commands
             if [[ ${#custom_commands[@]} -gt 0 ]]; then
@@ -973,7 +973,7 @@ verify_installation() {
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
                         # Check if this is a custom command (not in source)
-                        if ! [[ -f "$SCRIPT_DIR/commands/$cmd_name" ]]; then
+                        if ! [[ -f "$SCRIPT_DIR/command/$cmd_name" ]]; then
                             log_verbose "  Custom command preserved: $cmd_name"
                             ((custom_commands_found++))
                         fi
@@ -1019,7 +1019,7 @@ show_completion() {
     echo "If commands fail with 'python: command not found', configure your system's default python version."
     echo ""
     echo "For more information:"
-    echo "  View commands: ls $INSTALL_DIR/commands/"
+    echo "  View commands: ls $INSTALL_DIR/command/"
     echo "  Documentation: cat $INSTALL_DIR/OPENCODE.md"
     echo "  Log file: $LOG_FILE"
     echo ""
