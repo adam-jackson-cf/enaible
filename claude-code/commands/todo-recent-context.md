@@ -1,7 +1,7 @@
 ---
 allowed-tools: Bash(git:*), Bash(gh:*), Bash(ls:*), Read, Glob
-argument-hint: [--uuid UUID] [--verbose]
-description: Review recent context bundles and git history for quick orientation
+argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
+description: Summarize recent context from git history and edited files
 ---
 
 # Recent Context Review
@@ -12,17 +12,46 @@ Analyze recent activity from context bundles and git history to understand curre
 
 - `--uuid UUID` - Filter analysis to a specific session UUID
 - `--verbose` - Expand truncated content from linked conversation files (when available)
+- `--search-term TERM` - Search for sessions containing semantically matching content
 
 ## Behavior
 
 This command performs a comprehensive review of recent activity by:
 
+**FIRST - Resolve SCRIPT_PATH:**
+
+1. **Try project-level .claude folder**:
+
+   ```bash
+   Glob: ".claude/scripts/analyzers/context/context_bundle_capture_claude.py"
+   ```
+
+2. **Try user-level .claude folder**:
+
+   ```bash
+   Bash: ls "$HOME/.claude/scripts/analyzers/context/context_bundle_capture_claude.py"
+   ```
+
+3. **Interactive fallback if not found**:
+   - List searched locations: `.claude/scripts/analyzers/context/` and `$HOME/.claude/scripts/analyzers/context/`
+   - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
+   - Validate provided path contains the script
+   - Set SCRIPT_PATH to user-provided location
+
+**Pre-flight environment check (fail fast if imports not resolved):**
+
+```bash
+SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"
+PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_claude; print('env OK')"
+```
+
 1. **Context Bundle Analysis**
 
-   - Find and analyze context bundles from the last 2 days in `.claude/agents/context_bundles/`
-   - Filter to specific UUID if `--uuid` provided (pattern: `*_UUID.json`)
-   - Parse JSON files to extract operations, file access patterns, and user objectives
-   - In `--verbose` mode: expand truncated content from linked conversation JSONL files
+   - Extract context data using the resolved script path
+   - Filter to specific UUID if `--uuid` provided
+   - Search for semantic matches if `--search-term` provided
+   - Parse returned operations for file access patterns and user objectives
+   - In `--verbose` mode: expand truncated content
    - Summarize session activity and identify workflow patterns
 
 2. **Git Status Review**
@@ -47,11 +76,25 @@ This command performs a comprehensive review of recent activity by:
 ### 1. Context Bundle Discovery
 
 ```bash
-# Default: Find context bundle files from last 2 days
-ls -la .claude/agents/context_bundles/ 2>/dev/null | grep -E "$(date +'%a_%d'|tr '[:lower:]' '[:upper:]')|$(date -d 'yesterday' +'%a_%d'|tr '[:lower:]' '[:upper:]')"
+# Extract context data using the resolved script
+# Generate semantic variations when search term is provided
+if [ -n "$SEARCH_TERM" ]; then
+    # Generate semantic variations based on search term
+    SEMANTIC_VARIATIONS=$(cat <<EOF
+{
+    "$(echo "$SEARCH_TERM" | cut -d' ' -f1)": [
+        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)s",
+        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ing",
+        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ed"
+    ]
+}
+EOF
+)
+else
+    SEMANTIC_VARIATIONS=""
+fi
 
-# With --uuid: Filter to specific session
-ls -la .claude/agents/context_bundles/*_${UUID}.json 2>/dev/null
+PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} --output-format json
 ```
 
 ### 2. Git History Analysis
@@ -71,12 +114,34 @@ git status --oneline -3
 
 ### 4. Data Analysis and Summary
 
-- Parse context bundle JSON files for operation patterns
-- Handle optimized bundles with truncated content and conversation links
-- In `--verbose` mode: fetch full content from linked JSONL conversation files
+- Parse returned JSON data for operation patterns
+- Handle data with semantic search results and UUID filtering
+- In `--verbose` mode: expand truncated content from detailed operations
 - Extract file access frequencies and modification types (accounting for deduplication)
 - Identify command usage patterns and user objectives
 - Correlate with git history for comprehensive view
+
+**Semantic Variations Generation**:
+
+When `--search-term` is provided, generate semantic variations dynamically:
+
+```bash
+# For single-word search terms
+{
+    "auth": ["auths", "authing", "authed"]
+}
+
+# For multi-word search terms, use first word
+{
+    "authentication": ["authentications", "authenticating", "authenticated"]
+}
+```
+
+The LLM should enhance this with context-aware variations based on the search domain:
+
+- Technical terms: related concepts, implementations, patterns
+- Actions: verb forms, synonyms, related activities
+- Domains: associated technologies, frameworks, tools
 
 ## Output Format
 
@@ -85,9 +150,9 @@ git status --oneline -3
 
 ## Context Bundles Analysis
 
-**Sessions Found**: [count] sessions across [count] files
+**Sessions Found**: [count] sessions
 **Date Range**: [earliest timestamp] to [latest timestamp]
-**Filter**: [All recent sessions | UUID: {uuid}]
+**Filter**: [All recent sessions | UUID: {uuid} | Search: {term}]
 **Mode**: [Concise summaries | Verbose with full content]
 
 ### File Operations Summary
@@ -97,7 +162,7 @@ git status --oneline -3
   - `[file_path]` (read operations only)
 - **Recent Edits**: [list of files modified via Write/Edit operations]
 - **Files Read**: [list of files accessed via Read operations]
-- **Conversation Links**: [sessions with linked JSONL files for full detail]
+- **Search Results**: [sessions matching search criteria]
 
 ### Session Patterns
 
@@ -158,6 +223,20 @@ git status --oneline -3
 
 # Analyze specific session with full detail
 /todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --verbose
+
+# Search for sessions with semantic matching
+/todo-recent-context --search-term "authentication bug"
+
+# Search within specific session
+/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
+
+# Enhanced semantic search with LLM-generated variations
+# When searching for "authentication", the LLM might generate:
+{
+    "authentication": ["auth", "login", "signin", "authorize", "security", "verify", "authenticate"],
+    "bug": ["error", "issue", "problem", "fix", "debug", "repair", "resolve"],
+    "performance": ["speed", "fast", "slow", "optimize", "efficiency", "latency"]
+}
 ```
 
 $ARGUMENTS

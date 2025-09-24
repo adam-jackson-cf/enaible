@@ -350,6 +350,161 @@ function Install-PythonDependencies {
 }
 
 
+function Install-ESLintPackages {
+    param(
+        [string]$TargetDir
+    )
+
+    Write-Host "Installing ESLint packages..." -ForegroundColor Yellow
+
+    # Create target directory if it doesn't exist
+    if (-not (Test-Path $TargetDir)) {
+        New-Item -ItemType Directory -Path $TargetDir -Force | Out-Null
+    }
+
+    # Create a minimal package.json in the target directory
+    $packageJson = @{
+        name = "claude-eslint-workspace"
+        version = "1.0.0"
+        description = "ESLint workspace for Claude Code"
+        private = $true
+        dependencies = @{
+            "eslint" = "^8.0.0"
+            "@typescript-eslint/parser" = "^5.0.0"
+            "@typescript-eslint/eslint-plugin" = "^5.0.0"
+            "eslint-plugin-react" = "^7.32.0"
+            "eslint-plugin-import" = "^2.27.0"
+            "eslint-plugin-vue" = "^9.0.0"
+        }
+    } | ConvertTo-Json -Depth 10
+
+    Set-Content -Path "$TargetDir/package.json" -Value $packageJson
+
+    # Install packages
+    Push-Location $TargetDir
+    try {
+        npm install --no-fund --no-audit --silent
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "ESLint packages installed successfully" -ForegroundColor Green
+        } else {
+            Write-Host "Warning: ESLint package installation had issues, continuing..." -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host "Warning: ESLint package installation failed, continuing..." -ForegroundColor Yellow
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Verify-ESLintPlugins {
+    param()
+
+    Write-Verbose "Verifying ESLint plugins..."
+
+    $requiredPlugins = @(
+        "@typescript-eslint/parser",
+        "eslint-plugin-react",
+        "eslint-plugin-import",
+        "eslint-plugin-vue"
+    )
+
+    # Only verify if we have a package.json in current directory
+    if (-not (Test-Path "package.json")) {
+        Write-Verbose "No package.json found, skipping plugin verification"
+        return
+    }
+
+    foreach ($plugin in $requiredPlugins) {
+        # Try to check if plugin is available (this is a best-effort check)
+        # Use --depth=0 to prevent npm from traversing to parent directories
+        $localCheck = npm list --depth=0 $plugin 2>$null
+        $globalCheck = npm list -g $plugin 2>$null
+
+        if ($localCheck -and $globalCheck) {
+            Write-Verbose "Plugin $plugin may not be available, but continuing..."
+        }
+    }
+
+    Write-Verbose "ESLint plugin verification completed"
+}
+
+function Check-ESLint {
+    param()
+
+    $targetDir = "$HOME\.claude"
+    $eslintDir = "$targetDir\eslint"
+
+    if (-not (Test-Path "$eslintDir\node_modules\.bin\eslint.cmd") -and
+        -not (Get-Command "eslint" -ErrorAction SilentlyContinue)) {
+
+        Write-Host "ESLint not found. Installing ESLint packages..." -ForegroundColor Yellow
+
+        if (-not (Test-Path $targetDir)) {
+            New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+        }
+
+        Install-ESLintPackages -TargetDir $eslintDir
+
+        # Verify installation
+        Verify-ESLintPlugins
+
+        # Add to PATH if not already there
+        $envPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+        if ($envPath -notlike "*$targetDir\eslint\node_modules\.bin*") {
+            [Environment]::SetEnvironmentVariable("PATH", "$envPath;$targetDir\eslint\node_modules\.bin", "User")
+            $env:PATH += ";$targetDir\eslint\node_modules\.bin"
+        }
+    } else {
+        Write-Verbose "ESLint is available"
+        Verify-ESLintPlugins
+    }
+}
+
+function Test-SecurityTools {
+    Write-Host "Checking security analysis tools (required for semantic analysis)..." -ForegroundColor Yellow
+
+    # Check if Semgrep is available
+    if (-not (Get-Command "semgrep" -ErrorAction SilentlyContinue)) {
+        Write-Host "Semgrep not found, will be installed with Python dependencies..." -ForegroundColor Yellow
+        $script:SEMGREP_MISSING = $true
+    } else {
+        try {
+            $semgrepVersion = & semgrep --version 2>$null
+            Write-Verbose "Found Semgrep $semgrepVersion"
+        } catch {
+            Write-Verbose "Found Semgrep (version unknown)"
+        }
+    }
+
+    # Check if detect-secrets is available
+    if (-not (Get-Command "detect-secrets" -ErrorAction SilentlyContinue)) {
+        Write-Host "detect-secrets not found, will be installed with Python dependencies..." -ForegroundColor Yellow
+        $script:DETECT_SECRETS_MISSING = $true
+    } else {
+        try {
+            $detectSecretsVersion = & detect-secrets --version 2>$null
+            Write-Verbose "Found detect-secrets $detectSecretsVersion"
+        } catch {
+            Write-Verbose "Found detect-secrets (version unknown)"
+        }
+    }
+
+    # Check if sqlfluff is available
+    if (-not (Get-Command "sqlfluff" -ErrorAction SilentlyContinue)) {
+        Write-Host "SQLFluff not found, will be installed with Python dependencies..." -ForegroundColor Yellow
+        $script:SQLFLUFF_MISSING = $true
+    } else {
+        try {
+            $sqlfluffVersion = & sqlfluff --version 2>$null
+            Write-Verbose "Found SQLFluff $sqlfluffVersion"
+        } catch {
+            Write-Verbose "Found SQLFluff (version unknown)"
+        }
+    }
+}
+
+
 function Copy-WorkflowFiles {
     param(
         [string]$ClaudePath,
@@ -524,7 +679,7 @@ function Copy-WorkflowFiles {
                     foreach ($scriptFile in Get-ChildItem $scriptsPath -Recurse -File) {
                         $relativePath = [System.IO.Path]::GetRelativePath($scriptsPath, $scriptFile.FullName)
                         $foundInSource = $false
-                        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "tests", "ci", "core")) {
+                        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "tests", "ci", "core", "config", "context")) {
                             $sourcePath = Join-Path $sharedDir $subdir ($relativePath -replace "^$subdir[\\/]", "")
                             if ((Test-Path $sourcePath) -and $relativePath.StartsWith("$subdir\")) {
                                 $foundInSource = $true
@@ -661,7 +816,7 @@ function Copy-SharedScripts {
         Write-Log "Copying scripts from shared/ subdirectories to $targetScriptsDir"
 
         $copiedCount = 0
-        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "ci", "core", "config")) {
+        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "ci", "core", "config", "context", "test-paths")) {
             $sourcePath = Join-Path $sharedDir $subdir
             if (Test-Path $sourcePath) {
                 $targetPath = Join-Path $targetScriptsDir $subdir
@@ -811,7 +966,8 @@ $script:ActiveSpinner = $null
 function Start-Spinner {
     param(
         [string]$Message,
-        [scriptblock]$Action
+        [scriptblock]$Action,
+        [int]$TimeoutSeconds = 0
     )
 
     # Start background job
@@ -822,6 +978,15 @@ function Start-Spinner {
     while ($job.State -eq 'Running') {
         $elapsed = (Get-Date) - $startTime
         $elapsedString = "{0:mm\:ss}" -f $elapsed
+
+        # Check timeout if specified
+        if ($TimeoutSeconds -gt 0 -and $elapsed.TotalSeconds -gt $TimeoutSeconds) {
+            Write-Host -NoNewline ("`r{0}`r" -f (' ' * 60))
+            Write-ColorOutput "[ERROR] Operation timed out after ${TimeoutSeconds}s" -Color $Colors.Red
+            Stop-Job $job -Force
+            Remove-Job $job
+            throw "Operation timed out after ${TimeoutSeconds}s"
+        }
 
         # Get current spinner character
         $spinnerChar = $script:SpinnerChars[$script:SpinnerIndex % $script:SpinnerChars.Length]
@@ -851,11 +1016,12 @@ function Start-Spinner {
 function Invoke-WithSpinner {
     param(
         [string]$Message,
-        [scriptblock]$ScriptBlock
+        [scriptblock]$ScriptBlock,
+        [int]$TimeoutSeconds = 0
     )
 
     try {
-        $result = Start-Spinner -Message $Message -Action $ScriptBlock
+        $result = Start-Spinner -Message $Message -Action $ScriptBlock -TimeoutSeconds $TimeoutSeconds
         Write-ColorOutput "✓ $Message completed" -Color $Colors.Green
         return $result
     }
@@ -1226,8 +1392,12 @@ try {
 
     Test-PrerequisitesParallel
 
-    # Phase 2: Directory Setup
-    Show-Phase -PhaseNumber 2 -TotalPhases 7 -Description "Setting up directories"
+    # Phase 2: Checking Analysis Tools
+    Show-Phase -PhaseNumber 2 -TotalPhases 8 -Description "Checking analysis tools"
+    Test-SecurityTools
+
+    # Phase 3: Directory Setup
+    Show-Phase -PhaseNumber 3 -TotalPhases 8 -Description "Setting up directories"
 
     # Handle existing installation and get install mode
     $installResult = Handle-ExistingInstallation $claudePath
@@ -1240,32 +1410,37 @@ try {
         exit 0
     }
 
-    # Phase 3: File Copying
-    Show-Phase -PhaseNumber 3 -TotalPhases 7 -Description "Copying workflow files"
+    # Phase 4: File Copying
+    Show-Phase -PhaseNumber 4 -TotalPhases 8 -Description "Copying workflow files"
     Copy-WorkflowFiles $claudePath $installMode
 
-    # Phase 4: Installation Tracking
-    Show-Phase -PhaseNumber 4 -TotalPhases 7 -Description "Creating installation tracking"
+    # Phase 5: Installation Tracking
+    Show-Phase -PhaseNumber 5 -TotalPhases 8 -Description "Creating installation tracking"
     # Installation log is created within Copy-WorkflowFiles
 
-    # Phase 5: Dependencies
-    Show-Phase -PhaseNumber 5 -TotalPhases 7 -Description "Installing dependencies"
+    # Phase 6: Dependencies
+    Show-Phase -PhaseNumber 6 -TotalPhases 8 -Description "Installing dependencies"
     if (-not $SkipPython) {
         Install-PythonDependencies
     } else {
         Write-ColorOutput "Skipping Python dependencies installation" -Color $Colors.Yellow
     }
 
-    # Phase 6: Verification
-    Show-Phase -PhaseNumber 6 -TotalPhases 7 -Description "Verifying installation"
+    # Check ESLint (required for frontend analysis)
+    if (-not $SkipPython) {
+        Check-ESLint
+    }
+
+    # Phase 7: Verification
+    Show-Phase -PhaseNumber 7 -TotalPhases 8 -Description "Verifying installation"
     if (-not (Test-Installation $claudePath)) {
         Write-ColorOutput "[ERROR] Installation verification failed" -Color $Colors.Red
         Write-Log "Installation verification failed" -Level "ERROR"
         exit 1
     }
 
-    # Phase 7: Completion
-    Show-Phase -PhaseNumber 7 -TotalPhases 7 -Description "Finalizing installation"
+    # Phase 8: Completion
+    Show-Phase -PhaseNumber 8 -TotalPhases 8 -Description "Finalizing installation"
     Show-CompletionMessage $claudePath $backupPath
     Write-Log "Installation completed successfully"
 

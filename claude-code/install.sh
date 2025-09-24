@@ -380,9 +380,16 @@ verify_eslint_plugins() {
         "eslint-plugin-vue"
     )
 
+    # Only verify if we have a package.json in current directory
+    if [[ ! -f "package.json" ]]; then
+        log_verbose "No package.json found, skipping plugin verification"
+        return 0
+    fi
+
     for plugin in "${required_plugins[@]}"; do
         # Try to check if plugin is available (this is a best-effort check)
-        if ! npm list "$plugin" &> /dev/null && ! npm list -g "$plugin" &> /dev/null; then
+        # Use --depth=0 to prevent npm from traversing to parent directories
+        if ! npm list --depth=0 "$plugin" &> /dev/null && ! npm list -g "$plugin" &> /dev/null; then
             log_verbose "Plugin $plugin may not be available, but continuing..."
         fi
     done
@@ -604,7 +611,7 @@ copy_files() {
         local shared_dir="$(dirname "$source_dir")/shared"
         if [[ ! -d "$INSTALL_DIR/scripts" ]]; then
             mkdir -p "$INSTALL_DIR/scripts"
-            for subdir in analyzers generators setup utils ci core config; do
+            for subdir in analyzers generators setup utils ci core config context; do
                 if [[ -d "$shared_dir/$subdir" ]]; then
                     ( cp -r "$shared_dir/$subdir" "$INSTALL_DIR/scripts/$subdir" ) &
                     spinner $! "Copying $subdir scripts"
@@ -669,7 +676,7 @@ copy_files() {
                 while IFS= read -r -d '' script_file; do
                     local rel_path="${script_file#$INSTALL_DIR/scripts/}"
                     local found_in_source=false
-                    for subdir in analyzers generators setup utils ci core config; do
+                    for subdir in analyzers generators setup utils ci core config context; do
                         if [[ -f "$shared_dir/$subdir/${rel_path#*/}" ]] && [[ "$rel_path" == "$subdir/"* ]]; then
                             found_in_source=true
                             break
@@ -694,7 +701,7 @@ copy_files() {
             # Remove and recreate scripts directory
             rm -rf "$INSTALL_DIR/scripts"
             mkdir -p "$INSTALL_DIR/scripts"
-            for subdir in analyzers generators setup utils ci core config; do
+            for subdir in analyzers generators setup utils ci core config context; do
                 if [[ -d "$shared_dir/$subdir" ]]; then
                     cp -r "$shared_dir/$subdir" "$INSTALL_DIR/scripts/$subdir"
                 fi
@@ -743,7 +750,7 @@ copy_files() {
         # Copy scripts from shared/ subdirectories
         local shared_dir="$(dirname "$source_dir")/shared"
         mkdir -p "$INSTALL_DIR/scripts"
-        for subdir in analyzers generators setup utils ci core config test-paths; do
+        for subdir in analyzers generators setup utils ci core config context test-paths; do
             if [[ -d "$shared_dir/$subdir" ]]; then
                 ( cp -r "$shared_dir/$subdir" "$INSTALL_DIR/scripts/$subdir" ) &
                 spinner $! "Copying $subdir scripts"

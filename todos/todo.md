@@ -1,6 +1,0 @@
-- refine the security analyser configs based on the tests
-- bring in code formatters
-- make tech specific coding agents + implement jinja templates
-- eval system using dspy
-- port prompts to centralised format with templates per implementation
-- opencode port plus install scripts
