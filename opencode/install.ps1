@@ -1365,7 +1365,19 @@ try {
 
     # Resolve target path
     $resolvedTargetPath = Resolve-TargetPath $TargetPath
-    $OpenCodePath = Join-Path $resolvedTargetPath ".opencode"
+
+    # Check if this is a global config directory that should not have .opencode appended
+    if ($resolvedTargetPath -like "*\.config\opencode" -or
+        $resolvedTargetPath -like "*\etc\opencode" -or
+        $resolvedTargetPath -like "*\.opencode") {
+        # User is installing to a global config directory or already specified .opencode
+        $OpenCodePath = $resolvedTargetPath
+        Write-Log "Installing to global config directory, using path directly: $OpenCodePath"
+    } else {
+        # Append .opencode to the path
+        $OpenCodePath = Join-Path $resolvedTargetPath ".opencode"
+        Write-Log "Appending .opencode to target path"
+    }
 
     # Check write permissions
     if (-not (Test-WritePermissions $resolvedTargetPath)) {

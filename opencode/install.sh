@@ -423,11 +423,13 @@ setup_install_dir() {
     fi
 
     # Set final installation path
-    # Check if TARGET_PATH already ends with .opencode
-    if [[ "$TARGET_PATH" == */.opencode ]]; then
-        # User already specified .opencode in the path
+    # Check if this is a global config directory that should not have .opencode appended
+    if [[ "$TARGET_PATH" == */.config/opencode ]] ||
+       [[ "$TARGET_PATH" == */etc/opencode ]] ||
+       [[ "$TARGET_PATH" == */.opencode ]]; then
+        # User is installing to a global config directory or already specified .opencode
         INSTALL_DIR="$TARGET_PATH"
-        log_verbose "Target path already ends with .opencode, using it directly"
+        log_verbose "Installing to global config directory, using path directly"
     else
         # Append .opencode to the path
         INSTALL_DIR="$TARGET_PATH/.opencode"
