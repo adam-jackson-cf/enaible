@@ -42,7 +42,7 @@ import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -61,11 +61,11 @@ class CodeBlock:
     file_path: str
     start_line: int
     end_line: int
-    function_name: Optional[str] = None
-    class_name: Optional[str] = None
+    function_name: str | None = None
+    class_name: str | None = None
     complexity_score: int = 0
-    ast_hash: Optional[str] = None
-    token_hash: Optional[str] = None
+    ast_hash: str | None = None
+    token_hash: str | None = None
 
 
 @dataclass
@@ -357,9 +357,9 @@ class CompositeDuplicateDetector:
 
     def __init__(
         self,
-        exact_detector: Optional[ExactDuplicateDetector] = None,
-        structural_detector: Optional[StructuralDuplicateDetector] = None,
-        semantic_detector: Optional[SemanticDuplicateDetector] = None,
+        exact_detector: ExactDuplicateDetector | None = None,
+        structural_detector: StructuralDuplicateDetector | None = None,
+        semantic_detector: SemanticDuplicateDetector | None = None,
     ):
         self.detectors = []
 
@@ -526,7 +526,7 @@ Matches by Type:
 class CodeDuplicationAnalyzer(BaseAnalyzer):
     """Analyzes code duplication using multiple detection strategies."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create duplication-specific configuration
         duplication_config = config or AnalyzerConfig(
             code_extensions={

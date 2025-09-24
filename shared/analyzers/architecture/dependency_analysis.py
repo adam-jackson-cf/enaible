@@ -24,7 +24,7 @@ import json
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -35,7 +35,7 @@ from core.base.analyzer_registry import register_analyzer
 class DependencyAnalyzer(BaseAnalyzer):
     """Analyzes project dependencies and identifies potential issues."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create dependency-specific configuration
         dependency_config = config or AnalyzerConfig(
             code_extensions={
@@ -610,7 +610,7 @@ class DependencyAnalyzer(BaseAnalyzer):
 
     def _check_vulnerability(
         self, package: str, version: str, file_path: Path
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Check if package version has known vulnerabilities."""
         if package in self.vulnerability_patterns:
             vuln_info = self.vulnerability_patterns[package]
@@ -635,7 +635,7 @@ class DependencyAnalyzer(BaseAnalyzer):
 
     def _check_outdated_version(
         self, package: str, version: str, file_path: Path
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Check if package version is outdated."""
         # Simplified outdated check - look for very old patterns
         outdated_indicators = [

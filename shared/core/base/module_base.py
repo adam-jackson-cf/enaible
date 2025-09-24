@@ -7,7 +7,7 @@ Eliminates duplication of import setup and path management patterns.
 
 import logging
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .error_handler import CIErrorHandler
 
@@ -15,7 +15,7 @@ from .error_handler import CIErrorHandler
 class CIModuleBase:
     """Base class for all CI framework modules with common setup functionality."""
 
-    def __init__(self, module_name: str, project_root: Optional[str] = None):
+    def __init__(self, module_name: str, project_root: str | None = None):
         self.module_name = module_name
         self.project_root = Path(project_root) if project_root else Path.cwd()
         # Initialize logger early to satisfy type checkers
@@ -137,7 +137,7 @@ class CIModuleBase:
             CIErrorHandler.permission_error("write file", file_path, e)
 
     def log_operation(
-        self, operation: str, details: Optional[dict[str, Any]] = None
+        self, operation: str, details: dict[str, Any] | None = None
     ) -> None:
         """Log operation with consistent format."""
         message = f"{operation}"
@@ -150,7 +150,7 @@ class CIModuleBase:
 class CIAnalysisModule(CIModuleBase):
     """Base class for analysis modules with additional analysis-specific functionality."""
 
-    def __init__(self, module_name: str, project_root: Optional[str] = None):
+    def __init__(self, module_name: str, project_root: str | None = None):
         super().__init__(module_name, project_root)
         self.analysis_start_time: float | None = None
 
@@ -177,12 +177,12 @@ class CIAnalysisModule(CIModuleBase):
 class CIConfigModule(CIModuleBase):
     """Base class for configuration-related modules."""
 
-    def __init__(self, module_name: str, project_root: Optional[str] = None):
+    def __init__(self, module_name: str, project_root: str | None = None):
         super().__init__(module_name, project_root)
         self.config_cache: dict[str, Any] = {}
 
     def load_config(
-        self, config_name: str, required_keys: Optional[list] = None
+        self, config_name: str, required_keys: list | None = None
     ) -> dict[str, Any]:
         """Load and cache configuration with validation."""
         if config_name in self.config_cache:

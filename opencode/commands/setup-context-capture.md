@@ -1,82 +1,63 @@
 ---
-description: Install and manage Opencode context capture hooks backed by Python bundling scripts
+allowed-tools: Write, Edit, Read, Bash(python:*), Bash(chmod:*), Bash(ls:*), Bash(cat:*)
+description: >
+Setup OpenCode context capture hooks for session history bundling, captures - tool executions, user prompts, session starts
+- Stores JSON bundles in `.opencode/agents/context_bundles/`
+- Configure in `.opencode/hooks/context_capture_config.json` (exclusions, truncation, redaction, retention)
 ---
 
-# setup-context-capture
+# Setup Context Capture
 
-Configure Opencode to persist context bundles for every session by wiring runtime hooks to the existing Python capture stack.
+Configure OpenCode to persist context bundles for every session by installing the context capture plugin and Python scripts.
 
-## Overview
+## Script Integration
 
-Running `opencode setup-context-capture enable` installs the context capture plugin hooks and copies the Python assets into `.opencode/hooks/`. Once enabled, every tool call, session start, and user prompt emits a structured JSON payload to `context_bundle_capture_opencode.py`, producing the same bundle format used in our Claude Code workflow. Bundles link back to full conversations via the session UUID so `/todo-recent-context` can reconstruct recent history.
+**FIRST - Resolve SCRIPT_PATH:**
 
-## Requirements
+1. **Try project-level .opencode folder**:
 
-- The `opencode/plugins/context-capture.ts` plugin must be present in the repository
-- Python 3 available on the `PATH` (override with `OPENCODE_PYTHON` if needed)
-- `.opencode/hooks/` writable inside the project
-- Access to the shared context assets in `shared/setup/context/`
+   ```bash
+   Glob: ".opencode/scripts/setup/context/*.py"
+   ```
 
-## Command Actions
+2. **Try user-level .opencode folder**:
 
-### 1. Status (default)
+   ```bash
+   Bash: ls "$HOME/.config/opencode/scripts/setup/context/"
+   ```
 
-```bash
-opencode setup-context-capture status
-```
+3. **Interactive fallback if not found**:
+   - List searched locations: `.opencode/scripts/setup/context/` and `$HOME/.config/opencode/scripts/setup/context/`
+   - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
+   - Validate provided path contains expected scripts (context_bundle_capture_opencode.py, context_capture_base.py, etc.)
+   - Set SCRIPT_PATH to user-provided location
 
-- Prints the current enablement state
-- Verifies the hook scripts exist under `.opencode/hooks/`
-- Displays a reminder if the assets need to be reinstalled
-
-### 2. Enable
-
-```bash
-opencode setup-context-capture enable
-```
-
-Performs the full installation:
-
-1. Creates `.opencode/hooks/` if necessary
-2. Copies the following files from `shared/setup/context/` into `.opencode/hooks/`:
-   - `context_capture_base.py`
-   - `context_bundle_capture_opencode.py`
-   - `sensitive_data_redactor.py`
-   - `context_capture_config.json`
-3. Marks the Python files as executable (`chmod +x` equivalent)
-4. Writes `.opencode/hooks/.context-capture-enabled` to activate the hook bridge
-
-After enabling, the plugin subscribes to:
-
-- `tool.execute.after` → `context_bundle_capture_opencode.py post-tool`
-- `session.start` → `context_bundle_capture_opencode.py session-start`
-- `user.prompt.submitted` → `context_bundle_capture_opencode.py user-prompt`
-
-Each hook invocation pipes the runtime payload to the Python script via stdin, preserving exclusions, truncation, and redaction logic defined in `context_capture_config.json`.
-
-### 3. Disable
+**Pre-flight environment check (fail fast if imports not resolved):**
 
 ```bash
-opencode setup-context-capture disable
+SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"
+PYTHONPATH="$SCRIPTS_ROOT" python -c "from shared.setup.context.context_capture_base import ContextCaptureRunner; print('env OK')"
 ```
 
-- Removes the `.context-capture-enabled` marker
-- Leaves copied assets in place so re-enabling is instant
-- Hooks remain registered but short-circuit until re-enabled
+**THEN - Copy files to hooks and plugin directories:**
 
-## Verification Checklist
+```bash
+# Create directories
+mkdir -p "$OPENCODE_PROJECT_DIR/.opencode/hooks"
+mkdir -p "$OPENCODE_PROJECT_DIR/.opencode/plugin"
 
-1. Run `opencode setup-context-capture enable`
-2. Trigger a few tool commands and prompts inside Opencode
-3. Inspect `.opencode/agents/context_bundles/` for freshly written bundle files
-4. Optional: run `opencode setup-context-capture status` to confirm the enabled state
-5. Use `opencode todo-recent-context --verbose` to consume the generated bundles
+# Copy capture script, base module, redactor, and config from deployed location
+cp "$SCRIPTS_ROOT/setup/context/context_capture_base.py" "$OPENCODE_PROJECT_DIR/.opencode/hooks/"
+cp "$SCRIPTS_ROOT/setup/context/context_bundle_capture_opencode.py" "$OPENCODE_PROJECT_DIR/.opencode/hooks/"
+cp "$SCRIPTS_ROOT/setup/context/sensitive_data_redactor.py" "$OPENCODE_PROJECT_DIR/.opencode/hooks/"
+cp "$SCRIPTS_ROOT/setup/context/context_capture_config.json" "$OPENCODE_PROJECT_DIR/.opencode/hooks/"
 
-## Troubleshooting
+# Copy plugin file
+cp "$SCRIPTS_ROOT/opencode/plugins/context-capture.ts" "$OPENCODE_PROJECT_DIR/.opencode/plugin/"
 
-- **Missing scripts warning**: Rerun `opencode setup-context-capture enable` to reinstall assets
-- **Different Python interpreter**: Set `OPENCODE_PYTHON=/path/to/python` before starting Opencode
-- **No bundles written**: Confirm `.context-capture-enabled` exists and that the plugin is loaded (check Opencode startup logs)
-- **Custom redaction**: Edit `.opencode/hooks/context_capture_config.json` to adjust exclusions or truncation limits
+# Make scripts executable
+chmod +x "$OPENCODE_PROJECT_DIR/.opencode/hooks/context_bundle_capture_opencode.py"
+chmod +x "$OPENCODE_PROJECT_DIR/.opencode/hooks/sensitive_data_redactor.py"
+```
 
 $ARGUMENTS

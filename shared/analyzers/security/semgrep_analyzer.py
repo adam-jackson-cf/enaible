@@ -26,7 +26,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -37,7 +37,7 @@ from core.base.analyzer_registry import register_analyzer
 class SemgrepAnalyzer(BaseAnalyzer):
     """Semantic security analysis using Semgrep instead of regex patterns."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create security-specific configuration
         security_config = config or AnalyzerConfig(
             code_extensions={
@@ -353,7 +353,7 @@ class SemgrepAnalyzer(BaseAnalyzer):
 
     def _process_semgrep_finding(
         self, finding: dict[str, Any], ruleset: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Convert Semgrep finding to our standardized format."""
         try:
             # Extract key information from Semgrep finding
@@ -491,7 +491,7 @@ class SemgrepAnalyzer(BaseAnalyzer):
 
         return findings
 
-    def analyze(self, target_path: Optional[str] = None) -> Any:
+    def analyze(self, target_path: str | None = None) -> Any:
         """
         Override BaseAnalyzer.analyze to let Semgrep handle file discovery.
 

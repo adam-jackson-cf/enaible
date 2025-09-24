@@ -26,20 +26,20 @@
 
 ## 📝 Research & Analysis Specialists
 
-| Subagent                           | Specialization            | Purpose                                        |
-| :--------------------------------- | :------------------------ | :--------------------------------------------- |
-| **user-researcher**                | User Research             | User behavior analysis and market research     |
-| **competitive-intelligence-analyst** | Market Intelligence      | Competitor analysis and market positioning     |
-| **technical-researcher**           | Technical Research        | Code analysis and implementation research      |
-| **research-coordinator**           | Research Management       | Multi-agent research workflow coordination     |
-| **docs-scraper**                   | Documentation            | Web documentation scraping and processing      |
+| Subagent                             | Specialization      | Purpose                                    |
+| :----------------------------------- | :------------------ | :----------------------------------------- |
+| **user-researcher**                  | User Research       | User behavior analysis and market research |
+| **competitive-intelligence-analyst** | Market Intelligence | Competitor analysis and market positioning |
+| **technical-researcher**             | Technical Research  | Code analysis and implementation research  |
+| **research-coordinator**             | Research Management | Multi-agent research workflow coordination |
+| **docs-scraper**                     | Documentation       | Web documentation scraping and processing  |
 
 ## 🎨 Design & User Experience
 
-| Subagent        | Specialization    | Purpose                              |
-| :-------------- | :---------------- | :----------------------------------- |
-| **ux-designer** | UX Design         | User experience design and planning  |
-| **ux-reviewer** | UX Analysis       | User interface review and validation |
+| Subagent        | Specialization | Purpose                              |
+| :-------------- | :------------- | :----------------------------------- |
+| **ux-designer** | UX Design      | User experience design and planning  |
+| **ux-reviewer** | UX Analysis    | User interface review and validation |
 
 ## ⚡ Session Uptime Maximization Subagents
 

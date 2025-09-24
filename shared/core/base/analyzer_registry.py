@@ -7,7 +7,8 @@ Purpose: Allow orchestration to construct analyzers by name without tight coupli
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from .analyzer_base import AnalyzerConfig, BaseAnalyzer
 

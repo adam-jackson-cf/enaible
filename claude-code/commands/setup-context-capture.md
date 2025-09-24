@@ -8,6 +8,8 @@ description: Setup session context capture for improved continuity
 
 Configure automatic session action tracking into JSON context bundles for improved session continuity and debugging.
 
+Users can customize the capture behavior by editing the deployed `context_capture_config.json` file to add or remove exclusions, adjust truncation limits, or modify the bundle size threshold.
+
 ## Script Integration
 
 **FIRST - Resolve SCRIPT_PATH:**
@@ -97,7 +99,5 @@ When enabled, adds the following hooks to `.claude/settings.local.json`:
   }
 }
 ```
-
-Users can customize the capture behavior by editing the deployed `context_capture_config.json` file to add or remove exclusions, adjust truncation limits, or modify the bundle size threshold.
 
 $ARGUMENTS

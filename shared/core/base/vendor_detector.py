@@ -21,7 +21,6 @@ import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass
@@ -31,13 +30,13 @@ class VendorDetection:
     is_vendor: bool
     confidence: float  # 0.0 to 1.0
     reasons: list[str]
-    detected_library: Optional[str] = None
+    detected_library: str | None = None
 
 
 class VendorDetector:
     """Detects vendor, third-party, and external library code."""
 
-    def __init__(self, project_root: Optional[Path] = None):
+    def __init__(self, project_root: Path | None = None):
         """
         Initialize vendor detector.
 
@@ -265,7 +264,7 @@ class VendorDetector:
 
     def _check_vendor_paths(
         self, file_path: Path
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check if file is in a vendor/third-party directory."""
         path_str = str(file_path).lower()
         reasons = []
@@ -286,7 +285,7 @@ class VendorDetector:
 
     def _check_filename_patterns(
         self, file_path: Path
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check filename patterns that indicate vendor code."""
         filename = file_path.name.lower()
         reasons = []
@@ -332,7 +331,7 @@ class VendorDetector:
 
     def _check_license_markers(
         self, content: str
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check for copyright and license markers."""
         reasons = []
 
@@ -345,7 +344,7 @@ class VendorDetector:
 
     def _check_library_signatures(
         self, content: str
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check for library-specific signatures."""
         reasons = []
 
@@ -358,7 +357,7 @@ class VendorDetector:
 
     def _check_minification(
         self, content: str
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check for minification patterns."""
         reasons = []
 
@@ -375,7 +374,7 @@ class VendorDetector:
 
     def _check_generated_markers(
         self, content: str
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check for generated file markers."""
         reasons = []
 
@@ -388,7 +387,7 @@ class VendorDetector:
 
     def _check_dependency_match(
         self, file_path: Path, content: str
-    ) -> tuple[bool, float, list[str], Optional[str]]:
+    ) -> tuple[bool, float, list[str], str | None]:
         """Check if file matches a known package dependency."""
         reasons = []
 

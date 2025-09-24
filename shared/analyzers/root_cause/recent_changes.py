@@ -23,7 +23,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -36,7 +36,7 @@ class RecentChangesAnalyzer(BaseAnalyzer):
 
     def __init__(
         self,
-        config: Optional[AnalyzerConfig] = None,
+        config: AnalyzerConfig | None = None,
         days_back: int = 30,
         max_commits: int = 100,
         error_info: str = "",
@@ -268,7 +268,7 @@ class RecentChangesAnalyzer(BaseAnalyzer):
 
         return all_findings
 
-    def analyze(self, target_path: Optional[str] = None) -> Any:
+    def analyze(self, target_path: str | None = None) -> Any:
         """
         Override analyze method to handle git repository analysis directly.
 
@@ -304,7 +304,7 @@ class RecentChangesAnalyzer(BaseAnalyzer):
 
         return self.complete_analysis(result)
 
-    def _find_git_root(self, path: Path) -> Optional[Path]:
+    def _find_git_root(self, path: Path) -> Path | None:
         """Find the git repository root directory."""
         current = path.resolve()
         while current != current.parent:
@@ -429,8 +429,8 @@ class RecentChangesAnalyzer(BaseAnalyzer):
         )
 
     def run_git_command(
-        self, command: list[str], cwd: Optional[Path] = None
-    ) -> Optional[str]:
+        self, command: list[str], cwd: Path | None = None
+    ) -> str | None:
         """Run a git command and return output."""
         import os
 

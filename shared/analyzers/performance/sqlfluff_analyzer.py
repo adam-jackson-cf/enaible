@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -39,7 +39,7 @@ from core.base.analyzer_registry import register_analyzer
 class SQLFluffAnalyzer(BaseAnalyzer):
     """SQL performance analysis using SQLFluff instead of regex patterns."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create SQL-specific configuration
         sql_config = config or AnalyzerConfig(
             code_extensions={
@@ -286,7 +286,7 @@ class SQLFluffAnalyzer(BaseAnalyzer):
 
     def _process_sqlfluff_finding(
         self, violation: dict[str, Any], file_path: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Convert SQLFluff finding to our standardized format."""
         try:
             # Extract key information from SQLFluff violation

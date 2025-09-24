@@ -26,7 +26,7 @@ FUTURE INTEGRATIONS:
 
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base profiler (package root must be on PYTHONPATH)
 from core.base.profiler_base import BaseProfiler, ProfilerConfig
@@ -35,7 +35,7 @@ from core.base.profiler_base import BaseProfiler, ProfilerConfig
 class CodeProfiler(BaseProfiler):
     """General-purpose code performance profiler."""
 
-    def __init__(self, config: Optional[ProfilerConfig] = None):
+    def __init__(self, config: ProfilerConfig | None = None):
         # Create code-specific configuration
         code_config = config or ProfilerConfig(
             code_extensions={

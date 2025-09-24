@@ -22,7 +22,7 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -33,7 +33,7 @@ from core.base.analyzer_registry import register_analyzer
 class PatternEvaluationAnalyzer(BaseAnalyzer):
     """Evaluates design patterns and architectural decisions."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create pattern-specific configuration
         pattern_config = config or AnalyzerConfig(
             code_extensions={

@@ -10,7 +10,7 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class Severity(Enum):
@@ -42,10 +42,10 @@ class Finding:
         title: str,
         description: str,
         severity: Severity,
-        file_path: Optional[str] = None,
-        line_number: Optional[int] = None,
-        recommendation: Optional[str] = None,
-        evidence: Optional[dict[str, Any]] = None,
+        file_path: str | None = None,
+        line_number: int | None = None,
+        recommendation: str | None = None,
+        evidence: dict[str, Any] | None = None,
     ):
         self.finding_id = finding_id
         self.title = title
@@ -198,10 +198,10 @@ class ResultFormatter:
         title: str
         description: str
         severity: str
-        file_path: Optional[str] = None
-        line_number: Optional[int] = None
-        recommendation: Optional[str] = None
-        evidence: Optional[dict[str, Any]] = None
+        file_path: str | None = None
+        line_number: int | None = None
+        recommendation: str | None = None
+        evidence: dict[str, Any] | None = None
 
     @staticmethod
     def create_security_result(script_name: str, target_path: str) -> AnalysisResult:

@@ -63,16 +63,19 @@ Full list of libraries used and languages supported found here: [Analysis Script
 The installer automatically handles all dependencies:
 
 **Python Dependencies:**
+
 - Runs `shared/setup/install_dependencies.py` to install packages from `shared/setup/requirements.txt`
 - Optionally installs CI framework dependencies from `shared/setup/ci/requirements.txt`
 - Validates Python 3.11+ compatibility
 
 **Node.js Dependencies:**
+
 - Automatically installs ESLint and plugins via npm if not present
 - Creates a `package.json` in the installation directory
 - Installs comprehensive frontend analysis tools (ESLint, TypeScript, React, Vue, Svelte plugins)
 
 **Installation Tracking:**
+
 - Creates an installation log for clean uninstallation tracking
 - Tracks which packages were pre-existing vs newly installed
 

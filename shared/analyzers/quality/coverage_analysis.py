@@ -10,7 +10,7 @@ error handling, and result formatting patterns.
 
 import re
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -21,7 +21,7 @@ from core.base.analyzer_registry import register_analyzer
 class TestCoverageAnalyzer(BaseAnalyzer):
     """Language-agnostic test coverage analyzer extending BaseAnalyzer infrastructure."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         super().__init__("test_coverage", config)
 
         # Language-specific test patterns and coverage tools
@@ -214,7 +214,7 @@ class TestCoverageAnalyzer(BaseAnalyzer):
 
         return findings
 
-    def categorize_file(self, file_path: Path) -> Optional[dict[str, Any]]:
+    def categorize_file(self, file_path: Path) -> dict[str, Any] | None:
         """Categorize a file as test or source for a specific language."""
         # Map file extensions to languages
         ext_map = {

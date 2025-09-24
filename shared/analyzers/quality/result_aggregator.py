@@ -39,7 +39,7 @@ from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -363,7 +363,7 @@ class ResultCorrelator:
 class AnalysisAggregator(BaseAnalyzer):
     """Main aggregator that combines and organizes analysis results extending BaseAnalyzer infrastructure."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create result aggregation-specific configuration
         aggregation_config = config or AnalyzerConfig(
             code_extensions={
@@ -666,10 +666,10 @@ class AnalysisAggregator(BaseAnalyzer):
 
     def get_filtered_results(
         self,
-        priority: Optional[Priority] = None,
-        analysis_type: Optional[AnalysisType] = None,
-        file_path: Optional[str] = None,
-        min_confidence: Optional[float] = None,
+        priority: Priority | None = None,
+        analysis_type: AnalysisType | None = None,
+        file_path: str | None = None,
+        min_confidence: float | None = None,
     ) -> list[AnalysisResult]:
         """Get filtered analysis results."""
         filtered = self.results
@@ -699,7 +699,7 @@ class AnalysisAggregator(BaseAnalyzer):
         return sorted_results[:limit]
 
     def export_results(
-        self, output_format: str = "json", output_path: Optional[str] = None
+        self, output_format: str = "json", output_path: str | None = None
     ) -> str:
         """Export results in specified format."""
         if format.lower() == "json":
@@ -709,7 +709,7 @@ class AnalysisAggregator(BaseAnalyzer):
         else:
             raise ValueError(f"Unsupported export format: {format}")
 
-    def _export_json(self, output_path: Optional[str]) -> str:
+    def _export_json(self, output_path: str | None) -> str:
         """Export results as JSON."""
         data = {
             "project_summary": self._make_json_serializable(
@@ -752,7 +752,7 @@ class AnalysisAggregator(BaseAnalyzer):
         else:
             return obj
 
-    def _export_csv(self, output_path: Optional[str]) -> str:
+    def _export_csv(self, output_path: str | None) -> str:
         """Export results as CSV."""
         import csv
         import io
@@ -932,7 +932,7 @@ Based on the analysis results, here's a recommended action plan:
 def aggregate_analysis_results(
     target_path: str,
     output_format: str = "json",
-    analysis_results: Optional[list[AnalysisResult]] = None,
+    analysis_results: list[AnalysisResult] | None = None,
 ) -> dict[str, Any]:
     """
     Legacy function wrapper for backward compatibility.

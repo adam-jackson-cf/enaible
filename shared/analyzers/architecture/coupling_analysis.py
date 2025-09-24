@@ -22,7 +22,7 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 import re
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -33,7 +33,7 @@ from core.base.analyzer_registry import register_analyzer
 class CouplingAnalyzer(BaseAnalyzer):
     """Analyzes code coupling patterns and dependency relationships."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create architecture-specific configuration
         architecture_config = config or AnalyzerConfig(
             code_extensions={

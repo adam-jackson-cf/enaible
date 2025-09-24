@@ -9,9 +9,10 @@ import functools
 import threading
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import Any, Callable, Optional, Union
+from typing import Any
 
 
 @dataclass
@@ -55,7 +56,7 @@ class PerformanceTracker:
             self._timings[result.operation].append(result)
 
     def get_timings(
-        self, operation: Optional[str] = None
+        self, operation: str | None = None
     ) -> dict[str, list[TimingResult]]:
         """Get recorded timings."""
         with self._lock:
@@ -90,7 +91,7 @@ class PerformanceTracker:
                 summary[operation] = self.get_statistics(operation)
             return summary
 
-    def clear(self, operation: Optional[str] = None) -> None:
+    def clear(self, operation: str | None = None) -> None:
         """Clear timing records."""
         with self._lock:
             if operation:
@@ -109,9 +110,9 @@ def get_performance_tracker() -> PerformanceTracker:
 
 
 def timed_operation(
-    operation_name: Optional[str] = None,
-    metadata: Optional[dict[str, Any]] = None,
-    tracker: Optional[PerformanceTracker] = None,
+    operation_name: str | None = None,
+    metadata: dict[str, Any] | None = None,
+    tracker: PerformanceTracker | None = None,
 ):
     """
     Decorate a function to time its execution.
@@ -152,8 +153,8 @@ def timed_operation(
 @contextmanager
 def time_operation(
     operation_name: str,
-    metadata: Optional[dict[str, Any]] = None,
-    tracker: Optional[PerformanceTracker] = None,
+    metadata: dict[str, Any] | None = None,
+    tracker: PerformanceTracker | None = None,
 ):
     """
     Context manager to time operations.
@@ -194,16 +195,16 @@ class OperationTimer:
     def __init__(
         self,
         operation_name: str,
-        metadata: Optional[dict[str, Any]] = None,
-        tracker: Optional[PerformanceTracker] = None,
+        metadata: dict[str, Any] | None = None,
+        tracker: PerformanceTracker | None = None,
     ):
         self.operation_name = operation_name
         self.metadata = metadata or {}
         self.tracker = tracker or _global_tracker
-        self.start_time: Optional[float] = None
-        self.end_time: Optional[float] = None
+        self.start_time: float | None = None
+        self.end_time: float | None = None
         self._paused_duration: float = 0.0
-        self._pause_start: Optional[float] = None
+        self._pause_start: float | None = None
 
     def start(self) -> "OperationTimer":
         """Start timing."""
@@ -282,17 +283,13 @@ class OperationTimer:
 class BatchTimer:
     """Timer for batched operations with statistics."""
 
-    def __init__(
-        self, operation_name: str, tracker: Optional[PerformanceTracker] = None
-    ):
+    def __init__(self, operation_name: str, tracker: PerformanceTracker | None = None):
         self.operation_name = operation_name
         self.tracker = tracker or _global_tracker
         self.batch_timings: list[float] = []
-        self.current_timer: Optional[OperationTimer] = None
+        self.current_timer: OperationTimer | None = None
 
-    def start_item(
-        self, item_metadata: Optional[dict[str, Any]] = None
-    ) -> "BatchTimer":
+    def start_item(self, item_metadata: dict[str, Any] | None = None) -> "BatchTimer":
         """Start timing an individual item in the batch."""
         if self.current_timer is not None:
             raise RuntimeError("Item timer already active")
@@ -349,8 +346,8 @@ class BatchTimer:
 
 
 def create_performance_report(
-    tracker: Optional[PerformanceTracker] = None, format_type: str = "summary"
-) -> Union[str, dict[str, Any]]:
+    tracker: PerformanceTracker | None = None, format_type: str = "summary"
+) -> str | dict[str, Any]:
     """
     Create a performance report from recorded timings.
 

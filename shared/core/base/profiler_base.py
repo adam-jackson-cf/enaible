@@ -21,7 +21,7 @@ ELIMINATES DUPLICATION FROM:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .module_base import CIAnalysisModule
 
@@ -88,10 +88,10 @@ class ProfilerConfig:
     )
 
     # Performance settings
-    max_files: Optional[int] = None
+    max_files: int | None = None
     max_file_size_mb: int = 10
     batch_size: int = 100
-    timeout_seconds: Optional[int] = None
+    timeout_seconds: int | None = None
 
     # Analysis settings
     severity_thresholds: dict[str, float] = field(
@@ -140,7 +140,7 @@ class BaseProfiler(CIAnalysisModule, ABC):
     - Error handling
     """
 
-    def __init__(self, profiler_type: str, config: Optional[ProfilerConfig] = None):
+    def __init__(self, profiler_type: str, config: ProfilerConfig | None = None):
         super().__init__(f"{profiler_type}_profiler")
 
         self.profiler_type = profiler_type
@@ -307,7 +307,7 @@ class BaseProfiler(CIAnalysisModule, ABC):
 
         return batch_findings
 
-    def analyze(self, target_path: Optional[str] = None) -> Any:
+    def analyze(self, target_path: str | None = None) -> Any:
         """
         Run main analysis entry point with full profiling pipeline.
 

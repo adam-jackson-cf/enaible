@@ -22,7 +22,7 @@ import ast
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -33,7 +33,7 @@ from core.base.analyzer_registry import register_analyzer
 class ScalabilityAnalyzer(BaseAnalyzer):
     """Analyzes code for scalability bottlenecks and architectural constraints."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create scalability-specific configuration
         scalability_config = config or AnalyzerConfig(
             code_extensions={
@@ -579,7 +579,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
 
             for node in ast.walk(tree):
                 # Check for deeply nested loops
-                if isinstance(node, (ast.For, ast.While)):
+                if isinstance(node, ast.For | ast.While):
                     nesting_level = self._count_nesting_level(node, tree)
                     if nesting_level >= 3:
                         line_num = getattr(node, "lineno", 0)
@@ -664,7 +664,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
             for child in ast.iter_child_nodes(node):
                 if child == target_node:
                     return True
-                if isinstance(child, (ast.For, ast.While)):
+                if isinstance(child, ast.For | ast.While):
                     level += 1
                     if count_parent_loops(child):
                         return True

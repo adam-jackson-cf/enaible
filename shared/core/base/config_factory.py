@@ -7,7 +7,7 @@ Eliminates duplication of configuration dataclass patterns.
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 
 from .error_handler import CIErrorHandler
 
@@ -64,8 +64,8 @@ class EmbeddingConfig(ConfigBase):
     cache_embeddings: bool = True
     batch_size: int = 32
     max_sequence_length: int = 512
-    include_symbol_types: Optional[list[str]] = None
-    exclude_files: Optional[list[str]] = None
+    include_symbol_types: list[str] | None = None
+    exclude_files: list[str] | None = None
     similarity_threshold: float = 0.85
 
     def _set_defaults(self):
@@ -170,9 +170,9 @@ class DetectionConfig(ConfigBase):
     min_line_length: int = 5
     ignore_test_files: bool = True
     ignore_generated_files: bool = True
-    file_extensions: Optional[list[str]] = None
-    exclude_patterns: Optional[list[str]] = None
-    include_patterns: Optional[list[str]] = None
+    file_extensions: list[str] | None = None
+    exclude_patterns: list[str] | None = None
+    include_patterns: list[str] | None = None
 
     def _set_defaults(self):
         if self.file_extensions is None:
@@ -224,8 +224,8 @@ class QualityGateConfig(ConfigBase):
     parallel_execution: bool = True
     capture_output: bool = True
     truncate_output_lines: int = 1000
-    prototype_mode_gates: Optional[list[str]] = None
-    production_mode_gates: Optional[list[str]] = None
+    prototype_mode_gates: list[str] | None = None
+    production_mode_gates: list[str] | None = None
 
     def _set_defaults(self):
         if self.prototype_mode_gates is None:
@@ -262,12 +262,12 @@ class QualityGateConfig(ConfigBase):
 class MetricsConfig(ConfigBase):
     """Configuration for metrics collection."""
 
-    database_path: Optional[Path] = None
+    database_path: Path | None = None
     enable_metrics: bool = True
     retention_days: int = 90
     aggregation_interval_hours: int = 1
-    export_formats: Optional[list[str]] = None
-    alert_thresholds: Optional[dict[str, float]] = None
+    export_formats: list[str] | None = None
+    alert_thresholds: dict[str, float] | None = None
 
     def _set_defaults(self):
         if self.database_path is None:

@@ -14,7 +14,6 @@ The PACKAGE_ROOT is computed from this file location (parent of utils/).
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 
 def setup_import_paths() -> Path:
@@ -37,7 +36,7 @@ def get_project_root() -> Path:
     return PACKAGE_ROOT.parent
 
 
-def get_analyzers_dir(category: Optional[str] = None) -> Path:
+def get_analyzers_dir(category: str | None = None) -> Path:
     """
     Get the path to analyzers directory or a specific category.
 
@@ -54,7 +53,7 @@ def get_analyzers_dir(category: Optional[str] = None) -> Path:
     return analyzers_path
 
 
-def get_ci_dir(subdir: Optional[str] = None) -> Path:
+def get_ci_dir(subdir: str | None = None) -> Path:
     """
     Get the path to CI directory or a specific subdirectory.
 
@@ -86,7 +85,7 @@ def get_analyzer_script_path(category: str, script_name: str) -> Path:
     return get_analyzers_dir(category) / script_name
 
 
-def get_test_codebase_dir(subdir: Optional[str] = None) -> Path:
+def get_test_codebase_dir(subdir: str | None = None) -> Path:
     """
     Get the test codebase directory.
 

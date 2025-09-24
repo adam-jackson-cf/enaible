@@ -33,7 +33,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -638,7 +638,7 @@ class SecurityPatternDetector(PatternDetector):
                     and node.args
                 ):
                     arg = node.args[0]
-                    if isinstance(arg, (ast.BinOp, ast.JoinedStr, ast.FormattedValue)):
+                    if isinstance(arg, ast.BinOp | ast.JoinedStr | ast.FormattedValue):
                         matches.append(
                             PatternMatch(
                                 pattern_name="SQL Injection Risk",
@@ -747,7 +747,7 @@ class SecurityPatternDetector(PatternDetector):
                 ):
                     # This is a simplified check - real implementation would be more sophisticated
                     arg = node.args[0]
-                    if isinstance(arg, (ast.BinOp, ast.JoinedStr)):
+                    if isinstance(arg, ast.BinOp | ast.JoinedStr):
                         matches.append(
                             PatternMatch(
                                 pattern_name="Path Traversal Risk",
@@ -840,8 +840,8 @@ class CompositePatternClassifier(BaseAnalyzer):
 
     def __init__(
         self,
-        config: Optional[AnalyzerConfig] = None,
-        detectors: Optional[list[PatternDetector]] = None,
+        config: AnalyzerConfig | None = None,
+        detectors: list[PatternDetector] | None = None,
     ):
         # Create pattern classification-specific configuration
         pattern_config = config or AnalyzerConfig(
@@ -1220,7 +1220,7 @@ Patterns by Type:
 def classify_code_patterns(
     target_path: str,
     output_format: str = "json",
-    detectors: Optional[list[PatternDetector]] = None,
+    detectors: list[PatternDetector] | None = None,
 ) -> dict[str, Any]:
     """
     Legacy function wrapper for backward compatibility.

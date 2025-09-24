@@ -23,7 +23,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -34,7 +34,7 @@ from core.base.analyzer_registry import register_analyzer
 class LizardComplexityAnalyzer(BaseAnalyzer):
     """Wrapper around Lizard for code complexity analysis using BaseAnalyzer infrastructure."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create quality-specific configuration
         quality_config = config or AnalyzerConfig(
             code_extensions={

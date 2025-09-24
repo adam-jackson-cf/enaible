@@ -9,9 +9,10 @@ import fnmatch
 import hashlib
 import shutil
 import tempfile
+from collections.abc import Callable
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any
 
 from .error_handler import CIErrorContext, CIErrorHandler
 from .timing_utils import timed_operation
@@ -21,7 +22,7 @@ class FileSystemUtils:
     """Utility class for common file system operations."""
 
     @staticmethod
-    def ensure_directory(path: Union[str, Path], mode: int = 0o755) -> Path:
+    def ensure_directory(path: str | Path, mode: int = 0o755) -> Path:
         """Ensure directory exists with proper error handling."""
         path_obj = Path(path)
 
@@ -32,9 +33,9 @@ class FileSystemUtils:
 
     @staticmethod
     def safe_read_text(
-        file_path: Union[str, Path],
+        file_path: str | Path,
         encoding: str = "utf-8",
-        fallback_encodings: Optional[list[str]] = None,
+        fallback_encodings: list[str] | None = None,
     ) -> str:
         """
         Safely read text file with fallback encodings.
@@ -79,7 +80,7 @@ class FileSystemUtils:
 
     @staticmethod
     def safe_write_text(
-        file_path: Union[str, Path],
+        file_path: str | Path,
         content: str,
         encoding: str = "utf-8",
         create_parents: bool = True,
@@ -109,8 +110,8 @@ class FileSystemUtils:
 
     @staticmethod
     def safe_copy_file(
-        source: Union[str, Path],
-        destination: Union[str, Path],
+        source: str | Path,
+        destination: str | Path,
         create_parents: bool = True,
         overwrite: bool = False,
     ) -> Path:
@@ -154,7 +155,7 @@ class FileSystemUtils:
         return dest_path
 
     @staticmethod
-    def get_file_hash(file_path: Union[str, Path], algorithm: str = "md5") -> str:
+    def get_file_hash(file_path: str | Path, algorithm: str = "md5") -> str:
         """
         Get hash of file contents.
 
@@ -185,11 +186,11 @@ class FileSystemUtils:
 
     @staticmethod
     def find_files(
-        root_path: Union[str, Path],
-        patterns: Optional[list[str]] = None,
-        exclude_patterns: Optional[list[str]] = None,
-        extensions: Optional[list[str]] = None,
-        max_depth: Optional[int] = None,
+        root_path: str | Path,
+        patterns: list[str] | None = None,
+        exclude_patterns: list[str] | None = None,
+        extensions: list[str] | None = None,
+        max_depth: int | None = None,
         follow_symlinks: bool = False,
     ) -> list[Path]:
         """
@@ -255,7 +256,7 @@ class FileSystemUtils:
         return sorted(files)
 
     @staticmethod
-    def get_directory_size(path: Union[str, Path]) -> int:
+    def get_directory_size(path: str | Path) -> int:
         """
         Get total size of directory in bytes.
 
@@ -279,8 +280,8 @@ class FileSystemUtils:
 
     @staticmethod
     def clean_directory(
-        path: Union[str, Path],
-        patterns: Optional[list[str]] = None,
+        path: str | Path,
+        patterns: list[str] | None = None,
         dry_run: bool = False,
     ) -> list[Path]:
         """
@@ -336,8 +337,8 @@ class TemporaryDirectory:
     def __init__(self, prefix: str = "ci_temp_", cleanup: bool = True):
         self.prefix = prefix
         self.cleanup = cleanup
-        self.path: Optional[Path] = None
-        self._temp_dir: Optional[tempfile.TemporaryDirectory[str]] = None
+        self.path: Path | None = None
+        self._temp_dir: tempfile.TemporaryDirectory[str] | None = None
 
     def __enter__(self) -> Path:
         self._temp_dir = tempfile.TemporaryDirectory(prefix=self.prefix)
@@ -350,9 +351,7 @@ class TemporaryDirectory:
 
 
 @contextmanager
-def atomic_write(
-    file_path: Union[str, Path], encoding: str = "utf-8", backup: bool = False
-):
+def atomic_write(file_path: str | Path, encoding: str = "utf-8", backup: bool = False):
     """
     Context manager for atomic file writing.
 
@@ -404,7 +403,7 @@ def atomic_write(
 class DirectoryWatcher:
     """Watch directory for file changes."""
 
-    def __init__(self, directory: Union[str, Path]):
+    def __init__(self, directory: str | Path):
         self.directory = Path(directory)
         self._file_states: dict[Path, dict[str, Any]] = {}
         self._scan_directory()
@@ -476,7 +475,7 @@ def process_files_in_batches(
     files: list[Path],
     processor: Callable[[Path], Any],
     batch_size: int = 100,
-    progress_callback: Optional[Callable[[int, int], None]] = None,
+    progress_callback: Callable[[int, int], None] | None = None,
 ) -> list[Any]:
     """
     Process files in batches with progress tracking.

@@ -26,7 +26,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -37,7 +37,7 @@ from core.base.analyzer_registry import register_analyzer
 class FrontendPerformanceAnalyzer(BaseAnalyzer):
     """Analyzes frontend performance issues and optimization opportunities."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create frontend-specific configuration
         frontend_config = config or AnalyzerConfig(
             code_extensions={

@@ -30,7 +30,7 @@ EXTENDS: Similar to BaseProfiler but for general analysis tools
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from .module_base import CIAnalysisModule
 from .validation_rules import (
@@ -115,10 +115,10 @@ class AnalyzerConfig:
     )
 
     # Analysis settings
-    max_files: Optional[int] = None
+    max_files: int | None = None
     max_file_size_mb: int = 5
     batch_size: int = 200
-    timeout_seconds: Optional[int] = None
+    timeout_seconds: int | None = None
 
     # Severity filtering
     severity_thresholds: dict[str, float] = field(
@@ -167,7 +167,7 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
     - Error handling
     """
 
-    def __init__(self, analyzer_type: str, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, analyzer_type: str, config: AnalyzerConfig | None = None):
         super().__init__(f"{analyzer_type}_analyzer")
 
         self.analyzer_type = analyzer_type
@@ -386,7 +386,7 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
 
         return batch_findings
 
-    def analyze(self, target_path: Optional[str] = None) -> Any:
+    def analyze(self, target_path: str | None = None) -> Any:
         """
         Run main analysis entry point with full analysis pipeline.
 
@@ -534,7 +534,7 @@ def create_standard_finding(
     file_path: str,
     line_number: int,
     recommendation: str,
-    metadata: Optional[dict[str, Any]] = None,
+    metadata: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Create a properly formatted finding for BaseAnalyzer/BaseProfiler.

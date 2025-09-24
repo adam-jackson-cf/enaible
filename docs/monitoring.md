@@ -59,6 +59,7 @@ The `/add-code-precommit-checks` command sets up pre-commit framework to enforce
 ### Supported Languages
 
 The system automatically configures appropriate hooks for:
+
 - TypeScript/JavaScript with ESLint and Prettier
 - Python with Black, Ruff, and MyPy
 - And many other languages through pre-commit hooks

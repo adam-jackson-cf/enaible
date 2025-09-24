@@ -21,7 +21,7 @@ import re
 import sys
 from collections import defaultdict
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -32,7 +32,7 @@ from core.base.analyzer_registry import register_analyzer
 class ErrorPatternAnalyzer(BaseAnalyzer):
     """Analyze code for known error patterns and failure modes to assist with root cause analysis."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None, error_info: str = ""):
+    def __init__(self, config: AnalyzerConfig | None = None, error_info: str = ""):
         # Store error information for targeted analysis
         self.error_info = error_info
 

@@ -8,12 +8,12 @@ Ensures safe analysis conditions: valid directories, files, git repos, and envir
 import os
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 def validate_target_directory(
     target_path: str,
-) -> tuple[bool, Optional[str], Optional[Path]]:
+) -> tuple[bool, str | None, Path | None]:
     """Validate target directory for analysis."""
     try:
         target_dir = Path(target_path).resolve()
@@ -36,7 +36,7 @@ def validate_target_directory(
         return False, f"Error validating directory: {str(e)}", None
 
 
-def validate_git_repository(repo_path: Path) -> tuple[bool, Optional[str]]:
+def validate_git_repository(repo_path: Path) -> tuple[bool, str | None]:
     """Validate that directory is a git repository."""
     try:
         git_dir = repo_path / ".git"
@@ -72,7 +72,7 @@ def validate_git_repository(repo_path: Path) -> tuple[bool, Optional[str]]:
 
 def validate_file_access(
     file_path: Path, max_size_mb: int = 10
-) -> tuple[bool, Optional[str]]:
+) -> tuple[bool, str | None]:
     """Validate file can be safely analyzed."""
     try:
         if not file_path.exists():

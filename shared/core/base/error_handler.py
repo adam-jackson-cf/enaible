@@ -7,7 +7,7 @@ Eliminates duplication of error handling patterns across modules.
 
 import sys
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 
 class CIErrorCode:
@@ -52,9 +52,9 @@ class CIErrorHandler:
     def fatal_error(
         message: str,
         error_code: int = CIErrorCode.GENERAL_ERROR,
-        file_path: Optional[Union[str, Path]] = None,
-        exception: Optional[Exception] = None,
-        context: Optional[str] = None,
+        file_path: str | Path | None = None,
+        exception: Exception | None = None,
+        context: str | None = None,
     ) -> None:
         """
         Report a fatal error and exit the program.
@@ -93,7 +93,7 @@ class CIErrorHandler:
 
     @staticmethod
     def permission_error(
-        operation: str, file_path: Union[str, Path], error: Exception
+        operation: str, file_path: str | Path, error: Exception
     ) -> None:
         """Handle permission errors with standard messaging."""
         CIErrorHandler.fatal_error(
@@ -105,9 +105,7 @@ class CIErrorHandler:
         )
 
     @staticmethod
-    def config_error(
-        message: str, config_path: Optional[Union[str, Path]] = None
-    ) -> None:
+    def config_error(message: str, config_path: str | Path | None = None) -> None:
         """Handle configuration errors with standard messaging."""
         CIErrorHandler.fatal_error(
             f"Configuration error: {message}",
@@ -118,7 +116,7 @@ class CIErrorHandler:
 
     @staticmethod
     def registry_error(
-        operation: str, registry_path: Union[str, Path], error: Exception
+        operation: str, registry_path: str | Path, error: Exception
     ) -> None:
         """Handle registry-specific errors."""
         error_codes = {
@@ -145,7 +143,7 @@ class CIErrorHandler:
         )
 
     @staticmethod
-    def warn(message: str, context: Optional[str] = None) -> None:
+    def warn(message: str, context: str | None = None) -> None:
         """Print warning message without exiting."""
         print(f"WARNING: {message}", file=sys.stderr)
         if context:
@@ -160,7 +158,7 @@ class CIErrorHandler:
 class CIErrorContext:
     """Context manager for error handling with automatic cleanup."""
 
-    def __init__(self, operation: str, context: Optional[str] = None):
+    def __init__(self, operation: str, context: str | None = None):
         self.operation = operation
         self.context = context
 

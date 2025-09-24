@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from typing import Any, Optional
+from typing import Any
 
 import pytest
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -9,7 +9,7 @@ from core.base.analyzer_registry import AnalyzerRegistry, register_analyzer
 
 @register_analyzer("test:dummy")
 class DummyAnalyzer(BaseAnalyzer):
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         super().__init__("test", config or AnalyzerConfig())
 
     def analyze_target(self, target_path: str) -> list[dict[str, Any]]:

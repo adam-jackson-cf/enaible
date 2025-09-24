@@ -28,7 +28,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -39,7 +39,7 @@ from core.base.analyzer_registry import register_analyzer
 class Flake8PerformanceAnalyzer(BaseAnalyzer):
     """Performance analysis using Flake8 and plugins instead of regex patterns."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create performance-specific configuration
         perf_config = config or AnalyzerConfig(
             code_extensions={
@@ -335,7 +335,7 @@ class Flake8PerformanceAnalyzer(BaseAnalyzer):
 
     def _parse_perflint_issue(
         self, issue: dict[str, Any], file_path: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Parse a perflint JSON issue."""
         try:
             message_id = issue.get("message-id", "")
@@ -375,9 +375,7 @@ class Flake8PerformanceAnalyzer(BaseAnalyzer):
 
         return None
 
-    def _parse_perflint_line(
-        self, line: str, file_path: str
-    ) -> Optional[dict[str, Any]]:
+    def _parse_perflint_line(self, line: str, file_path: str) -> dict[str, Any] | None:
         """Parse perflint text output line."""
         # Simple text parsing as fallback
         try:
@@ -424,7 +422,7 @@ class Flake8PerformanceAnalyzer(BaseAnalyzer):
         else:
             return f"Address performance issue: {message}"
 
-    def _parse_flake8_line(self, line: str, file_path: str) -> Optional[dict[str, Any]]:
+    def _parse_flake8_line(self, line: str, file_path: str) -> dict[str, Any] | None:
         """Parse a single Flake8 output line."""
         try:
             # Format: path:row:col: code message

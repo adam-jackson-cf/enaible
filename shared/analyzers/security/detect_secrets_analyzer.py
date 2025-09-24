@@ -25,7 +25,7 @@ REPLACES: detect_secrets.py with bespoke regex patterns
 import json
 import subprocess
 import sys
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -36,7 +36,7 @@ from core.base.analyzer_registry import register_analyzer
 class DetectSecretsAnalyzer(BaseAnalyzer):
     """Hardcoded secrets detection using detect-secrets tool."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None):
+    def __init__(self, config: AnalyzerConfig | None = None):
         # Create security-specific configuration
         security_config = config or AnalyzerConfig(
             code_extensions={
@@ -320,7 +320,7 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
 
     def _process_secret_finding(
         self, secret: dict[str, Any], file_path: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Convert detect-secrets finding to our standardized format."""
         try:
             secret_type = secret.get("type", "unknown")

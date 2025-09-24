@@ -21,7 +21,7 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 import re
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
@@ -32,7 +32,7 @@ from core.base.analyzer_registry import register_analyzer
 class ExecutionTraceAnalyzer(BaseAnalyzer):
     """Analyzes execution patterns and provides investigation pointers for debugging."""
 
-    def __init__(self, config: Optional[AnalyzerConfig] = None, error_info: str = ""):
+    def __init__(self, config: AnalyzerConfig | None = None, error_info: str = ""):
         # Create execution-specific configuration
         trace_config = config or AnalyzerConfig(
             code_extensions={
