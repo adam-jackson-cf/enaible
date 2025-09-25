@@ -25,11 +25,73 @@ REPLACES: detect_secrets.py with bespoke regex patterns
 import json
 import subprocess
 import sys
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+
+_DETECT_SECRETS_CONFIG_PATH = (
+    Path(__file__).resolve().parents[2] / "config" / "security" / "detect_secrets.json"
+)
+_REQUIRED_TOP_LEVEL_KEYS = {
+    "code_extensions",
+    "skip_patterns",
+    "plugins_used",
+    "filters_used",
+}
+
+
+class DetectSecretsConfigError(RuntimeError):
+    """Raised when detect-secrets configuration is invalid."""
+
+
+class DetectSecretsToolNotAvailable(RuntimeError):
+    """Raised when the detect-secrets CLI cannot be executed."""
+
+
+@lru_cache(maxsize=1)
+def _load_detect_secrets_config() -> dict[str, Any]:
+    """Load and validate detect-secrets configuration from JSON."""
+    try:
+        config_data = json.loads(
+            _DETECT_SECRETS_CONFIG_PATH.read_text(encoding="utf-8")
+        )
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise DetectSecretsConfigError(
+            f"Detect-secrets config not found: {_DETECT_SECRETS_CONFIG_PATH}"
+        ) from exc
+
+    if not isinstance(config_data, dict):
+        raise DetectSecretsConfigError("Detect-secrets config must be a JSON object")
+
+    missing = _REQUIRED_TOP_LEVEL_KEYS - set(config_data)
+    if missing:
+        raise DetectSecretsConfigError(
+            f"Detect-secrets config missing keys: {', '.join(sorted(missing))}"
+        )
+
+    for key in ("code_extensions", "skip_patterns"):
+        values = config_data[key]
+        if not isinstance(values, list) or not all(
+            isinstance(item, str) for item in values
+        ):
+            raise DetectSecretsConfigError(
+                f"Config entry '{key}' must be a list of strings"
+            )
+
+    for key in ("plugins_used", "filters_used"):
+        items = config_data[key]
+        if not isinstance(items, list) or not all(
+            isinstance(item, dict) for item in items
+        ):
+            raise DetectSecretsConfigError(
+                f"Config entry '{key}' must be a list of objects"
+            )
+
+    return config_data
 
 
 @register_analyzer("security:detect_secrets")
@@ -37,155 +99,27 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
     """Hardcoded secrets detection using detect-secrets tool."""
 
     def __init__(self, config: AnalyzerConfig | None = None):
-        # Create security-specific configuration
+        config_data = _load_detect_secrets_config()
+
         security_config = config or AnalyzerConfig(
-            code_extensions={
-                ".py",
-                ".js",
-                ".ts",
-                ".jsx",
-                ".tsx",
-                ".java",
-                ".cs",
-                ".php",
-                ".rb",
-                ".go",
-                ".rs",
-                ".cpp",
-                ".c",
-                ".h",
-                ".hpp",
-                ".swift",
-                ".kt",
-                ".scala",
-                ".dart",
-                ".vue",
-                ".xml",
-                ".json",
-                ".yml",
-                ".yaml",
-                ".env",
-                ".properties",
-                ".ini",
-                ".cfg",
-                ".conf",
-                ".toml",
-                ".config",
-                ".sh",
-                ".bash",
-                ".zsh",
-                ".fish",
-                ".ps1",
-                ".bat",
-                ".cmd",
-                ".dockerfile",
-                ".tf",
-                ".hcl",
-                ".sql",
-            },
-            skip_patterns={
-                "node_modules",
-                ".git",
-                "__pycache__",
-                ".pytest_cache",
-                "venv",
-                "env",
-                ".venv",
-                "dist",
-                "build",
-                ".next",
-                "coverage",
-                ".nyc_output",
-                "target",
-                "vendor",
-                "*.min.js",
-                "*.min.css",
-                "test_fixtures",
-                "*.lock",
-                "*.log",
-                "*.tmp",
-            },
+            code_extensions=set(config_data["code_extensions"]),
+            skip_patterns=set(config_data["skip_patterns"]),
         )
 
         # Initialize base analyzer
         super().__init__("security", security_config)
 
-        # Check for detect-secrets availability
-        self.detect_secrets_available = True  # Will be set to False if not available
+        # Ensure the detect-secrets CLI is available
         self._check_detect_secrets_availability()
 
         # Secret detection configuration
         self.detect_secrets_config = {
-            "plugins_used": [
-                {"name": "ArtifactoryDetector"},
-                {"name": "AWSKeyDetector"},
-                {"name": "AzureStorageKeyDetector"},
-                {"name": "Base64HighEntropyString", "limit": 4.5},
-                {"name": "BasicAuthDetector"},
-                {"name": "CloudantDetector"},
-                {"name": "DiscordBotTokenDetector"},
-                {"name": "GitHubTokenDetector"},
-                {"name": "HexHighEntropyString", "limit": 3.0},
-                {"name": "IbmCloudIamDetector"},
-                {"name": "IbmCosHmacDetector"},
-                {"name": "JwtTokenDetector"},
-                {
-                    "name": "KeywordDetector",
-                    "keyword_exclude": "test_|mock_|_test|_mock",
-                    "keyword_limit": 2.8,
-                },
-                {"name": "MailchimpDetector"},
-                {"name": "NpmDetector"},
-                {"name": "PrivateKeyDetector"},
-                {"name": "SendGridDetector"},
-                {"name": "SlackDetector"},
-                {"name": "SoftlayerDetector"},
-                {"name": "SquareOAuthDetector"},
-                {"name": "StripeDetector"},
-                {"name": "TwilioKeyDetector"},
-            ],
-            "filters_used": [
-                {"path": "detect_secrets.filters.allowlist.is_line_allowlisted"},
-                {"path": "detect_secrets.filters.common.is_baseline_file"},
-                {
-                    "path": "detect_secrets.filters.common.is_ignored_due_to_verification_policies",
-                    "min_level": 2,
-                },
-                {"path": "detect_secrets.filters.heuristic.is_indirect_reference"},
-                {"path": "detect_secrets.filters.heuristic.is_likely_id_string"},
-                {"path": "detect_secrets.filters.heuristic.is_lock_file"},
-                {"path": "detect_secrets.filters.heuristic.is_not_alphanumeric_string"},
-                {"path": "detect_secrets.filters.heuristic.is_potential_uuid"},
-                {
-                    "path": "detect_secrets.filters.heuristic.is_prefixed_with_dollar_sign"
-                },
-                {"path": "detect_secrets.filters.heuristic.is_sequential_string"},
-                {"path": "detect_secrets.filters.heuristic.is_swagger_file"},
-                {"path": "detect_secrets.filters.heuristic.is_templated_secret"},
-                {
-                    "path": "detect_secrets.filters.regex.should_exclude_line",
-                    "pattern": r".*test.*password.*=.*['\"][a-zA-Z0-9]{1,8}['\"].*",
-                },
-            ],
+            "plugins_used": [dict(item) for item in config_data["plugins_used"]],
+            "filters_used": [dict(item) for item in config_data["filters_used"]],
         }
 
-    def _is_testing_environment(self) -> bool:
-        """Detect if we're running in a testing environment."""
-        import os
-
-        # Check for common testing environment indicators
-        return any(
-            [
-                "test" in os.environ.get("PYTHONPATH", "").lower(),
-                "test" in os.getcwd().lower(),
-                os.environ.get("TESTING", "").lower() == "true",
-                "pytest" in str(os.environ.get("_", "")),
-                any("test" in arg for arg in os.sys.argv),
-            ]
-        )
-
     def _check_detect_secrets_availability(self):
-        """Check if detect-secrets is available."""
+        """Ensure detect-secrets CLI is available."""
         try:
             result = subprocess.run(
                 ["detect-secrets", "--version"],
@@ -193,54 +127,19 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
                 text=True,
                 timeout=10,
             )
-            if result.returncode != 0:
-                print(
-                    "WARNING: detect-secrets is required for secrets analysis but not found.",
-                    file=sys.stderr,
-                )
-                print("Install with: pip install detect-secrets", file=sys.stderr)
+        except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+            raise DetectSecretsToolNotAvailable(
+                "detect-secrets CLI is required but could not be executed."
+            ) from exc
 
-                # In testing environments, this should fail hard
-                if self._is_testing_environment():
-                    print(
-                        "ERROR: In testing environment - all tools must be available",
-                        file=sys.stderr,
-                    )
-                    sys.exit(1)
-                else:
-                    # In production, warn but continue with degraded functionality
-                    print(
-                        "Continuing with degraded secrets detection capabilities",
-                        file=sys.stderr,
-                    )
-                    self.detect_secrets_available = False
-                    return
-
-            version = result.stdout.strip()
-            print(f"Found detect-secrets {version}", file=sys.stderr)
-            self.detect_secrets_available = True
-
-        except (subprocess.TimeoutExpired, FileNotFoundError):
-            print(
-                "WARNING: detect-secrets is required but not available.",
-                file=sys.stderr,
+        if result.returncode != 0:
+            raise DetectSecretsToolNotAvailable(
+                f"detect-secrets returned non-zero exit code: {result.returncode}"
             )
-            print("Install with: pip install detect-secrets", file=sys.stderr)
 
-            # In testing environments, this should fail hard
-            if self._is_testing_environment():
-                print(
-                    "ERROR: In testing environment - all tools must be available",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-            else:
-                # In production, warn but continue with degraded functionality
-                print(
-                    "Continuing with degraded secrets detection capabilities",
-                    file=sys.stderr,
-                )
-                self.detect_secrets_available = False
+        version = result.stdout.strip()
+        if version:
+            print(f"Found detect-secrets {version}", file=sys.stderr)
 
     def _run_detect_secrets_scan(self, target_path: str) -> list[dict[str, Any]]:
         """Run detect-secrets scan on target path."""
@@ -388,15 +287,6 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
         -------
             List of secret findings with standardized structure
         """
-        # Skip analysis if detect-secrets is not available (degraded mode)
-        if not self.detect_secrets_available:
-            if self.verbose:
-                print(
-                    f"Skipping detect-secrets analysis for {target_path} - tool not available",
-                    file=sys.stderr,
-                )
-            return []
-
         findings = self._run_detect_secrets_scan(target_path)
 
         # Convert to our standardized format for BaseAnalyzer

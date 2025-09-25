@@ -170,8 +170,8 @@ Use the table below to track status. Allowed values: `pending`, `in_progress`, `
 | WS3.2 | Add FileContext and refactor `_check_scalability_patterns`         | `shared/analyzers/architecture/scalability_check.py:352`   | completed |       |       |
 | WS4.1 | Move error patterns/language patterns to JSON                      | `shared/analyzers/root_cause/error_patterns.py:90`         | completed |       |       |
 | WS4.2 | Add ErrorScanContext and refactor `_check_targeted_error_patterns` | `shared/analyzers/root_cause/error_patterns.py:369`        | completed |       |       |
-| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | pending   |       |       |
-| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | pending   |       |       |
+| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | completed |       |       |
+| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | completed |       |       |
 | WS3.3 | Strategy predicates for `_should_flag_scalability_issue`           | `shared/analyzers/architecture/scalability_check.py:460`   | pending   |       |       |
 | WS4.3 | Table-driven `_get_language_recommendation`                        | `shared/analyzers/root_cause/error_patterns.py:645`        | pending   |       |       |
 | WS7.1 | Introduce `ResultFilter` and update calls                          | `shared/analyzers/quality/result_aggregator.py:667`        | pending   |       |       |
