@@ -17,15 +17,158 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 - Uses shared timing, logging, and error handling patterns
 """
 
+import json
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+
+_ERROR_PATTERN_DIR = (
+    Path(__file__).resolve().parents[2] / "config" / "patterns" / "error"
+)
+_ERROR_PATTERNS_PATH = _ERROR_PATTERN_DIR / "patterns.json"
+_LANGUAGE_PATTERNS_PATH = _ERROR_PATTERN_DIR / "language_patterns.json"
+_REQUIRED_ERROR_PATTERN_FIELDS = {
+    "patterns",
+    "severity",
+    "category",
+    "description",
+}
+_REQUIRED_LANGUAGE_PATTERN_FIELDS = {"patterns", "severity"}
+
+
+class ErrorPatternConfigError(RuntimeError):
+    """Raised when error pattern configuration is invalid."""
+
+
+@lru_cache(maxsize=1)
+def _load_error_pattern_bundle() -> (
+    tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]
+):
+    """Load and validate general and language-specific error patterns."""
+    try:
+        general_raw = json.loads(_ERROR_PATTERNS_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise ErrorPatternConfigError(
+            f"Error pattern config not found: {_ERROR_PATTERNS_PATH}"
+        ) from exc
+
+    if not isinstance(general_raw, dict):
+        raise ErrorPatternConfigError(
+            "General error pattern config must be a JSON object"
+        )
+
+    general_patterns: dict[str, dict[str, Any]] = {}
+    for name, spec in general_raw.items():
+        if not isinstance(name, str):
+            raise ErrorPatternConfigError("Error pattern keys must be strings")
+        if not isinstance(spec, dict):
+            raise ErrorPatternConfigError(
+                f"Error pattern '{name}' must be a JSON object"
+            )
+
+        missing = _REQUIRED_ERROR_PATTERN_FIELDS - set(spec)
+        if missing:
+            raise ErrorPatternConfigError(
+                f"Error pattern '{name}' missing keys: {', '.join(sorted(missing))}"
+            )
+
+        indicators = spec["patterns"]
+        if not isinstance(indicators, list) or not all(
+            isinstance(pattern, str) for pattern in indicators
+        ):
+            raise ErrorPatternConfigError(
+                f"Error pattern '{name}' must define a list of string patterns"
+            )
+
+        severity = spec["severity"]
+        category = spec["category"]
+        description = spec["description"]
+        if not all(
+            isinstance(value, str) for value in (severity, category, description)
+        ):
+            raise ErrorPatternConfigError(
+                f"Error pattern '{name}' severity, category, and description must be strings"
+            )
+
+        general_patterns[name] = {
+            "patterns": list(indicators),
+            "severity": severity,
+            "category": category,
+            "description": description,
+        }
+
+    try:
+        language_raw = json.loads(_LANGUAGE_PATTERNS_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise ErrorPatternConfigError(
+            f"Language pattern config not found: {_LANGUAGE_PATTERNS_PATH}"
+        ) from exc
+
+    if not isinstance(language_raw, dict):
+        raise ErrorPatternConfigError(
+            "Language-specific pattern config must be a JSON object"
+        )
+
+    language_patterns: dict[str, dict[str, Any]] = {}
+    for extension, spec in language_raw.items():
+        if not isinstance(extension, str):
+            raise ErrorPatternConfigError(
+                "Language pattern keys must be file extensions as strings"
+            )
+        if not isinstance(spec, dict):
+            raise ErrorPatternConfigError(
+                f"Language pattern '{extension}' must be a JSON object"
+            )
+
+        missing = _REQUIRED_LANGUAGE_PATTERN_FIELDS - set(spec)
+        if missing:
+            raise ErrorPatternConfigError(
+                f"Language pattern '{extension}' missing keys: {', '.join(sorted(missing))}"
+            )
+
+        indicators = spec["patterns"]
+        if not isinstance(indicators, list) or not all(
+            isinstance(pattern, str) for pattern in indicators
+        ):
+            raise ErrorPatternConfigError(
+                f"Language pattern '{extension}' must define a list of string patterns"
+            )
+
+        severity = spec["severity"]
+        if not isinstance(severity, str):
+            raise ErrorPatternConfigError(
+                f"Language pattern '{extension}' severity must be a string"
+            )
+
+        language_patterns[extension] = {
+            "patterns": list(indicators),
+            "severity": severity,
+        }
+
+    return general_patterns, language_patterns
+
+
+@dataclass(frozen=True)
+class ErrorScanContext:
+    """Context for scanning files against targeted error patterns."""
+
+    content: str
+    lines: list[str]
+    file_path: str
+    relevant_patterns: list[str]
+    error_context: dict[str, Any]
+    content_lower: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "content_lower", self.content.lower())
 
 
 @register_analyzer("root_cause:error_patterns")
@@ -89,115 +232,8 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
 
     def _init_error_patterns(self):
         """Initialize all error pattern definitions."""
-        self.error_patterns = {
-            # Memory and Resource Patterns
-            "memory_leak": {
-                "patterns": [
-                    r"(?:new|malloc|alloc).*without.*(?:delete|free)",
-                    r"addEventListener.*without.*removeEventListener",
-                    r"setInterval|setTimeout.*without.*clear",
-                    r"open\([^)]*\).*without.*close\(\)",
-                ],
-                "severity": "high",
-                "category": "resource_management",
-                "description": "Potential memory leak or resource not properly released",
-            },
-            # Null/Undefined Access Patterns (refined to reduce false positives)
-            "null_pointer": {
-                "patterns": [
-                    r"(?:user_input|request\.|params\.|query\.)\w+(?:\.\w+)*(?!\s*(?:and|or|if|is|==|!=))",  # unsafe user input access
-                    r"(?:JSON\.parse|parseInt|parseFloat)\([^)]*\)(?!\s*(?:try|catch|\}|\)))",  # parsing without error handling
-                ],
-                "severity": "medium",
-                "category": "null_safety",
-                "description": "Potential null/undefined access or missing error handling",
-            },
-            # Concurrency and Racing Patterns
-            "race_condition": {
-                "patterns": [
-                    r"(?:async|await).*(?:for|while).*(?:async|await)",  # async in loops
-                    r"Promise\.all.*(?:await|then).*(?:await|then)",  # chained async
-                    r"(?:setTimeout|setInterval).*(?:state|this\.)",  # timer with state access
-                    r"(?:global|window|document)\.\w+\s*=.*(?:async|setTimeout)",  # global state in async
-                ],
-                "severity": "high",
-                "category": "concurrency",
-                "description": "Potential race condition or unsafe concurrent access",
-            },
-            # Input Validation Patterns (more precise)
-            "injection_vulnerability": {
-                "patterns": [
-                    r"(?:query|cursor\.execute).*\+.*(?:user_input|request\.|params\.|input\()",  # SQL injection via concatenation
-                    r"eval\s*\(\s*(?:user_input|request\.|params\.|input\()",  # direct eval of user input
-                    r"exec\s*\(\s*(?:user_input|request\.|params\.|input\()",  # direct exec of user input
-                    r"(?:subprocess|os\.system|os\.popen)\s*\(\s*.*(?:user_input|request\.|params\.|input\()",  # command injection
-                ],
-                "severity": "critical",
-                "category": "security",
-                "description": "Potential injection vulnerability",
-            },
-            # Error Handling Patterns
-            "poor_error_handling": {
-                "patterns": [
-                    r"catch\s*\([^)]*\)\s*\{\s*\}",  # empty catch
-                    r"catch.*console\.log",  # logging without proper handling
-                    r"try\s*\{[^}]*\}\s*catch\s*\([^)]*\)\s*\{\s*return",  # silent failure
-                    r'throw\s+(?:new\s+)?Error\(\s*["\']["\']\s*\)',  # empty error message
-                ],
-                "severity": "medium",
-                "category": "error_handling",
-                "description": "Poor error handling that may hide issues",
-            },
-            # Performance Anti-patterns
-            "performance_issue": {
-                "patterns": [
-                    r"for.*for.*for",  # nested loops (O(n³))
-                    r"(?:forEach|map|filter).*(?:forEach|map|filter).*(?:forEach|map|filter)",  # nested iterations
-                    r"(?:getElementById|querySelector).*(?:for|while)",  # DOM queries in loops
-                    r"(?:JSON\.parse|JSON\.stringify).*(?:for|while)",  # JSON ops in loops
-                    r"(?:split|replace|match).*(?:for|while)",  # string ops in loops
-                ],
-                "severity": "medium",
-                "category": "performance",
-                "description": "Performance anti-pattern that may cause bottlenecks",
-            },
-            # State Management Patterns
-            "state_mutation": {
-                "patterns": [
-                    r"(?:state|props)\.\w+\s*=",  # direct state mutation
-                    r"(?:push|pop|splice|sort|reverse)\s*\(.*(?:state|props)",  # mutating state arrays
-                    r"Object\.assign\s*\(\s*(?:state|props)",  # mutating state objects
-                    r"(?:state|props)\[\w+\]\s*=",  # bracket notation state mutation
-                ],
-                "severity": "medium",
-                "category": "state_management",
-                "description": "Direct state mutation that may cause rendering issues",
-            },
-            # Authentication/Authorization Patterns
-            "auth_bypass": {
-                "patterns": [
-                    r'(?:admin|role|permission)\s*==?\s*["\'](?:true|1)["\']',  # string comparison
-                    r"(?:if|while)\s*\(\s*true\s*\).*(?:auth|login|permission)",  # hardcoded true
-                    r"(?:auth|token|session)\s*=\s*null.*continue",  # auth bypass
-                    r"(?:localStorage|sessionStorage)\.(?:token|auth).*without.*verify",  # client-side auth
-                ],
-                "severity": "critical",
-                "category": "security",
-                "description": "Potential authentication or authorization bypass",
-            },
-            # Data Handling Patterns
-            "data_corruption": {
-                "patterns": [
-                    r"(?:parseInt|parseFloat)\([^)]*\)(?!\s*(?:isNaN|\|\||&&))",  # parsing without validation
-                    r"(?:slice|substring|substr)\([^)]*\)(?!\s*(?:length|check))",  # string manipulation without bounds
-                    r"(?:push|unshift).*(?:splice|pop|shift)",  # conflicting array operations
-                    r"(?:JSON\.parse).*(?:JSON\.stringify).*(?:JSON\.parse)",  # excessive serialization
-                ],
-                "severity": "medium",
-                "category": "data_integrity",
-                "description": "Potential data corruption or invalid transformation",
-            },
-        }
+        patterns, language_patterns = _load_error_pattern_bundle()
+        self.error_patterns = patterns
 
         # Common error keywords to search for in files
         self.error_keywords = [
@@ -216,33 +252,7 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
         ]
 
         # File extensions and their specific patterns
-        self.language_patterns = {
-            ".py": {
-                "patterns": [
-                    r"except\s*:(?!\s*(?:pass|raise))",  # bare except
-                    r"import\s+\*",  # wildcard imports
-                    r"exec\s*\(",  # exec usage
-                    r"eval\s*\(",  # eval usage
-                ],
-                "severity": "medium",
-            },
-            ".js": {
-                "patterns": [
-                    r"==\s*(?:null|undefined)",  # loose equality
-                    r'typeof.*==\s*["\']undefined["\']',  # typeof check
-                    r"var\s+",  # var usage (prefer let/const)
-                ],
-                "severity": "low",
-            },
-            ".java": {
-                "patterns": [
-                    r"catch\s*\([^)]*\)\s*\{\s*e\.printStackTrace\(\)",  # stack trace in catch
-                    r"System\.out\.print",  # System.out usage
-                    r"Thread\.sleep",  # Thread.sleep usage
-                ],
-                "severity": "medium",
-            },
-        }
+        self.language_patterns = language_patterns
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
         """Return metadata about this analyzer."""
@@ -330,9 +340,14 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
             )
 
             # Check only relevant error patterns
-            findings = self._check_targeted_error_patterns(
-                content, lines, str(file_path), relevant_patterns, error_context
+            targeted_context = ErrorScanContext(
+                content=content,
+                lines=lines,
+                file_path=str(file_path),
+                relevant_patterns=relevant_patterns,
+                error_context=error_context,
             )
+            findings = self._check_targeted_error_patterns(targeted_context)
             all_findings.extend(findings)
 
             # Check for error keywords around the error line if known
@@ -367,17 +382,12 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
         return all_findings
 
     def _check_targeted_error_patterns(
-        self,
-        content: str,
-        lines: list[str],
-        file_path: str,
-        relevant_patterns: list[str],
-        error_context: dict[str, Any],
+        self, scan: ErrorScanContext
     ) -> list[dict[str, Any]]:
         """Check only patterns relevant to the error being investigated."""
         findings = []
 
-        for pattern_name in relevant_patterns:
+        for pattern_name in scan.relevant_patterns:
             if pattern_name not in self.error_patterns:
                 continue
 
@@ -387,22 +397,22 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
                 try:
                     matches = list(
                         re.finditer(
-                            regex_pattern, content, re.MULTILINE | re.IGNORECASE
+                            regex_pattern, scan.content, re.MULTILINE | re.IGNORECASE
                         )
                     )
 
                     for match in matches:
-                        line_num = content[: match.start()].count("\n") + 1
+                        line_num = scan.content[: match.start()].count("\n") + 1
                         context = (
-                            lines[line_num - 1].strip()
-                            if line_num <= len(lines)
+                            scan.lines[line_num - 1].strip()
+                            if line_num <= len(scan.lines)
                             else ""
                         )
 
                         # If we have a specific error line, prioritize findings near it
                         proximity_weight = "medium"
-                        if error_context.get("line"):
-                            distance = abs(line_num - error_context["line"])
+                        if scan.error_context.get("line"):
+                            distance = abs(line_num - scan.error_context["line"])
                             if distance <= 3:
                                 proximity_weight = "high"
                             elif distance <= 10:
@@ -415,10 +425,10 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
                                 "title": f"Error Pattern: {pattern_name.replace('_', ' ').title()}",
                                 "description": f"{pattern_info['description']} - Pattern: {pattern_name}",
                                 "severity": pattern_info["severity"],
-                                "file_path": file_path,
+                                "file_path": scan.file_path,
                                 "line_number": line_num,
                                 "recommendation": self._get_targeted_recommendation(
-                                    pattern_name, error_context
+                                    pattern_name, scan.error_context
                                 ),
                                 "metadata": {
                                     "error_category": pattern_info["category"],

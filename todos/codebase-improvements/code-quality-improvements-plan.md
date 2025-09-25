@@ -162,21 +162,21 @@
 
 Use the table below to track status. Allowed values: `pending`, `in_progress`, `completed`.
 
-| ID    | Task                                                               | Files                                                      | Status  | Owner | Notes |
-| ----- | ------------------------------------------------------------------ | ---------------------------------------------------------- | ------- | ----- | ----- |
-| WS1.1 | Extract coverage configs                                           | `shared/analyzers/quality/coverage_analysis.py:24`         | pending |       |       |
-| WS1.2 | Remove legacy coverage wrapper                                     | `shared/analyzers/quality/coverage_analysis.py:290`        | pending |       |       |
-| WS3.1 | Move scalability patterns to JSON                                  | `shared/analyzers/architecture/scalability_check.py:91`    | pending |       |       |
-| WS3.2 | Add FileContext and refactor `_check_scalability_patterns`         | `shared/analyzers/architecture/scalability_check.py:352`   | pending |       |       |
-| WS4.1 | Move error patterns/language patterns to JSON                      | `shared/analyzers/root_cause/error_patterns.py:90`         | pending |       |       |
-| WS4.2 | Add ErrorScanContext and refactor `_check_targeted_error_patterns` | `shared/analyzers/root_cause/error_patterns.py:369`        | pending |       |       |
-| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | pending |       |       |
-| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | pending |       |       |
-| WS3.3 | Strategy predicates for `_should_flag_scalability_issue`           | `shared/analyzers/architecture/scalability_check.py:460`   | pending |       |       |
-| WS4.3 | Table-driven `_get_language_recommendation`                        | `shared/analyzers/root_cause/error_patterns.py:645`        | pending |       |       |
-| WS7.1 | Introduce `ResultFilter` and update calls                          | `shared/analyzers/quality/result_aggregator.py:667`        | pending |       |       |
-| WS5.1 | Declarative exclusions for tech stacks                             | `shared/core/utils/tech_stack_detector.py:117`             | pending |       |       |
-| WS6.1 | Extract helpers in god class detector                              | `shared/analyzers/quality/pattern_classifier.py:135`       | pending |       |       |
+| ID    | Task                                                               | Files                                                      | Status    | Owner | Notes |
+| ----- | ------------------------------------------------------------------ | ---------------------------------------------------------- | --------- | ----- | ----- |
+| WS1.1 | Extract coverage configs                                           | `shared/analyzers/quality/coverage_analysis.py:24`         | completed |       |       |
+| WS1.2 | Remove legacy coverage wrapper                                     | `shared/analyzers/quality/coverage_analysis.py:290`        | completed |       |       |
+| WS3.1 | Move scalability patterns to JSON                                  | `shared/analyzers/architecture/scalability_check.py:91`    | completed |       |       |
+| WS3.2 | Add FileContext and refactor `_check_scalability_patterns`         | `shared/analyzers/architecture/scalability_check.py:352`   | completed |       |       |
+| WS4.1 | Move error patterns/language patterns to JSON                      | `shared/analyzers/root_cause/error_patterns.py:90`         | completed |       |       |
+| WS4.2 | Add ErrorScanContext and refactor `_check_targeted_error_patterns` | `shared/analyzers/root_cause/error_patterns.py:369`        | completed |       |       |
+| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | pending   |       |       |
+| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | pending   |       |       |
+| WS3.3 | Strategy predicates for `_should_flag_scalability_issue`           | `shared/analyzers/architecture/scalability_check.py:460`   | pending   |       |       |
+| WS4.3 | Table-driven `_get_language_recommendation`                        | `shared/analyzers/root_cause/error_patterns.py:645`        | pending   |       |       |
+| WS7.1 | Introduce `ResultFilter` and update calls                          | `shared/analyzers/quality/result_aggregator.py:667`        | pending   |       |       |
+| WS5.1 | Declarative exclusions for tech stacks                             | `shared/core/utils/tech_stack_detector.py:117`             | pending   |       |       |
+| WS6.1 | Extract helpers in god class detector                              | `shared/analyzers/quality/pattern_classifier.py:135`       | pending   |       |       |
 
 Add more rows as needed; keep statuses current. Consider placing this table at the top during active work for quick visibility.
 

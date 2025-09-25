@@ -8,13 +8,108 @@ Converted to use BaseAnalyzer infrastructure for standardized CLI, file scanning
 error handling, and result formatting patterns.
 """
 
+import json
 import re
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+
+_COVERAGE_CONFIG_DIR = Path(__file__).resolve().parents[2] / "config" / "coverage"
+_LANGUAGE_CONFIG_PATH = _COVERAGE_CONFIG_DIR / "languages.json"
+_INDICATORS_PATH = _COVERAGE_CONFIG_DIR / "indicators.json"
+_REQUIRED_LANGUAGE_KEYS = {
+    "extensions",
+    "test_patterns",
+    "source_patterns",
+    "coverage_tools",
+    "coverage_files",
+    "exclude_dirs",
+}
+
+
+class CoverageConfigError(RuntimeError):
+    """Raised when coverage analyzer configuration is invalid."""
+
+
+@lru_cache(maxsize=1)
+def _load_language_config_bundle() -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    """Load and validate coverage language configuration.
+
+    Returns a tuple of (language_configs_without_extensions, extension_map).
+    """
+    try:
+        raw_data = json.loads(_LANGUAGE_CONFIG_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise CoverageConfigError(
+            f"Coverage language config not found: {_LANGUAGE_CONFIG_PATH}"
+        ) from exc
+
+    if not isinstance(raw_data, dict):
+        raise CoverageConfigError("Coverage language config must be a JSON object")
+
+    normalized: dict[str, dict[str, Any]] = {}
+    extension_map: dict[str, str] = {}
+
+    for language, spec in raw_data.items():
+        if not isinstance(language, str):
+            raise CoverageConfigError("Language keys must be strings")
+        if not isinstance(spec, dict):
+            raise CoverageConfigError(f"Config for {language} must be a JSON object")
+
+        missing = _REQUIRED_LANGUAGE_KEYS - set(spec)
+        if missing:
+            raise CoverageConfigError(
+                f"Config for {language} missing keys: {', '.join(sorted(missing))}"
+            )
+
+        for key in _REQUIRED_LANGUAGE_KEYS:
+            values = spec[key]
+            if not isinstance(values, list) or not all(
+                isinstance(item, str) for item in values
+            ):
+                raise CoverageConfigError(
+                    f"Config list '{key}' for {language} must contain strings"
+                )
+
+        for extension in spec["extensions"]:
+            ext_lower = extension.lower()
+            if not ext_lower.startswith("."):
+                raise CoverageConfigError(
+                    f"Extension '{extension}' for {language} must start with '.'"
+                )
+            if ext_lower in extension_map and extension_map[ext_lower] != language:
+                raise CoverageConfigError(
+                    f"Extension '{extension}' mapped to multiple languages"
+                )
+            extension_map[ext_lower] = language
+
+        normalized[language] = {
+            key: list(spec[key]) for key in spec if key != "extensions"
+        }
+
+    return normalized, extension_map
+
+
+@lru_cache(maxsize=1)
+def _load_generic_indicators() -> list[str]:
+    """Load generic coverage indicators as a list of strings."""
+    try:
+        indicators = json.loads(_INDICATORS_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise CoverageConfigError(
+            f"Coverage indicators config not found: {_INDICATORS_PATH}"
+        ) from exc
+
+    if not isinstance(indicators, list) or not all(
+        isinstance(item, str) for item in indicators
+    ):
+        raise CoverageConfigError("Indicators config must be a JSON array of strings")
+
+    return list(indicators)
 
 
 @register_analyzer("quality:coverage")
@@ -24,152 +119,12 @@ class TestCoverageAnalyzer(BaseAnalyzer):
     def __init__(self, config: AnalyzerConfig | None = None):
         super().__init__("test_coverage", config)
 
-        # Language-specific test patterns and coverage tools
-        self.language_configs = {
-            "python": {
-                "test_patterns": [r"test_.*\.py$", r".*_test\.py$", r"tests?/.*\.py$"],
-                "source_patterns": [r".*\.py$"],
-                "coverage_tools": ["coverage", "pytest-cov"],
-                "coverage_files": [".coverage", "coverage.xml", "htmlcov/"],
-                "exclude_dirs": ["__pycache__", ".pytest_cache", "venv", ".venv"],
-            },
-            "javascript": {
-                "test_patterns": [
-                    r".*\.test\.js$",
-                    r".*\.spec\.js$",
-                    r"__tests__/.*\.js$",
-                    r"tests?/.*\.js$",
-                ],
-                "source_patterns": [r".*\.js$", r".*\.jsx$"],
-                "coverage_tools": ["jest", "nyc", "c8"],
-                "coverage_files": ["coverage/", ".nyc_output/", "coverage.json"],
-                "exclude_dirs": ["node_modules", "coverage", "dist", "build"],
-            },
-            "typescript": {
-                "test_patterns": [
-                    r".*\.test\.ts$",
-                    r".*\.spec\.ts$",
-                    r"__tests__/.*\.ts$",
-                ],
-                "source_patterns": [r".*\.ts$", r".*\.tsx$"],
-                "coverage_tools": ["jest", "nyc", "c8"],
-                "coverage_files": ["coverage/", ".nyc_output/", "coverage.json"],
-                "exclude_dirs": ["node_modules", "coverage", "dist", "build"],
-            },
-            "java": {
-                "test_patterns": [
-                    r".*Test\.java$",
-                    r".*Tests\.java$",
-                    r"src/test/.*\.java$",
-                ],
-                "source_patterns": [r".*\.java$"],
-                "coverage_tools": ["jacoco", "cobertura"],
-                "coverage_files": ["target/site/jacoco/", "target/cobertura/"],
-                "exclude_dirs": ["target", ".gradle", "build"],
-            },
-            "go": {
-                "test_patterns": [r".*_test\.go$"],
-                "source_patterns": [r".*\.go$"],
-                "coverage_tools": ["go test"],
-                "coverage_files": ["coverage.out", "coverage.html"],
-                "exclude_dirs": ["vendor/"],
-            },
-            "rust": {
-                "test_patterns": [
-                    r"tests/.*\.rs$",
-                    r".*\.rs$",
-                ],  # Rust tests can be in same file
-                "source_patterns": [r".*\.rs$"],
-                "coverage_tools": ["tarpaulin", "grcov"],
-                "coverage_files": ["target/tarpaulin/", "target/debug/coverage/"],
-                "exclude_dirs": ["target/"],
-            },
-            "csharp": {
-                "test_patterns": [
-                    r".*Test\.cs$",
-                    r".*Tests\.cs$",
-                    r".*\.Tests/.*\.cs$",
-                ],
-                "source_patterns": [r".*\.cs$"],
-                "coverage_tools": ["coverlet", "dotcover"],
-                "coverage_files": ["coverage.xml", "TestResults/"],
-                "exclude_dirs": ["bin/", "obj/", "packages/"],
-            },
-            "ruby": {
-                "test_patterns": [r".*_test\.rb$", r"test/.*\.rb$", r"spec/.*\.rb$"],
-                "source_patterns": [r".*\.rb$"],
-                "coverage_tools": ["simplecov"],
-                "coverage_files": ["coverage/", ".resultset.json"],
-                "exclude_dirs": ["vendor/", "coverage/"],
-            },
-            "php": {
-                "test_patterns": [r".*Test\.php$", r"tests/.*\.php$"],
-                "source_patterns": [r".*\.php$"],
-                "coverage_tools": ["phpunit", "xdebug"],
-                "coverage_files": ["coverage/", "clover.xml"],
-                "exclude_dirs": ["vendor/", "coverage/"],
-            },
-            "cpp": {
-                "test_patterns": [
-                    r".*_test\.cpp$",
-                    r".*_test\.cc$",
-                    r"test.*\.cpp$",
-                    r"tests/.*\.cpp$",
-                ],
-                "source_patterns": [
-                    r".*\.cpp$",
-                    r".*\.cc$",
-                    r".*\.cxx$",
-                    r".*\.c\+\+$",
-                ],
-                "coverage_tools": ["gcov", "lcov", "llvm-cov"],
-                "coverage_files": ["coverage.info", "coverage/", "coverage.xml"],
-                "exclude_dirs": [
-                    "build/",
-                    "cmake-build-*/",
-                    ".vs/",
-                    "Debug/",
-                    "Release/",
-                ],
-            },
-            "swift": {
-                "test_patterns": [
-                    r".*Tests\.swift$",
-                    r".*Test\.swift$",
-                    r"Tests/.*\.swift$",
-                ],
-                "source_patterns": [r".*\.swift$"],
-                "coverage_tools": ["swift test", "xccov"],
-                "coverage_files": [".build/debug/codecov/", "DerivedData/"],
-                "exclude_dirs": [".build/", "DerivedData/", "Packages/"],
-            },
-            "kotlin": {
-                "test_patterns": [r".*Test\.kt$", r".*Tests\.kt$", r"src/test/.*\.kt$"],
-                "source_patterns": [r".*\.kt$", r".*\.kts$"],
-                "coverage_tools": ["jacoco", "kover"],
-                "coverage_files": ["build/reports/jacoco/", "build/reports/kover/"],
-                "exclude_dirs": ["build/", ".gradle/", "out/"],
-            },
-        }
+        language_configs, extension_map = _load_language_config_bundle()
+        self.language_configs = language_configs
+        self.extension_map = extension_map
 
-        # Generic test indicators (language-agnostic)
-        self.generic_test_indicators = [
-            r"test",
-            r"spec",
-            r"_test",
-            r"Test",
-            r"Tests",
-            r"__tests__",
-            r"assert",
-            r"expect",
-            r"should",
-            r"describe",
-            r"it\(",
-            r"@Test",
-            r"#[test]",
-            r"func.*Test",
-            r"def test_",
-        ]
+        # Language-agnostic generic indicators
+        self.generic_test_indicators = _load_generic_indicators()
 
     def analyze_target(self, target_path: str) -> list[dict[str, Any]]:
         """
@@ -216,36 +171,12 @@ class TestCoverageAnalyzer(BaseAnalyzer):
 
     def categorize_file(self, file_path: Path) -> dict[str, Any] | None:
         """Categorize a file as test or source for a specific language."""
-        # Map file extensions to languages
-        ext_map = {
-            ".py": "python",
-            ".js": "javascript",
-            ".jsx": "javascript",
-            ".ts": "typescript",
-            ".tsx": "typescript",
-            ".java": "java",
-            ".go": "go",
-            ".rs": "rust",
-            ".cs": "csharp",
-            ".rb": "ruby",
-            ".php": "php",
-            ".cpp": "cpp",
-            ".cc": "cpp",
-            ".cxx": "cpp",
-            ".c++": "cpp",
-            ".c": "cpp",
-            ".h": "cpp",
-            ".hpp": "cpp",
-            ".swift": "swift",
-            ".kt": "kotlin",
-            ".kts": "kotlin",
-        }
-
         suffix = file_path.suffix.lower()
-        if suffix not in ext_map:
+        language = self.extension_map.get(suffix)
+
+        if not language:
             return None
 
-        language = ext_map[suffix]
         config = self.language_configs.get(language, {})
 
         # Check test patterns first
@@ -284,24 +215,6 @@ class TestCoverageAnalyzer(BaseAnalyzer):
             ],
             "description": "Language-agnostic test coverage analysis across multiple programming languages",
         }
-
-
-# Legacy function for backward compatibility
-def analyze_coverage(target_path: str, output_format: str = "json") -> dict:
-    """
-    Legacy function wrapper for backward compatibility.
-
-    Args:
-        target_path: Path to analyze
-        output_format: Output format ("json" or "console")
-
-    Returns
-    -------
-        Analysis results dictionary
-    """
-    config = AnalyzerConfig(target_path=target_path, output_format=output_format)
-    analyzer = TestCoverageAnalyzer(config)
-    return analyzer.analyze(target_path)
 
 
 if __name__ == "__main__":

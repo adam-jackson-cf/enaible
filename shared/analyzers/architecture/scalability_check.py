@@ -19,14 +19,110 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 """
 
 import ast
+import json
 import re
 import subprocess
+from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+
+_SCALABILITY_PATTERN_DIR = (
+    Path(__file__).resolve().parents[2] / "config" / "patterns" / "scalability"
+)
+_SCALABILITY_CATEGORY_FILES = {
+    "database": "database.json",
+    "performance": "performance.json",
+    "concurrency": "concurrency.json",
+    "architecture": "architecture.json",
+}
+_REQUIRED_PATTERN_FIELDS = {"indicators", "severity", "description"}
+
+
+class ScalabilityPatternConfigError(RuntimeError):
+    """Raised when scalability pattern configuration is invalid."""
+
+
+@lru_cache(maxsize=1)
+def _load_scalability_pattern_bundle() -> dict[str, dict[str, dict[str, Any]]]:
+    """Load and validate all scalability pattern categories from JSON."""
+    bundle: dict[str, dict[str, dict[str, Any]]] = {}
+    for category, filename in _SCALABILITY_CATEGORY_FILES.items():
+        path = _SCALABILITY_PATTERN_DIR / filename
+        try:
+            raw_data = json.loads(path.read_text(encoding="utf-8"))
+        except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+            raise ScalabilityPatternConfigError(
+                f"Scalability pattern config not found: {path}"
+            ) from exc
+
+        if not isinstance(raw_data, dict):
+            raise ScalabilityPatternConfigError(
+                f"Config for category '{category}' must be a JSON object"
+            )
+
+        normalized: dict[str, dict[str, Any]] = {}
+        for pattern_name, spec in raw_data.items():
+            if not isinstance(pattern_name, str):
+                raise ScalabilityPatternConfigError(
+                    f"Pattern keys must be strings in category '{category}'"
+                )
+            if not isinstance(spec, dict):
+                raise ScalabilityPatternConfigError(
+                    f"Pattern '{pattern_name}' in '{category}' must be an object"
+                )
+
+            missing = _REQUIRED_PATTERN_FIELDS - set(spec)
+            if missing:
+                raise ScalabilityPatternConfigError(
+                    f"Pattern '{pattern_name}' in '{category}' missing keys:"
+                    f" {', '.join(sorted(missing))}"
+                )
+
+            indicators = spec["indicators"]
+            if not isinstance(indicators, list) or not all(
+                isinstance(indicator, str) for indicator in indicators
+            ):
+                raise ScalabilityPatternConfigError(
+                    f"Pattern '{pattern_name}' indicators must be a list of strings"
+                )
+
+            severity = spec["severity"]
+            description = spec["description"]
+            if not isinstance(severity, str) or not isinstance(description, str):
+                raise ScalabilityPatternConfigError(
+                    f"Pattern '{pattern_name}' severity and description must be strings"
+                )
+
+            normalized[pattern_name] = {
+                "indicators": list(indicators),
+                "severity": severity,
+                "description": description,
+            }
+
+        bundle[category] = normalized
+
+    return bundle
+
+
+@dataclass(frozen=True)
+class PatternScanContext:
+    """Container holding context for scanning a file against scalability patterns."""
+
+    content: str
+    lines: list[str]
+    file_path: str
+    category: str
+    patterns: dict[str, dict[str, Any]]
+    lizard_metrics: dict[str, Any]
+    content_lower: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "content_lower", self.content.lower())
 
 
 @register_analyzer("architecture:scalability")
@@ -90,168 +186,25 @@ class ScalabilityAnalyzer(BaseAnalyzer):
 
     def _init_scalability_patterns(self):
         """Initialize all scalability pattern definitions."""
-        # Database scalability patterns (more specific)
-        self.db_patterns = {
-            "n_plus_one": {
-                "indicators": [
-                    # Only flag when loops explicitly contain database operations
-                    r"for\s+\w+\s+in\s+.*\.all\(\).*:\s*\n.*\.(get|find|query|execute)\(",
-                    r"for\s+\w+\s+in\s+.*:\s*\n.*\s+.*\.(get|find|query)\(.*\w+\.id",
-                    r"forEach\([^}]*=>\s*[^}]*\.(get|find|query)\(.*\w+\.id",
-                    r"map\([^}]*=>\s*[^}]*\.(get|find|query)\(",
-                ],
-                "severity": "high",
-                "description": "Potential N+1 query problem",
-            },
-            "missing_indexes": {
-                "indicators": [
-                    # Only flag SQL queries without checking for existing indexes
-                    r"SELECT.*FROM\s+\w+\s+WHERE\s+\w+\s*=.*(?!.*INDEX|.*INDEXED)",
-                    r"ORDER\s+BY\s+\w+.*(?!.*INDEX)",
-                    # Only flag ORM queries that look like they need indexing
-                    r"\.filter\(\w+__exact\s*=|\.filter\(\w+\s*=.*\)\.order_by\(",
-                ],
-                "severity": "medium",
-                "description": "Query without explicit index consideration",
-            },
-            "large_result_sets": {
-                "indicators": [
-                    # Only flag queries explicitly getting all records without limits
-                    r"SELECT\s+\*\s+FROM\s+\w+(?!.*LIMIT|.*WHERE|.*TOP)",
-                    r"\.all\(\)(?!.*\[:|\[:\d+\])",  # .all() without slicing
-                    r"fetchall\(\)(?!.*WHERE)",  # fetchall without WHERE
-                    r"find\(\{\}\)(?!.*limit|.*skip)",  # MongoDB find all without limits
-                ],
-                "severity": "medium",
-                "description": "Potentially unbounded result set",
-            },
-            "no_pagination": {
-                "indicators": [
-                    # Only flag queries that should have pagination
-                    r"SELECT.*FROM.*users.*(?!.*LIMIT|.*OFFSET)",
-                    r"SELECT.*FROM.*orders.*(?!.*LIMIT|.*OFFSET)",
-                    r"SELECT.*FROM.*products.*(?!.*LIMIT|.*OFFSET)",
-                    r"find\(\)\.count\(\)\s*>\s*1000",  # Large counts without pagination
-                ],
-                "severity": "medium",
-                "description": "Query without pagination",
-            },
-        }
+        pattern_bundle = _load_scalability_pattern_bundle()
 
-        # Performance bottleneck patterns
-        self.performance_patterns = {
-            "synchronous_io": {
-                "indicators": [
-                    r"requests\.get\(",
-                    r"urllib\.request\.",
-                    r"httplib\.",
-                    r'open\(.*[\'"]r[\'"]',
-                    r"sleep\(",
-                    r"time\.sleep\(",
-                ],
-                "severity": "high",
-                "description": "Synchronous I/O operation",
-            },
-            "nested_loops": {
-                "indicators": [
-                    r"for\s+.*:\s*\n.*for\s+.*:\s*\n.*for\s+",  # Triple nested
-                    r"while\s+.*:\s*\n.*while\s+.*:\s*\n.*while\s+",
-                ],
-                "severity": "high",
-                "description": "Deep nested loops (O(n³) or worse)",
-            },
-            "inefficient_algorithms": {
-                "indicators": [
-                    r"\.sort\(\).*\.sort\(\)",  # Multiple sorts
-                    r"in\s+range\(len\(",  # Inefficient iteration
-                    r"list\(.*\)\[0\]",  # Inefficient first element access
-                ],
-                "severity": "medium",
-                "description": "Potentially inefficient algorithm",
-            },
-            "memory_leaks": {
-                "indicators": [
-                    r"global\s+\w+.*=.*\[\]",  # Global collections
-                    r"while\s+True:.*append\(",  # Unbounded growth
-                    r"cache\s*=\s*\{\}",  # Unbounded cache
-                ],
-                "severity": "high",
-                "description": "Potential memory leak",
-            },
-        }
+        try:
+            self.db_patterns = pattern_bundle["database"]
+            self.performance_patterns = pattern_bundle["performance"]
+            self.concurrency_patterns = pattern_bundle["concurrency"]
+            self.architecture_patterns = pattern_bundle["architecture"]
+        except (
+            KeyError
+        ) as exc:  # pragma: no cover - configuration must define all categories
+            raise ScalabilityPatternConfigError(
+                f"Missing scalability pattern category: {exc.args[0]}"
+            ) from exc
 
-        # Concurrency and scaling patterns
-        self.concurrency_patterns = {
-            "thread_safety": {
-                "indicators": [
-                    r"global\s+\w+",
-                    r"class\s+\w+.*:\s*\n.*\w+\s*=\s*\[\]",  # Shared mutable state
-                    r"threading\.Thread",
-                    r"multiprocessing\.",
-                ],
-                "severity": "high",
-                "description": "Potential thread safety issue",
-            },
-            "blocking_operations": {
-                "indicators": [
-                    r"\.join\(\)",
-                    r"\.wait\(\)",
-                    r"input\(\)",
-                    r"raw_input\(\)",
-                    r"time\.sleep\(",
-                ],
-                "severity": "medium",
-                "description": "Blocking operation that may affect scalability",
-            },
-            "resource_contention": {
-                "indicators": [
-                    r"lock\s*=\s*",
-                    r"Lock\(\)",
-                    r"RLock\(\)",
-                    r"Semaphore\(",
-                    r"mutex",
-                ],
-                "severity": "medium",
-                "description": "Resource locking that may limit scalability",
-            },
-        }
-
-        # Architecture scalability patterns (refined to reduce false positives)
-        self.architecture_patterns = {
-            "tight_coupling": {
-                "indicators": [
-                    # Only flag when there are multiple deep imports in same file indicating tight coupling
-                    r"(?:import|from)\s+\w+\.\w+\.\w+\.\w+.*\n(?:.*\n){0,5}(?:import|from)\s+\w+\.\w+\.\w+\.\w+",
-                    # Deep method chaining with mutations (indicates tight coupling)
-                    r"\w+\.\w+\.\w+\.\w+\.\w+\(",
-                    # Direct access to internal properties across modules
-                    r"\w+\.\w+\._\w+\.\w+\(",
-                ],
-                "severity": "medium",
-                "description": "Tight coupling that may hinder scaling",
-            },
-            "hardcoded_config": {
-                "indicators": [
-                    # More specific hardcoded config patterns
-                    r'host\s*=\s*[\'"](?:localhost|127\.0\.0\.1)[\'"]',
-                    r"port\s*=\s*(?:3000|8080|5432|3306)(?!\s*\+|\s*\*)",  # Common hardcoded ports
-                    r'password\s*=\s*[\'"][^\'"]{6,}[\'"]',  # Actual passwords, not empty
-                    r'(?:DATABASE_|DB_)URL\s*=\s*[\'"](?:postgres|mysql|mongodb)://[^\'\"]*[\'"]',
-                    r'api_key\s*=\s*[\'"][a-zA-Z0-9]{20,}[\'"]',  # Actual API keys
-                ],
-                "severity": "high",
-                "description": "Hardcoded configuration limits scalability",
-            },
-            "single_responsibility": {
-                "indicators": [
-                    # Only flag extremely large classes/methods that clearly violate SRP
-                    r"class\s+\w+.*:\s*(?:\n.*){100,}",  # Very large classes (100+ lines)
-                    r"def\s+\w+.*:\s*(?:\n.*){50,}",  # Large methods (50+ lines)
-                    r"def\s+\w+.*(?:and|or).*(?:and|or).*\(",  # Method names with multiple conjunctions
-                ],
-                "severity": "medium",
-                "description": "Violation of single responsibility principle",
-            },
+        self.pattern_sets = {
+            "database": self.db_patterns,
+            "performance": self.performance_patterns,
+            "concurrency": self.concurrency_patterns,
+            "architecture": self.architecture_patterns,
         }
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
@@ -299,33 +252,19 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                 content = f.read()
                 lines = content.split("\n")
 
-            # Check database scalability patterns
-            findings = self._check_scalability_patterns(
-                content, lines, str(file_path), self.db_patterns, "database"
-            )
-            all_findings.extend(findings)
+            lizard_metrics = self._get_lizard_metrics(str(file_path))
 
-            # Check performance patterns
-            findings = self._check_scalability_patterns(
-                content, lines, str(file_path), self.performance_patterns, "performance"
-            )
-            all_findings.extend(findings)
-
-            # Check concurrency patterns
-            findings = self._check_scalability_patterns(
-                content, lines, str(file_path), self.concurrency_patterns, "concurrency"
-            )
-            all_findings.extend(findings)
-
-            # Check architecture patterns
-            findings = self._check_scalability_patterns(
-                content,
-                lines,
-                str(file_path),
-                self.architecture_patterns,
-                "architecture",
-            )
-            all_findings.extend(findings)
+            for category, patterns in self.pattern_sets.items():
+                scan_context = PatternScanContext(
+                    content=content,
+                    lines=lines,
+                    file_path=str(file_path),
+                    category=category,
+                    patterns=patterns,
+                    lizard_metrics=lizard_metrics,
+                )
+                findings = self._check_scalability_patterns(scan_context)
+                all_findings.extend(findings)
 
             # Additional Python complexity analysis
             if file_path.suffix == ".py":
@@ -350,34 +289,29 @@ class ScalabilityAnalyzer(BaseAnalyzer):
         return all_findings
 
     def _check_scalability_patterns(
-        self,
-        content: str,
-        lines: list[str],
-        file_path: str,
-        pattern_dict: dict,
-        category: str,
+        self, scan: PatternScanContext
     ) -> list[dict[str, Any]]:
         """Check for specific scalability patterns in file content with context validation."""
-        findings = []
+        findings: list[dict[str, Any]] = []
 
-        # Get Lizard metrics for context
-        lizard_metrics = self._get_lizard_metrics(file_path)
-
-        for pattern_name, pattern_info in pattern_dict.items():
+        for pattern_name, pattern_info in scan.patterns.items():
             for indicator in pattern_info["indicators"]:
-                matches = re.finditer(indicator, content, re.MULTILINE | re.IGNORECASE)
+                matches = re.finditer(
+                    indicator, scan.content, re.MULTILINE | re.IGNORECASE
+                )
                 for match in matches:
-                    line_num = content[: match.start()].count("\n") + 1
-                    context = (
-                        lines[line_num - 1].strip() if line_num <= len(lines) else ""
+                    line_num = scan.content[: match.start()].count("\n") + 1
+                    context_line = (
+                        scan.lines[line_num - 1].strip()
+                        if line_num <= len(scan.lines)
+                        else ""
                     )
 
-                    # Context validation - only flag if there's real complexity
                     if self._should_flag_scalability_issue(
-                        pattern_name, context, lizard_metrics, content
+                        pattern_name, context_line, scan
                     ):
                         confidence = self._calculate_confidence(
-                            pattern_name, context, lizard_metrics
+                            pattern_name, context_line, scan.lizard_metrics
                         )
 
                         findings.append(
@@ -385,17 +319,17 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                                 "title": f"Scalability Issue: {pattern_name.replace('_', ' ').title()}",
                                 "description": f"{pattern_info['description']} ({pattern_name})",
                                 "severity": pattern_info["severity"],
-                                "file_path": file_path,
+                                "file_path": scan.file_path,
                                 "line_number": line_num,
                                 "recommendation": self._get_recommendation(
-                                    pattern_name, category
+                                    pattern_name, scan.category
                                 ),
                                 "metadata": {
-                                    "scalability_category": category,
+                                    "scalability_category": scan.category,
                                     "pattern_name": pattern_name,
-                                    "context": context,
+                                    "context": context_line,
                                     "confidence": confidence,
-                                    "lizard_ccn": lizard_metrics.get("max_ccn", 0),
+                                    "lizard_ccn": scan.lizard_metrics.get("max_ccn", 0),
                                 },
                             }
                         )
@@ -458,7 +392,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
         return {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
 
     def _should_flag_scalability_issue(
-        self, pattern_name: str, context: str, lizard_metrics: dict, content: str
+        self, pattern_name: str, context: str, scan: PatternScanContext
     ) -> bool:
         """Determine if a scalability issue should be flagged based on context."""
         # Skip if in test files, specs, or configuration files
@@ -478,7 +412,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
         ]:
             # Require higher complexity AND evidence of actual database usage
             has_db_context = any(
-                db_term in content.lower()
+                db_term in scan.content_lower
                 for db_term in [
                     "select",
                     "insert",
@@ -495,9 +429,9 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                 ]
             )
             return (
-                lizard_metrics.get("max_ccn", 0) > 10
+                scan.lizard_metrics.get("max_ccn", 0) > 10
                 and has_db_context
-                and lizard_metrics.get("total_functions", 0) > 2
+                and scan.lizard_metrics.get("total_functions", 0) > 2
             )
 
         # Only flag synchronous I/O if in performance-critical context
@@ -508,36 +442,38 @@ class ScalabilityAnalyzer(BaseAnalyzer):
             )
             return (
                 has_loop
-                and lizard_metrics.get("max_ccn", 0) > 12
+                and scan.lizard_metrics.get("max_ccn", 0) > 12
                 and "await" not in context_lower
             )  # Not if already using async
 
         # Only flag hardcoded config if it's in actual configuration context
         if pattern_name == "hardcoded_config":
             has_config_context = any(
-                term in content.lower()
+                term in scan.content_lower
                 for term in ["config", "environment", "settings", "connection"]
             )
-            return lizard_metrics.get("total_functions", 0) > 3 and has_config_context
+            return (
+                scan.lizard_metrics.get("total_functions", 0) > 3 and has_config_context
+            )
 
         # Only flag memory leaks in substantial, long-running code
         if pattern_name == "memory_leaks":
             return (
-                lizard_metrics.get("total_functions", 0) > 5
-                and lizard_metrics.get("max_ccn", 0) > 8
+                scan.lizard_metrics.get("total_functions", 0) > 5
+                and scan.lizard_metrics.get("max_ccn", 0) > 8
             )
 
         # Only flag tight coupling in files with significant complexity
         if pattern_name == "tight_coupling":
             return (
-                lizard_metrics.get("total_functions", 0) > 4
-                and lizard_metrics.get("max_ccn", 0) > 10
+                scan.lizard_metrics.get("total_functions", 0) > 4
+                and scan.lizard_metrics.get("max_ccn", 0) > 10
             )
 
         # Only flag thread safety in concurrent code
         if pattern_name == "thread_safety":
             has_concurrent_context = any(
-                term in content.lower()
+                term in scan.content_lower
                 for term in [
                     "thread",
                     "async",
@@ -546,12 +482,12 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                     "multiprocess",
                 ]
             )
-            return lizard_metrics.get("max_ccn", 0) > 8 and has_concurrent_context
+            return scan.lizard_metrics.get("max_ccn", 0) > 8 and has_concurrent_context
 
         # Default: only flag in complex, substantial files
         return (
-            lizard_metrics.get("total_functions", 0) > 3
-            and lizard_metrics.get("max_ccn", 0) > 8
+            scan.lizard_metrics.get("total_functions", 0) > 3
+            and scan.lizard_metrics.get("max_ccn", 0) > 8
         )
 
     def _calculate_confidence(
