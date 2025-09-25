@@ -1,4 +1,4 @@
-# PowerShell Installer Test Suite
+# PowerShell Installer Test Suite - Claude
 # Comprehensive testing for claude-code/install.ps1
 
 param(
