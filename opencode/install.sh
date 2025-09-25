@@ -954,7 +954,7 @@ verify_installation() {
 
     # Test file structure
     if [[ "$DRY_RUN" != "true" ]]; then
-        local required_dirs=("commands" "scripts" "rules" "templates")
+        local required_dirs=("command" "scripts" "rules")
         for dir in "${required_dirs[@]}"; do
             if [[ ! -d "$INSTALL_DIR/$dir" ]]; then
                 log_error "Required directory missing: $INSTALL_DIR/$dir"
@@ -968,8 +968,8 @@ verify_installation() {
             log_verbose "Verifying custom commands preservation..."
             local custom_commands_found=0
 
-            if [[ -d "$INSTALL_DIR/commands" ]]; then
-                for cmd in "$INSTALL_DIR/commands"/*; do
+            if [[ -d "$INSTALL_DIR/command" ]]; then
+                for cmd in "$INSTALL_DIR/command"/*; do
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
                         # Check if this is a custom command (not in source)

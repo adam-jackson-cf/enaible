@@ -1,0 +1,2 @@
+- verify adherence to code plan
+- add file formatter hook on create/edit specific to file type in claude code

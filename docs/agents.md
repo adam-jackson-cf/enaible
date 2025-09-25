@@ -2,6 +2,8 @@
 
 Platform support: Available for Claude Code and OpenCode. Prompts live in `claude-code/agents` and `opencode/agent`; parity is maintained where possible.
 
+The overall approach taken with subagents as seeing them as specific context managers for a given task - the ideas is to break off items that can be self contained tasks where we are only interested in the result, rather than polluting the context with the process.
+
 ## 🚀 Core Orchestration Agents
 
 | Agent                  | Role                | Responsibility                         | Platforms         |

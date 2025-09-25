@@ -570,7 +570,7 @@ function Copy-WorkflowFiles {
                 }
             }
             "merge" {
-                # Merge mode: preserve existing files, copy new ones
+                # Merge mode: preserve existing files, copy new ones (like shell script cp -rn)
                 Write-ColorOutput "Merge mode: preserving existing files while adding new ones" -Color $Colors.Green
 
                 # Track custom commands
@@ -586,19 +586,19 @@ function Copy-WorkflowFiles {
                     }
                 }
 
-                # Copy with no-clobber (preserve existing)
-                $items = Get-ChildItem $sourceOpenCodeDir | Where-Object {
-                    $_.Name -notin @("docs", "install.sh", "install.ps1")
-                }
-                foreach ($item in $items) {
-                    $targetPath = Join-Path $OpenCodePath $item.Name
-                    if ($item.PSIsContainer) {
+                # Copy with no-clobber (preserve existing) - similar to shell script's cp -rn
+                Invoke-WithSpinner -Message "Copying workflow files (preserving existing)" -ScriptBlock {
+                    $items = Get-ChildItem $sourceOpenCodeDir | Where-Object {
+                        $_.Name -notin @("docs", "install.sh", "install.ps1")
+                    }
+                    foreach ($item in $items) {
+                        $targetPath = Join-Path $OpenCodePath $item.Name
                         if (-not (Test-Path $targetPath)) {
-                            Copy-Item -Path $item.FullName -Destination $targetPath -Recurse -Force
-                        }
-                    } else {
-                        if (-not (Test-Path $targetPath)) {
-                            Copy-Item -Path $item.FullName -Destination $targetPath -Force
+                            if ($item.PSIsContainer) {
+                                Copy-Item -Path $item.FullName -Destination $targetPath -Recurse -Force
+                            } else {
+                                Copy-Item -Path $item.FullName -Destination $targetPath -Force
+                            }
                         }
                     }
                 }
@@ -668,7 +668,7 @@ function Copy-WorkflowFiles {
                     }
                 }
 
-                # Update scripts directory (preserve custom scripts)
+                # Update scripts directory (preserve custom scripts) - enhanced like shell script
                 Write-Output "  Updating scripts directory (preserving custom scripts)..."
                 $scriptsPath = Join-Path $OpenCodePath "scripts"
 
@@ -679,7 +679,7 @@ function Copy-WorkflowFiles {
                     foreach ($scriptFile in Get-ChildItem $scriptsPath -Recurse -File) {
                         $relativePath = [System.IO.Path]::GetRelativePath($scriptsPath, $scriptFile.FullName)
                         $foundInSource = $false
-                        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "tests", "ci", "core", "config", "context")) {
+                        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "ci", "core", "config", "context", "test-paths")) {
                             $sourcePath = Join-Path $sharedDir $subdir ($relativePath -replace "^$subdir[\\/]", "")
                             if ((Test-Path $sourcePath) -and $relativePath.StartsWith("$subdir\")) {
                                 $foundInSource = $true
@@ -755,6 +755,14 @@ function Copy-WorkflowFiles {
 
         # ✅ REPLACE with modern global rules handling
         Handle-GlobalRules -SourceDir $SCRIPT_DIR -OpenCodePath $OpenCodePath
+
+        # Copy opencode.json if it exists in source directory
+        $sourceOpencodeJson = Join-Path $SCRIPT_DIR "opencode.json"
+        if (Test-Path $sourceOpencodeJson) {
+            Write-Log "Copying opencode.json..."
+            Copy-Item -Path $sourceOpencodeJson -Destination $OpenCodePath -Force
+            Write-ColorOutput "opencode.json copied successfully" -Color $Colors.Green
+        }
 
         # Create installation log
         $installLog = Join-Path $OpenCodePath "installation-log.txt"

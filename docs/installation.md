@@ -111,18 +111,36 @@ The installer automatically detects existing `.claude` directories (Claude Code)
 
 To safely remove AI-Assisted Workflows components while preserving your configuration directory (`.claude` or `.opencode`):
 
+### For Claude Code installations:
+
 ```bash
 # Preview what would be removed (recommended first step)
-./uninstall.sh --dry-run
+./claude-code/uninstall.sh --dry-run
 
 # Uninstall from current directory
-./uninstall.sh
+./claude-code/uninstall.sh
 
 # Uninstall from specific path
-./uninstall.sh /path/to/installation
+./claude-code/uninstall.sh /path/to/installation
 
 # Verbose output for detailed logging
-./uninstall.sh --verbose
+./claude-code/uninstall.sh --verbose
+```
+
+### For OpenCode installations:
+
+```bash
+# Preview what would be removed (recommended first step)
+./opencode/uninstall.sh --dry-run
+
+# Uninstall from current directory
+./opencode/uninstall.sh
+
+# Uninstall from specific path
+./opencode/uninstall.sh /path/to/installation
+
+# Verbose output for detailed logging
+./opencode/uninstall.sh --verbose
 ```
 
 **Smart Uninstall Features:**
