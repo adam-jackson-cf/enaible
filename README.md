@@ -665,7 +665,7 @@ These examples give a flavour, explore the repo and find what works for you.
 |   **Category**    | **Document**                                    | **Description**                                 |
 | :---------------: | :---------------------------------------------- | :---------------------------------------------- |
 |   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
-|   🤖 **Agents**   | [Agent Orchestration](docs/agents.md)           | 19 specialized agents and multi-agent workflows |
+|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | 19 specialized agents and multi-agent workflows |
 |  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 22 analysis tools across 5+ languages           |
 | ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
 
