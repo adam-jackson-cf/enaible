@@ -1285,7 +1285,7 @@ function Handle-GlobalRules {
 
     # ✅ CORRECT: Use modern path
     $sourceRulesFile = Join-Path $SourceDir "rules\global.opencode.rules.md"
-    $targetOpenCodeFile = Join-Path $OpenCodePath "opencode.md"
+    $targetOpenCodeFile = Join-Path $OpenCodePath "agents.md"
 
     # ✅ Validate source exists
     if (-not (Test-Path $sourceRulesFile)) {
@@ -1298,18 +1298,18 @@ function Handle-GlobalRules {
 
     if (Test-Path $targetOpenCodeFile) {
         # ✅ SMART MERGE: Check for existing section
-        Write-Log "Existing opencode.md found, checking for AI-Assisted Workflows section..."
+        Write-Log "Existing agents.md found, checking for AI-Assisted Workflows section..."
 
         $content = Get-Content $targetOpenCodeFile -Raw -ErrorAction SilentlyContinue
         if ($content -match "# AI-Assisted Workflows v") {
             Write-Log "AI-Assisted Workflows section already exists, skipping merge"
-            Write-ColorOutput "AI-Assisted Workflows section already exists in opencode.md" -Color $Colors.Yellow
+            Write-ColorOutput "AI-Assisted Workflows section already exists in agents.md" -Color $Colors.Yellow
             return
         }
 
         # ✅ Append with version header
-        Write-Log "Appending AI-Assisted Workflows section to existing opencode.md"
-        Write-ColorOutput "Appending AI-Assisted Workflows section to existing opencode.md" -Color $Colors.Green
+        Write-Log "Appending AI-Assisted Workflows section to existing agents.md"
+        Write-ColorOutput "Appending AI-Assisted Workflows section to existing agents.md" -Color $Colors.Green
 
         Add-Content -Path $targetOpenCodeFile -Value ""
         Add-Content -Path $targetOpenCodeFile -Value "---"
@@ -1324,8 +1324,8 @@ function Handle-GlobalRules {
     }
     else {
         # ✅ Create new with header
-        Write-Log "Creating new opencode.md with global rules"
-        Write-ColorOutput "Creating opencode.md with global rules" -Color $Colors.Green
+        Write-Log "Creating new agents.md with global rules"
+        Write-ColorOutput "Creating agents.md with global rules" -Color $Colors.Green
 
         $headerContent = @(
             "# AI-Assisted Workflows v$VERSION - Auto-generated, do not edit",
@@ -1336,7 +1336,7 @@ function Handle-GlobalRules {
         $allContent = $headerContent + $rulesContent
 
         $allContent | Out-File -FilePath $targetOpenCodeFile -Encoding UTF8
-        Write-Log "Successfully created opencode.md with global rules"
+        Write-Log "Successfully created agents.md with global rules"
     }
 }
 

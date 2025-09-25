@@ -149,7 +149,7 @@ function Test-FreshInstallation {
 
         # Verify installation
         $opencodeDir = Join-Path $testPath ".opencode"
-        $requiredFiles = @("opencode.json", "command", "scripts", "installation-log.txt")
+        $requiredFiles = @("agents.md", "command", "scripts", "installation-log.txt")
         $missingFiles = @()
 
         foreach ($file in $requiredFiles) {
@@ -182,22 +182,19 @@ function Test-MergeMode {
             New-Item -ItemType Directory -Path $opencodeDir -Force | Out-Null
         }
 
-        # Create custom opencode.json with unique content
-        $customConfig = @{
-            version = "1.0.0"
-            project = @{
-                name = "Custom Test Project"
-                description = "This is custom content that should be preserved"
-            }
-            custom = @{
-                rules = @(
-                    "Always use TypeScript",
-                    "Write comprehensive tests"
-                )
-            }
-        }
-        $configFile = Join-Path $opencodeDir "opencode.json"
-        $customConfig | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
+        # Create custom agents.md with unique content
+        $customContent = @"
+# My Custom Agents Rules
+
+This is custom content that should be preserved.
+Custom rule 1: Always use TypeScript
+Custom rule 2: Write comprehensive tests
+
+## Custom Section
+More custom content here.
+"@
+        $configFile = Join-Path $opencodeDir "agents.md"
+        $customContent | Out-File -FilePath $configFile -Encoding UTF8
 
         # Create custom command
         $commandsDir = Join-Path $opencodeDir "command"
@@ -210,10 +207,10 @@ function Test-MergeMode {
         $output = & $installerPath $testPath -InstallMode Merge -SkipPython 2>&1
 
         # Verify custom content preserved
-        $configContent = Get-Content $configFile -Raw -ErrorAction SilentlyContinue | ConvertFrom-Json
+        $configContent = Get-Content $configFile -Raw -ErrorAction SilentlyContinue
         $customCommandExists = Test-Path (Join-Path $commandsDir "test-custom.md")
 
-        if ($configContent -and $configContent.custom -and $customCommandExists) {
+        if ($configContent -and $configContent -match "Custom rule 1: Always use TypeScript" -and $customCommandExists) {
             Complete-Test "Merge Mode Installation" $true "Custom config and commands preserved"
         } else {
             Complete-Test "Merge Mode Installation" $false "Custom config or commands lost"
@@ -238,14 +235,17 @@ function Test-UpdateWorkflowsMode {
         }
 
         # Create custom config that should be preserved
-        $configFile = Join-Path $opencodeDir "opencode.json"
-        @{
-            version = "1.0.0"
-            project = @{
-                name = "Test Project"
-                description = "Custom project configuration"
-            }
-        } | ConvertTo-Json -Depth 10 | Out-File -FilePath $configFile -Encoding UTF8
+        $configFile = Join-Path $opencodeDir "agents.md"
+        @"
+# Custom Agents Configuration
+
+This is custom content that should be preserved during update.
+Custom rule: Always use TypeScript for this project.
+
+## Project Settings
+- Name: Test Project
+- Description: Custom project configuration
+"@ | Out-File -FilePath $configFile -Encoding UTF8
 
         # Create custom command
         $commandsDir = Join-Path $opencodeDir "command"
@@ -255,12 +255,13 @@ function Test-UpdateWorkflowsMode {
         # Run update workflows using InstallMode parameter
         $output = & $installerPath $testPath -InstallMode UpdateWorkflows -SkipPython 2>&1
 
-        # Verify custom command preserved and opencode.json preserved
+        # Verify custom command preserved and agents.md preserved
         $customCommandExists = Test-Path (Join-Path $commandsDir "custom-cmd.md")
         $configExists = Test-Path $configFile
+        $configContent = Get-Content $configFile -Raw -ErrorAction SilentlyContinue
 
-        if ($customCommandExists -and $configExists) {
-            Complete-Test "Update Workflows Mode" $true "Custom commands and opencode.json preserved"
+        if ($customCommandExists -and $configExists -and $configContent -match "Custom rule: Always use TypeScript") {
+            Complete-Test "Update Workflows Mode" $true "Custom commands and agents.md preserved"
         } else {
             Complete-Test "Update Workflows Mode" $false "Custom content lost during update"
         }
