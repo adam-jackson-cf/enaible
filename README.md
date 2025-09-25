@@ -24,8 +24,10 @@
   <!-- License & Community -->
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
-![Claude Code](https://img.shields.io/badge/Claude_Code-28_Commands-8A2BE2?style=flat-square)
-![Agents](https://img.shields.io/badge/AI_Agents-19_Specialists-ff6b35?style=flat-square)
+![Claude Code](https://img.shields.io/badge/Claude_Code-24_Commands-8A2BE2?style=flat-square)
+![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
+![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-23_Specialists-ff6b35?style=flat-square>)
+![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-21_Specialists-ff6b35?style=flat-square>)
 
 </div>
 
@@ -34,6 +36,7 @@
 ## 📋 Table of Contents
 
 - [🎯 Project Overview](#-project-overview)
+- [⚡ Quick Start](#-quick-start)
 - [💡 Example Use Cases](#-example-use-cases)
   - [🔍 Priming Context](#priming-context)
   - [📝 Session Context Capture](#session-context-capture)
@@ -68,6 +71,22 @@ The principles for this project are designed around the realities of coding with
 | 💻 **Language Support**        |  ![100%](https://img.shields.io/badge/100%25-success?style=flat-square)  | Python, TypeScript, Go, Rust, C#                         |
 
 </div>
+
+---
+
+## ⚡ Quick Start
+
+Install the workflows for your editor. Full details: docs/installation.md
+
+```bash
+# Claude Code
+./claude-code/install.sh        # project-local (creates ./.claude/)
+./claude-code/install.sh ~      # user-global  (creates ~/.claude/)
+
+# OpenCode
+./opencode/install.sh           # project-local (creates ./.opencode/)
+./opencode/install.sh ~         # user-global  (creates ~/.config/opencode/)
+```
 
 ---
 

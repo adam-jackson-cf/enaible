@@ -1,5 +1,29 @@
 # Programming Language Support and Analysis Capabilities
 
+## Platform Support
+
+- Installation copies shared analyzers to your editor’s scripts folder.
+  - Claude Code
+    - Project: `./.claude/scripts/analyzers/`
+    - User: `~/.claude/scripts/analyzers/`
+  - OpenCode
+    - Project: `./.opencode/scripts/analyzers/`
+    - User: `~/.config/opencode/scripts/analyzers/`
+- Resolution order: project scope, then user scope.
+- Invocation
+
+  - Use editor commands (recommended): `/analyze-security`, `/analyze-code-quality`, `/analyze-architecture`, `/analyze-performance`, `/analyze-root-cause`.
+  - Programmatic runner (both platforms):
+
+    ```bash
+    # Set PYTHONPATH to your platform scripts root, then run analyzer by key
+    PYTHONPATH=~/.claude/scripts \
+      python -m core.cli.run_analyzer --analyzer security:semgrep --target . --output-format json
+
+    PYTHONPATH=~/.config/opencode/scripts \
+      python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
+    ```
+
 ## Supported Languages
 
 **Core Support:** Python, JavaScript, TypeScript, Java, C#, Go, Rust, PHP, Ruby, C/C++, Swift, Kotlin, SQL, and more

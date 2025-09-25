@@ -20,30 +20,11 @@
 
 ```bash
 /setup-dev-monitoring                 # Optional: Setup unified dev logging
-/setup-ci-monitoring                  # Optional: Continuous improvement monitoring with duplicate detection
-/add-serena-mcp                       # Recommended per project mcp lsp tool
+/setup-package-monitoring                  # Optional: Package auditing on change looking for security risks
+
+
+/add-serena-mcp                       # Recommended per project mcp lsp tool - only available in claude code as lacks LSP support
 ```
-
-## 🤖 Free Tier AI CLI Tools
-
-**Maximize session uptime with free AI CLI tools that extend workflow capabilities:**
-
-```bash
-# Gemini CLI - Context-heavy analysis (1,000 requests/day)
-npm install -g @google/gemini-cli
-gemini  # OAuth authentication
-
-# Qwen Code CLI - Tool-intensive operations (2,000 requests/day)
-npm install -g @qwen-code/qwen-code@latest
-qwen    # OAuth authentication
-```
-
-**Benefits:**
-
-- 🔋 **Extended uptime**: Preserve Claude Code subscription for core interactions
-- 🆓 **Free tier leverage**: 3,000+ daily requests across both tools
-- 🔄 **Smart fallback**: Automatic degradation to Claude Code on limits
-- 📊 **Usage optimization**: Built-in rate limiting and request management
 
 ## 🔧 Dependencies
 
@@ -77,10 +58,10 @@ Full list of libraries used and languages supported found here: [Analysis Script
 #### OpenCode Editor
 
 ```bash
-# Current directory (uses ./.claude/)
+# Current directory (uses ./.opencode/)
 ./opencode/install.sh
 
-# User global (uses ~/.claude/)
+# User global (uses ~/.config/opencode/)
 ./opencode/install.sh ~
 
 # Custom location
@@ -115,11 +96,11 @@ The installer automatically handles all dependencies:
 - Creates an installation log for clean uninstallation tracking
 - Tracks which packages were pre-existing vs newly installed
 
-### Handling Existing .Claude Installations
+### Handling Existing Installations
 
 **Automatic Backup:** All installation options automatically create a timestamped backup of your existing installation before making any changes.
 
-The installer automatically detects existing `.claude` directories and offers four options:
+The installer automatically detects existing `.claude` directories (Claude Code) and `.opencode` or `$HOME/.config/opencode` directories (OpenCode) and offers four options:
 
 1. **Fresh Install:** Complete replacement of existing installation
 2. **Merge:** Preserve user customizations while adding new features (no overwrites)
@@ -128,7 +109,7 @@ The installer automatically detects existing `.claude` directories and offers fo
 
 ## Uninstalling
 
-To safely remove AI-Assisted Workflows components while preserving your .claude directory:
+To safely remove AI-Assisted Workflows components while preserving your configuration directory (`.claude` or `.opencode`):
 
 ```bash
 # Preview what would be removed (recommended first step)
@@ -146,9 +127,9 @@ To safely remove AI-Assisted Workflows components while preserving your .claude 
 
 **Smart Uninstall Features:**
 
-- **📦 Safe Removal**: Only removes workflow components, preserves .claude structure and user files
+- **📦 Safe Removal**: Only removes workflow components, preserves `.claude`/`.opencode` structure and user files
 - **⚠️ Dependency Tracking**: Distinguishes pre-existing vs newly installed Python packages/MCP servers using installation-log.txt
-- **💾 Automatic Backups**: Creates backups of MCP configuration and claude.md before changes
+- **💾 Automatic Backups**: Creates backups of MCP configuration and platform docs before changes
 - **🧹 Thorough Cleanup**: Removes **pycache** folders and empty directories
 - **📝 Installation Log**: Uses installation-log.txt to provide intelligent removal warnings
 

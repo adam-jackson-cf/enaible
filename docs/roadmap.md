@@ -1,9 +1,9 @@
-## Roadmap
+# Roadmap
 
-1. **Port to OpenCode**
+1. ✅ **Port to OpenCode** (complete)
 2. **Port to Codex**
 3. **Centralize Prompts**
-   - Move prompts to a centralized format with templates per implementation
+   - Centralized format with per-implementation templates for Claude Code and OpenCode
    - Implement a proper CLI installer
 4. **Integrate Code Oracle**
    - Enable semantic deduplication

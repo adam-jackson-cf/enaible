@@ -10,7 +10,7 @@ _After running `/setup-dev-monitoring`, you'll see:_
 _Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
 
 ![Unified Logs](../images/dev-logs-unified.png)
-_Timestamped unified logging: All services stream to `/dev.log` - Claude can query logs directly_
+_Timestamped unified logging: All services stream to `/dev.log` - Claude/OpenCode can query logs directly_
 
 ![Service Status](../images/service-status-dashboard.png)
 _Real-time service monitoring: Live status for API and Mobile services with health indicators_

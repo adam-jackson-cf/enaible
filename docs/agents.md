@@ -1,52 +1,54 @@
 # Agent Orchestration System
 
-## 🚀 8-Agent Orchestration System
+Platform support: Available for Claude Code and OpenCode. Prompts live in `claude-code/agents` and `opencode/agent`; parity is maintained where possible.
 
-| Agent                   | Role                | Responsibility                              |
-| :---------------------- | :------------------ | :------------------------------------------ |
-| **plan-manager**        | 📋 Project Manager  | Task state and progress tracking            |
-| **fullstack-developer** | 💻 Developer        | Cross-platform implementation               |
-| **solution-validator**  | ✅ Architect        | Pre-implementation validation               |
-| **quality-monitor**     | 🔍 QA Engineer      | Dynamic quality gate detection              |
-| **git-manager**         | 🌿 DevOps           | Version control operations                  |
-| **documenter**          | 📚 Technical Writer | Documentation discovery and management      |
-| **log-monitor**         | 📊 Site Reliability | Runtime error detection                     |
-| **cto**                 | 🎯 Escalation       | Critical handler (3 failures → CTO → human) |
+## 🚀 Core Orchestration Agents
 
-## 🧠 Planning Mode Expert Subagents
+| Agent                  | Role                | Responsibility                         | Platforms         |
+| :--------------------- | :------------------ | :------------------------------------- | :---------------- |
+| **plan-manager**       | 📋 Project Manager  | Task state and progress tracking       | Claude • OpenCode |
+| **senior-developer**   | 💻 Developer        | Cross-platform implementation          | Claude • OpenCode |
+| **solution-validator** | ✅ Architect        | Pre-implementation validation          | Claude • OpenCode |
+| **quality-monitor**    | 🔍 QA Engineer      | Dynamic quality gate detection         | Claude • OpenCode |
+| **git-manager**        | 🌿 DevOps           | Version control operations             | Claude • OpenCode |
+| **documenter**         | 📚 Technical Writer | Documentation discovery and management | Claude • OpenCode |
+| **log-monitor**        | 📊 SRE              | Runtime error detection                | Claude • OpenCode |
+| **problem-escalation** | 🎯 Escalation       | Critical failure handling              | Claude • OpenCode |
 
-| Subagent                    | Specialization         | Purpose                                       |
-| :-------------------------- | :--------------------- | :-------------------------------------------- |
-| **python-expert**           | Python Development     | Expert planning for Python tasks              |
-| **typescript-expert**       | TypeScript Development | Expert planning for TypeScript tasks          |
-| **rag-architecture-expert** | RAG Systems            | Architecture planning for RAG implementations |
-| **terraform-gcp-expert**    | Infrastructure         | Terraform and GCP infrastructure planning     |
-| **git-action-expert**       | CI/CD & GitHub Actions | CI/CD pipeline and GitHub Actions specialist  |
-| **docker-expert**           | Containerization       | Docker containerization and orchestration     |
+## 🧠 Engineering Specialists
 
-## 📝 Research & Analysis Specialists
+| Agent                       | Specialization         | Purpose                                       | Platforms         |
+| :-------------------------- | :--------------------- | :-------------------------------------------- | :---------------- |
+| **python-expert**           | Python Development     | Expert planning for Python tasks              | Claude • OpenCode |
+| **typescript-expert**       | TypeScript Development | Expert planning for TypeScript tasks          | Claude • OpenCode |
+| **docker-expert**           | Containerization       | Docker containerization and orchestration     | Claude • OpenCode |
+| **terraform-gcp-expert**    | Infrastructure         | Terraform and GCP infrastructure planning     | Claude • OpenCode |
+| **git-action-expert**       | CI/CD & GitHub Actions | CI/CD pipeline and GitHub Actions specialist  | Claude • OpenCode |
+| **rag-architecture-expert** | RAG Systems            | Architecture planning for RAG implementations | Claude • OpenCode |
 
-| Subagent                             | Specialization      | Purpose                                    |
-| :----------------------------------- | :------------------ | :----------------------------------------- |
-| **user-researcher**                  | User Research       | User behavior analysis and market research |
-| **competitive-intelligence-analyst** | Market Intelligence | Competitor analysis and market positioning |
-| **technical-researcher**             | Technical Research  | Code analysis and implementation research  |
-| **research-coordinator**             | Research Management | Multi-agent research workflow coordination |
-| **docs-scraper**                     | Documentation       | Web documentation scraping and processing  |
+## 📝 Research & Analysis
+
+| Agent                    | Specialization      | Purpose                                    | Platforms         |
+| :----------------------- | :------------------ | :----------------------------------------- | :---------------- |
+| **user-researcher**      | User Research       | User behavior analysis and market research | Claude • OpenCode |
+| **market-analyst**       | Market Intelligence | Competitor and market analysis             | Claude • OpenCode |
+| **technical-researcher** | Technical Research  | Code analysis and implementation research  | Claude • OpenCode |
+| **research-coordinator** | Research Management | Multi-agent research workflow coordination | Claude • OpenCode |
+| **docs-scraper**         | Documentation       | Web documentation scraping and processing  | Claude • OpenCode |
 
 ## 🎨 Design & User Experience
 
-| Subagent        | Specialization | Purpose                              |
-| :-------------- | :------------- | :----------------------------------- |
-| **ux-designer** | UX Design      | User experience design and planning  |
-| **ux-reviewer** | UX Analysis    | User interface review and validation |
+| Agent           | Specialization | Purpose                              | Platforms         |
+| :-------------- | :------------- | :----------------------------------- | :---------------- |
+| **ux-designer** | UX Design      | User experience design and planning  | Claude • OpenCode |
+| **ux-reviewer** | UX Analysis    | User interface review and validation | Claude • OpenCode |
 
-## ⚡ Session Uptime Maximization Subagents
+## ⚡ Delegation Handlers (Claude Code)
 
-| Subagent           | Purpose                   | Benefits                                       |
-| :----------------- | :------------------------ | :--------------------------------------------- |
-| **gemini-handler** | Context-heavy analysis    | Offload large context operations to Gemini CLI |
-| **qwen-handler**   | Tool-intensive operations | Delegate high tool-usage tasks to Qwen CLI     |
+| Agent              | Purpose                   | Platforms |
+| :----------------- | :------------------------ | :-------- |
+| **gemini-handler** | Context-heavy analysis    | Claude    |
+| **qwen-handler**   | Tool-intensive operations | Claude    |
 
 ## ⚡ Free Tier Agent Maximization
 
@@ -84,14 +86,14 @@ The system follows a comprehensive orchestration workflow:
 5. **Implementation** - Implement feature and check for runtime errors
 6. **Quality Verification** - Execute dynamic quality gates based on tech stack
 7. **Commit** - Attempt to commit changes with proper error handling
-8. **Failure Escalation** - Escalate to CTO agent after 3 failures
+8. **Failure Escalation** - Escalate to problem-escalation agent after 3 failures
 
 ### Key Features
 
 - **Continuous Orchestration**: Single command runs entire workflow to completion
 - **Dynamic Quality Gates**: Adapts to project tech stack automatically
 - **Prototype Mode Support**: Automatic test skipping with --prototype flag
-- **Intelligent Failure Handling**: 3 failures → CTO → 2 attempts → human escalation
+- **Intelligent Failure Handling**: 3 failures → problem-escalation → 2 attempts → human escalation
 - **State Persistence**: Progress tracked throughout execution
 - **Phase Testing Plans**: Automatic generation of user testing plans after each phase
 
