@@ -119,36 +119,50 @@ The principles for this project are designed around the realities of coding with
 
 **Task Actions**:
 
-- **Automatic session tracking** using Claude Code hooks to capture key operations (reads, writes, edits, bash commands, user prompts)
-- **Context bundle generation** creating timestamped daily JSON files (DAY_DD_HHMMSS_SESSIONID.json) for chronological sorting and session UUID tracking
+- **Dual-platform session tracking** with dedicated capture scripts for both Claude Code and OpenCode, reading directly from each tool's session storage
+- **Claude Code integration** accessing session data from `~/.claude/projects/` JSONL files with comprehensive operation extraction
+- **OpenCode integration** accessing session data from `~/.local/share/opencode/storage/` with message and part file parsing
 - **Intelligent exclusion system** filtering sensitive data, duplicate operations, and noise patterns through configurable exclusion rules
 - **Automatic redaction** detecting and masking API keys, passwords, tokens, and other sensitive data in captured context
 - **Recent activity analysis** reviewing captured operations and git history to understand current development focus
-- **Workflow pattern identification** analyzing operation sequences to identify common development patterns and bottlenecks
-- **Hook-based capture system** leveraging PostToolUse, UserPromptSubmit, and SessionStart events for comprehensive tracking
-- **Cross-session continuity** maintaining session context through UUID persistence and append-only logging
+- **Multi-method search capabilities** including UUID filtering, semantic search, and pattern matching across session content
+- **Cross-session continuity** maintaining session context through UUID persistence and comprehensive operation tracking
+
+**Search Methods**:
+
+- **UUID filtering** (`--uuid`) - Target specific sessions by their unique identifier for focused analysis
+- **Semantic search** (`--search-term`) - Find sessions containing semantically matching content with intelligent pattern recognition
+- **Semantic variations** - Enhanced search with context-aware variations including synonyms, verb forms, and related technical concepts
+- **Time-based filtering** (`--days`) - Limit analysis to recent sessions within configurable time windows
+- **Verbose expansion** (`--verbose`) - Expand truncated content for detailed investigation of specific sessions
 
 **Benefits**:
 
-- Prevents repeated investigation by maintaining searchable action history
-- Enables quick orientation on recent work through automated activity summaries with chronologically sorted bundle files
+- Prevents repeated investigation by maintaining searchable action history across both Claude and OpenCode platforms
+- Enables quick orientation on recent work through automated activity summaries with flexible search capabilities
 - **Security-first design** with automatic redaction of sensitive data and configurable exclusion patterns
-- Creates objective record of development actions beyond git commits
+- Creates objective record of development actions beyond git commits with direct session file system access
 - Maintains workflow context across extended development periods and team handoffs
 - **Noise reduction** through intelligent filtering of duplicate operations and irrelevant system files
-- Provides data-driven insights into development patterns and productivity
+- Provides data-driven insights into development patterns and productivity with multi-platform support
 
 **Common workflow**:
 
 ```bash
-# 🔧 Setup automatic session context capture
-/setup-context-capture enable
-
-# 📊 Review recent activity for quick orientation
+# 📊 Review recent activity for quick orientation (default: last 2 days)
 /todo-recent-context
 
-# 📝 Check capture system status and recent bundles
-/setup-context-capture status
+# 🔍 Search for sessions with semantic matching
+/todo-recent-context --search-term "authentication bug"
+
+# 🎯 Analyze specific session by UUID
+/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890
+
+# 📝 Get detailed analysis with full conversation content
+/todo-recent-context --verbose
+
+# 🔎 Combined search within specific session
+/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
 ```
 
 ---
