@@ -36,6 +36,7 @@ from core.base.analyzer_registry import register_analyzer
 _DETECT_SECRETS_CONFIG_PATH = (
     Path(__file__).resolve().parents[2] / "config" / "security" / "detect_secrets.json"
 )
+_DETECT_SECRETS_SCHEMA_VERSION = 1
 _REQUIRED_TOP_LEVEL_KEYS = {
     "code_extensions",
     "skip_patterns",
@@ -66,6 +67,16 @@ def _load_detect_secrets_config() -> dict[str, Any]:
 
     if not isinstance(config_data, dict):
         raise DetectSecretsConfigError("Detect-secrets config must be a JSON object")
+
+    if config_data.get("schema_version") != _DETECT_SECRETS_SCHEMA_VERSION:
+        raise DetectSecretsConfigError(
+            "Unsupported detect-secrets config version:"
+            f" {config_data.get('schema_version')}"
+        )
+
+    config_data = {
+        key: value for key, value in config_data.items() if key != "schema_version"
+    }
 
     missing = _REQUIRED_TOP_LEVEL_KEYS - set(config_data)
     if missing:

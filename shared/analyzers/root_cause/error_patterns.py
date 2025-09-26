@@ -21,6 +21,7 @@ import json
 import re
 import sys
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -35,6 +36,10 @@ _ERROR_PATTERN_DIR = (
 )
 _ERROR_PATTERNS_PATH = _ERROR_PATTERN_DIR / "patterns.json"
 _LANGUAGE_PATTERNS_PATH = _ERROR_PATTERN_DIR / "language_patterns.json"
+_ERROR_TYPE_MAP_PATH = _ERROR_PATTERN_DIR / "error_type_map.json"
+_ERROR_PATTERN_SCHEMA_VERSION = 1
+_LANGUAGE_PATTERN_SCHEMA_VERSION = 1
+_ERROR_TYPE_MAP_VERSION = 1
 _REQUIRED_ERROR_PATTERN_FIELDS = {
     "patterns",
     "severity",
@@ -65,8 +70,20 @@ def _load_error_pattern_bundle() -> (
             "General error pattern config must be a JSON object"
         )
 
+    if general_raw.get("schema_version") != _ERROR_PATTERN_SCHEMA_VERSION:
+        raise ErrorPatternConfigError(
+            "Unsupported error pattern schema version:"
+            f" {general_raw.get('schema_version')}"
+        )
+
+    general_block = general_raw.get("patterns")
+    if not isinstance(general_block, dict):
+        raise ErrorPatternConfigError(
+            "Error pattern config must contain a 'patterns' object"
+        )
+
     general_patterns: dict[str, dict[str, Any]] = {}
-    for name, spec in general_raw.items():
+    for name, spec in general_block.items():
         if not isinstance(name, str):
             raise ErrorPatternConfigError("Error pattern keys must be strings")
         if not isinstance(spec, dict):
@@ -117,8 +134,20 @@ def _load_error_pattern_bundle() -> (
             "Language-specific pattern config must be a JSON object"
         )
 
+    if language_raw.get("schema_version") != _LANGUAGE_PATTERN_SCHEMA_VERSION:
+        raise ErrorPatternConfigError(
+            "Unsupported language pattern schema version:"
+            f" {language_raw.get('schema_version')}"
+        )
+
+    language_block = language_raw.get("languages")
+    if not isinstance(language_block, dict):
+        raise ErrorPatternConfigError(
+            "Language pattern config must contain a 'languages' object"
+        )
+
     language_patterns: dict[str, dict[str, Any]] = {}
-    for extension, spec in language_raw.items():
+    for extension, spec in language_block.items():
         if not isinstance(extension, str):
             raise ErrorPatternConfigError(
                 "Language pattern keys must be file extensions as strings"
@@ -154,6 +183,55 @@ def _load_error_pattern_bundle() -> (
         }
 
     return general_patterns, language_patterns
+
+
+@lru_cache(maxsize=1)
+def _load_error_type_map() -> tuple[dict[str, Any], list[str]]:
+    """Load mapping of runtime error types to relevant pattern names."""
+    try:
+        raw_data = json.loads(_ERROR_TYPE_MAP_PATH.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise ErrorPatternConfigError(
+            f"Error type mapping config not found: {_ERROR_TYPE_MAP_PATH}"
+        ) from exc
+
+    if not isinstance(raw_data, dict):
+        raise ErrorPatternConfigError("Error type mapping config must be a JSON object")
+
+    if raw_data.get("schema_version") != _ERROR_TYPE_MAP_VERSION:
+        raise ErrorPatternConfigError(
+            "Unsupported error type mapping schema version:"
+            f" {raw_data.get('schema_version')}"
+        )
+
+    default_patterns = raw_data.get("default_patterns")
+    if not isinstance(default_patterns, list) or not all(
+        isinstance(item, str) for item in default_patterns
+    ):
+        raise ErrorPatternConfigError(
+            "Error type mapping must define 'default_patterns' as a list of strings"
+        )
+
+    mappings = raw_data.get("mappings")
+    if not isinstance(mappings, dict):
+        raise ErrorPatternConfigError(
+            "Error type mapping must define a 'mappings' object"
+        )
+
+    normalized: dict[str, Any] = {}
+    for error_type, pattern_list in mappings.items():
+        if pattern_list == "__all__":
+            normalized[error_type] = "__all__"
+            continue
+        if not isinstance(pattern_list, list) or not all(
+            isinstance(item, str) for item in pattern_list
+        ):
+            raise ErrorPatternConfigError(
+                f"Mapping for '{error_type}' must be a list of strings or '__all__'"
+            )
+        normalized[error_type] = list(pattern_list)
+
+    return normalized, list(default_patterns)
 
 
 @dataclass(frozen=True)
@@ -253,6 +331,10 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
 
         # File extensions and their specific patterns
         self.language_patterns = language_patterns
+
+        error_type_map, default_patterns = _load_error_type_map()
+        self.error_type_map = error_type_map
+        self.default_error_patterns = default_patterns
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
         """Return metadata about this analyzer."""
@@ -654,27 +736,47 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
 
     def _get_language_recommendation(self, file_ext: str, matched_text: str) -> str:
         """Get language-specific recommendations."""
-        if file_ext == ".py":
-            if "except:" in matched_text:
-                return "Use specific exception types instead of bare except clauses"
-            elif "import *" in matched_text:
-                return "Use explicit imports instead of wildcard imports"
-            elif "eval" in matched_text or "exec" in matched_text:
-                return "Avoid eval() and exec() - use safer alternatives like ast.literal_eval()"
-        elif file_ext == ".js":
-            if "==" in matched_text and (
-                "null" in matched_text or "undefined" in matched_text
-            ):
-                return "Use strict equality (===) instead of loose equality (==)"
-            elif "var " in matched_text:
-                return "Use let or const instead of var for better scoping"
-        elif file_ext == ".java":
-            if "printStackTrace" in matched_text:
-                return (
-                    "Use proper logging instead of printStackTrace() in production code"
-                )
-            elif "System.out.print" in matched_text:
-                return "Use a proper logging framework instead of System.out"
+        recommendation_rules: dict[str, list[tuple[Callable[[str], bool], str]]] = {
+            ".py": [
+                (
+                    lambda text: "except:" in text,
+                    "Use specific exception types instead of bare except clauses",
+                ),
+                (
+                    lambda text: "import *" in text,
+                    "Use explicit imports instead of wildcard imports",
+                ),
+                (
+                    lambda text: "eval" in text or "exec" in text,
+                    "Avoid eval() and exec() - use safer alternatives like ast.literal_eval()",
+                ),
+            ],
+            ".js": [
+                (
+                    lambda text: "==" in text
+                    and ("null" in text or "undefined" in text),
+                    "Use strict equality (===) instead of loose equality (==)",
+                ),
+                (
+                    lambda text: "var " in text,
+                    "Use let or const instead of var for better scoping",
+                ),
+            ],
+            ".java": [
+                (
+                    lambda text: "printStackTrace" in text,
+                    "Use proper logging instead of printStackTrace() in production code",
+                ),
+                (
+                    lambda text: "System.out.print" in text,
+                    "Use a proper logging framework instead of System.out",
+                ),
+            ],
+        }
+
+        for evaluator, message in recommendation_rules.get(file_ext, []):
+            if evaluator(matched_text):
+                return message
 
         return f"Follow {file_ext} best practices and avoid this anti-pattern"
 
@@ -781,22 +883,21 @@ class ErrorPatternAnalyzer(BaseAnalyzer):
 
     def get_patterns_for_error_type(self, error_type: str) -> list[str]:
         """Get relevant patterns based on error type."""
-        error_type_patterns = {
-            "TypeError": ["null_pointer", "data_corruption"],
-            "ReferenceError": ["null_pointer"],
-            "NullPointerException": ["null_pointer"],
-            "SyntaxError": ["poor_error_handling"],
-            "MemoryError": ["memory_leak", "performance_issue"],
-            "TimeoutError": ["performance_issue", "race_condition"],
-            "SecurityError": ["injection_vulnerability", "auth_bypass"],
-            "PermissionError": ["auth_bypass"],
-            "ValidationError": ["injection_vulnerability"],
-            "unknown": list(self.error_patterns.keys()),  # All patterns if type unknown
-        }
+        patterns = self.error_type_map.get(error_type)
 
-        return error_type_patterns.get(
-            error_type, ["null_pointer", "poor_error_handling"]
-        )
+        if patterns is None and error_type.lower() != error_type:
+            patterns = self.error_type_map.get(error_type.lower())
+
+        if patterns is None:
+            patterns = self.error_type_map.get("unknown")
+
+        if patterns == "__all__":
+            return list(self.error_patterns.keys())
+
+        if isinstance(patterns, list):
+            return patterns
+
+        return list(self.default_error_patterns)
 
 
 def main():

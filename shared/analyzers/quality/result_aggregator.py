@@ -162,6 +162,16 @@ class ProjectAnalysisSummary:
     created_at: datetime = field(default_factory=datetime.now)
 
 
+@dataclass
+class ResultFilter:
+    """Parameter object describing how to filter aggregated results."""
+
+    priority: Priority | None = None
+    analysis_type: AnalysisType | None = None
+    file_path_substring: str | None = None
+    min_confidence: float | None = None
+
+
 class ResultConverter:
     """Converts analysis results from various engines to unified format."""
 
@@ -665,26 +675,26 @@ class AnalysisAggregator(BaseAnalyzer):
         )
 
     def get_filtered_results(
-        self,
-        priority: Priority | None = None,
-        analysis_type: AnalysisType | None = None,
-        file_path: str | None = None,
-        min_confidence: float | None = None,
+        self, filters: ResultFilter | None = None
     ) -> list[AnalysisResult]:
         """Get filtered analysis results."""
+        filters = filters or ResultFilter()
+
         filtered = self.results
 
-        if priority:
-            filtered = [r for r in filtered if r.priority == priority]
+        if filters.priority is not None:
+            filtered = [r for r in filtered if r.priority == filters.priority]
 
-        if analysis_type:
-            filtered = [r for r in filtered if r.analysis_type == analysis_type]
+        if filters.analysis_type is not None:
+            filtered = [r for r in filtered if r.analysis_type == filters.analysis_type]
 
-        if file_path:
-            filtered = [r for r in filtered if file_path in r.file_path]
+        if filters.file_path_substring:
+            filtered = [
+                r for r in filtered if filters.file_path_substring in r.file_path
+            ]
 
-        if min_confidence:
-            filtered = [r for r in filtered if r.confidence >= min_confidence]
+        if filters.min_confidence is not None:
+            filtered = [r for r in filtered if r.confidence >= filters.min_confidence]
 
         return filtered
 
@@ -702,12 +712,13 @@ class AnalysisAggregator(BaseAnalyzer):
         self, output_format: str = "json", output_path: str | None = None
     ) -> str:
         """Export results in specified format."""
-        if format.lower() == "json":
+        export_format = output_format.lower()
+        if export_format == "json":
             return self._export_json(output_path)
-        elif format.lower() == "csv":
+        elif export_format == "csv":
             return self._export_csv(output_path)
         else:
-            raise ValueError(f"Unsupported export format: {format}")
+            raise ValueError(f"Unsupported export format: {output_format}")
 
     def _export_json(self, output_path: str | None) -> str:
         """Export results as JSON."""
@@ -845,7 +856,7 @@ Analysis Types Performed:
 
         # Top critical issues
         critical_issues = self.aggregator.get_filtered_results(
-            priority=Priority.CRITICAL
+            ResultFilter(priority=Priority.CRITICAL)
         )
         if critical_issues:
             report += f"\n\nCRITICAL ISSUES REQUIRING IMMEDIATE ATTENTION ({len(critical_issues)}):\n"
@@ -892,7 +903,7 @@ Based on the analysis results, here's a recommended action plan:
 
         # Critical actions
         critical_issues = self.aggregator.get_filtered_results(
-            priority=Priority.CRITICAL
+            ResultFilter(priority=Priority.CRITICAL)
         )
         if critical_issues:
             plan += f"IMMEDIATE ACTIONS (Critical - {len(critical_issues)} issues):\n"
@@ -901,7 +912,9 @@ Based on the analysis results, here's a recommended action plan:
             plan += "3. Resolve dangerous code execution patterns\n\n"
 
         # High priority actions
-        high_issues = self.aggregator.get_filtered_results(priority=Priority.HIGH)
+        high_issues = self.aggregator.get_filtered_results(
+            ResultFilter(priority=Priority.HIGH)
+        )
         if high_issues:
             plan += f"SHORT-TERM ACTIONS (High Priority - {len(high_issues)} issues):\n"
             plan += "1. Refactor God classes and long methods\n"
@@ -909,7 +922,9 @@ Based on the analysis results, here's a recommended action plan:
             plan += "3. Remove exact code duplicates\n\n"
 
         # Medium priority actions
-        medium_issues = self.aggregator.get_filtered_results(priority=Priority.MEDIUM)
+        medium_issues = self.aggregator.get_filtered_results(
+            ResultFilter(priority=Priority.MEDIUM)
+        )
         if medium_issues:
             plan += f"MEDIUM-TERM ACTIONS (Medium Priority - {len(medium_issues)} issues):\n"
             plan += "1. Improve code organization and structure\n"

@@ -22,6 +22,7 @@ import ast
 import json
 import re
 import subprocess
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
@@ -40,6 +41,7 @@ _SCALABILITY_CATEGORY_FILES = {
     "concurrency": "concurrency.json",
     "architecture": "architecture.json",
 }
+_SCALABILITY_CONFIG_VERSION = 1
 _REQUIRED_PATTERN_FIELDS = {"indicators", "severity", "description"}
 
 
@@ -65,8 +67,20 @@ def _load_scalability_pattern_bundle() -> dict[str, dict[str, dict[str, Any]]]:
                 f"Config for category '{category}' must be a JSON object"
             )
 
+        if raw_data.get("schema_version") != _SCALABILITY_CONFIG_VERSION:
+            raise ScalabilityPatternConfigError(
+                f"Unsupported schema version for '{category}':"
+                f" {raw_data.get('schema_version')}"
+            )
+
+        pattern_block = raw_data.get("patterns")
+        if not isinstance(pattern_block, dict):
+            raise ScalabilityPatternConfigError(
+                f"Config for category '{category}' must contain a 'patterns' object"
+            )
+
         normalized: dict[str, dict[str, Any]] = {}
-        for pattern_name, spec in raw_data.items():
+        for pattern_name, spec in pattern_block.items():
             if not isinstance(pattern_name, str):
                 raise ScalabilityPatternConfigError(
                     f"Pattern keys must be strings in category '{category}'"
@@ -123,6 +137,19 @@ class PatternScanContext:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "content_lower", self.content.lower())
+
+
+@dataclass(frozen=True)
+class PatternMatchContext:
+    """Context for evaluating whether a specific pattern match should be flagged."""
+
+    scan: PatternScanContext
+    pattern_name: str
+    context_line: str
+    context_lower: str = field(init=False)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "context_lower", self.context_line.lower())
 
 
 @register_analyzer("architecture:scalability")
@@ -206,6 +233,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
             "concurrency": self.concurrency_patterns,
             "architecture": self.architecture_patterns,
         }
+        self._pattern_evaluators = self._build_pattern_evaluators()
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
         """Return metadata about this analyzer."""
@@ -307,9 +335,11 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                         else ""
                     )
 
-                    if self._should_flag_scalability_issue(
-                        pattern_name, context_line, scan
-                    ):
+                    match_context = PatternMatchContext(
+                        scan=scan, pattern_name=pattern_name, context_line=context_line
+                    )
+
+                    if self._should_flag_scalability_issue(match_context):
                         confidence = self._calculate_confidence(
                             pattern_name, context_line, scan.lizard_metrics
                         )
@@ -391,29 +421,31 @@ class ScalabilityAnalyzer(BaseAnalyzer):
 
         return {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
 
-    def _should_flag_scalability_issue(
-        self, pattern_name: str, context: str, scan: PatternScanContext
-    ) -> bool:
+    def _should_flag_scalability_issue(self, match: "PatternMatchContext") -> bool:
         """Determine if a scalability issue should be flagged based on context."""
-        # Skip if in test files, specs, or configuration files
-        context_lower = context.lower()
         if any(
-            marker in context_lower
+            marker in match.context_lower
             for marker in ["test", "spec", "mock", "fixture", "stub", "config", "setup"]
         ):
             return False
 
-        # Only flag database patterns if they're in complex functions with real database usage
-        if pattern_name in [
-            "n_plus_one",
-            "missing_indexes",
-            "large_result_sets",
-            "no_pagination",
-        ]:
-            # Require higher complexity AND evidence of actual database usage
+        evaluator = self._pattern_evaluators.get(match.pattern_name)
+        if evaluator:
+            return evaluator(match)
+
+        metrics = match.scan.lizard_metrics
+        return metrics.get("total_functions", 0) > 3 and metrics.get("max_ccn", 0) > 8
+
+    def _build_pattern_evaluators(
+        self,
+    ) -> dict[str, Callable[["PatternMatchContext"], bool]]:
+        """Create evaluators that decide whether to flag a given pattern match."""
+
+        def database_evaluator(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             has_db_context = any(
-                db_term in scan.content_lower
-                for db_term in [
+                term in match.scan.content_lower
+                for term in [
                     "select",
                     "insert",
                     "update",
@@ -429,51 +461,46 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                 ]
             )
             return (
-                scan.lizard_metrics.get("max_ccn", 0) > 10
+                metrics.get("max_ccn", 0) > 10
+                and metrics.get("total_functions", 0) > 2
                 and has_db_context
-                and scan.lizard_metrics.get("total_functions", 0) > 2
             )
 
-        # Only flag synchronous I/O if in performance-critical context
-        if pattern_name == "synchronous_io":
-            # Require explicit loop context AND complex function
+        def synchronous_io(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             has_loop = any(
-                loop in context_lower for loop in ["for ", "while ", "foreach"]
+                token in match.context_lower for token in ["for ", "while ", "foreach"]
             )
             return (
                 has_loop
-                and scan.lizard_metrics.get("max_ccn", 0) > 12
-                and "await" not in context_lower
-            )  # Not if already using async
+                and metrics.get("max_ccn", 0) > 12
+                and "await" not in match.context_lower
+            )
 
-        # Only flag hardcoded config if it's in actual configuration context
-        if pattern_name == "hardcoded_config":
+        def hardcoded_config(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             has_config_context = any(
-                term in scan.content_lower
+                term in match.scan.content_lower
                 for term in ["config", "environment", "settings", "connection"]
             )
+            return metrics.get("total_functions", 0) > 3 and has_config_context
+
+        def memory_leaks(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             return (
-                scan.lizard_metrics.get("total_functions", 0) > 3 and has_config_context
+                metrics.get("total_functions", 0) > 5 and metrics.get("max_ccn", 0) > 8
             )
 
-        # Only flag memory leaks in substantial, long-running code
-        if pattern_name == "memory_leaks":
+        def tight_coupling(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             return (
-                scan.lizard_metrics.get("total_functions", 0) > 5
-                and scan.lizard_metrics.get("max_ccn", 0) > 8
+                metrics.get("total_functions", 0) > 4 and metrics.get("max_ccn", 0) > 10
             )
 
-        # Only flag tight coupling in files with significant complexity
-        if pattern_name == "tight_coupling":
-            return (
-                scan.lizard_metrics.get("total_functions", 0) > 4
-                and scan.lizard_metrics.get("max_ccn", 0) > 10
-            )
-
-        # Only flag thread safety in concurrent code
-        if pattern_name == "thread_safety":
+        def thread_safety(match: "PatternMatchContext") -> bool:
+            metrics = match.scan.lizard_metrics
             has_concurrent_context = any(
-                term in scan.content_lower
+                term in match.scan.content_lower
                 for term in [
                     "thread",
                     "async",
@@ -482,13 +509,24 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                     "multiprocess",
                 ]
             )
-            return scan.lizard_metrics.get("max_ccn", 0) > 8 and has_concurrent_context
+            return metrics.get("max_ccn", 0) > 8 and has_concurrent_context
 
-        # Default: only flag in complex, substantial files
-        return (
-            scan.lizard_metrics.get("total_functions", 0) > 3
-            and scan.lizard_metrics.get("max_ccn", 0) > 8
-        )
+        evaluators: dict[str, Callable[[PatternMatchContext], bool]] = {}
+        for name in {
+            "n_plus_one",
+            "missing_indexes",
+            "large_result_sets",
+            "no_pagination",
+        }:
+            evaluators[name] = database_evaluator
+
+        evaluators["synchronous_io"] = synchronous_io
+        evaluators["hardcoded_config"] = hardcoded_config
+        evaluators["memory_leaks"] = memory_leaks
+        evaluators["tight_coupling"] = tight_coupling
+        evaluators["thread_safety"] = thread_safety
+
+        return evaluators
 
     def _calculate_confidence(
         self, pattern_name: str, context: str, lizard_metrics: dict

@@ -162,21 +162,21 @@
 
 Use the table below to track status. Allowed values: `pending`, `in_progress`, `completed`.
 
-| ID    | Task                                                               | Files                                                      | Status    | Owner | Notes |
-| ----- | ------------------------------------------------------------------ | ---------------------------------------------------------- | --------- | ----- | ----- |
-| WS1.1 | Extract coverage configs                                           | `shared/analyzers/quality/coverage_analysis.py:24`         | completed |       |       |
-| WS1.2 | Remove legacy coverage wrapper                                     | `shared/analyzers/quality/coverage_analysis.py:290`        | completed |       |       |
-| WS3.1 | Move scalability patterns to JSON                                  | `shared/analyzers/architecture/scalability_check.py:91`    | completed |       |       |
-| WS3.2 | Add FileContext and refactor `_check_scalability_patterns`         | `shared/analyzers/architecture/scalability_check.py:352`   | completed |       |       |
-| WS4.1 | Move error patterns/language patterns to JSON                      | `shared/analyzers/root_cause/error_patterns.py:90`         | completed |       |       |
-| WS4.2 | Add ErrorScanContext and refactor `_check_targeted_error_patterns` | `shared/analyzers/root_cause/error_patterns.py:369`        | completed |       |       |
-| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | completed |       |       |
-| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | completed |       |       |
-| WS3.3 | Strategy predicates for `_should_flag_scalability_issue`           | `shared/analyzers/architecture/scalability_check.py:460`   | pending   |       |       |
-| WS4.3 | Table-driven `_get_language_recommendation`                        | `shared/analyzers/root_cause/error_patterns.py:645`        | pending   |       |       |
-| WS7.1 | Introduce `ResultFilter` and update calls                          | `shared/analyzers/quality/result_aggregator.py:667`        | pending   |       |       |
-| WS5.1 | Declarative exclusions for tech stacks                             | `shared/core/utils/tech_stack_detector.py:117`             | pending   |       |       |
-| WS6.1 | Extract helpers in god class detector                              | `shared/analyzers/quality/pattern_classifier.py:135`       | pending   |       |       |
+| ID    | Task                                                               | Files                                                      | Progress      | Owner | Notes |
+| ----- | ------------------------------------------------------------------ | ---------------------------------------------------------- | ------------- | ----- | ----- |
+| WS1.1 | Extract coverage configs                                           | `shared/analyzers/quality/coverage_analysis.py:24`         | [x] completed |       |       |
+| WS1.2 | Remove legacy coverage wrapper                                     | `shared/analyzers/quality/coverage_analysis.py:290`        | [x] completed |       |       |
+| WS3.1 | Move scalability patterns to JSON                                  | `shared/analyzers/architecture/scalability_check.py:91`    | [x] completed |       |       |
+| WS3.2 | Add FileContext and refactor `_check_scalability_patterns`         | `shared/analyzers/architecture/scalability_check.py:352`   | [x] completed |       |       |
+| WS4.1 | Move error patterns/language patterns to JSON                      | `shared/analyzers/root_cause/error_patterns.py:90`         | [x] completed |       |       |
+| WS4.2 | Add ErrorScanContext and refactor `_check_targeted_error_patterns` | `shared/analyzers/root_cause/error_patterns.py:369`        | [x] completed |       |       |
+| WS2.1 | Extract detect-secrets config                                      | `shared/analyzers/security/detect_secrets_analyzer.py:39`  | [x] completed |       |       |
+| WS2.2 | Remove degraded mode; hard-fail availability                       | `shared/analyzers/security/detect_secrets_analyzer.py:187` | [x] completed |       |       |
+| WS3.3 | Strategy predicates for `_should_flag_scalability_issue`           | `shared/analyzers/architecture/scalability_check.py:460`   | [x] completed |       |       |
+| WS4.3 | Table-driven `_get_language_recommendation`                        | `shared/analyzers/root_cause/error_patterns.py:645`        | [x] completed |       |       |
+| WS7.1 | Introduce `ResultFilter` and update calls                          | `shared/analyzers/quality/result_aggregator.py:667`        | [x] completed |       |       |
+| WS5.1 | Declarative exclusions for tech stacks                             | `shared/core/utils/tech_stack_detector.py:117`             | [x] completed |       |       |
+| WS6.1 | Extract helpers in god class detector                              | `shared/analyzers/quality/pattern_classifier.py:135`       | [x] completed |       |       |
 
 Add more rows as needed; keep statuses current. Consider placing this table at the top during active work for quick visibility.
 
@@ -204,12 +204,18 @@ Add more rows as needed; keep statuses current. Consider placing this table at t
 
 Note: For error patterns, baseline must pass a stable `--error` string to avoid scanning unrelated files.
 
+### Status
+
+- [x] Captured post-refactor baselines for coverage, scalability, error patterns, and detect-secrets (`/tmp/coverage-post.json`, `/tmp/scalability-post.json`, `/tmp/error-patterns-post.json`, `/tmp/detect-secrets-post.json`).
+- [x] Captured legacy baselines using deployed analyzers under `/Users/adamjackson/.claude/scripts` (`/tmp/coverage-old.json`, `/tmp/scalability-old.json`, `/tmp/error-patterns-old.json`, `/tmp/detect-secrets-old.json`).
+- [x] Normalize legacy vs. refactored outputs and document any behavioral deltas (no diffs after path/id normalization; see normalized artifacts under /tmp).
+
 ### Normalization For Diff
 
 - Remove volatile fields: `timestamp`, `execution_time`, and ordering noise. Sort findings by `(analysis_type, file_path, line_number, id)`.
 - Strip environment-specific fields if any.
-- Suggested normalization script (store at `shared/tests/integration/tools/normalize_results.py`):
-  - Read JSON, drop volatile keys, sort arrays deterministically, write normalized JSON.
+- Normalization script implemented at `shared/tests/integration/tools/normalize_results.py`:
+  - Reads analyzer JSON, drops volatile keys (timestamp/execution_time/id), normalizes file paths, sorts findings deterministically, and writes the sanitized output.
 
 ### Post-Refactor Comparison
 
@@ -254,7 +260,7 @@ Note: For error patterns, baseline must pass a stable `--error` string to avoid 
 
 ## Backlog (Optional)
 
-- Minor fix (not part of primary scope): `shared/analyzers/quality/result_aggregator.py:707` uses `format.lower()` but should reference `output_format`. Address when refactoring WS7 if touched.
+- Backlog item addressed: `shared/analyzers/quality/result_aggregator.py` now uses `output_format.lower()` within `export_results` to avoid referencing the built-in name.
 
 ---
 

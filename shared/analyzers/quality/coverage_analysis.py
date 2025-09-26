@@ -21,6 +21,8 @@ from core.base.analyzer_registry import register_analyzer
 _COVERAGE_CONFIG_DIR = Path(__file__).resolve().parents[2] / "config" / "coverage"
 _LANGUAGE_CONFIG_PATH = _COVERAGE_CONFIG_DIR / "languages.json"
 _INDICATORS_PATH = _COVERAGE_CONFIG_DIR / "indicators.json"
+_LANGUAGE_CONFIG_VERSION = 1
+_INDICATOR_CONFIG_VERSION = 1
 _REQUIRED_LANGUAGE_KEYS = {
     "extensions",
     "test_patterns",
@@ -51,10 +53,22 @@ def _load_language_config_bundle() -> tuple[dict[str, dict[str, Any]], dict[str,
     if not isinstance(raw_data, dict):
         raise CoverageConfigError("Coverage language config must be a JSON object")
 
+    if raw_data.get("schema_version") != _LANGUAGE_CONFIG_VERSION:
+        raise CoverageConfigError(
+            "Unsupported coverage language config version:"
+            f" {raw_data.get('schema_version')}"
+        )
+
+    languages = raw_data.get("languages")
+    if not isinstance(languages, dict):
+        raise CoverageConfigError(
+            "Coverage language config must provide a 'languages' mapping"
+        )
+
     normalized: dict[str, dict[str, Any]] = {}
     extension_map: dict[str, str] = {}
 
-    for language, spec in raw_data.items():
+    for language, spec in languages.items():
         if not isinstance(language, str):
             raise CoverageConfigError("Language keys must be strings")
         if not isinstance(spec, dict):
@@ -98,12 +112,22 @@ def _load_language_config_bundle() -> tuple[dict[str, dict[str, Any]], dict[str,
 def _load_generic_indicators() -> list[str]:
     """Load generic coverage indicators as a list of strings."""
     try:
-        indicators = json.loads(_INDICATORS_PATH.read_text(encoding="utf-8"))
+        indicators_raw = json.loads(_INDICATORS_PATH.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
         raise CoverageConfigError(
             f"Coverage indicators config not found: {_INDICATORS_PATH}"
         ) from exc
 
+    if not isinstance(indicators_raw, dict):
+        raise CoverageConfigError("Coverage indicators config must be a JSON object")
+
+    if indicators_raw.get("schema_version") != _INDICATOR_CONFIG_VERSION:
+        raise CoverageConfigError(
+            "Unsupported coverage indicator config version:"
+            f" {indicators_raw.get('schema_version')}"
+        )
+
+    indicators = indicators_raw.get("indicators")
     if not isinstance(indicators, list) or not all(
         isinstance(item, str) for item in indicators
     ):
