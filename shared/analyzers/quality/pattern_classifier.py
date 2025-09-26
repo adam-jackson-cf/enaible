@@ -140,33 +140,19 @@ class AntiPatternDetector(PatternDetector):
 
         class GodClassVisitor(ast.NodeVisitor):
             def visit_ClassDef(self, node):
-                methods = [n for n in node.body if isinstance(n, ast.FunctionDef)]
-                attributes = []
+                method_count = AntiPatternDetector._count_class_methods(node)
+                attr_count = AntiPatternDetector._count_init_attributes(node)
+                lines = AntiPatternDetector._estimate_class_length(node)
 
-                # Count attribute assignments in __init__
-                for n in node.body:
-                    if isinstance(n, ast.FunctionDef) and n.name == "__init__":
-                        for stmt in ast.walk(n):
-                            if isinstance(stmt, ast.Attribute) and isinstance(
-                                stmt.ctx, ast.Store
-                            ):
-                                attributes.append(stmt.attr)
-
-                # God class heuristics
-                method_count = len(methods)
-                attr_count = len(set(attributes))
-                lines = (
-                    node.end_lineno - node.lineno if hasattr(node, "end_lineno") else 0
+                (
+                    triggered,
+                    severity,
+                    confidence,
+                ) = AntiPatternDetector._assess_god_class_thresholds(
+                    method_count, attr_count, lines
                 )
 
-                if method_count > 20 or attr_count > 15 or lines > 500:
-                    severity = (
-                        PatternSeverity.HIGH
-                        if method_count > 30
-                        else PatternSeverity.MEDIUM
-                    )
-                    confidence = min(0.9, (method_count + attr_count) / 50)
-
+                if triggered:
                     matches.append(
                         PatternMatch(
                             pattern_name="God Class",
@@ -193,6 +179,42 @@ class AntiPatternDetector(PatternDetector):
         visitor = GodClassVisitor()
         visitor.visit(tree)
         return matches
+
+    @staticmethod
+    def _count_class_methods(node: ast.ClassDef) -> int:
+        return sum(1 for child in node.body if isinstance(child, ast.FunctionDef))
+
+    @staticmethod
+    def _count_init_attributes(node: ast.ClassDef) -> int:
+        for child in node.body:
+            if isinstance(child, ast.FunctionDef) and child.name == "__init__":
+                return len(
+                    {
+                        stmt.attr
+                        for stmt in ast.walk(child)
+                        if isinstance(stmt, ast.Attribute)
+                        and isinstance(stmt.ctx, ast.Store)
+                    }
+                )
+        return 0
+
+    @staticmethod
+    def _estimate_class_length(node: ast.ClassDef) -> int:
+        if hasattr(node, "end_lineno") and node.end_lineno is not None:
+            return max(0, node.end_lineno - node.lineno)
+        return 0
+
+    @staticmethod
+    def _assess_god_class_thresholds(
+        method_count: int, attr_count: int, lines: int
+    ) -> tuple[bool, PatternSeverity, float]:
+        exceeds_limits = method_count > 20 or attr_count > 15 or lines > 500
+        if not exceeds_limits:
+            return False, PatternSeverity.LOW, 0.0
+
+        severity = PatternSeverity.HIGH if method_count > 30 else PatternSeverity.MEDIUM
+        confidence = min(0.9, (method_count + attr_count) / 50)
+        return True, severity, confidence
 
     def _detect_long_method(
         self, tree: ast.AST, code: str, file_path: str

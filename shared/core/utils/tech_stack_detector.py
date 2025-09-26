@@ -64,6 +64,8 @@ class TechStackDetector:
                 else None,
             )
 
+        self._exclusion_rules = self._load_exclusion_rules(config_path)
+
     @classmethod
     def from_config(cls, config_path: Path) -> "TechStackDetector":
         return cls(config_path=config_path)
@@ -124,117 +126,67 @@ class TechStackDetector:
         """
         detected_stacks = self.detect_tech_stack(project_path)
 
-        # Universal exclusions (always apply)
-        excluded_dirs = {
-            ".git",
-            "__pycache__",
-            ".pytest_cache",
-            ".coverage",
-            "coverage",
-            ".nyc_output",
-            "logs",
-            "tmp",
-            "temp",
-            # Universal vendor/build directories (exclude regardless of stack detection)
-            "node_modules",
-            "dist",
-            "build",
-            ".next",
-            ".nuxt",
-        }
-        excluded_files = {
-            ".DS_Store",
-            "Thumbs.db",
-            ".env",
-            ".env.local",
-            ".env.production",
-        }
-        excluded_extensions = {".log", ".tmp", ".cache"}
+        universal = self._exclusion_rules["universal"]
+        excluded_dirs = set(universal["directories"])
+        excluded_files = set(universal["files"])
+        excluded_extensions = set(universal["extensions"])
 
-        # Tech-specific exclusions
-        if "react_native_expo" in detected_stacks:
-            excluded_dirs.update(
-                {
-                    "node_modules",
-                    "Pods",
-                    "build",
-                    "android/build",
-                    "ios/build",
-                    ".expo",
-                    "web-build",
-                    "dist",
-                    ".next",
-                }
-            )
-            # Special handling for iOS Pods directory structure
-            excluded_dirs.add("ios/Pods")
+        for stack in detected_stacks:
+            overrides = self._exclusion_rules["stacks"].get(stack)
+            if not overrides:
+                continue
 
-        if "node_js" in detected_stacks:
-            excluded_dirs.update({"node_modules", "dist", "build", ".next", ".nuxt"})
-
-        if "python" in detected_stacks:
-            excluded_dirs.update(
-                {
-                    "__pycache__",
-                    ".pytest_cache",
-                    "venv",
-                    ".venv",
-                    "env",
-                    ".env",
-                    "site-packages",
-                    "dist",
-                    "build",
-                    ".tox",
-                }
-            )
-            excluded_extensions.update({".pyc", ".pyo", ".pyd"})
-
-        if "java_maven" in detected_stacks or "java_gradle" in detected_stacks:
-            excluded_dirs.update({"target", "build", ".gradle", ".idea", ".settings"})
-            excluded_extensions.update({".class", ".jar", ".war"})
-
-        if "dotnet" in detected_stacks:
-            excluded_dirs.update({"bin", "obj", "packages", ".vs"})
-            excluded_extensions.update({".dll", ".exe", ".pdb"})
-
-        if "go" in detected_stacks:
-            excluded_dirs.update({"vendor", "bin"})
-
-        if "rust" in detected_stacks:
-            excluded_dirs.update({"target", "Cargo.lock"})
-
-        if "php" in detected_stacks:
-            excluded_dirs.update({"vendor", "cache"})
-
-        if "ruby" in detected_stacks:
-            excluded_dirs.update({"vendor", "coverage"})
-
-        if "cpp" in detected_stacks:
-            excluded_dirs.update(
-                {
-                    "build",
-                    "cmake-build-debug",
-                    "cmake-build-release",
-                    ".vs",
-                    "Debug",
-                    "Release",
-                    "x64",
-                }
-            )
-            excluded_extensions.update({".o", ".obj", ".exe", ".dll", ".so", ".dylib"})
-
-        if "swift" in detected_stacks:
-            excluded_dirs.update({".build", "build", "DerivedData"})
-
-        if "kotlin" in detected_stacks:
-            excluded_dirs.update({"build", ".gradle", ".idea"})
-            excluded_extensions.update({".class", ".jar"})
+            excluded_dirs.update(overrides["directories"])
+            excluded_files.update(overrides["files"])
+            excluded_extensions.update(overrides["extensions"])
 
         return {
             "directories": excluded_dirs,
             "files": excluded_files,
             "extensions": excluded_extensions,
         }
+
+    @staticmethod
+    def _load_exclusion_rules(config_path: Path) -> dict[str, dict[str, set[str]]]:
+        try:
+            raw_data = json.loads(config_path.read_text(encoding="utf-8"))
+        except FileNotFoundError:
+            return {
+                "universal": {
+                    "directories": set(),
+                    "files": set(),
+                    "extensions": set(),
+                },
+                "stacks": {},
+            }
+
+        exclusions = raw_data.get("exclusions", {})
+        universal = exclusions.get("universal", {})
+
+        def _as_set(value: Any) -> set[str]:
+            if not isinstance(value, list):
+                return set()
+            return {str(item) for item in value}
+
+        normalized = {
+            "universal": {
+                "directories": _as_set(universal.get("directories", [])),
+                "files": _as_set(universal.get("files", [])),
+                "extensions": _as_set(universal.get("extensions", [])),
+            },
+            "stacks": {},
+        }
+
+        for stack_name, overrides in exclusions.get("stacks", {}).items():
+            if not isinstance(overrides, dict):
+                continue
+            normalized["stacks"][stack_name] = {
+                "directories": _as_set(overrides.get("directories", [])),
+                "files": _as_set(overrides.get("files", [])),
+                "extensions": _as_set(overrides.get("extensions", [])),
+            }
+
+        return normalized
 
     def should_analyze_file(self, file_path: str, project_path: str = "") -> bool:
         """

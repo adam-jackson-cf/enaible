@@ -185,7 +185,7 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
             subprocess.CalledProcessError,
             json.JSONDecodeError,
         ) as e:
-            if self.verbose:
+            if getattr(self, "verbose", False):
                 print(f"detect-secrets scan failed: {e}", file=sys.stderr)
         finally:
             # No cleanup needed for command-line approach
@@ -265,7 +265,7 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
             }
 
         except Exception as e:
-            if self.verbose:
+            if getattr(self, "verbose", False):
                 print(f"Failed to process secret finding: {e}", file=sys.stderr)
             return None
 

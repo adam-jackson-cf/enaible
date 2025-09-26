@@ -52,7 +52,7 @@ ai-assisted-workflows/
 │ └── roadmap.md # Progress tracking and upcoming work
 └── todos/ # Task management and workflow documentation
 
-### Entry Points:
+### Entry Points
 
 - claude-code/commands/ - Claude Code slash commands
 - opencode/command/ - OpenCode slash commands
@@ -63,17 +63,17 @@ ai-assisted-workflows/
 
 The system uses a hybrid AI-automation approach combining traditional static analysis with modern ML techniques:
 
-### Core Components:
+### Core Components
 
 - BaseAnalyzer Framework: Provides shared infrastructure for all 22 analysis tools with strict validation
 - 8-Agent Orchestration: State-machine workflow management with quality gates and CTO escalation
 - Expert Agent Routing: Language and complexity-based delegation to specialized agents
 
-### Data Flow:
+### Data Flow
 
 User Input → Claude Commands → Agent Orchestration → Analysis Tools → Results
 
-### Key Integrations:
+### Key Integrations
 
 - Serena MCP: Enhanced codebase search via Language Server Protocol
 - GitHub Actions: Automated CI/CD with quality gate enforcement
@@ -99,3 +99,34 @@ Covers command files added under `claude-code/commands/` and `opencode/command/`
 3. Interactive fallback: Prompt user for a custom path if neither found
 
 Execution: `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer category:tool --target . --output-format json`
+
+## Testing
+
+**Unit Test Suite:**
+
+- Run all unit tests: `PYTHONPATH=shared pytest shared/tests/unit -v`
+- Run specific test file: `PYTHONPATH=shared pytest shared/tests/unit/test_analyzer_registry.py -v`
+
+**Integration Test Suite:**
+
+- Run all integration tests: `PYTHONPATH=shared pytest shared/tests/integration -v`
+- Run specific integration test: `PYTHONPATH=shared pytest shared/tests/integration/test_integration_all_analyzers.py -v`
+
+**Coverage Reports:**
+
+- Generate coverage report: `PYTHONPATH=shared pytest shared/tests/unit --cov=shared --cov-report=html`
+
+## Analyzer Registration & Imports
+
+To avoid duplicate analyzer registrations during imports (especially in tests), follow these rules:
+
+- Use the `analyzers.*` package root everywhere (implementation and tests). Do not import via `shared.analyzers.*`.
+- The central registry bootstrap (`shared/core/base/registry_bootstrap.py`) imports analyzers via `analyzers.*`. Mixing roots (`shared.analyzers.*` and `analyzers.*`) in the same process causes double registration errors.
+- Always run tests with `PYTHONPATH=shared` so the `analyzers` package root resolves to `shared/analyzers`.
+- If you must patch module-level constants in tests, patch against the `analyzers.*` path (e.g., `analyzers.quality.coverage_analysis._LANGUAGE_CONFIG_PATH`).
+- Never import the same analyzer module through two different roots in a single test session.
+
+Quick example
+
+- Good: `from analyzers.quality.coverage_analysis import TestCoverageAnalyzer`
+- Avoid: `from shared.analyzers.quality.coverage_analysis import TestCoverageAnalyzer`

@@ -5,9 +5,9 @@ Test installation script - non-interactive version for validation.
 
 import sys
 
-# Import from same directory
+# Import using package path ensured by shared/conftest.py
 try:
-    from install_dependencies import DependencyInstaller
+    from setup.install_dependencies import DependencyInstaller
 except ImportError as e:
     print(f"Error importing install dependencies: {e}", file=sys.stderr)
     sys.exit(1)
