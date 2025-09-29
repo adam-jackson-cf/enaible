@@ -541,12 +541,8 @@ merge_opencode_json() {
     local tmp_file
     tmp_file=$(mktemp)
 
-    if ! python3 - <<'PY' "$src_json" "$dest_json" "$tmp_file"; then
-        log_error "Failed to merge opencode.json"
-        rm -f "$tmp_file"
-        exit 1
-    fi
-import json, sys, os
+    if python - "$src_json" "$dest_json" "$tmp_file" <<'PY'
+import json, sys
 src_path, dst_path, out_path = sys.argv[1:4]
 try:
     with open(src_path, 'r') as f:
@@ -557,21 +553,17 @@ except Exception as e:
     print(f"[merge] JSON parse error: {e}", file=sys.stderr)
     sys.exit(1)
 
-# Validate source structure
 agent_block = src.get("agent", {})
 ce_block = agent_block.get("command-executor")
 if not isinstance(ce_block, dict):
     print("[merge] Source missing agent.command-executor object", file=sys.stderr)
     sys.exit(1)
 
-# Ensure destination has agent object
 if not isinstance(dst.get("agent"), dict):
     dst["agent"] = {}
 
-# Replace / insert
 dst["agent"]["command-executor"] = ce_block
 
-# Write merged
 try:
     with open(out_path, 'w') as f:
         json.dump(dst, f, indent=2, sort_keys=True)
@@ -708,13 +700,13 @@ copy_files() {
         log "Updating workflows only: built-in commands, scripts, agents, templates, and rules directories..."
 
         # Update built-in commands while preserving custom commands
-        if [[ -d "$source_dir/commands" ]]; then
-            log "  Updating commands directory (preserving custom commands)..."
+        if [[ -d "$source_dir/command" ]]; then
+            log "  Updating command directory (preserving custom commands)..."
             local custom_commands=()
 
             # Identify existing custom commands
-            if [[ -d "$INSTALL_DIR/commands" ]]; then
-                for cmd in "$INSTALL_DIR/commands"/*; do
+            if [[ -d "$INSTALL_DIR/command" ]]; then
+                for cmd in "$INSTALL_DIR/command"/*; do
                     if [[ -f "$cmd" ]]; then
                         local cmd_name=$(basename "$cmd")
                         if ! [[ -f "$source_dir/command/$cmd_name" ]]; then
@@ -724,11 +716,10 @@ copy_files() {
                 done
             fi
 
-            # Create commands directory if it doesn't exist
-            mkdir -p "$INSTALL_DIR/commands"
-
-            # Copy/overwrite built-in commands (this preserves any custom commands not in source)
-            cp "$source_dir/commands"/* "$INSTALL_DIR/command/"
+            # Ensure destination exists
+            mkdir -p "$INSTALL_DIR/command"
+            # Copy/overwrite built-in commands (preserves any custom commands not present in source)
+            cp "$source_dir/command"/* "$INSTALL_DIR/command/"
 
             # Report preserved custom commands
             if [[ ${#custom_commands[@]} -gt 0 ]]; then
