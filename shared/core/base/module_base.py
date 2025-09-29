@@ -15,6 +15,14 @@ from .error_handler import CIErrorHandler
 class CIModuleBase:
     """Base class for all CI framework modules with common setup functionality."""
 
+    # High-volume operational events that should be logged at DEBUG level
+    _LOW_LEVEL_OPS = {
+        "file_skipped_vendor",
+        "file_skipped_pattern",
+        "file_skipped_size",
+        "batch_processed",
+    }
+
     def __init__(self, module_name: str, project_root: str | None = None):
         self.module_name = module_name
         self.project_root = Path(project_root) if project_root else Path.cwd()
@@ -144,7 +152,12 @@ class CIModuleBase:
         if details:
             detail_str = ", ".join(f"{k}={v}" for k, v in details.items())
             message += f" ({detail_str})"
-        self.logger.info(message)
+
+        # Log high-volume operations at DEBUG level, others at INFO
+        if operation in self._LOW_LEVEL_OPS:
+            self.logger.debug(message)
+        else:
+            self.logger.info(message)
 
 
 class CIAnalysisModule(CIModuleBase):
