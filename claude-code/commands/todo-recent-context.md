@@ -23,17 +23,17 @@ This command performs a comprehensive review of recent activity by:
 1. **Try project-level .claude folder**:
 
    ```bash
-   Glob: ".claude/scripts/analyzers/context/context_bundle_capture_claude.py"
+   Glob: ".claude/scripts/context/context_bundle_capture_claude.py"
    ```
 
 2. **Try user-level .claude folder**:
 
    ```bash
-   Bash: ls "$HOME/.claude/scripts/analyzers/context/context_bundle_capture_claude.py"
+   Bash: ls "$HOME/.claude/scripts/context/context_bundle_capture_claude.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.claude/scripts/analyzers/context/` and `$HOME/.claude/scripts/analyzers/context/`
+   - List searched locations: `.claude/scripts/context/` and `$HOME/.claude/scripts/context/`
    - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
    - Validate provided path contains the script
    - Set SCRIPT_PATH to user-provided location
@@ -150,10 +150,10 @@ The LLM should enhance this with context-aware variations based on the search do
 
 ## Context Bundles Analysis
 
-**Sessions Found**: [count] sessions
-**Date Range**: [earliest timestamp] to [latest timestamp]
-**Filter**: [All recent sessions | UUID: {uuid} | Search: {term}]
-**Mode**: [Concise summaries | Verbose with full content]
+- **Sessions Found**: [count] sessions
+- **Date Range**: [earliest timestamp] to [latest timestamp]
+- **Filter**: [All recent sessions | UUID: {uuid} | Search: {term}]
+- **Mode**: [Concise summaries | Verbose with full content]
 
 ### File Operations Summary
 
