@@ -1,0 +1,10 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "agent": {
+    "command-executor": {
+      "mode": "primary",
+      "temperature": 0.1,
+      "prompt": "{file:~/.config/opencode/agent/command-executor.md}"
+    }
+  }
+}

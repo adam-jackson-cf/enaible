@@ -517,6 +517,79 @@ setup_install_dir() {
     fi
 }
 
+# Merge opencode.json: copy if missing, merge command-executor agent if exists
+merge_opencode_json() {
+    local src_json="$1"
+    local dest_json="$2"
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        if [[ -f "$dest_json" ]]; then
+            log "Would merge command-executor agent into existing $(basename "$dest_json")"
+        else
+            log "Would copy $(basename "$src_json") to $(dirname "$dest_json")"
+        fi
+        return 0
+    fi
+
+    if [[ ! -f "$dest_json" ]]; then
+        log_verbose "No existing opencode.json found, copying new file"
+        cp "$src_json" "$dest_json"
+        return 0
+    fi
+
+    log_verbose "Merging command-executor agent into existing opencode.json"
+    local tmp_file
+    tmp_file=$(mktemp)
+
+    if ! python3 - <<'PY' "$src_json" "$dest_json" "$tmp_file"; then
+        log_error "Failed to merge opencode.json"
+        rm -f "$tmp_file"
+        exit 1
+    fi
+import json, sys, os
+src_path, dst_path, out_path = sys.argv[1:4]
+try:
+    with open(src_path, 'r') as f:
+        src = json.load(f)
+    with open(dst_path, 'r') as f:
+        dst = json.load(f)
+except Exception as e:
+    print(f"[merge] JSON parse error: {e}", file=sys.stderr)
+    sys.exit(1)
+
+# Validate source structure
+agent_block = src.get("agent", {})
+ce_block = agent_block.get("command-executor")
+if not isinstance(ce_block, dict):
+    print("[merge] Source missing agent.command-executor object", file=sys.stderr)
+    sys.exit(1)
+
+# Ensure destination has agent object
+if not isinstance(dst.get("agent"), dict):
+    dst["agent"] = {}
+
+# Replace / insert
+dst["agent"]["command-executor"] = ce_block
+
+# Write merged
+try:
+    with open(out_path, 'w') as f:
+        json.dump(dst, f, indent=2, sort_keys=True)
+        f.write("\n")
+except Exception as e:
+    print(f"[merge] Write error: {e}", file=sys.stderr)
+    sys.exit(1)
+PY
+    then
+        mv "$tmp_file" "$dest_json"
+        log "Merged command-executor agent into opencode.json"
+    else
+        log_error "Merging opencode.json failed"
+        rm -f "$tmp_file"
+        exit 1
+    fi
+}
+
 # Handle global rules merging or copying
 handle_global_rules() {
     local source_dir="$1"
@@ -760,10 +833,9 @@ copy_files() {
         done
     fi
 
-    # Copy opencode.json if it exists in source directory
+    # Handle opencode.json: copy if missing, merge command-executor agent if exists
     if [[ -f "$source_dir/opencode.json" ]]; then
-        log_verbose "Copying opencode.json..."
-        cp "$source_dir/opencode.json" "$INSTALL_DIR/"
+        merge_opencode_json "$source_dir/opencode.json" "$INSTALL_DIR/opencode.json"
     fi
 
     # Handle global rules merging or copying
