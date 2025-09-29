@@ -56,8 +56,6 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
 PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
 ```
 
-**Note:** This command now suppresses per-file skip diagnostics by default. Set Python logging level to DEBUG to view detailed skip and batch events.
-
 ## Output Requirements
 
 - Code quality metrics report with complexity analysis
