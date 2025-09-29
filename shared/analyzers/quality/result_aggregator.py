@@ -33,6 +33,7 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 
 import json
 import logging
+import os
 import sys
 from collections import Counter, defaultdict
 from dataclasses import asdict, dataclass, field
@@ -60,7 +61,11 @@ except ImportError:
     )
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+# Only configure basic logging if no handlers exist and use WARNING by default
+if not logging.getLogger().handlers:
+    log_level_name = os.getenv("CI_LOG_LEVEL", "WARNING").upper()
+    log_level = getattr(logging, log_level_name, logging.WARNING)
+    logging.basicConfig(level=log_level)
 logger = logging.getLogger(__name__)
 
 

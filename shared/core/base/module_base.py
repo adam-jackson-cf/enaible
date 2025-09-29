@@ -5,7 +5,9 @@ Base Module Class for Continuous Improvement Framework.
 Eliminates duplication of import setup and path management patterns.
 """
 
+import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
 
@@ -43,7 +45,11 @@ class CIModuleBase:
             )
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)
-            self.logger.setLevel(logging.INFO)
+
+            # Use CI_LOG_LEVEL environment variable if set, default to WARNING
+            log_level_name = os.getenv("CI_LOG_LEVEL", "WARNING").upper()
+            log_level = getattr(logging, log_level_name, logging.WARNING)
+            self.logger.setLevel(log_level)
 
     def _import_common_utilities(self) -> None:
         """Import commonly used utilities with error handling."""
@@ -184,6 +190,14 @@ class CIAnalysisModule(CIModuleBase):
             self.log_operation(
                 "analysis_completed", {"execution_time": f"{execution_time:.3f}s"}
             )
+
+        # Add summary WARNING log for lifecycle visibility when level is WARNING or higher
+        if self.logger.isEnabledFor(logging.WARNING):
+            summary_msg = f"Analysis completed: {self.module_name}"
+            if hasattr(result, "metadata") and "total_findings" in result.metadata:
+                summary_msg += f" - {result.metadata['total_findings']} findings"
+            self.logger.warning(summary_msg)
+
         return result
 
 
@@ -204,8 +218,6 @@ class CIConfigModule(CIModuleBase):
         config_path = self.get_config_path(config_name)
 
         try:
-            import json
-
             config_content = self.safe_file_read(config_path)
             config = json.loads(config_content)
 
@@ -227,8 +239,6 @@ class CIConfigModule(CIModuleBase):
 
     def save_config(self, config_name: str, config: dict[str, Any]) -> None:
         """Save configuration and update cache."""
-        import json
-
         config_path = self.get_config_path(config_name)
         config_content = json.dumps(config, indent=2)
         self.safe_file_write(config_path, config_content)
