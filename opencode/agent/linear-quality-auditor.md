@@ -31,6 +31,7 @@ Perform final static validation before Linear creation.
 - Acceptance criteria count > threshold → warning.
 - Size XL without oversize justification (presence of split suggestion) → error.
 - Glossary term usage: each term appears at least once across all issue bodies (warning if absent).
+- Consistency of language and naming of actions, patterns, objects, features.
 - Dependency self-reference or unknown id → error.
 
 ## Output Schema

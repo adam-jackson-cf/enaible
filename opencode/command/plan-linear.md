@@ -53,7 +53,7 @@ Abort if user declines; allow edits to raw artifact then rerun classifier.
 {"paths":["."],"languages":true,"frameworks":true,"infra":true}
 ```
 
-2. If novel tech decisions implied (e.g. new datastore, architecture shift), coordinate research:
+2. If tech decisions implied (e.g. new datastore, architecture shift), coordinate research:
 
 ```json
 @research-coordinator
@@ -222,7 +222,6 @@ Hash computation & section assembly are owned entirely by subagents (decomposer,
 ## $ARGUMENTS
 
 - `--project <identifier>` Existing Linear project (UUID | URL | exact name); omit to create new
-
 - `--estimate-style {tshirt|none}` (default: tshirt) controls size mapping emission
 - `--max-size <XS|S|M|L>` Enforced upper bound before forced split (default from config)
 - `--config <path>` Override default config resolution
