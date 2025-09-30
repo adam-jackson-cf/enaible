@@ -18,7 +18,7 @@ Transform an unstructured planning artifact (tasks list, PRD, feature brief) int
 ```
 {
   "raw_artifact": "string",                // required user-supplied text
-  "input_mode": "auto|tasks|prd|feature",  // hint; auto triggers heuristic
+
   "config": { "glossary_terms": true|false }
 }
 ```
@@ -26,7 +26,7 @@ Transform an unstructured planning artifact (tasks list, PRD, feature brief) int
 ## Processing Steps (Deterministic)
 
 1. Normalize whitespace (collapse multiple spaces; preserve paragraph breaks).
-2. Detect artifact type if `input_mode=auto` using ordered rules:
+2. Detect artifact type using ordered rules (no user hint):
    - Contains headings: Objectives, Scope, Success Criteria → prd
    - Starts with bullet / checkbox majority lines → tasks
    - Mentions single primary user journey / limited scope length (<600 words) → feature
@@ -64,11 +64,11 @@ Return:
 { "error": { "code": "EMPTY_ARTIFACT", "message": "Raw artifact empty" } }
 ```
 
-Codes: `EMPTY_ARTIFACT`, `UNSUPPORTED_MODE`.
+Codes: `EMPTY_ARTIFACT`.
 
 ## Determinism Requirements
 
-- Same input text + mode → identical arrays ordering rules above.
+- Same input text → identical arrays ordering rules above.
 - Hashes: sha256 of exact raw text and normalized text.
 
 ## Prohibitions

@@ -1,5 +1,5 @@
 ---
-description: Generate a foundation-first Linear project plan (or attach to existing) with decomposed, self-contained issues
+description: Generate a task plan for a new or existing Linear project through research, task decomposition, quality auditing and implementation using linear mcp tools
 ---
 
 # plan-linear v1.0
@@ -7,17 +7,6 @@ description: Generate a foundation-first Linear project plan (or attach to exist
 **Mindset**: "Foundation first → determinism → explicit phase gates → zero ambiguity in issue briefs."
 
 This command converts a raw planning artifact (task outline, PRD, feature description) into a validated Linear project plan with fully enriched, dependency-linked issues. It enforces a phased workflow with explicit STOP confirmations to prevent premature creation.
-
-## Phase Overview
-
-| Phase | Purpose                               | Primary Subagents                                                                                                |
-| ----- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| 1     | Artifact Intake & Classification      | @linear-artifact-classifier                                                                                      |
-| 2     | Context Harvest & Research Foundation | @linear-context-harvester, @research-coordinator (+ @technical-researcher, @docs-scraper, optional @ux-designer) |
-| 3     | Design Synthesis & Decomposition      | @linear-design-synthesizer, @linear-issue-decomposer                                                             |
-| 4     | Estimation & Enrichment               | @linear-estimation-engine, @linear-acceptance-criteria-writer                                                    |
-| 5     | Quality Audit & Dry Run               | @linear-quality-auditor (optional @linear-orchestrator snapshot)                                                 |
-| 6     | Linear Execution                      | @linear-issue-writer, @linear-dependency-linker                                                                  |
 
 Each phase produces a structured JSON object passed forward. All transformations MUST be deterministic given identical inputs + config.
 
@@ -43,10 +32,10 @@ Each phase produces a structured JSON object passed forward. All transformations
 
 ```json
 @linear-artifact-classifier
-{"input_mode":"{auto|tasks|prd|feature}","raw_artifact":"...user text...","config":{"glossary_terms":true}}
+{"raw_artifact":"...user text...","config":{"glossary_terms":true}}  // classifier fully auto-detects type; no user hint
 ```
 
-3. Receive output: `artifact_type`, `features[]`, `constraints[]`, `user_journeys[]`, `assumptions[]`, `glossary_terms[]`, `open_questions[]`.
+3. Receive output: `artifact_type` (auto-detected), `features[]`, `constraints[]`, `user_journeys[]`, `assumptions[]`, `glossary_terms[]`, `open_questions[]`.
 4. Summarize extracted structure to user.
 
 **STOP** → "Proceed to context harvest & research? (y/n)"
@@ -203,33 +192,11 @@ Hash computation & section assembly are owned entirely by subagents (decomposer,
 
 ---
 
-## Body Section Contract (Reference Only)
-
-Canonical issue body assembly rules live in `opencode/agent/linear-issue-writer.md`. The config (`opencode/linear.plan.config.json`) may include a `sections_order` and `footer_format` for validation or future tooling, but the writer spec is the source of truth—if any divergence arises, the writer spec governs. The orchestrator never reorders or formats sections; it transports structured fields to the writer.
-
-Section production responsibilities (exact case-sensitive keys):
-
-- Decomposer: `Context`, `Scope` (in `initial_sections`)
-- Estimation Engine: `Estimation` object (`size`, `rcs`, optional `oversize_flag` upstream only for control flow)
-- Acceptance Criteria Writer: `Implementation Guidance`, `Definition of Done` (array), `Acceptance Criteria` (array)
-- Auditor: Reads all sections (no mutation); validates presence of mandatory sections when `enforce_sections=true`
-- Writer (assembly only): Assembles `Dependencies` from upstream ids, adds `Labels`, `Risks & Mitigations`, `Terminology References`, optional `Branch & PR Guidance`, plus HTML footers (`plan-hash`, `plan-version`, `project-id`).
-
-Contract Rules:
-
-- Upstream subagents MUST NOT emit footer markers.
-- Section keys must match exactly; unknown keys are passed through but will appear after canonical sections when rendered (avoid introducing new ones without updating writer spec).
-- Orchestrator does not compute or verify hashes beyond matching footers (see Minimal Idempotency Interface).
-
-If a future section is added, update only the writer spec and (optionally) this contract summary—do not embed full templates here.
-
----
-
 ## Subagent Invocation Reference (Summary)
 
 | Subagent                           | Required Input Keys            | Critical Output Keys                                      |
 | ---------------------------------- | ------------------------------ | --------------------------------------------------------- |
-| @linear-artifact-classifier        | raw_artifact, input_mode       | features[], constraints[], user_journeys[]                |
+| @linear-artifact-classifier        | raw_artifact                   | features[], constraints[], user_journeys[]                |
 | @linear-context-harvester          | paths[]                        | frameworks[], languages[], existing_modules[]             |
 | @linear-design-synthesizer         | features[], context_profile    | architecture_decisions[], foundation_tasks[]              |
 | @linear-issue-decomposer           | features[], foundation_tasks[] | issues[] (raw)                                            |
@@ -255,7 +222,7 @@ If a future section is added, update only the writer spec and (optionally) this 
 ## $ARGUMENTS
 
 - `--project <identifier>` Existing Linear project (UUID | URL | exact name); omit to create new
-- `--input-mode {auto|tasks|prd|feature}` Artifact hint (default: auto)
+
 - `--estimate-style {tshirt|none}` (default: tshirt) controls size mapping emission
 - `--max-size <XS|S|M|L>` Enforced upper bound before forced split (default from config)
 - `--config <path>` Override default config resolution
@@ -268,21 +235,13 @@ If a future section is added, update only the writer spec and (optionally) this 
 Dry run new project from PRD text:
 
 ```bash
-/plan-linear --input-mode prd --estimate-style tshirt --dry-run
+/plan-linear --estimate-style tshirt --dry-run
 ```
 
 Attach to existing project (idempotent re-run skipping existing issues):
 
 ```bash
-/plan-linear --project "ENG Roadmap 2025" --max-size M
+/plan-linear --project "Add google account login to authorisation" --max-size M
 ```
-
----
-
-## Post-Run Guidance
-
-- Adjust thresholds & label rules in config; re-run for deterministic diffs.
-- Always resolve audit warnings before expanding scope.
-- For iterative expansion, append new features to original artifact; maintain same artifact base to preserve stable hashes.
 
 ---
