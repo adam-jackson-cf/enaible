@@ -23,10 +23,36 @@ from typing import Any
 
 import pytest
 
+# Module-level marker for Linear integration tests
+pytestmark = [pytest.mark.linear, pytest.mark.timeout(120)]
+
 # Fixture paths
 FIXTURES_DIR = Path(__file__).parent / "fixtures" / "plan_linear"
 BASELINE_FIXTURE = FIXTURES_DIR / "baseline.md"
 VARIANT_FIXTURE = FIXTURES_DIR / "variant.md"
+
+
+def _assert_plan_hashes(pr: dict[str, Any]) -> None:
+    """
+    Assert that PlanLinearReport contains required hash fields with proper SHA256 format.
+    """
+    hashes = pr["planning"].get("hashes", {})
+    required_keys = (
+        "artifact_raw",
+        "artifact_normalized",
+        "plan",
+        "config_fingerprint",
+    )
+
+    for key in required_keys:
+        assert key in hashes, f"Missing required hash key: {key}"
+        hash_value = hashes[key]
+        assert isinstance(hash_value, str), f"Hash {key} must be a string"
+        assert hash_value.startswith("sha256:"), f"Hash {key} must start with 'sha256:'"
+        # SHA256 hex should be 64 characters after prefix
+        assert (
+            len(hash_value) == 71
+        ), f"Hash {key} should be 71 chars (sha256: + 64 hex)"
 
 
 def _extract_json_from_output(output: str) -> dict[str, Any]:
@@ -43,6 +69,28 @@ def _extract_json_from_output(output: str) -> dict[str, Any]:
         return json.loads(stripped)
     except json.JSONDecodeError:
         pass
+
+    # Targeted search for PlanLinearReport to avoid parsing unrelated JSON
+    plan_report_start = stripped.find('"PlanLinearReport"')
+    if plan_report_start != -1:
+        # Find the opening brace for PlanLinearReport value
+        brace_start = stripped.find("{", plan_report_start)
+        if brace_start != -1:
+            # Find the matching closing brace
+            brace_count = 0
+            for i in range(brace_start, len(stripped)):
+                if stripped[i] == "{":
+                    brace_count += 1
+                elif stripped[i] == "}":
+                    brace_count -= 1
+                    if brace_count == 0:
+                        json_blob = stripped[brace_start : i + 1]
+                        try:
+                            return json.loads(json_blob)
+                        except json.JSONDecodeError as e:
+                            raise ValueError(
+                                f"Failed to parse PlanLinearReport JSON: {e}"
+                            ) from e
 
     # Fallback: find first { and last } to extract JSON blob
     first = stripped.find("{")
@@ -62,11 +110,20 @@ def run_plan_linear(
     *flags: str,
     cwd: Path | None = None,
     env: dict[str, str] | None = None,
-    timeout: int | None = None,
+    replace_env: dict[str, str] | None = None,
+    timeout: int = 60,
 ) -> tuple[dict[str, Any], subprocess.CompletedProcess[str]]:
     """
     Invoke /plan-linear via opencode --prompt and capture structured output.
     Returns (parsed_report_dict, completed_process).
+
+    Args:
+        artifact_or_string: Path to artifact file or string content
+        *flags: Command line flags to pass
+        cwd: Working directory for subprocess
+        env: Environment variables to add to current environment
+        replace_env: Complete environment replacement (ignores current env)
+        timeout: Subprocess timeout in seconds (default 60)
     """
     if isinstance(artifact_or_string, Path):
         artifact_arg = artifact_or_string.name
@@ -81,9 +138,12 @@ def run_plan_linear(
     cmd_str = " ".join(cmd_parts)
 
     # Prepare environment
-    proc_env = os.environ.copy()
-    if env:
-        proc_env.update(env)
+    if replace_env is not None:
+        proc_env = replace_env.copy()
+    else:
+        proc_env = os.environ.copy()
+        if env:
+            proc_env.update(env)
 
     # Run opencode
     result = subprocess.run(
@@ -273,10 +333,7 @@ def test_plan_linear_dry_run_structure(
     assert isinstance(readiness["pending_steps"], list)
 
     # Hashes must be present and look like SHA256
-    hashes = pr["planning"].get("hashes", {})
-    for key in ("artifact_raw", "artifact_normalized", "plan", "config_fingerprint"):
-        assert key in hashes
-        assert hashes[key].startswith("sha256:")
+    _assert_plan_hashes(pr)
 
     # No mutation section in dry-run
     assert "mutation" not in pr
@@ -338,49 +395,14 @@ def test_plan_linear_mutation_creates_issues_and_preserves_hashes(
     # Readiness plan hash should match as well
     assert pr["readiness"]["plan_hash"] == current_plan_hash
 
+    # Validate hash format
+    _assert_plan_hashes(pr)
+
     # Schedule cleanup only if test passes
     if created:
         request.addfinalizer(
             lambda: archive_linear_issues(created, mutation["project_id"])
         )
-    dry_plan_hash = dry_report["PlanLinearReport"]["planning"]["hashes"]["plan"]
-
-    # Mutation run with --auto to skip confirmations
-    report, proc = run_plan_linear(
-        artifact,
-        "--auto",
-        "--report-format",
-        "json",
-        cwd=temp_workspace,
-        env=linear_env,
-    )
-
-    assert proc.returncode == 0, f"Mutation failed: {proc.stderr}"
-
-    pr = report["PlanLinearReport"]
-    # Mutation section must exist
-    assert "mutation" in pr
-    mutation = pr["mutation"]
-    assert isinstance(mutation, dict)
-
-    # Project ID should match our test project (allow for normalization differences)
-    assert "project_id" in mutation
-    # Note: We don't enforce exact match due to potential UUID/slug differences
-
-    # Should have created issues
-    created = mutation.get("created_issue_ids", [])
-    assert isinstance(created, list)
-    assert len(created) > 0, "No issues were created"
-
-    # Plan hash must be unchanged
-    current_plan_hash = pr["planning"]["hashes"]["plan"]
-    assert current_plan_hash == dry_plan_hash, "Plan hash changed after mutation"
-
-    # Readiness plan hash should match as well
-    assert pr["readiness"]["plan_hash"] == current_plan_hash
-
-    # Schedule cleanup only if test passes
-    request.addfinalizer(lambda: archive_linear_issues(created, mutation["project_id"]))
 
 
 def test_plan_linear_idempotency_skips_existing_issues(
@@ -424,6 +446,10 @@ def test_plan_linear_idempotency_skips_existing_issues(
     # Plan hash must remain unchanged
     second_plan_hash = second_report["PlanLinearReport"]["planning"]["hashes"]["plan"]
     assert second_plan_hash == first_plan_hash, "Plan hash changed in idempotent run"
+
+    # Validate hash format for both reports
+    _assert_plan_hashes(first_report["PlanLinearReport"])
+    _assert_plan_hashes(second_report["PlanLinearReport"])
 
     # Cleanup: archive the issues created in the first run
     if first_created:
@@ -512,8 +538,8 @@ def test_plan_linear_error_handling_missing_env(request):
         shutil.copytree(FIXTURES_DIR, fixtures_target)
         artifact = fixtures_target / "baseline.md"
 
-        # Remove Linear env vars
-        no_env = {}
+        # Create environment without Linear variables (complete replacement)
+        no_env = {k: v for k, v in os.environ.items() if not k.startswith("LINEAR_")}
 
         # Should raise subprocess error or return non-zero due to missing auth
         # We don't assert specific behavior here since opencode may handle missing auth differently
@@ -525,8 +551,7 @@ def test_plan_linear_error_handling_missing_env(request):
                 "--report-format",
                 "json",
                 cwd=workspace,
-                env=no_env,
-                timeout=15,  # Add timeout to prevent hanging
+                replace_env=no_env,
             )
             # We expect this to fail due to missing Linear credentials
             assert proc.returncode != 0 or "error" in report.get("PlanLinearReport", {})
