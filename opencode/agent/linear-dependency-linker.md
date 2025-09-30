@@ -49,9 +49,25 @@ Create blocking edges in Linear according to computed dependency graph, ensuring
 - Sort input dependencies lexicographically (`from`,`to`) before processing.
 - Deterministic cycle detection order ensures stable set of skipped edges.
 
-## Errors
+## Error Handling
 
-Codes: `NO_DEPENDENCIES`, `MISSING_PROJECT_ID`.
+If dependency linking cannot proceed, return appropriate error envelope:
+
+```json
+{
+  "error": {
+    "code": "MISSING_PROJECT_ID",
+    "message": "Project ID required for dependency linking"
+  }
+}
+```
+
+Error codes:
+
+- `NO_DEPENDENCIES` → No dependencies to link
+- `MISSING_PROJECT_ID` → Project ID required for linking operations
+
+All errors map to exit code 3 (Linear mutation failures) in the command.
 
 ## Prohibitions
 

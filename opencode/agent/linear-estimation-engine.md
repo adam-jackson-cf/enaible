@@ -71,9 +71,20 @@ Score = Σ(metric_value \* weight). Round to integer.
 - Order issues by id ascending before processing.
 - All counting strictly regex-based; no randomness.
 
-## Errors
+## Error Handling
 
-`{ "error": { "code": "NO_ISSUES" } }` if empty.
+If no issues provided, return error envelope:
+
+```json
+{
+  "error": {
+    "code": "NO_ISSUES",
+    "message": "No issues provided for estimation"
+  }
+}
+```
+
+This error maps to exit code 2 (readiness failure) in the command.
 
 ## Prohibitions
 

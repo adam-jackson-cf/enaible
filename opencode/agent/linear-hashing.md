@@ -78,7 +78,9 @@ Compute stable structural hashes and (optionally) compare two plan states. Enfor
 
 ## Failure Codes
 
-- SCHEMA_VIOLATION
-- DUPLICATE_ISSUE_ID
-- DUPLICATE_ISSUE_HASH
-- HASH_MISMATCH (verify mode)
+- `SCHEMA_VIOLATION` → Malformed input structure
+- `DUPLICATE_ISSUE_ID` → Conflicting issue identifiers detected
+- `DUPLICATE_ISSUE_HASH` → Structural duplicates detected
+- `HASH_MISMATCH` → Hash verification failed (verify mode)
+
+All errors return standard error envelope and map to exit code 4 (structural integrity violations) in the command.

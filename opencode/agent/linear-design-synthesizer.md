@@ -47,9 +47,20 @@ All arrays sorted by `title` or `name` lexicographically except sequencing_princ
 
 - Stable ID generation: `FND-` + zero-padded index in sorted foundation_titles list.
 
-## Errors
+## Error Handling
 
-`{ "error": { "code": "MISSING_FEATURES" } }` if features empty.
+If no features provided for synthesis, return error envelope:
+
+```json
+{
+  "error": {
+    "code": "MISSING_FEATURES",
+    "message": "No features available for design synthesis"
+  }
+}
+```
+
+This error maps to exit code 2 (readiness failure) in the command.
 
 ## Prohibitions
 

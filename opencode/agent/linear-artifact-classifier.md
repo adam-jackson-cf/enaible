@@ -58,13 +58,18 @@ Definitions empty; not invented—leave blank string. Order of arrays lexicograp
 
 ## Error Handling
 
-Return:
+If raw artifact is empty or invalid, return error envelope:
 
-```
-{ "error": { "code": "EMPTY_ARTIFACT", "message": "Raw artifact empty" } }
+```json
+{
+  "error": {
+    "code": "EMPTY_ARTIFACT",
+    "message": "Raw artifact empty or invalid"
+  }
+}
 ```
 
-Codes: `EMPTY_ARTIFACT`.
+This error maps to exit code 1 (argument validation failure) in the command.
 
 ## Determinism Requirements
 

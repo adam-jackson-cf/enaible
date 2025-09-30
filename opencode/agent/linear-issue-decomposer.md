@@ -63,9 +63,26 @@ Sequential: `ISS-001`, `ISS-002` ... based on final sorted order. Re-splitting r
 - Sorting rules + stable input arrays ensure repeatability.
 - `initial_sections` only includes minimal Context/Scope scaffolding (no acceptance criteria here).
 
-## Errors
+## Error Handling
 
-Codes: `NO_FEATURES`, `NO_FOUNDATION` (if features require foundation yet none provided), `SPLIT_TARGET_NOT_FOUND`.
+If decomposition cannot proceed, return appropriate error envelope:
+
+```json
+{
+  "error": {
+    "code": "NO_FEATURES",
+    "message": "No features available for decomposition"
+  }
+}
+```
+
+Error codes:
+
+- `NO_FEATURES` → No features available for decomposition
+- `NO_FOUNDATION` → Features require foundation tasks but none provided
+- `SPLIT_TARGET_NOT_FOUND` → Cannot locate target for issue splitting
+
+All errors map to exit code 2 (readiness failure) in the command.
 
 ## Prohibitions
 

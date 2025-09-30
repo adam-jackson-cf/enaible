@@ -44,7 +44,18 @@ Statically derive repository composition; never execute code. Output informs des
 
 ## Error Handling
 
-- If no readable files: `{ "error": { "code": "EMPTY_REPO" } }`.
+If no readable source files found, return error envelope:
+
+```json
+{
+  "error": {
+    "code": "EMPTY_REPO",
+    "message": "No readable source files found for context analysis"
+  }
+}
+```
+
+This error maps to exit code 2 (readiness failure) in the command.
 
 ## Determinism Requirements
 

@@ -143,7 +143,15 @@ Return instead of throwing textual prose:
 { "error": { "code": "RATE_LIMIT", "message": "...", "retry_after_seconds": 60? } }
 ```
 
-Codes: `RATE_LIMIT`, `PERMISSION_DENIED`, `NOT_FOUND_PROJECT`, `VALIDATION_ERROR`, `MUTATION_FAILED`.
+Codes:
+
+- `RATE_LIMIT` → Linear API rate limit exceeded
+- `PERMISSION_DENIED` → Insufficient Linear permissions
+- `NOT_FOUND_PROJECT` → Specified project not found
+- `VALIDATION_ERROR` → Linear rejected issue data
+- `MUTATION_FAILED` → Generic Linear mutation failure
+
+All errors return standard error envelope and map to exit code 3 (Linear mutation failures) in the command.
 
 ## Idempotency Guarantees
 

@@ -263,7 +263,18 @@ While Linear’s native integration handles linking, we supplement with GitHub A
 
 ---
 
-## 9. Appendix: Recommended Branch Format
+## 9. Planning Workflow Documentation
+
+For detailed step-by-step guidance on using the `/plan-linear` command, including:
+
+- Complete workflow walkthrough with examples
+- Diff mode usage and patterns
+- Error handling and recovery strategies
+- Integration examples with CI/CD
+
+See: [Linear Planning Workflow Guide](workflow.md)
+
+## 10. Appendix: Recommended Branch Format
 
 `<teamkey>/<short-feature-slug>-<TEAMKEY>-<number>`
 
@@ -273,4 +284,4 @@ Automations rely only on the `ENG-482` token but consistent prefixing improves s
 
 ---
 
-Last updated: 2025-09-27
+Last updated: 2025-09-30

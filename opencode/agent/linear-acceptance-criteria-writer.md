@@ -51,9 +51,25 @@ Add validation-focused sections to each issue without altering existing contextu
 - Sort acceptance criteria lexicographically AFTER numbering? No: preserve logical ordering (do not sort) to maintain narrative test flow.
 - Do not exceed 120 chars per criterion; split if longer.
 
-## Errors
+## Error Handling
 
-Codes: `NO_ISSUES`, `MISSING_OBJECTIVES` (if objectives empty and cannot reference success alignment).
+If enrichment cannot proceed, return appropriate error envelope:
+
+```json
+{
+  "error": {
+    "code": "NO_ISSUES",
+    "message": "No issues available for acceptance criteria enrichment"
+  }
+}
+```
+
+Error codes:
+
+- `NO_ISSUES` → No issues available for enrichment
+- `MISSING_OBJECTIVES` → Objectives empty and cannot reference success alignment
+
+All errors map to exit code 2 (readiness failure) in the command.
 
 ## Prohibitions
 
