@@ -78,6 +78,10 @@ The principles for this project are designed around the realities of coding with
 
 Install the workflows for your editor. Full details: docs/installation.md
 
+Note some CLI tools are quite strict about operating within a sandbox i.e. the project folder, for these tools its recommended to install per project (user level operations will fail)
+
+\*Nb. for opencode, its is recommended run these slash commands using the command-executor primary agent (deployed as part of this framework), for better command adherence.
+
 ```bash
 # Claude Code
 ./claude-code/install.sh        # project-local (creates ./.claude/)

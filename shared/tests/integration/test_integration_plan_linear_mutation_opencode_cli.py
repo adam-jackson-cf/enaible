@@ -112,6 +112,8 @@ def run_plan_linear(
     env: dict[str, str] | None = None,
     replace_env: dict[str, str] | None = None,
     timeout: int = 60,
+    stream: bool = False,
+    log_level: str = "ERROR",
 ) -> tuple[dict[str, Any], subprocess.CompletedProcess[str]]:
     """
     Invoke /plan-linear via opencode --prompt and capture structured output.
@@ -124,6 +126,8 @@ def run_plan_linear(
         env: Environment variables to add to current environment
         replace_env: Complete environment replacement (ignores current env)
         timeout: Subprocess timeout in seconds (default 60)
+        stream: If True, stream output live to terminal while still capturing for parsing
+        log_level: Log level to pass to opencode (default ERROR)
     """
     if isinstance(artifact_or_string, Path):
         artifact_arg = artifact_or_string.name
@@ -145,18 +149,74 @@ def run_plan_linear(
         if env:
             proc_env.update(env)
 
-    # Run opencode
-    result = subprocess.run(
-        ["opencode", "--prompt", cmd_str, "--log-level", "ERROR"],
-        cwd=cwd,
-        capture_output=True,
-        text=True,
-        env=proc_env,
-        timeout=timeout,
-    )
+    # Build base command
+    base_cmd = ["opencode", "--prompt", cmd_str, "--log-level", log_level]
+
+    # Debug logging
+    print(f"DEBUG: Running command: {' '.join(base_cmd)}")
+    print(f"DEBUG: Working directory: {cwd}")
+    # print(f"DEBUG: Environment has LINEAR_API_KEY: {'LINEAR_API_KEY' in proc_env}")
+    print(f"DEBUG: Stream mode: {stream}")
+
+    if not stream:
+        # Original buffered behavior
+        result = subprocess.run(
+            base_cmd,
+            cwd=cwd,
+            capture_output=True,
+            text=True,
+            env=proc_env,
+            timeout=timeout,
+        )
+        output = result.stdout
+    else:
+        # Streaming behavior
+        proc = subprocess.Popen(
+            base_cmd,
+            cwd=cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+            env=proc_env,
+        )
+
+        lines = []
+        try:
+            # Ensure stdout is not None
+            if proc.stdout is None:
+                raise RuntimeError("Failed to open subprocess stdout")
+
+            for line in proc.stdout:
+                # Live passthrough to terminal
+                print(line, end="", flush=True)
+                lines.append(line)
+
+            # Wait for process with timeout
+            try:
+                return_code = proc.wait(timeout=timeout)
+            except subprocess.TimeoutExpired as err:
+                proc.kill()
+                proc.wait()
+                raise subprocess.TimeoutExpired(base_cmd, timeout) from err
+
+            output = "".join(lines)
+
+            # Create synthetic CompletedProcess to maintain return shape
+            result = subprocess.CompletedProcess(
+                args=base_cmd,
+                returncode=return_code,
+                stdout=output,
+                stderr="",
+            )
+
+        except Exception:
+            proc.kill()
+            proc.wait()
+            raise
 
     # Parse JSON from stdout
-    report = _extract_json_from_output(result.stdout)
+    report = _extract_json_from_output(output)
 
     return report, result
 
@@ -298,19 +358,50 @@ def temp_workspace():
 
 
 def test_plan_linear_dry_run_structure(
-    temp_workspace: Path, linear_env: dict[str, str]
+    temp_workspace: Path, linear_env: dict[str, str], capsys
 ):
     """Dry-run should produce a valid PlanLinearReport with readiness=true and no mutation."""
     artifact = temp_workspace / "fixtures" / "baseline.md"
 
-    report, proc = run_plan_linear(
-        artifact,
-        "--dry-run",
-        "--report-format",
-        "json",
-        cwd=temp_workspace,
-        env=linear_env,
-    )
+    # Debug logging
+    print(f"DEBUG: artifact exists: {artifact.exists()}")
+    print(f"DEBUG: artifact path: {artifact}")
+    print(f"DEBUG: linear_env: {linear_env}")
+    print(f"DEBUG: cwd: {temp_workspace}")
+
+    # Enable streaming if environment variable is set
+    stream_output = os.getenv("STREAM_PLAN_LINEAR", "").lower() in ("1", "true", "yes")
+    print(f"DEBUG: stream_output: {stream_output}")
+
+    # Disable pytest capture for streaming to see live output
+    if stream_output:
+        print("DEBUG: Using streaming mode")
+        with capsys.disabled():
+            report, proc = run_plan_linear(
+                artifact,
+                "--dry-run",
+                "--report-format",
+                "json",
+                cwd=temp_workspace,
+                env=linear_env,
+                stream=True,
+                log_level="INFO",
+            )
+    else:
+        print("DEBUG: Using buffered mode")
+        report, proc = run_plan_linear(
+            artifact,
+            "--dry-run",
+            "--report-format",
+            "json",
+            cwd=temp_workspace,
+            env=linear_env,
+        )
+
+    print(f"DEBUG: Process completed with return code: {proc.returncode}")
+    if proc.returncode != 0:
+        print(f"DEBUG: stderr: {proc.stderr}")
+        print(f"DEBUG: stdout (first 500 chars): {proc.stdout[:500]}")
 
     # Exit code should be 0
     assert proc.returncode == 0, f"Process failed: {proc.stderr}"

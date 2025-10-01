@@ -1,0 +1,10 @@
+- needs more reporting/interaction at each step, particularly needs to allow user to input on initial findings and approach, particularly when focus on established libraries
+- think it should probably create a folder containing all the assets of the subagents
+- i think lose the dry run mechanic but just make it ask whether or not to progress at each stage, so you could choose not to mutate
+- have the ability to continue from a particularly step, with the available asset folder possible to pass as an argument (makes it more robust)
+- "created_issue_ids": would be useful to have the issue urls
+- "project_id": "8f0d2045-c32d-417a-8028-adc2971b265c", add project url as a property
+- speed could be improved, though might be less of an issue if broken up into feedback steps
+- should perform a semantic check issue doesnt already exist
+- needs get next logical task
+- needs validate acceptance criteria met
