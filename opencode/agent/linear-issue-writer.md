@@ -6,12 +6,12 @@ permission:
   bash: deny
   webfetch: deny
 tools:
-  mcp_linear_project_get: true
-  mcp_linear_project_create: true
-  mcp_linear_issue_list: true
-  mcp_linear_issue_create: true
-  mcp_linear_issue_update: true
-  mcp_linear_issue_get: true
+  mcp__Linear__get_project: true
+  mcp__Linear__create_project: true
+  mcp__Linear__list_issues: true
+  mcp__Linear__create_issue: true
+  mcp__Linear__update_issue: true
+  mcp__Linear__get_issue: true
   read: true
 ---
 
@@ -97,12 +97,12 @@ Assembly Rules:
 ## Project Initialization Flow (mode=project_init_if_absent)
 
 1. Normalize candidate name (collapse whitespace, title-case segments as-is). If `project_name` not provided → derive from first 2 primary features + year.
-2. Call `mcp_linear_project_get` with the identifier (by name or id). If exists:
+2. Call `mcp__Linear__get_project` with the identifier (by name or id). If exists:
    - Extract `project_id`.
    - Scan description for existing `linear-plan-meta` footer containing artifact-hash.
    - If artifact-hash matches input `artifact_hash` → treat as existing and return early with `status: existing`.
    - Else append new metadata footer line preserving prior content.
-3. If not exists: call `mcp_linear_project_create` with description + footer:
+3. If not exists: call `mcp__Linear__create_project` with description + footer:
 
 ```
 <!-- linear-plan-meta: artifact-hash=<artifact_hash>; version=1 -->
@@ -113,15 +113,15 @@ Return `{ project_id, status: "created" }`.
 ## Issue Batch Flow (mode=issue_batch)
 
 1. Preconditions: `project_id`, non-empty `issues[]`.
-2. Fetch existing issues minimal fields via `mcp_linear_issue_list(project_id, filter=labels:planning:ai-linear)` (or pagination until all retrieved).
+2. Fetch existing issues minimal fields via `mcp__Linear__list_issues(project_id, filter=labels:planning:ai-linear)` (or pagination until all retrieved).
 3. Build map `existing_hash -> issue_id` by regex scanning body end for `<!-- plan-hash:... -->`.
 4. For each incoming IssueCreateSpec in provided order:
    - If `hash_issue` in existing map → add to `skipped_issue_ids` and continue.
    - Assemble body string deterministically.
-   - Create issue via `mcp_linear_issue_create` with title, body, project_id.
-   - Apply labels if API requires separate call (combine into body if not). If update needed (e.g., size label), perform `mcp_linear_issue_update` once consolidating changes.
+   - Create issue via `mcp__Linear__create_issue` with title, body, project_id.
+   - Apply labels if API requires separate call (combine into body if not). If update needed (e.g., size label), perform `mcp__Linear__update_issue` once consolidating changes.
    - Append to `created_issue_ids` and record in `hash_index`.
-5. Post-pass verification (sample at least first 5 + any with size=XL): re-fetch via `mcp_linear_issue_get` ensure footers present; on mismatch add to `verification_warnings[]`.
+5. Post-pass verification (sample at least first 5 + any with size=XL): re-fetch via `mcp__Linear__get_issue` ensure footers present; on mismatch add to `verification_warnings[]`.
 
 ## Output (Success)
 
