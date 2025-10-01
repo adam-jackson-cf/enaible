@@ -18,7 +18,7 @@ description: >
     user: "Create issues with proper labels, sizes, and plan hash footers applied"
     assistant: "I'll use the linear-issue-writer agent to create enriched issues with all metadata"
     Commentary: Critical for maintaining plan integrity and proper issue organization in Linear
-tools: Read, mcp__linear_project_get, mcp__linear_project_create, mcp__linear_issue_list, mcp__linear_issue_create, mcp__linear_issue_update, mcp__linear_issue_get
+tools: Read, mcp__linear_project_get, mcp__linear_project_create, mcp__linear_issue_list, mcp__linear_issue_create, mcp__linear_issue_update, mcp__linear_issue_get, mcp__linear_cycle_list, mcp__linear_cycle_create
 ---
 
 # Role
@@ -32,12 +32,17 @@ Single responsibility: perform Linear mutations (project init, issue create/upda
   "mode": "project_init_if_absent" | "issue_batch",
   "project_name": "string?",
   "project_description": "string?",
-  "artifact_hash": "sha256?",
   "project_id": "string?",        // required for issue_batch
+  "cycle_name": "string?",        // for time-boxed efforts
+  "cycle_description": "string?",
+  "existing_project": boolean,     // true for existing projects, false for new
+  "enable_duplicate_detection": boolean,  // true for existing projects
+  "duplicate_detection_threshold": 0.8,   // confidence threshold
+  "artifact_hash": "sha256?",
   "issues": [ IssueCreateSpec ],    // required for issue_batch
   "label_assignments": [ { issue_id, labels: [string] } ],
   "hash_footer": true,
-  "plan_version": 1
+  "plan_version": 2
 }
 ```
 
@@ -102,42 +107,119 @@ Assembly Rules:
 
 ## Project Initialization Flow (mode=project_init_if_absent)
 
-1. Normalize candidate name (collapse whitespace, title-case segments as-is). If `project_name` not provided → derive from first 2 primary features + year.
-2. Call `mcp__linear_project_get` with the identifier (by name or id). If exists:
-   - Extract `project_id`.
-   - Scan description for existing `linear-plan-meta` footer containing artifact-hash.
-   - If artifact-hash matches input `artifact_hash` → treat as existing and return early with `status: existing`.
-   - Else append new metadata footer line preserving prior content.
-3. If not exists: call `mcp__linear_project_create` with description + footer:
+### Project vs Cycle Detection
+
+1. **Analyze naming patterns** to detect time-boxed efforts:
+
+   - Contains "sprint", "iteration", "Q1/Q2/Q3/Q4", "2025", etc.
+   - Has timeframe-specific language
+   - Indicates bounded scope rather than ongoing product
+
+2. **Project Strategy**:
+   - **Time-boxed detected**: Create/find permanent project + create cycle
+   - **Ongoing product**: Create/find project only
+   - **Existing project**: Use provided project_id, create cycle if needed
+
+### Project Handling
+
+1. Normalize candidate name (collapse whitespace, title-case segments as-is).
+2. If `existing_project=true` and `project_id` provided:
+   - Validate project exists via `mcp__linear_project_get`
+   - Use existing project
+3. Else if time-boxed detected:
+   - Extract permanent project name (e.g., "Juice Shop Security Hardening Sprint 1" → "Juice Shop")
+   - Search for existing permanent project
+   - Create if not found
+4. Else:
+   - Use provided `project_name` or derive from features
+   - Create new project
+
+### Cycle Handling (if applicable)
+
+1. If time-boxed effort detected and cycle_name provided:
+   - Create cycle within project using `mcp__linear_cycle_create`
+   - Assign cycle_id for issue creation
+2. Cycle defaults to current date range if not specified
+
+### Metadata and Tracking
+
+- Append project metadata footer:
 
 ```
-<!-- linear-plan-meta: artifact-hash=<artifact_hash>; version=1 -->
+<!-- linear-plan-meta: artifact-hash=<artifact_hash>; version=2; created=<timestamp> -->
 ```
 
-Return `{ project_id, status: "created" }`.
+Return `{ project_id, cycle_id?, status: "created"|"existing" }`.
 
 ## Issue Batch Flow (mode=issue_batch)
 
+### Duplicate Detection (Existing Projects Only)
+
+1. **Pre-processing**: If `existing_project=true` and `enable_duplicate_detection=true`:
+   - For each IssueCreateSpec, invoke `linear-issue-search` agent
+   - Pass issue title, project_id, and context
+   - Receive confidence scores and duplicate matches
+   - Filter based on `duplicate_detection_threshold`
+
+### Issue Creation Flow
+
 1. Preconditions: `project_id`, non-empty `issues[]`.
-2. Fetch existing issues minimal fields via `mcp__linear_issue_list(project_id, filter=labels:planning:ai-linear)` (or pagination until all retrieved).
-3. Build map `existing_hash -> issue_id` by regex scanning body end for `<!-- plan-hash:... -->`.
+2. **Existing Project Handling**:
+   - Fetch existing issues minimal fields via `mcp__linear_issue_list(project_id)` (pagination until all retrieved)
+   - Build map `existing_hash -> issue_id` by regex scanning body end for `<!-- plan-hash:... -->`
+3. **New Project Handling**: Skip existing issue fetch (assume all new)
 4. For each incoming IssueCreateSpec in provided order:
-   - If `hash_issue` in existing map → add to `skipped_issue_ids` and continue.
-   - Assemble body string deterministically.
-   - Create issue via `mcp__linear_issue_create` with title, body, project_id.
-   - Apply labels if API requires separate call (combine into body if not). If update needed (e.g., size label), perform `mcp__linear_issue_update` once consolidating changes.
-   - Append to `created_issue_ids` and record in `hash_index`.
-5. Post-pass verification (sample at least first 5 + any with size=XL): re-fetch via `mcp__linear_issue_get` ensure footers present; on mismatch add to `verification_warnings[]`.
+   - **Duplicate Check**:
+     - If existing project and hash exists in map → add to `skipped_issue_ids` with reason="hash_duplicate"
+     - If existing project and duplicate detection found high-confidence match → add to `skipped_issue_ids` with reason="semantic_duplicate"
+     - Include existing_issue_id and existing_issue_url in skipped record
+   - **Creation**:
+     - Assemble body string deterministically
+     - Create issue via `mcp__linear_issue_create` with title, body, project_id, cycle_id (if provided)
+     - Apply labels if API requires separate call (combine into body if not)
+     - If update needed (e.g., size label), perform `mcp__linear_issue_update` once consolidating changes
+     - Append to `created_issue_ids` with full issue object (id, title, url)
+   - Record in `hash_index`
+5. **Post-pass verification** (sample at least first 5 + any with size=XL):
+   - Re-fetch via `mcp__linear_issue_get` ensure footers present
+   - On mismatch add to `verification_warnings[]`
+   - Build URLs for all created issues
 
 ## Output (Success)
 
 ```
 {
   "project_id": "...",
-  "created_issue_ids": ["..."],
-  "skipped_issue_ids": ["..."],
+  "project_url": "https://linear.app/workspace/project/...",
+  "cycle_id": "...?",                     // optional, if cycle created
+  "created_issue_ids": [
+    {
+      "id": "...",
+      "title": "...",
+      "url": "https://linear.app/workspace/issue/..."
+    }
+  ],
+  "skipped_issue_ids": [
+    {
+      "id": "...",
+      "reason": "hash_duplicate|semantic_duplicate",
+      "existing_issue_id": "...",
+      "existing_issue_url": "https://linear.app/workspace/issue/..."
+    }
+  ],
+  "duplicate_detection_summary": {
+    "total_searched": 12,
+    "duplicates_found": 2,
+    "duplicates_skipped": 2,
+    "threshold_used": 0.8
+  },
   "hash_index": { "<hash_issue>": "<issue_id>" },
-  "verification_warnings": []
+  "verification_warnings": [],
+  "project_cycle_info": {
+    "is_time_boxed": boolean,
+    "project_type": "permanent|time_boxed",
+    "cycle_name": "string?"
+  }
 }
 ```
 
