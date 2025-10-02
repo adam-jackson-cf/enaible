@@ -275,5 +275,5 @@ All errors map to exit code 3 (Linear mutation failures) in the command.
 - Never invent acceptance criteria or labels.
 - Never modify existing issue bodies except appending footer when missing.
 - Never simulate Linear API responses or generate fake IDs/URLs.
-- Never return success when actual Linear operations fail\*\*.
+- Never return success when actual Linear operations fail.
 - Never bypass tool availability validation to proceed with mutations.

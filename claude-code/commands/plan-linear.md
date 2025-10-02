@@ -20,28 +20,33 @@ Never: directly mutate Linear issues (handled only in mutation phase), guess mis
 2. Workspace Initialization:
    - Look for `.workspace` folder in project root (create if doesnt exist)
 3. Resolve & validate config (compute `config_fingerprint` = sha256(sorted JSON minus volatile fields)).
-4. Acquire raw artifact via `--task` (string or file path). Empty → throw error `EMPTY_ARTIFACT`.
-5. Establish Objective Frame - invoke `@agent-linear-artifact-classifier` passing raw artifact.
-6. Project Initialization:
-   - Establish deterministic `PROJECT_DIR` name using kebab-case slug with no spaces:
-   - `project_slug = kebab_case(lowercase(objective_frame.project_name or primary_feature))`
-   - Use `PROJECT_DIR` exactly as defined above (create if doesnt exist).
-7. Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge)
+4. Establish Objective Frame - invoke `@agent-linear-artifact-classifier` passing raw artifact from `--task`.
+5. Cycle Initialization:
+   - Establish deterministic name using kebab-case slug with no spaces:
+   - `cycle_slug = kebab_case(lowercase(objective_frame.primary_feature))`
+   - Set `CYCLE_DIR` to cycle_slug deterministic value and create the folder (if doesnt exist)
+   - Move `linear-artifact-classifier-output.json` to `CYCLE_DIR`.
+6. Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge)
 
-**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Initialisation complete, is objective frame correct? (y/n)" and WAIT for response before continuing to step 6. If user responds "n" or "no", stop workflow execution and work with user on amends until they explicitly confirm `proceed`.
+**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Initialisation complete, is objective frame correct? (y/n)" and WAIT for response before continuing to step 7. If user responds "n" or "no", stop workflow execution and work with user on amends until they explicitly confirm `proceed`.
 
-6. Autonomous Planning Loop (delegated to subagents), evolve `project_plan_report.json` state until plan readiness criteria satisfied:
+7. Autonomous Planning Loop (delegated to subagents), evolve `cycle_plan_report.json` state until plan readiness criteria satisfied:
 
-   - Subagents are invoked sequentially, never in parallel, as they rely on the findings of the previously invoked agent
-   - Subagents MUST follow Workspace IO Contract (below) and write three artifacts per run into `PROJECT_DIR`:
+   - Subagents are invoked sequentially, never in parallel
+   - The Subagents `@agent-linear-context-harvester`, `@agent-linear-design-synthesizer`,`@agent-linear-issue-decomposer` MUST write three artifacts per run into `CYCLE_DIR`:
+
      1. `<agent-name>-input.md` — exact task payload the subagent received (for traceability)
      2. `<agent-name>-summary.md` — concise human-readable summary of findings
      3. `<agent-name>-output.json` — machine-readable full output
-   - Filenames strictly use the full agent name (e.g., `linear-estimation-engine-output.json`). No abbreviations or spaces.
+
+   - Filenames strictly use the full agent name (e.g., `-linear-context-harvester-output.json`). No abbreviations or spaces.
    - Subagents are instructed to review the previous agents findings:
 
      - `@agent-linear-context-harvester` → frameworks, languages, existing modules
      - `@agent-linear-design-synthesizer` → architecture decisions, foundation tasks
+
+     **⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Review architecture decisions, proceed issue decomposition? (y/n)" and WAIT for response before continuing to `@agent-linear-issue-decomposer` step. If user responds "n" or "no", stop workflow execution and exit and await their amends.
+
      - `@agent-linear-issue-decomposer` → atomic issue graph with ids/deps
        <estimate-style if --estimate-style = tshirt>
        - `@agent-linear-estimation-engine` → size, rcs, oversize flags
@@ -49,19 +54,19 @@ Never: directly mutate Linear issues (handled only in mutation phase), guess mis
      - `@agent-linear-acceptance-criteria-writer` → AC, DoD, implementation guidance
      - `@agent-linear-hashing` (compute) → hashes + duplication detection
 
-   - Update the `project_plan_report.json`, as each subagent completes, with the latest findings
+   - Update the `cycle_plan_report.json`, as each subagent completes, with the latest findings
 
-7. Readiness Check (`@agent-linear-readiness`):
+8. Readiness Check (`@agent-linear-readiness`):
    - Determine readiness and produce readiness object.
    - If readiness.ready=false → exit 2 unless user chooses remediation.
 
 **⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Plan formed and readiness check successful, proceed with transfer to linear? (y/n)" and WAIT for response before continuing to step 8. If user responds "n" or "no", stop workflow execution and exit.
 
-8. Optional Mutation:
+9. Optional Mutation:
    - Invoke `@agent-linear-issue-writer` (duplicate detection, project/cycle logic, then issue batch)
    - Invoke `@agent-linear-dependency-linker`
    - Integrity of previously computed hashes MUST NOT change post-mutation.
-   - Append mutation results into `project_plan_report.json` under `mutation`.
+   - Append mutation results into `cycle_plan_report.json` under `mutation`.
 
 ## Hashing & Diff Delegation
 
@@ -198,11 +203,11 @@ if an **Error condition** is met: _Immediately_ exit workflow, error envelope pr
 | linear-issue-writer               | Project/cycle creation + issue batch          | project_id, cycle_id, created_issue_ids[], project_url, issue_urls[]   |
 | linear-dependency-linker          | Apply dependency edges                        | applied_edges[]                                                        |
 
-## Project Plan Report (Canonical Schema)
+## Cycle Plan Report (Canonical Schema)
 
 ```json
 {
-  "ProjectName": {
+  "CycleName": {
     "version": 2,
     "objective": {
       "summary": "Deliver authentication hardening for user-facing API",

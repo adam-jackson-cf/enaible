@@ -1,4 +1,4 @@
-# Juice Shop Security Hardening Sprint 1
+# Juice Shop Security Hardening
 
 ## Features
 

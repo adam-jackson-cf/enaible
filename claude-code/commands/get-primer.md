@@ -11,6 +11,7 @@ This command performs a deep analysis of the current project to create a standar
 1. **Read Core Documentation**
 
    - Read CLAUDE.md if it exists
+   - Read AGENTS.md if it exists
    - Read README.md or README.rst or similar files
    - Extract initial project context
 

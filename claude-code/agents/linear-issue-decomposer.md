@@ -104,7 +104,7 @@ All errors map to exit code 2 (readiness failure) in the command.
 
 ## Workspace IO Contract
 
-For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+For traceability, ensure you create the following artifacts as part of your output to `CYCLE_DIR`:
 
 - `linear-issue-decomposer-input.md`
 - `linear-issue-decomposer-summary.md` — totals by category and root/leaf counts

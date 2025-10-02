@@ -94,3 +94,9 @@ This error maps to exit code 1 (argument validation failure) in the command.
 - No adding features not present.
 - No network access.
 - Use `Write` and `List` appropriately; never call Bash or attempt to read directories as files.
+
+## Workspace IO Contract
+
+For traceability, ensure you create the following artifacts as part of your output to `CYCLE_DIR`:
+
+- `linear-artifact-classifier-output.json` — full structured output exactly as described in Output Schema

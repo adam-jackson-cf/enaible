@@ -81,7 +81,7 @@ This error maps to exit code 2 (readiness failure) in the command.
 
 ## Workspace IO Contract
 
-For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+For traceability, ensure you create the following artifacts as part of your output to `CYCLE_DIR`:
 
 - `linear-context-harvester-input.md`
 - `linear-context-harvester-summary.md` — languages, frameworks, infra presence, module count
