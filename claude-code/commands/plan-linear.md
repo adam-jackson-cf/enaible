@@ -1,65 +1,63 @@
 ---
-description: Lean objective→autonomous planning→final report workflow for generating a Linear project plan
-argument-hint: --task <string-or-file-path> [--project <identifier>] [--config <path>] [--estimate-style {tshirt|none}] [--max-size <XS|S|M|L>] [--auto] [--continue-from <workspace-folder>] [--start-step <step-name>] [--diff <baseline.json>] [--report-format {json|markdown|both}] [--debug]
-version: 2
+description: Workflow for generating a Linear project plan based on a task outline or planning artifact
+argument-hint: --task <string-or-file-path> [--linear-project-id <identifier>] [--config <path>] [--estimate-style {tshirt|none}] [--max-size <XS|S|M|L>]
+version: 3
 ---
 
 # plan-linear
 
 ## Role
 
-Transform an unstructured planning artifact into an actionable Linear plan by orchestrating stateless subagents:
-
-- Validate arguments & resolve config
-- Acquire artifact & extract primitives
-- Invoke subagents in strict order to enrich plan state
-- Delegate hashing + diff to `@agent-linear-hashing`
-- Delegate semantic / structural completeness & gating to `@agent-linear-readiness`
-- Assemble and emit a single Final Report (JSON or Markdown)
+Transform an unstructured planning artifact into an actionable Linear plan by orchestrating asset creation, user feedback and stateless subagents through a multi stepped workflow you must follow exactly in its order of execution.
 
 Never: directly mutate Linear issues (handled only in mutation phase), guess missing mandatory sections, or recompute hashes locally (trust hashing subagent).
 
 ## High-Level Execution Flow
 
+**CRITICAL** work through this 9 step workflow sequentially:
+
 1. Parse & validate arguments.
-2. Resume Validation (if `--continue-from` provided):
-   - Invoke `@agent-linear-continue` to validate previous workspace
-   - Determine resumption point or abort with guidance
-3. Workspace Initialization:
-   - Create global workspace folder with timestamp
-   - Initialize empty final report structure
-   - Set up step-specific subfolders for documentation
-4. Resolve & validate config (compute `config_fingerprint` = sha256(sorted JSON minus volatile fields)).
-5. Acquire raw artifact via `--task` (string or file path). Empty → error `EMPTY_ARTIFACT`.
-6. Establish Objective Frame (`@agent-linear-artifact-classifier`):
-   - Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge).
-   - Construct objective object (see Final Report schema).
-   - **Interactive checkpoint**: User reviews objective before proceeding
-7. Autonomous Planning Loop (delegated to subagents):
-   - Command gathers initial state (artifact + config subset).
-   - Subagents evolve state until plan readiness criteria satisfied:
+2. Workspace Initialization:
+   - Look for `.workspace` folder in project root (create if doesnt exist)
+3. Resolve & validate config (compute `config_fingerprint` = sha256(sorted JSON minus volatile fields)).
+4. Acquire raw artifact via `--task` (string or file path). Empty → throw error `EMPTY_ARTIFACT`.
+5. Establish Objective Frame - invoke `@agent-linear-artifact-classifier` passing raw artifact.
+6. Project Initialization:
+   - Look for a matching project folder within `.workspace` for objective frame (create if doesnt exist)
+   - Look for a matching `project_plan_report.json` (create empty project plant report structure if doesnt exist)
+7. Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge)
+
+**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Initialisation complete, is objective frame correct? (y/n)" and WAIT for response before continuing to step 6. If user responds "n" or "no", stop workflow execution and work with user on amends until they explicitly confirm `proceed`.
+
+6. Autonomous Planning Loop (delegated to subagents), evolve `project_plan_report.json` state until plan readiness criteria satisfied:
+
+   - Subagents are invoked sequentially, never in parallel, as they rely on the findings of the previously invoked agent
+   - Subagents are instructed to save a summary of their findings in <agent-name>-summary.md to the project folder
+   - Subagents are instructed to save their final output to the project folder
+   - Subagents are instructed to review the previous agents findings:
+
      - `@agent-linear-context-harvester` → frameworks, languages, existing modules
      - `@agent-linear-design-synthesizer` → architecture decisions, foundation tasks
      - `@agent-linear-issue-decomposer` → atomic issue graph with ids/deps
-     - `@agent-linear-estimation-engine` → size, rcs, oversize flags
+       <estimate-style if --estimate-style = tshirt>
+       - `@agent-linear-estimation-engine` → size, rcs, oversize flags
+         </estimate-style>
      - `@agent-linear-acceptance-criteria-writer` → AC, DoD, implementation guidance
      - `@agent-linear-hashing` (compute) → hashes + duplication detection
-   - **Interactive checkpoints**: After decision-making steps, user can review and provide feedback
-8. Readiness Check (`@agent-linear-readiness`):
+
+   - Update the `project_plan_report.json`, as each subagent completes, with the latest findings
+
+7. Readiness Check (`@agent-linear-readiness`):
    - Determine readiness and produce readiness object.
-   - If readiness.ready=false → abort (exit 2) unless user chooses remediation (workspace preserved for resume).
-9. Final Report Emission:
-   - Build output + enrich with objective + metadata.
-   - If `--diff` provided, include change summary (`@agent-linear-hashing` diff).
-   - Output according to `--report-format`.
-10. Mutation Confirmation:
-    - Interactive confirmation (unless `--auto`) before Linear mutation
-    - User can exit here or proceed with mutation
-11. Optional Mutation:
-    - Invoke `@agent-linear-issue-writer` (duplicate detection, project/cycle logic, then issue batch)
-    - Invoke `@agent-linear-dependency-linker`
-    - Integrity of previously computed hashes MUST NOT change post-mutation.
-    - Append mutation results into final report under `mutation`.
+   - If readiness.ready=false → exit 2 unless user chooses remediation.
+
+**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Plan formed and readiness check successful, proceed with transfer to linear? (y/n)" and WAIT for response before continuing to step 8. If user responds "n" or "no", stop workflow execution and exit.
+
+8. Optional Mutation:
+   - Invoke `@agent-linear-issue-writer` (duplicate detection, project/cycle logic, then issue batch)
+   - Invoke `@agent-linear-dependency-linker`
+   - Integrity of previously computed hashes MUST NOT change post-mutation.
+   - Append mutation results into `project_plan_report.json` under `mutation`.
 
 ## Hashing & Diff Delegation
 
@@ -67,7 +65,7 @@ All SHA-256 computation (artifact, per-issue structural hashes, plan hash) and d
 
 ## Arguments
 
-Recognized flags (reject unknowns):
+Recognized argument flags (reject unknowns):
 
 **Required:**
 
@@ -75,40 +73,110 @@ Recognized flags (reject unknowns):
 
 **Optional:**
 
-- `--project <identifier>` existing Linear project (UUID | URL | exact name)
+- `--linear-project-id <identifier>` existing Linear project (UUID | URL | exact name)
 - `--config <path>` override config resolution
 - `--estimate-style {tshirt|none}` default: `tshirt`
-- `--max-size <XS|S|M|L>` upper bound before enforced split (optional)
-- `--auto` skip interactive confirmations (still stops if audit errors)
-- `--continue-from <workspace-folder>` resume using previous workspace folder
-- `--start-step <step-name>` resume from specific step (requires --continue-from)
-- `--diff <baseline.json>` structural diff vs prior saved plan (delegated to @agent-linear-hashing diff)
-- `--report-format {json|markdown|both}` default: `json`
-- `--debug` (optional) include intermediary orchestrator state hashes (no raw large payload dump)
+- `--max-size <XS|S|M|L>` upper bound before enforced split
 
-**Step Names for --start-step:**
-
-- `step-04-objective` - After objective frame establishment
-- `step-05-planning` - After context harvesting
-- `step-06-design` - After design synthesis
-- `step-07-decomposition` - After issue decomposition
-- `step-08-estimation` - After complexity estimation
-- `step-09-criteria` - After acceptance criteria writing
-- `step-10-hashing` - After hashing and duplication detection
-- `step-11-readiness` - After readiness validation
-
-Validation failures: print concise JSON error envelope + exit code 1.
+On validation failures: → **STOP** emit exit code 1.
 
 ## Config Resolution
 
 Locate config with following precedence:
 
 1. Explicit `--config`
-2. Project-level `.opencode/linear-plan.config.json`
-3. User-level `$HOME/.config/opencode/linear-plan.config.json`
+2. Project-level `.claude/linear-plan.config.json`
+3. User-level `$HOME/.claude/linear-plan.config.json`
 
 Mandatory keys (no inference): `label_rules`, `complexity_weights`, `thresholds`, `decomposition`, `audit_rules`, `idempotency`.
-If any missing → **STOP** emit exit code 1.
+
+On missing missing config keys: → **STOP** emit exit code 1.
+
+## Failure & Exit Codes
+
+| Code | Meaning                                               |
+| ---- | ----------------------------------------------------- |
+| 0    | Success (dry-run or mutation complete)                |
+| 1    | Argument or config validation failure                 |
+| 2    | Plan readiness failures or blocking validation errors |
+| 3    | Linear mutation failures (writer/linker errors)       |
+| 4    | Structural integrity or contract violations           |
+
+All errors must output a machine-parsable JSON envelope with `exit_code` and `error.code` fields.
+
+### Error Code Mapping
+
+**Exit Code 1 (Argument/Config Failures):**
+
+- `CONFIG_MISSING_KEYS` → Required configuration keys absent
+- `ARG_VALIDATION` → Invalid flag combinations or values
+- `EMPTY_ARTIFACT` → No planning input provided
+
+**Exit Code 2 (Readiness/Validation Failures):**
+
+- `READINESS_BLOCKING` → Plan not ready for Linear (from @agent-linear-readiness)
+- `MISSING_FEATURES` → No extractable features from artifact
+- `NO_ISSUES` → Issue decomposition produced no issues or no issues available for enrichment
+- `EMPTY_REPO` → No source code context available
+- `NO_FOUNDATION` → Features require foundation tasks but none provided
+- `SPLIT_TARGET_NOT_FOUND` → Cannot locate target for issue splitting
+- `MISSING_OBJECTIVES` → Objectives empty and cannot reference success alignment
+
+**Exit Code 3 (Linear Mutation Failures):**
+
+- `TOOLS_UNAVAILABLE` → Required Linear MCP tools not accessible
+- `RATE_LIMIT` → Linear API rate limit exceeded
+- `PERMISSION_DENIED` → Insufficient Linear permissions
+- `NOT_FOUND_PROJECT` → Specified project not found
+- `VALIDATION_ERROR` → Linear rejected issue data
+- `MUTATION_FAILED` → Generic Linear mutation failure
+- `NO_DEPENDENCIES` → No dependencies to link (non-fatal, may not need linking)
+- `MISSING_PROJECT_ID` → Project ID required for dependency linking operations
+- `NETWORK_ERROR` → Network connectivity issues
+- `AGENT_ACTION_FAILED` → Agent failed to perform required actions
+
+**Exit Code 4 (Structural/Contract Violations):**
+
+- `SCHEMA_VIOLATION` → Malformed input to subagents
+- `DUPLICATE_ISSUE_ID` → Conflicting issue identifiers
+- `DUPLICATE_ISSUE_HASH` → Structural duplicates detected
+- `HASH_MISMATCH` → Hash verification failed
+- `MALFORMED_DEP_GRAPH` → Invalid dependency structure
+- `ORCHESTRATOR_CONTRACT_VIOLATION` → Missing required workflow segments
+
+### Subagent Error Consistency
+
+Subagents return findings/warnings in normal output; only hard failures use the error envelope. The command maps subagent error codes to appropriate exit codes as listed above.
+
+Example JSON error envelope (config-missing example, exit code 1):
+
+```json
+{
+  "exit_code": 1,
+  "error": {
+    "code": "CONFIG_MISSING_KEYS",
+    "message": "Required configuration keys are missing",
+    "details": {
+      "missing": [
+        "label_rules",
+        "complexity_weights",
+        "thresholds",
+        "decomposition",
+        "audit_rules",
+        "idempotency"
+      ],
+      "path": "/home/adam/.config/opencode/linear-plan.config.json",
+      "attempted_sources": [
+        "--config (not provided)",
+        ".opencode/linear-plan.config.json",
+        "$HOME/.config/opencode/linear-plan.config.json"
+      ]
+    }
+  }
+}
+```
+
+if an **Error condition** is met: _Immediately_ exit workflow, error envelope printed to stderr
 
 ## Subagent Responsibilities
 
@@ -123,23 +191,14 @@ If any missing → **STOP** emit exit code 1.
 | linear-hashing                    | Deterministic hashing + duplication + diff    | plan_hash, artifact hashes, per-issue hashes, duplicates, diff         |
 | linear-readiness                  | Validation + labeling + readiness gating      | findings[], label_assignments[], dependency_suggestions[], readiness{} |
 | linear-issue-search               | Duplicate issue detection (existing projects) | matching_issues[], confidence_scores[], duplicate_warnings[]           |
-| linear-continue                   | Workspace validation + resumption guidance    | validation_status[], suggested_start_step[], missing_steps[]           |
 | linear-issue-writer               | Project/cycle creation + issue batch          | project_id, cycle_id, created_issue_ids[], project_url, issue_urls[]   |
 | linear-dependency-linker          | Apply dependency edges                        | applied_edges[]                                                        |
 
-## Readiness Handling
-
-The command delegates all readiness determination to `@agent-linear-readiness`. If `readiness.ready=false`, the command aborts with exit code 2 and displays the readiness object including `pending_steps` for user remediation. If `readiness.ready=true`, the command proceeds to final report emission and optional mutation.
-
-## Diff Mode
-
-When `--diff <baseline.json>` is provided, the command compares the current plan against a previously saved plan and embeds the change summary under `"diff"` in the final report.
-
-## Final Output Report (Canonical Schema)
+## Project Plan Report (Canonical Schema)
 
 ```json
 {
-  "PlanLinearReport": {
+  "ProjectName": {
     "version": 2,
     "objective": {
       "summary": "Deliver authentication hardening for user-facing API",
@@ -293,228 +352,20 @@ When `--diff <baseline.json>` is provided, the command compares the current plan
 
 > Markdown output (if selected) is a faithful rendering of the JSON with a deterministic section order; JSON is canonical.
 
-## Final Report Output
-
-The command generates appropriately named output files based on the selected format:
-
-### File Naming Convention
-
-**Default naming** (when no project specified):
-
-- JSON: `plan-linear-report-YYYY-MM-DDTHH-MM-SSZ.json`
-- Markdown: `plan-linear-report-YYYY-MM-DDTHH-MM-SSZ.md`
-
-**Project-specific naming** (when `--project` provided):
-
-- JSON: `plan-linear-{project-slug}-YYYY-MM-DDTHH-MM-SSZ.json`
-- Markdown: `plan-linear-{project-slug}-YYYY-MM-DDTHH-MM-SSZ.md`
-
-**Examples:**
-
-```bash
-# Default naming
-/plan-linear "Add user authentication" --report-format json
-# Output: plan-linear-report-2025-09-30T15-30-00Z.json
-
-# Project-specific naming
-/plan-linear "Add user authentication" --project "Auth Q4 2025" --report-format markdown
-# Output: plan-linear-auth-q4-2025-2025-09-30T15-30-00Z.md
-
-# Both formats
-/plan-linear "Add user authentication" --report-format both
-# Output: plan-linear-report-2025-09-30T15-30-00Z.json + plan-linear-report-2025-09-30T15-30-00Z.md
-```
-
-### Output Behavior
-
-- **JSON format**: Always written to file, also printed to stdout
-- **Markdown format**: Written to file, summary printed to stdout
-- **Both formats**: Both files written, JSON content printed to stdout
-- **Dry-run**: Files created with `-dry-run` suffix in filename
-- **Error conditions**: No output files created, error envelope printed to stderr
-
-### File Content Structure
-
-**JSON files** contain the complete `PlanLinearReport` object as shown in the schema above.
-
-**Markdown files** contain:
-
-- Executive summary (objective, issue counts, readiness status)
-- Detailed sections (decisions, foundation tasks, issues by category)
-- Complexity analysis and sizing breakdown
-- Dependencies and labels summary
-- Readiness findings and any advisories
-- Hash verification section
-- Mutation results (if applicable)
-- Diff summary (if `--diff` used)
-
-Files are written to the current working directory unless `--output-dir` is specified (future enhancement).
-
-## Failure & Exit Codes
-
-| Code | Meaning                                               |
-| ---- | ----------------------------------------------------- |
-| 0    | Success (dry-run or mutation complete)                |
-| 1    | Argument or config validation failure                 |
-| 2    | Plan readiness failures or blocking validation errors |
-| 3    | Linear mutation failures (writer/linker errors)       |
-| 4    | Structural integrity or contract violations           |
-
-All errors must output a machine-parsable JSON envelope with `exit_code` and `error.code` fields.
-
-### Error Code Mapping
-
-**Exit Code 1 (Argument/Config Failures):**
-
-- `CONFIG_MISSING_KEYS` → Required configuration keys absent
-- `ARG_VALIDATION` → Invalid flag combinations or values
-- `EMPTY_ARTIFACT` → No planning input provided
-
-**Exit Code 2 (Readiness/Validation Failures):**
-
-- `READINESS_BLOCKING` → Plan not ready for Linear (from @agent-linear-readiness)
-- `MISSING_FEATURES` → No extractable features from artifact
-- `NO_ISSUES` → Issue decomposition produced no issues or no issues available for enrichment
-- `EMPTY_REPO` → No source code context available
-- `NO_FOUNDATION` → Features require foundation tasks but none provided
-- `SPLIT_TARGET_NOT_FOUND` → Cannot locate target for issue splitting
-- `MISSING_OBJECTIVES` → Objectives empty and cannot reference success alignment
-
-**Exit Code 3 (Linear Mutation Failures):**
-
-- `RATE_LIMIT` → Linear API rate limit exceeded
-- `PERMISSION_DENIED` → Insufficient Linear permissions
-- `NOT_FOUND_PROJECT` → Specified project not found
-- `VALIDATION_ERROR` → Linear rejected issue data
-- `MUTATION_FAILED` → Generic Linear mutation failure
-- `NO_DEPENDENCIES` → No dependencies to link (non-fatal, may not need linking)
-- `MISSING_PROJECT_ID` → Project ID required for dependency linking operations
-
-**Exit Code 4 (Structural/Contract Violations):**
-
-- `SCHEMA_VIOLATION` → Malformed input to subagents
-- `DUPLICATE_ISSUE_ID` → Conflicting issue identifiers
-- `DUPLICATE_ISSUE_HASH` → Structural duplicates detected
-- `HASH_MISMATCH` → Hash verification failed
-- `MALFORMED_DEP_GRAPH` → Invalid dependency structure
-- `ORCHESTRATOR_CONTRACT_VIOLATION` → Missing required workflow segments
-
-### Subagent Error Consistency
-
-All subagents follow the same error envelope pattern:
-
-```json
-{
-  "error": {
-    "code": "ERROR_CODE",
-    "message": "Human-readable description",
-    "details": {
-      /* optional context */
-    }
-  }
-}
-```
-
-Subagents return findings/warnings in normal output; only hard failures use the error envelope. The command maps subagent error codes to appropriate exit codes as listed above.
-
-Example JSON error envelope (config-missing example, exit code 1):
-
-```json
-{
-  "exit_code": 1,
-  "error": {
-    "code": "CONFIG_MISSING_KEYS",
-    "message": "Required configuration keys are missing",
-    "details": {
-      "missing": [
-        "label_rules",
-        "complexity_weights",
-        "thresholds",
-        "decomposition",
-        "audit_rules",
-        "idempotency"
-      ],
-      "path": "/home/adam/.config/opencode/linear-plan.config.json",
-      "attempted_sources": [
-        "--config (not provided)",
-        ".opencode/linear-plan.config.json",
-        "$HOME/.config/opencode/linear-plan.config.json"
-      ]
-    }
-  }
-}
-```
-
 ## Usage Examples
-
-> Basic planning with string artifact
-
-```bash
-/plan-linear --task "Add google signin support to authentication module" --estimate-style tshirt
-# Output: workspace-YYYY-MM-DDTHH-MM-SSZ/plan-linear-report.json
-```
-
-> Planning with file artifact
-
-```bash
-/plan-linear --task prd.md --estimate-style tshirt --max-size L
-# Output: workspace-YYYY-MM-DDTHH-MM-SSZ/plan-linear-report.json
-```
-
-> Attach to an existing project and output Markdown
-
-```bash
-/plan-linear --task "Add deep research agent using vercel AI Agent SDK" --project "Auth Hardening 2025" --report-format markdown
-# Output: workspace-YYYY-MM-DDTHH-MM-SSZ/plan-linear-report.md
-```
-
-> Non-interactive apply (attach to project and apply changes)
-
-```bash
-/plan-linear --task "add website visitor ticket to home page" --project PROJ-123 --auto
-# Output: workspace-YYYY-MM-DDTHH-MM-SSZ/plan-linear-report.json + Linear mutations
-```
-
-> Resume from previous workspace
-
-```bash
-/plan-linear --continue-from workspace-2025-10-01T09-48-31Z --start-step step-07-decomposition
-# Output: workspace-2025-10-01T09-48-31Z/plan-linear-report-updated.json
-```
-
-### Diff mode example
-
-This shows exactly how adding MFA requirements changed the issue breakdown, sizing, and dependencies.
-
-> First run
-
-```bash
-/plan-linear --task "Add user authentication" > plan-v1.json
-```
-
-> Later, after modifying requirements
-
-```bash
-/plan-linear --task "Add user authentication with MFA" --diff plan-v1.json
-```
-
-### Interactive workflow example
 
 ```bash
 # Start planning process
 /plan-linear --task "Implement OAuth2 integration"
 
 # Process stops at objective checkpoint for review
-# User provides feedback or continues
+# User provides feedback, then types "proceed" to continue
 
-# Process stops at design checkpoint for review
-# User provides feedback or continues
+# Process stops at decision-making checkpoints for review
+# User provides feedback, then types "proceed" to continue
 
 # Process stops before Linear mutation for final confirmation
-# User decides to proceed or exit (workspace preserved)
-
-# Later, resume to complete mutation
-/plan-linear --continue-from workspace-2025-10-01T09-48-31Z --auto
+# User decides to proceed (types "proceed") or exit (workspace preserved)
 ```
 
 ---

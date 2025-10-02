@@ -18,7 +18,7 @@ description: >
     user: "Create issues with proper labels, sizes, and plan hash footers applied"
     assistant: "I'll use the linear-issue-writer agent to create enriched issues with all metadata"
     Commentary: Critical for maintaining plan integrity and proper issue organization in Linear
-tools: Read, mcp__linear_project_get, mcp__linear_project_create, mcp__linear_issue_list, mcp__linear_issue_create, mcp__linear_issue_update, mcp__linear_issue_get, mcp__linear_cycle_list, mcp__linear_cycle_create
+tools: Read, mcp__Linear_get_project, mcp__Linear_create_project, mcp__Linear_list_issues, mcp__Linear_create_issue, mcp__Linear_update_issue, mcp__Linear_get_issue, mcp__Linear_list_teams, mcp__Linear_cycle_list, mcp__Linear_cycle_create, mcp__Linear_list_issue_labels, mcp__Linear_create_issue_label
 ---
 
 # Role
@@ -105,6 +105,15 @@ Assembly Rules:
 - No trailing blank lines after footers.
 - Hash (`hash_issue`) produced upstream (not recomputed here) is inserted verbatim.
 
+## Pre-flight Validation
+
+### Tool Access Validation
+
+1. **Required Tools**: Verify access to all `mcp__Linear_*` tools listed in frontmatter
+2. **API Connectivity**: Test Linear API connectivity via `mcp__Linear_list_teams`
+3. **Permission Check**: Verify project creation and issue management permissions
+4. **Error Handling**: Return `TOOLS_UNAVAILABLE` with specific tool details if validation fails
+
 ## Project Initialization Flow (mode=project_init_if_absent)
 
 ### Project vs Cycle Detection
@@ -124,7 +133,7 @@ Assembly Rules:
 
 1. Normalize candidate name (collapse whitespace, title-case segments as-is).
 2. If `existing_project=true` and `project_id` provided:
-   - Validate project exists via `mcp__linear_project_get`
+   - Validate project exists via `mcp__Linear_get_project`
    - Use existing project
 3. Else if time-boxed detected:
    - Extract permanent project name (e.g., "Juice Shop Security Hardening Sprint 1" → "Juice Shop")
@@ -137,7 +146,7 @@ Assembly Rules:
 ### Cycle Handling (if applicable)
 
 1. If time-boxed effort detected and cycle_name provided:
-   - Create cycle within project using `mcp__linear_cycle_create`
+   - Create cycle within project using `mcp__Linear_cycle_create`
    - Assign cycle_id for issue creation
 2. Cycle defaults to current date range if not specified
 
@@ -156,7 +165,7 @@ Return `{ project_id, cycle_id?, status: "created"|"existing" }`.
 ### Duplicate Detection (Existing Projects Only)
 
 1. **Pre-processing**: If `existing_project=true` and `enable_duplicate_detection=true`:
-   - For each IssueCreateSpec, invoke `linear-issue-search` agent
+   - For each IssueCreateSpec, invoke `@agent-linear-issue-search` agent
    - Pass issue title, project_id, and context
    - Receive confidence scores and duplicate matches
    - Filter based on `duplicate_detection_threshold`
@@ -165,7 +174,7 @@ Return `{ project_id, cycle_id?, status: "created"|"existing" }`.
 
 1. Preconditions: `project_id`, non-empty `issues[]`.
 2. **Existing Project Handling**:
-   - Fetch existing issues minimal fields via `mcp__linear_issue_list(project_id)` (pagination until all retrieved)
+   - Fetch existing issues minimal fields via `mcp__Linear_list_issues(project_id)` (pagination until all retrieved)
    - Build map `existing_hash -> issue_id` by regex scanning body end for `<!-- plan-hash:... -->`
 3. **New Project Handling**: Skip existing issue fetch (assume all new)
 4. For each incoming IssueCreateSpec in provided order:
@@ -175,13 +184,13 @@ Return `{ project_id, cycle_id?, status: "created"|"existing" }`.
      - Include existing_issue_id and existing_issue_url in skipped record
    - **Creation**:
      - Assemble body string deterministically
-     - Create issue via `mcp__linear_issue_create` with title, body, project_id, cycle_id (if provided)
+     - Create issue via `mcp__Linear_create_issue` with title, body, project_id, cycle_id (if provided)
      - Apply labels if API requires separate call (combine into body if not)
-     - If update needed (e.g., size label), perform `mcp__linear_issue_update` once consolidating changes
+     - If update needed (e.g., size label), perform `mcp__Linear_update_issue` once consolidating changes
      - Append to `created_issue_ids` with full issue object (id, title, url)
    - Record in `hash_index`
 5. **Post-pass verification** (sample at least first 5 + any with size=XL):
-   - Re-fetch via `mcp__linear_issue_get` ensure footers present
+   - Re-fetch via `mcp__Linear_get_issue` ensure footers present
    - On mismatch add to `verification_warnings[]`
    - Build URLs for all created issues
 
@@ -223,23 +232,36 @@ Return `{ project_id, cycle_id?, status: "created"|"existing" }`.
 }
 ```
 
-## Error Envelope
+### Error Envelope Requirements
 
-Return instead of throwing textual prose:
+- **Never simulate success** - always return actual API results
+- **Use defined error codes** for all failure scenarios
+- **Include retry information** for rate limits and transient failures
+- **Never generate fake IDs or URLs** under any circumstances
 
+## Error Handling
+
+If dependency linking cannot proceed, return appropriate error envelope:
+
+```json
+{
+  "error": {
+    "code": "TOOLS_UNAVAILABLE",
+    "message": "Linear mcp tools unavailable"
+  }
+}
 ```
-{ "error": { "code": "RATE_LIMIT", "message": "...", "retry_after_seconds": 60? } }
-```
 
-Codes:
+Error codes:
 
+- `TOOLS_UNAVAILABLE` → Required Linear MCP tools not accessible
 - `RATE_LIMIT` → Linear API rate limit exceeded
 - `PERMISSION_DENIED` → Insufficient Linear permissions
-- `NOT_FOUND_PROJECT` → Specified project not found
 - `VALIDATION_ERROR` → Linear rejected issue data
-- `MUTATION_FAILED` → Generic Linear mutation failure
+- `NETWORK_ERROR` → Network connectivity issues
+- `AGENT_ACTION_FAILED` → Agent failed to perform required actions
 
-All errors return standard error envelope and map to exit code 3 (Linear mutation failures) in the command.
+All errors map to exit code 3 (Linear mutation failures) in the command.
 
 ## Idempotency Guarantees
 
@@ -251,4 +273,7 @@ All errors return standard error envelope and map to exit code 3 (Linear mutatio
 
 - Never split or merge issues; upstream must do so.
 - Never invent acceptance criteria or labels.
-- Never modify existing issue bodies except appending footer when missing (should not occur unless legacy fix-up mode added later – currently disallowed).
+- Never modify existing issue bodies except appending footer when missing.
+- Never simulate Linear API responses or generate fake IDs/URLs.
+- Never return success when actual Linear operations fail\*\*.
+- Never bypass tool availability validation to proceed with mutations.

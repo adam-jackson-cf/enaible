@@ -18,7 +18,7 @@ description: >
     user: "Complete the Linear setup by linking all dependencies between issues"
     assistant: "I'll use the linear-dependency-linker agent to finalize the dependency structure"
     Commentary: Essential step that completes the Linear project structure with proper dependencies
-tools: mcp_linear_issue_link, mcp_linear_issue_get
+tools: mcp__Linear_issue_link, mcp__Linear_get_issue
 ---
 
 # Role
@@ -41,8 +41,8 @@ Create blocking edges in Linear according to computed dependency graph, ensuring
 1. Normalize list (remove duplicates where from/to pair repeats).
 2. Translate local provisional ids to remote issue ids using `local_to_remote`; skip pairs with missing mapping (record warning).
 3. Topologically detect potential cycle introduction: maintain adjacency; before adding edge run DFS from target to source; if reachable → emit cycle warning and skip.
-4. Invoke `mcp_linear_issue_link` per accepted edge.
-5. Optional verification: random sample up to 10 edges re-fetched via `mcp_linear_issue_get` to confirm link presence (if API supports).
+4. Invoke `mcp__Linear_issue_link` per accepted edge.
+5. Optional verification: random sample up to 10 edges re-fetched via `mcp__Linear_get_issue` to confirm link presence (if API supports).
 
 ## Output Schema
 
@@ -60,6 +60,29 @@ Create blocking edges in Linear according to computed dependency graph, ensuring
 - Sort input dependencies lexicographically (`from`,`to`) before processing.
 - Deterministic cycle detection order ensures stable set of skipped edges.
 
+## Pre-flight Validation
+
+### Tool Access Validation
+
+1. **Validate MCP tool availability** before any operations:
+
+   - Verify access to required `mcp__Linear_*` tools
+   - Check Linear API connectivity via simple team listing call
+   - Validate permissions for issue linking operations
+   - Fail immediately with `TOOLS_UNAVAILABLE` if validation fails
+
+2. **Permission Validation**:
+   - Verify issue linking permissions on target project
+   - Confirm access to both source and target issues
+   - Return `PERMISSION_DENIED` with specific details if insufficient
+
+### Error Envelope Requirements
+
+- **Never simulate success** - always return actual API results
+- **Use defined error codes** for all failure scenarios
+- **Include retry information** for rate limits and transient failures
+- **Never generate fake link results** under any circumstances
+
 ## Error Handling
 
 If dependency linking cannot proceed, return appropriate error envelope:
@@ -75,8 +98,14 @@ If dependency linking cannot proceed, return appropriate error envelope:
 
 Error codes:
 
+- `TOOLS_UNAVAILABLE` → Required Linear MCP tools not accessible
 - `NO_DEPENDENCIES` → No dependencies to link
 - `MISSING_PROJECT_ID` → Project ID required for linking operations
+- `RATE_LIMIT` → Linear API rate limit exceeded
+- `PERMISSION_DENIED` → Insufficient Linear permissions
+- `VALIDATION_ERROR` → Linear rejected link data
+- `NETWORK_ERROR` → Network connectivity issues
+- `AGENT_ACTION_FAILED` → Agent failed to perform required actions
 
 All errors map to exit code 3 (Linear mutation failures) in the command.
 
@@ -84,3 +113,6 @@ All errors map to exit code 3 (Linear mutation failures) in the command.
 
 - Do not create edges outside project scope.
 - Do not attempt to relink existing identical edges.
+- Never simulate Linear API responses or generate fake link results.
+- Never return success when actual Linear operations fail\*\*.
+- Never bypass tool availability validation to proceed with linking.
