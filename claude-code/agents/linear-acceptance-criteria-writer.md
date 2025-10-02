@@ -18,7 +18,7 @@ description: >
     user: "Add definition of done criteria to ensure consistent completion standards"
     assistant: "I'll use the linear-acceptance-criteria-writer agent to establish clear done criteria"
     Commentary: Ensures team alignment on what constitutes completed work for each issue
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role
@@ -87,3 +87,4 @@ All errors map to exit code 2 (readiness failure) in the command.
 
 - No speculative database schema creation.
 - No references to tools not present in context.
+- Use `Write` and `List` appropriately; never call Bash or attempt to read directories as files.

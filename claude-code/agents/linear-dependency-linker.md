@@ -114,5 +114,5 @@ All errors map to exit code 3 (Linear mutation failures) in the command.
 - Do not create edges outside project scope.
 - Do not attempt to relink existing identical edges.
 - Never simulate Linear API responses or generate fake link results.
-- Never return success when actual Linear operations fail\*\*.
+- Never return success when actual Linear operations fail.
 - Never bypass tool availability validation to proceed with linking.

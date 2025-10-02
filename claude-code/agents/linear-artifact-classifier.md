@@ -18,7 +18,7 @@ description: >
     user: "Start the plan-linear analysis by classifying this requirements document"
     assistant: "I'll use the linear-artifact-classifier agent to establish the objective frame for planning"
     Commentary: Critical first step that sets up all subsequent planning phases
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role
@@ -93,3 +93,4 @@ This error maps to exit code 1 (argument validation failure) in the command.
 - No creative rewriting.
 - No adding features not present.
 - No network access.
+- Use `Write` and `List` appropriately; never call Bash or attempt to read directories as files.

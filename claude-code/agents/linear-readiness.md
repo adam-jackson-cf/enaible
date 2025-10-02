@@ -18,7 +18,7 @@ description: >
     user: "Perform readiness assessment and provide any recommendations"
     assistant: "I'll use the linear-readiness agent to generate readiness assessment and advisory data"
     Commentary: Provides final validation and labeling recommendations for Linear integration
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role (Narrow Scope)
@@ -145,3 +145,4 @@ Hard errors return standard error envelope and map to exit code 4 (structural in
 - Do not mutate issues.
 - Do not recompute hashes or infer missing structural IDs.
 - Do not downgrade error findings to warnings.
+- Use `Write` and `List`; do not use Bash or attempt directory reads via file APIs.

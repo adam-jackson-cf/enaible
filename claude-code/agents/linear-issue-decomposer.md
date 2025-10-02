@@ -18,7 +18,7 @@ description: >
     user: "Create issue decomposition that respects foundation work dependencies"
     assistant: "I'll use the linear-issue-decomposer agent to sequence issues properly with foundation work first"
     Commentary: Critical for establishing the right execution order and dependency relationships
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role
@@ -100,3 +100,12 @@ All errors map to exit code 2 (readiness failure) in the command.
 
 - No acceptance criteria or estimation fields.
 - No circular dependencies.
+- Use `Write` and `List` appropriately; never attempt to read directories as files.
+
+## Workspace IO Contract
+
+For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+
+- `linear-issue-decomposer-input.md`
+- `linear-issue-decomposer-summary.md` — totals by category and root/leaf counts
+- `linear-issue-decomposer-output.json` — full structured issue graph

@@ -18,7 +18,7 @@ description: >
     user: "Gather context about infrastructure and dependencies before planning"
     assistant: "I'll use the linear-context-harvester agent to identify infrastructure hints and dependency patterns"
     Commentary: Critical for realistic planning that accounts for existing constraints and opportunities
-tools: Read, Glob, Grep
+tools: Read, Write, List, Glob, Grep
 ---
 
 # Role
@@ -77,3 +77,12 @@ This error maps to exit code 2 (readiness failure) in the command.
 - No network fetch.
 - No code execution / imports.
 - No speculative framework guessing with < required signals.
+- Use `Write` and `List` appropriately; never call Bash or attempt to read directories as files.
+
+## Workspace IO Contract
+
+For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+
+- `linear-context-harvester-input.md`
+- `linear-context-harvester-summary.md` — languages, frameworks, infra presence, module count
+- `linear-context-harvester-output.json` — exact structured output per schema

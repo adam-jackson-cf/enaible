@@ -18,7 +18,7 @@ description: >
     user: "Verify this plan is ready for Linear with proper hashes"
     assistant: "I'll use the linear-hashing agent to compute all required hashes and validate structural integrity"
     Commentary: Critical validation step before any Linear API operations
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role

@@ -23,8 +23,9 @@ Never: directly mutate Linear issues (handled only in mutation phase), guess mis
 4. Acquire raw artifact via `--task` (string or file path). Empty → throw error `EMPTY_ARTIFACT`.
 5. Establish Objective Frame - invoke `@agent-linear-artifact-classifier` passing raw artifact.
 6. Project Initialization:
-   - Look for a matching project folder within `.workspace` for objective frame (create if doesnt exist)
-   - Look for a matching `project_plan_report.json` (create empty project plant report structure if doesnt exist)
+   - Establish deterministic `PROJECT_DIR` name using kebab-case slug with no spaces:
+   - `project_slug = kebab_case(lowercase(objective_frame.project_name or primary_feature))`
+   - Use `PROJECT_DIR` exactly as defined above (create if doesnt exist).
 7. Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge)
 
 **⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Initialisation complete, is objective frame correct? (y/n)" and WAIT for response before continuing to step 6. If user responds "n" or "no", stop workflow execution and work with user on amends until they explicitly confirm `proceed`.
@@ -32,8 +33,11 @@ Never: directly mutate Linear issues (handled only in mutation phase), guess mis
 6. Autonomous Planning Loop (delegated to subagents), evolve `project_plan_report.json` state until plan readiness criteria satisfied:
 
    - Subagents are invoked sequentially, never in parallel, as they rely on the findings of the previously invoked agent
-   - Subagents are instructed to save a summary of their findings in <agent-name>-summary.md to the project folder
-   - Subagents are instructed to save their final output to the project folder
+   - Subagents MUST follow Workspace IO Contract (below) and write three artifacts per run into `PROJECT_DIR`:
+     1. `<agent-name>-input.md` — exact task payload the subagent received (for traceability)
+     2. `<agent-name>-summary.md` — concise human-readable summary of findings
+     3. `<agent-name>-output.json` — machine-readable full output
+   - Filenames strictly use the full agent name (e.g., `linear-estimation-engine-output.json`). No abbreviations or spaces.
    - Subagents are instructed to review the previous agents findings:
 
      - `@agent-linear-context-harvester` → frameworks, languages, existing modules

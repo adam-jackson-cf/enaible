@@ -339,34 +339,6 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 
 ---
 
-## 3. Diff Mode Detailed Usage
-
-### 3.1 Purpose & Use Cases
-
-**Diff mode** (`--diff <baseline.json>`) enables change detection between planning iterations:
-
-1. **Incremental Planning**: Track how requirements evolve
-2. **Review Workflows**: Validate changes before Linear commit
-3. **Impact Analysis**: Understand scope changes from requirement modifications
-4. **Collaboration**: Show team members exactly what changed between versions
-
-### 3.2 How It Works
-
-**Technical Flow:**
-
-1. Parse baseline JSON file (previous `PlanLinearReport`)
-2. Extract relevant state (issues, hashes, metadata)
-3. Call `@linear-hashing` (diff mode) with baseline + current state
-4. Receive structured diff showing changes
-5. Embed diff in final report under `"diff"` section
-
-**Diff Algorithm:**
-
-- **Added**: Issues present in current plan but not baseline
-- **Removed**: Issues in baseline but not current plan
-- **Changed**: Issues with different structural content (size, deps, AC, DoD)
-- **Reordered**: Issues with same content but different provisional IDs
-
 ### 3.3 Detailed Example
 
 **Initial Planning Session:**

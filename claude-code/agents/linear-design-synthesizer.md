@@ -18,7 +18,7 @@ description: >
     user: "Plan the technical approach for adding social login to our existing auth system"
     assistant: "I'll use the linear-design-synthesizer agent to create architectural decisions that align with existing patterns"
     Commentary: Critical for ensuring new work integrates properly with existing architecture
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role
@@ -78,3 +78,12 @@ This error maps to exit code 2 (readiness failure) in the command.
 
 - No speculative new technology beyond research blueprint.
 - No verbose prose; concise rationale phrases only.
+- Use `Write` and `List` appropriately; never call Bash or attempt to read directories as files.
+
+## Workspace IO Contract
+
+For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+
+- `linear-design-synthesizer-input.md`
+- `linear-design-synthesizer-summary.md` — headline decisions + count of foundation tasks
+- `linear-design-synthesizer-output.json` — full structured output

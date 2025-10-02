@@ -18,7 +18,7 @@ description: >
     user: "Estimate the effort required for this set of issues"
     assistant: "I'll use the linear-estimation-engine agent to provide consistent sizing across all issues"
     Commentary: Enables realistic planning and capacity management based on standardized sizing
-tools: Read
+tools: Read, Write, List
 ---
 
 # Role
@@ -102,3 +102,12 @@ This error maps to exit code 2 (readiness failure) in the command.
 
 - No rewriting issue text.
 - No adding new issues.
+- Use `Write` and `List` appropriately; never attempt to read directories as files.
+
+## Workspace IO Contract
+
+For traceability, ensure you create the following artifacts as part of your output to `PROJECT_DIR`:
+
+- `linear-estimation-engine-input.md`
+- `linear-estimation-engine-summary.md` — size distribution, min/max RCS, oversize ids
+- `linear-estimation-engine-output.json` — full per-issue results

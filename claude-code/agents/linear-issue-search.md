@@ -18,7 +18,7 @@ description: >
     user: "Search for issues that might be technically equivalent to SQL injection prevention"
     assistant: "I'll search for exact and semantic matches to identify potential duplicates"
     Commentary: Handles both exact symbol matching and semantic equivalence detection
-tools: mcp__linear_issue_list, mcp__linear_issue_get
+tools: mcp__Linear_list_issues, mcp__Linear_get_issue
 ---
 
 # Role
@@ -93,7 +93,7 @@ Analyze:
 ## Search Execution Flow
 
 1. **Validate Inputs**: Ensure project_id provided, query not empty
-2. **Fetch Project Issues**: Get all issues in project via `mcp__linear_issue_list`
+2. **Fetch Project Issues**: Get all issues in project via `mcp__Linear_list_issues`
 3. **Exact Matching**:
    - Compare titles (case-insensitive, normalized)
    - Match technical terms and keywords
