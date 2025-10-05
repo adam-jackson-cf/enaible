@@ -816,7 +816,7 @@ function Copy-SharedScripts {
         Write-Log "Copying scripts from shared/ subdirectories to $targetScriptsDir"
 
         $copiedCount = 0
-        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "ci", "core", "config", "context", "test-paths")) {
+        foreach ($subdir in @("analyzers", "generators", "setup", "utils", "core", "config", "context", "web_scraper")) {
             $sourcePath = Join-Path $sharedDir $subdir
             if (Test-Path $sourcePath) {
                 $targetPath = Join-Path $targetScriptsDir $subdir

@@ -273,13 +273,21 @@ check_node() {
 check_eslint() {
     log "Checking ESLint installation (required for frontend analysis)..."
 
-    # Check if ESLint is available via npx
-    if ! npx eslint --version &> /dev/null; then
+    local eslint_dir="$INSTALL_DIR/eslint"
+
+    # Check if ESLint is available globally via npx
+    if npx eslint --version &> /dev/null; then
+        log_verbose "ESLint found globally, skipping local installation"
+        return 0
+    fi
+
+    # Check if ESLint is available in the local installation
+    if [[ -f "$eslint_dir/node_modules/.bin/eslint" ]]; then
+        log_verbose "ESLint found locally, verifying required plugins..."
+        verify_eslint_plugins
+    else
         log "ESLint not found, installing required packages..."
         install_eslint_packages
-    else
-        log_verbose "ESLint found, verifying required plugins..."
-        verify_eslint_plugins
     fi
 }
 
@@ -325,33 +333,36 @@ install_eslint_packages() {
         return 0
     fi
 
-    cd "$INSTALL_DIR"
+    local eslint_dir="$INSTALL_DIR/eslint"
+
+    # Create eslint directory if it doesn't exist
+    mkdir -p "$eslint_dir"
+    cd "$eslint_dir"
 
     # Create package.json if it doesn't exist
     if [[ ! -f "package.json" ]]; then
         log_verbose "Creating package.json..."
         cat > package.json << EOF
 {
-  "name": "claude-code-workflows",
+  "name": "claude-eslint-workspace",
   "version": "1.0.0",
-  "description": "Frontend analysis dependencies for AI-Assisted Workflows",
+  "description": "ESLint workspace for Claude Code",
   "private": true,
-  "devDependencies": {}
+  "dependencies": {
+    "eslint": "^8.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "eslint-plugin-react": "^7.32.0",
+    "eslint-plugin-import": "^2.27.0",
+    "eslint-plugin-vue": "^9.0.0"
+  }
 }
 EOF
     fi
 
     # Install ESLint and required plugins
     log_verbose "Installing ESLint packages..."
-    ( npm install --save-dev --no-audit --no-fund \
-        eslint@latest \
-        @typescript-eslint/parser@latest \
-        @typescript-eslint/eslint-plugin@latest \
-        eslint-plugin-react@latest \
-        eslint-plugin-react-hooks@latest \
-        eslint-plugin-import@latest \
-        eslint-plugin-vue@latest \
-        eslint-plugin-svelte@latest > /tmp/npm_install.log 2>&1 ) &
+    ( npm install --no-fund --no-audit --silent > /tmp/npm_install.log 2>&1 ) &
     if spinner $! "Installing ESLint packages" 120; then  # 2 minute timeout
         log "ESLint packages installed successfully"
         # Clean up successful install log
@@ -380,16 +391,18 @@ verify_eslint_plugins() {
         "eslint-plugin-vue"
     )
 
-    # Only verify if we have a package.json in current directory
-    if [[ ! -f "package.json" ]]; then
-        log_verbose "No package.json found, skipping plugin verification"
+    local eslint_dir="$INSTALL_DIR/eslint"
+
+    # Only verify if we have a package.json in the eslint directory
+    if [[ ! -f "$eslint_dir/package.json" ]]; then
+        log_verbose "No package.json found in eslint directory, skipping plugin verification"
         return 0
     fi
 
     for plugin in "${required_plugins[@]}"; do
-        # Try to check if plugin is available (this is a best-effort check)
+        # Try to check if plugin is available in the eslint directory (this is a best-effort check)
         # Use --depth=0 to prevent npm from traversing to parent directories
-        if ! npm list --depth=0 "$plugin" &> /dev/null && ! npm list -g "$plugin" &> /dev/null; then
+        if ! (cd "$eslint_dir" && npm list --depth=0 "$plugin" &> /dev/null) && ! npm list -g "$plugin" &> /dev/null; then
             log_verbose "Plugin $plugin may not be available, but continuing..."
         fi
     done
@@ -750,7 +763,7 @@ copy_files() {
         # Copy scripts from shared/ subdirectories
         local shared_dir="$(dirname "$source_dir")/shared"
         mkdir -p "$INSTALL_DIR/scripts"
-        for subdir in analyzers generators setup utils ci core config context test-paths; do
+        for subdir in analyzers generators setup utils core config context web_scraper; do
             if [[ -d "$shared_dir/$subdir" ]]; then
                 ( cp -r "$shared_dir/$subdir" "$INSTALL_DIR/scripts/$subdir" ) &
                 spinner $! "Copying $subdir scripts"

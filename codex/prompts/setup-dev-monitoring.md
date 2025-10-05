@@ -1,8 +1,4 @@
----
-description: Propose developer‑friendly monitoring (logs, health checks, basic metrics)
----
-
-# setup-dev-monitoring
+# setup-dev-monitoring v0.91
 
 **Purpose**: Establish comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
 
@@ -55,20 +51,20 @@ description: Propose developer‑friendly monitoring (logs, health checks, basic
 
 **FIRST - Resolve SCRIPT_PATH:**
 
-1. **Try project-level .opencode folder**:
+1. **Try project-level .codex folder**:
 
    ```bash
-   Glob: ".opencode/scripts/setup/monitoring/*.py"
+   Glob: ".codex/scripts/setup/monitoring/*.py"
    ```
 
-2. **Try user-level opencode folder**:
+2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/setup/monitoring/install_monitoring_dependencies.py"
+   Bash: ls "$HOME/.codex/scripts/setup/monitoring/install_monitoring_dependencies.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/setup/context/` and `$HOME/.config/opencode/scripts/setup/context/`
+   - List searched locations: `.codex/scripts/setup/context/` and `$HOME/.codex/scripts/setup/context/`
    - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
    - Set SCRIPT_PATH to user-provided location
@@ -220,5 +216,5 @@ python [[SCRIPT_PATH]/setup/monitoring/update_agents_md.py \
 2. Validate other files:
    - Makefile syntax check
    - Log aggregation setup works
-   - AGENTS.md exists and contains make commands
+   - CLAUDE.md exists and contains make commands
 3. "Monitoring setup complete and validated. please test the commands with make dev / status / logs"

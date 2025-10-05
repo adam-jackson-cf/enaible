@@ -1,8 +1,8 @@
 ---
-description: Enable package/dependency monitoring and vulnerability scanning
+argument-hint: [--audit-level=critical] [--package-file=<path>] [--exclude=<path>] [--branch-protection=true]
 ---
 
-# setup-package-monitoring
+# setup-package-monitoring v3.0
 
 **Mindset**: "Smart dependency monitoring with Dependabot + minimal CI auditing"
 
@@ -38,20 +38,20 @@ Multiple `--exclude` arguments can be provided to exclude multiple paths.
 
 **FIRST - Resolve SCRIPT_PATH:**
 
-1. **Try project-level .opencode folder**:
+1. **Try project-level .codex folder**:
 
    ```bash
-   Glob: ".opencode/scripts/setup/security/*.py"
+   Glob: ".codex/scripts/setup/security/*.py"
    ```
 
-2. **Try user-level opencode folder**:
+2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/setup/security/"
+   Bash: ls "$HOME/.codex/scripts/setup/security/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/setup/security/` and `$HOME/.config/opencode/scripts/setup/security/`
+   - List searched locations: `.codex/scripts/setup/security/` and `$HOME/.codex/scripts/setup/security/`
    - Ask user: "Could not locate package monitoring setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (setup_package_monitoring.py)
    - Set SCRIPT_PATH to user-provided location
