@@ -1,9 +1,3 @@
----
-description: Workflow for generating a Linear project plan based on a task outline or planning artifact
-argument-hint: --task <string-or-file-path> [--linear-project-id <identifier>] [--config <path>] [--estimate-style {tshirt|none}] [--max-size <XS|S|M|L>]
-version: 3
----
-
 # plan-linear
 
 ## Role

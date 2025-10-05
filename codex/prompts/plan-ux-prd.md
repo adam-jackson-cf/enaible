@@ -1,7 +1,3 @@
----
-argument-hint: <feature-or-product-description>
----
-
 # plan-ux-prd v0.3
 
 ## Role and Purpose

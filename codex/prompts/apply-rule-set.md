@@ -1,7 +1,3 @@
----
-argument-hint: <ruleset:minimal.intrusion|rapid.prototype|tdd>
----
-
 # apply-rule-set
 
 **Purpose**: Load and apply specific rule sets from organized rule files to guide Claude's behavior for specialized tasks.

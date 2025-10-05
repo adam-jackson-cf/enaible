@@ -1,7 +1,3 @@
----
-argument-hint: [--audit-level=critical] [--package-file=<path>] [--exclude=<path>] [--branch-protection=true]
----
-
 # setup-package-monitoring v3.0
 
 **Mindset**: "Smart dependency monitoring with Dependabot + minimal CI auditing"

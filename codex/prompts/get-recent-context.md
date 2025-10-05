@@ -1,9 +1,3 @@
----
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(ls:*), Read, Glob
-argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
-description: Summarize recent context from git history and edited files
----
-
 # Recent Context Review
 
 Analyze recent activity from context bundles and git history to understand current work and provide quick orientation for continuing development.

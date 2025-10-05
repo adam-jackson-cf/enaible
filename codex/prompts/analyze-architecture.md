@@ -1,7 +1,3 @@
----
-argument-hint: [target-path]
----
-
 # analyze-architecture v0.2
 
 **Mindset**: "Design for scale and maintainability" - Evaluate system architecture for scalability, maintainability, and best practices.

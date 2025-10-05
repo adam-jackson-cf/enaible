@@ -1,9 +1,3 @@
----
-description: Fires off a full Codex Code instance in the background
-argument-hint: [prompt] [model:claude:sonnet|codex:gpt-5|gpt-5-codex|qwen|gemini] [report-file]
-allowed-tools: Bash, BashOutput, Read, Edit, MultiEdit, Write, Grep, Glob, WebFetch, WebSearch, TodoWrite, Task
----
-
 # Background Codex Code
 
 Run a Codex Code instance in the background to perform tasks autonomously while you continue working.

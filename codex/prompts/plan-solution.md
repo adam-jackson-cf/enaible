@@ -1,7 +1,3 @@
----
-argument-hint: <technical-challenge> [--critique]
----
-
 # plan-solution v0.2
 
 **Purpose**: Research-driven technical challenge solving with systematic analysis and implementation planning.
