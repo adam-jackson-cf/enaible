@@ -50,7 +50,13 @@ If `serena` still isn’t active, restart Codex and repeat step 3.
 
 ## Optional
 
-- Open Serena dashboard for visibility: http://localhost:24282/dashboard/index.html
+- Disable Serena web dashboard auto-open (recommended):
+  - Edit `~/.serena/serena_config.yml` and set:
+    ```yaml
+    web_dashboard: false
+    web_dashboard_open_on_launch: false
+    ```
+  - You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
 - For troubleshooting, review `~/.codex/log/codex-tui.log`.
 
 ## Troubleshooting
