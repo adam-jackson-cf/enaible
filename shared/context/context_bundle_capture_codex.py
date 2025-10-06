@@ -1,39 +1,37 @@
 #!/usr/bin/env python3
-"""Context bundle capture for OpenCode session tracking."""
+"""Context bundle capture for Codex sessions.
+
+Parses Codex JSONL session logs under ~/.codex/sessions/YYYY/MM/DD/*.jsonl
+to extract a concise list of operations (shell commands, file changes, etc.)
+from the last N days. Supports filtering by session UUID and semantic search.
+"""
+
 import argparse
 import json
 import sys
-import time
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import Any
 
-# Try to import redaction module (graceful fallback if not available)
+# Optional redaction
 try:
     from sensitive_data_redactor import redact_sensitive_data
 
     REDACTION_AVAILABLE = True
-except ImportError:
+except Exception:
     REDACTION_AVAILABLE = False
 
-# Global set to track seen operations (operation_type, file_path)
-seen_operations = set()
 
-
-def load_config():
-    """Load configuration file with exclusions and settings."""
+def load_config() -> dict[str, Any]:
     try:
-        # Look for config in same directory as this script
-        config_path = Path(__file__).parent / "context_capture_config.json"
-
-        if config_path.exists():
-            with open(config_path) as f:
-                return json.load(f)
+        cfg_path = Path(__file__).parent / "context_capture_config.json"
+        if cfg_path.exists():
+            return json.loads(cfg_path.read_text())
     except Exception:
         pass
-
-    # Default configuration
     return {
-        "excluded_operations": ["session_start", "task", "glob"],
+        "excluded_operations": ["session_meta", "turn_context", "token_count"],
         "excluded_bash_commands": [
             "ls",
             "pwd",
@@ -53,426 +51,298 @@ def load_config():
             "/tmp/",
             ".cache/",
         ],
-        "redaction": {
-            "enabled": True,
-            "patterns": {
-                "env_vars": True,
-                "api_keys": True,
-                "passwords": True,
-                "urls_with_auth": True,
-                "json_secrets": True,
-            },
-            "preserve_structure": True,
-            "custom_patterns": [],
-        },
+        "redaction": {"enabled": True, "custom_patterns": []},
         "truncation_limits": {
-            "prompt_max_length": 100,
-            "edit_string_max_length": 1000,
-            "bundle_size_threshold": 10240,
-        },
-        "retention": {
-            "days_to_retain": 7,
-            "auto_cleanup": True,
+            "prompt_max_length": 200,
+            "edit_string_max_length": 2000,
         },
     }
 
 
-def should_exclude_operation(operation, config):
-    """Check if operation should be excluded based on config."""
-    return operation in config.get("excluded_operations", [])
+def should_exclude_operation(op: str | None, config: dict[str, Any]) -> bool:
+    return op in config.get("excluded_operations", [])
 
 
-def should_exclude_bash_command(command, config):
-    """Check if bash command should be excluded based on config."""
-    if not command:
+def should_exclude_bash_command(cmd: str | None, config: dict[str, Any]) -> bool:
+    if not cmd:
         return False
-
-    excluded_commands = config.get("excluded_bash_commands", [])
-    command_lower = command.lower().strip()
-
-    for excluded in excluded_commands:
-        if command_lower.startswith(excluded.lower()):
-            return True
-    return False
+    excluded = config.get("excluded_bash_commands", [])
+    low = cmd.lower().strip()
+    return any(low.startswith(e.lower()) for e in excluded)
 
 
-def should_exclude_prompt(prompt, config):
-    """Check if prompt should be excluded based on pattern matching."""
-    if not prompt:
+def should_exclude_prompt(text: str | None, config: dict[str, Any]) -> bool:
+    if not text:
         return False
-
-    excluded_patterns = config.get("excluded_prompt_patterns", [])
-    prompt_text = prompt.strip()
-
-    return any(pattern.lower() in prompt_text.lower() for pattern in excluded_patterns)
+    pats = config.get("excluded_prompt_patterns", [])
+    t = text.strip().lower()
+    return any(p.lower() in t for p in pats)
 
 
-def should_exclude_by_string_pattern(value, config):
-    """Check if value should be excluded based on string patterns."""
-    if not value or not isinstance(value, str):
-        return False
-
-    excluded_patterns = config.get("excluded_string_patterns", [])
-    value_lower = value.lower()
-
-    return any(pattern.lower() in value_lower for pattern in excluded_patterns)
-
-
-def redact_if_available(text, config):
-    """Apply redaction if module is available and enabled."""
-    if not text or not isinstance(text, str):
-        return text
-
-    redaction_config = config.get("redaction", {})
-    if not redaction_config.get("enabled", True):
-        return text
-
+def redact_if_available(val: Any, config: dict[str, Any]) -> Any:
+    if not isinstance(val, str):
+        return val
+    if not config.get("redaction", {}).get("enabled", True):
+        return val
     if REDACTION_AVAILABLE:
-        return redact_sensitive_data(text, redaction_config)
-
-    return text
-
-
-def is_operation_seen(operation, file_path):
-    """Check if operation on file has already been captured."""
-    global seen_operations
-    operation_key = (operation, file_path)
-    if operation_key in seen_operations:
-        return True
-    seen_operations.add(operation_key)
-    return False
-
-
-def parse_bundle_date(filename):
-    """Extract date from bundle filename format (DAY_DD_HHMMSS_SESSIONID.json)."""
-    try:
-        parts = filename.split("_")
-        if len(parts) >= 2:
-            day_num = int(parts[1])
-            return day_num
-    except (ValueError, IndexError):
-        pass
-    return None
-
-
-def find_existing_session_file(bundle_dir, session_id):
-    """Find existing bundle file for a given session ID."""
-    try:
-        for bundle_file in bundle_dir.glob("*.json"):
-            # Check if the filename ends with the session ID
-            if bundle_file.name.endswith(f"_{session_id}.json"):
-                return bundle_file
-    except Exception:
-        pass
-    return None
-
-
-def generate_bundle_filename(session_id):
-    """Generate bundle filename with current timestamp."""
-    now = datetime.now()
-    day_name = now.strftime("%a").upper()[:3]  # MON, TUE, etc.
-    day_num = now.strftime("%d")
-    timestamp = now.strftime("%H%M%S")
-    return f"{day_name}_{day_num}_{timestamp}_{session_id}.json"
-
-
-def cleanup_expired_bundles(bundle_dir, config):
-    """Remove context bundles older than configured retention period."""
-    try:
-        retention_config = config.get("retention", {})
-        if not retention_config.get("auto_cleanup", True):
-            return
-
-        days_to_retain = retention_config.get("days_to_retain", 7)
-        if days_to_retain <= 0:
-            return
-
-        now = datetime.now()
-        current_day = now.day
-        cutoff_date = now - timedelta(days=days_to_retain)
-
-        if not bundle_dir.exists():
-            return
-
-        for bundle_file in bundle_dir.glob("*.json"):
-            try:
-                # Parse day number from filename
-                day_num = parse_bundle_date(bundle_file.name)
-                if day_num is None:
-                    continue
-
-                # Get file modification time as fallback for age calculation
-                file_mtime = datetime.fromtimestamp(bundle_file.stat().st_mtime)
-
-                # Check if file is older than retention period
-                if file_mtime < cutoff_date:
-                    bundle_file.unlink()
-                    continue
-
-                # Additional check for month boundary cases
-                # If day_num > current_day, it's likely from previous month
-                if day_num > current_day and file_mtime < cutoff_date:
-                    bundle_file.unlink()
-
-            except Exception:
-                # Skip individual file errors
-                continue
-
-    except Exception:
-        # Silent fail - don't interrupt flow
-        pass
-
-
-def get_opencode_storage_path():
-    """Get the OpenCode storage path."""
-    return Path.home() / ".local" / "share" / "opencode" / "storage"
-
-
-def find_recent_sessions(storage_path, days=2):
-    """Find recent OpenCode sessions."""
-    sessions = []
-    message_dir = storage_path / "message"
-
-    if not message_dir.exists():
-        return sessions
-
-    cutoff_time = datetime.now().timestamp() - (days * 24 * 3600)
-
-    for session_dir in message_dir.glob("ses_*"):
-        if session_dir.is_dir():
-            # Check if any files in session are recent
-            recent_files = [
-                f
-                for f in session_dir.glob("*.json")
-                if f.stat().st_mtime >= cutoff_time
-            ]
-            if recent_files:
-                sessions.append(
-                    {"id": session_dir.name, "path": session_dir, "files": recent_files}
-                )
-
-    return sessions
-
-
-def semantic_match(text, search_term, semantic_variations=None):
-    """Check if text semantically matches search term."""
-    if not search_term or not text:
-        return False
-
-    # Convert to lowercase for case-insensitive matching
-    text_lower = text.lower()
-    search_lower = search_term.lower()
-
-    # Exact word match
-    if search_lower in text_lower:
-        return True
-
-    # Word boundary matching
-    words = search_lower.split()
-    if all(word in text_lower for word in words):
-        return True
-
-    # Check for semantic variations if provided
-    if semantic_variations:
-        for word in words:
-            if word in semantic_variations and any(
-                variant in text_lower for variant in semantic_variations[word]
-            ):
-                return True
-
-    return False
-
-
-def extract_session_operations(
-    session, config, search_term=None, semantic_variations=None
-):
-    """Extract operations from OpenCode session."""
-    operations = []
-
-    # Process message files
-    for msg_file in session["files"]:
         try:
-            with open(msg_file) as f:
-                msg_data = json.load(f)
+            return redact_sensitive_data(val, config.get("redaction", {}))
+        except Exception:
+            return val
+    return val
 
-            # Extract user prompts from text parts
-            if msg_data.get("role") == "user":
-                # Look for corresponding text parts
-                part_path = get_opencode_storage_path() / "part" / msg_data["id"]
-                if part_path.exists():
-                    for part_file in part_path.glob("prt_*.json"):
-                        try:
-                            with open(part_file) as pf:
-                                part_data = json.load(pf)
 
-                            if part_data.get("type") == "text":
-                                text = part_data.get("text", "")
+def semantic_match(
+    text: str | None, term: str | None, variations: dict[str, list[str]] | None = None
+) -> bool:
+    if not term or not text:
+        return False
+    text_lower = text.lower()
+    term_lower = term.lower()
+    if term_lower in text_lower:
+        return True
+    words = term_lower.split()
+    if all(w in text_lower for w in words):
+        return True
+    if variations:
+        for w in words:
+            for v in variations.get(w, []):
+                if v in text_lower:
+                    return True
+    return False
 
-                                # Skip empty or system-generated text
-                                text = text.strip()
-                                if not text or text.lower() in [
-                                    "perfect!",
-                                    "thanks!",
-                                    "ok",
-                                    "done",
-                                    "yes",
-                                    "no",
-                                ]:
-                                    continue
 
-                                # Check if prompt should be excluded
-                                if should_exclude_prompt(text, config):
-                                    continue
+def get_codex_sessions_root() -> Path:
+    return Path.home() / ".codex" / "sessions"
 
-                                # Apply semantic search if provided
-                                if search_term and not semantic_match(
-                                    text, search_term, semantic_variations
-                                ):
-                                    continue
 
-                                # Apply truncation and redaction
-                                prompt_limit = config.get("truncation_limits", {}).get(
-                                    "prompt_max_length", 100
-                                )
-                                redacted_text = redact_if_available(text, config)
+def parse_date_from_path(p: Path) -> datetime:
+    return datetime.fromtimestamp(p.stat().st_mtime)
 
-                                if len(redacted_text) > prompt_limit:
-                                    display_text = redacted_text[:prompt_limit] + "..."
-                                else:
-                                    display_text = redacted_text
 
-                                operations.append(
-                                    {
-                                        "timestamp": datetime.fromtimestamp(
-                                            part_data.get("time", {}).get(
-                                                "start", time.time()
-                                            )
-                                        ).isoformat()
-                                        + "Z",
-                                        "operation": "prompt",
-                                        "prompt": display_text,
-                                        "session_id": session["id"],
-                                        "search_match": bool(search_term),
-                                    }
-                                )
-                        except Exception:
-                            continue
-
-            # Extract file operations from assistant messages
-            elif msg_data.get("role") == "assistant":
-                # Look for tool calls in the message
-                content = json.dumps(msg_data).lower()
-
-                # Skip system messages and large content (mostly system prompts)
-                if len(content) > 10000 and "system" in content:
-                    continue
-
-                # Look for file operation patterns in the JSON content
-                import re
-
-                # Check for semantic match in assistant messages if search term provided
-                if search_term and not semantic_match(
-                    content, search_term, semantic_variations
-                ):
-                    continue
-
-                # Read operations
-                if '"read"' in content and '"file_path"' in content:
-                    # Extract file paths using regex
-                    file_path_matches = re.findall(
-                        r'"file_path"\s*:\s*"([^"]+)"', msg_data.get("content", "")
-                    )
-                    for file_path in file_path_matches:
-                        if should_exclude_by_string_pattern(file_path, config):
-                            continue
-
-                        # Apply semantic search to file paths
-                        if search_term and not semantic_match(
-                            file_path, search_term, semantic_variations
-                        ):
-                            continue
-
-                        if not is_operation_seen("read", file_path):
-                            operations.append(
-                                {
-                                    "timestamp": datetime.fromtimestamp(
-                                        msg_data.get("time", {}).get("created", 0)
-                                    ).isoformat()
-                                    + "Z",
-                                    "operation": "read",
-                                    "file_path": redact_if_available(file_path, config),
-                                    "session_id": session["id"],
-                                    "search_match": bool(search_term),
-                                }
-                            )
-
-                # Write operations
-                if '"write"' in content or '"edit"' in content:
-                    file_path_matches = re.findall(
-                        r'"file_path"\s*:\s*"([^"]+)"', msg_data.get("content", "")
-                    )
-                    for file_path in file_path_matches:
-                        if should_exclude_by_string_pattern(file_path, config):
-                            continue
-
-                        # Apply semantic search to file paths
-                        if search_term and not semantic_match(
-                            file_path, search_term, semantic_variations
-                        ):
-                            continue
-
-                        if not is_operation_seen("write", file_path):
-                            operations.append(
-                                {
-                                    "timestamp": datetime.fromtimestamp(
-                                        msg_data.get("time", {}).get("created", 0)
-                                    ).isoformat()
-                                    + "Z",
-                                    "operation": "write",
-                                    "file_path": redact_if_available(file_path, config),
-                                    "session_id": session["id"],
-                                    "search_match": bool(search_term),
-                                }
-                            )
-
-                # Bash operations
-                if '"bash"' in content and '"command"' in content:
-                    command_matches = re.findall(
-                        r'"command"\s*:\s*"([^"]+)"', msg_data.get("content", "")
-                    )
-                    for command in command_matches:
-                        if should_exclude_bash_command(command, config):
-                            continue
-
-                        # Apply semantic search to commands
-                        if search_term and not semantic_match(
-                            command, search_term, semantic_variations
-                        ):
-                            continue
-
-                        operations.append(
-                            {
-                                "timestamp": datetime.fromtimestamp(
-                                    msg_data.get("time", {}).get("created", 0)
-                                ).isoformat()
-                                + "Z",
-                                "operation": "bash",
-                                "command": redact_if_available(command, config),
-                                "session_id": session["id"],
-                                "search_match": bool(search_term),
-                            }
-                        )
-
+def iter_recent_jsonl_files(root: Path, days: int) -> Iterable[Path]:
+    if not root.exists():
+        return []
+    cutoff = datetime.now() - timedelta(days=days)
+    for p in root.rglob("*.jsonl"):
+        try:
+            if parse_date_from_path(p) >= cutoff:
+                yield p
         except Exception:
             continue
 
-    return operations
+
+def build_operation(
+    *,
+    timestamp: str,
+    operation: str,
+    session_id: str | None,
+    data: dict[str, Any],
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> dict[str, Any] | None:
+    if should_exclude_operation(operation, config):
+        return None
+    # Redact common string fields
+    redact_fields = {"command", "file_path", "prompt", "output", "arguments", "text"}
+    safe = {}
+    for k, v in data.items():
+        safe[k] = redact_if_available(v, config) if k in redact_fields else v
+    if search_term and not semantic_match(
+        json.dumps(safe, ensure_ascii=False), search_term, semantic_variations
+    ):
+        return None
+    return {
+        "timestamp": timestamp,
+        "operation": operation,
+        "session_id": session_id,
+        **safe,
+        "search_match": bool(search_term),
+    }
 
 
-def capture_opencode_context():
-    """Capture context from OpenCode sessions."""
+def extract_jsonl_operations(
+    jsonl_path: Path,
+    *,
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> tuple[str, list[dict[str, Any]]]:
+    session_id: str | None = None
+    ops: list[dict[str, Any]] = []
+    try:
+        with open(jsonl_path, encoding="utf-8") as f:
+            for raw in f:
+                raw = raw.strip()
+                if not raw:
+                    continue
+                try:
+                    evt = json.loads(raw)
+                except Exception:
+                    continue
+                ts = (
+                    evt.get("timestamp")
+                    or datetime.utcfromtimestamp(
+                        parse_date_from_path(jsonl_path).timestamp()
+                    ).isoformat()
+                    + "Z"
+                )
+                etype = evt.get("type")
+                payload = (
+                    evt.get("payload") if isinstance(evt.get("payload"), dict) else {}
+                )
+
+                if etype == "session_meta":
+                    session_id = (
+                        payload.get("id") or payload.get("thread_id") or session_id
+                    )
+                    op = build_operation(
+                        timestamp=ts,
+                        operation="session_meta",
+                        session_id=session_id,
+                        data={
+                            "cwd": payload.get("cwd"),
+                            "cli_version": payload.get("cli_version"),
+                            "originator": payload.get("originator"),
+                        },
+                        config=config,
+                        search_term=search_term,
+                        semantic_variations=semantic_variations,
+                    )
+                    if op:
+                        ops.append(op)
+                    continue
+
+                # item.* events per docs
+                if etype in {"item.started", "item.updated", "item.completed"}:
+                    item = evt.get("item") or payload.get("item") or {}
+                    itype = item.get("item_type") or item.get("type")
+                    if itype == "file_change":
+                        data = {
+                            k: item.get(k)
+                            for k in ("file_path", "diff", "change_type")
+                            if k in item
+                        }
+                        op = build_operation(
+                            timestamp=ts,
+                            operation="file_change",
+                            session_id=session_id,
+                            data=data,
+                            config=config,
+                            search_term=search_term,
+                            semantic_variations=semantic_variations,
+                        )
+                        if op:
+                            ops.append(op)
+                        continue
+                    if itype == "assistant_message":
+                        text = item.get("text") or item.get("content")
+                        if text and not should_exclude_prompt(text, config):
+                            short = text[:500] + ("..." if len(text) > 500 else "")
+                            op = build_operation(
+                                timestamp=ts,
+                                operation="assistant_message",
+                                session_id=session_id,
+                                data={"text": short},
+                                config=config,
+                                search_term=search_term,
+                                semantic_variations=semantic_variations,
+                            )
+                            if op:
+                                ops.append(op)
+                        continue
+
+                # response_item events observed in local logs
+                if etype == "response_item":
+                    ptype = payload.get("type")
+                    if ptype == "function_call":
+                        name = payload.get("name")
+                        args = payload.get("arguments")
+                        cmd_str: str | None = None
+                        try:
+                            if isinstance(args, str):
+                                args_json = json.loads(args)
+                                cmd = args_json.get("command")
+                                if isinstance(cmd, list):
+                                    cmd_str = " ".join(str(x) for x in cmd)
+                                elif isinstance(cmd, str):
+                                    cmd_str = cmd
+                        except Exception:
+                            cmd_str = None
+
+                        if (
+                            name == "shell"
+                            and cmd_str
+                            and not should_exclude_bash_command(cmd_str, config)
+                        ):
+                            op = build_operation(
+                                timestamp=ts,
+                                operation="bash",
+                                session_id=session_id,
+                                data={"command": cmd_str},
+                                config=config,
+                                search_term=search_term,
+                                semantic_variations=semantic_variations,
+                            )
+                            if op:
+                                ops.append(op)
+                        else:
+                            op = build_operation(
+                                timestamp=ts,
+                                operation="tool_call",
+                                session_id=session_id,
+                                data={"tool": name, "arguments": args},
+                                config=config,
+                                search_term=search_term,
+                                semantic_variations=semantic_variations,
+                            )
+                            if op:
+                                ops.append(op)
+                        continue
+                    if ptype == "function_call_output":
+                        out = payload.get("output")
+                        if isinstance(out, str):
+                            short = out[:2000] + ("..." if len(out) > 2000 else "")
+                        else:
+                            short = out
+                        op = build_operation(
+                            timestamp=ts,
+                            operation="tool_output",
+                            session_id=session_id,
+                            data={"output": short},
+                            config=config,
+                            search_term=search_term,
+                            semantic_variations=semantic_variations,
+                        )
+                        if op:
+                            ops.append(op)
+                        continue
+
+                if etype in {"turn.started", "turn.completed", "turn.failed"}:
+                    op = build_operation(
+                        timestamp=ts,
+                        operation=etype,
+                        session_id=session_id,
+                        data={},
+                        config=config,
+                        search_term=search_term,
+                        semantic_variations=semantic_variations,
+                    )
+                    if op:
+                        ops.append(op)
+                    continue
+
+    except Exception:
+        # Skip unreadable files
+        pass
+
+    return (session_id or jsonl_path.stem, ops)
+
+
+def capture_codex_context() -> None:
     parser = argparse.ArgumentParser(
-        description="Extract context from OpenCode sessions"
+        description="Extract context from Codex sessions (JSONL events)"
     )
     parser.add_argument(
         "--days", type=int, default=2, help="Number of days to search back"
@@ -495,7 +365,7 @@ def capture_opencode_context():
     args = parser.parse_args()
 
     # Parse semantic variations if provided
-    semantic_variations = None
+    semantic_variations: dict[str, list[str]] | None = None
     if args.semantic_variations:
         try:
             semantic_variations = json.loads(args.semantic_variations)
@@ -504,57 +374,41 @@ def capture_opencode_context():
             sys.exit(1)
 
     try:
-        # Load configuration
         config = load_config()
+        root = get_codex_sessions_root()
+        files = list(iter_recent_jsonl_files(root, args.days))
 
-        # Get OpenCode storage path
-        storage_path = get_opencode_storage_path()
-
-        # Find recent sessions
-        sessions = find_recent_sessions(storage_path, args.days)
-
-        # Filter by UUID if provided
         if args.uuid:
-            sessions = [s for s in sessions if args.uuid in s["id"]]
+            files = [p for p in files if args.uuid in p.name]
 
-        if not sessions:
-            result = {
-                "sessions_found": 0,
-                "date_range": None,
-                "filter": f"UUID: {args.uuid}" if args.uuid else "None",
-                "search_term": args.search_term,
-                "operations": [],
-            }
-            print(json.dumps(result, indent=2))
-            return
-
-        # Extract operations from all sessions
-        all_operations = []
-        for session in sessions:
-            session_ops = extract_session_operations(
-                session, config, args.search_term, semantic_variations
+        all_ops: list[dict[str, Any]] = []
+        session_ids: list[str] = []
+        for fpath in sorted(files):
+            sid, ops = extract_jsonl_operations(
+                fpath,
+                config=config,
+                search_term=args.search_term,
+                semantic_variations=semantic_variations,
             )
-            all_operations.extend(session_ops)
+            if args.uuid and args.uuid not in (sid or ""):
+                continue
+            session_ids.append(sid)
+            all_ops.extend(ops)
 
-        # Calculate date range
-        timestamps = [
-            op.get("timestamp") for op in all_operations if op.get("timestamp")
-        ]
+        timestamps = [op.get("timestamp") for op in all_ops if op.get("timestamp")]
         date_range = {
             "earliest": min(timestamps) if timestamps else None,
             "latest": max(timestamps) if timestamps else None,
         }
 
-        # Prepare result
         result = {
-            "sessions_found": len(sessions),
+            "sessions_found": len(set(session_ids)),
             "date_range": date_range,
             "filter": f"UUID: {args.uuid}" if args.uuid else "All recent sessions",
             "search_term": args.search_term,
-            "operations": all_operations,
+            "operations": all_ops,
         }
 
-        # Output in requested format
         if args.output_format == "json":
             print(json.dumps(result, indent=2))
         else:
@@ -564,12 +418,12 @@ def capture_opencode_context():
             print(f"Filter: {result['filter']}")
             if args.search_term:
                 print(f"Search Term: {args.search_term}")
-            print(f"Operations: {len(all_operations)}")
+            print(f"Operations: {len(all_ops)}")
 
     except Exception as e:
-        print(f"Error extracting OpenCode context: {e}", file=sys.stderr)
+        print(f"Error extracting Codex context: {e}", file=sys.stderr)
         sys.exit(1)
 
 
 if __name__ == "__main__":
-    capture_opencode_context()
+    capture_codex_context()

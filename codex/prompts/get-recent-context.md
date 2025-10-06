@@ -1,6 +1,6 @@
 # Recent Context Review
 
-Analyze recent activity from context bundles and git history to understand current work and provide quick orientation for continuing development.
+Analyze recent Codex activity from session logs and git history to understand current work and provide quick orientation for continuing development.
 
 ## Arguments
 
@@ -39,14 +39,16 @@ SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"
 PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_codex; print('env OK')"
 ```
 
-1. **Context Bundle Analysis**
+1. **Session Log Analysis (Codex)**
 
-   - Extract context data using the resolved script path
-   - Filter to specific UUID if `--uuid` provided
-   - Search for semantic matches if `--search-term` provided
-   - Parse returned operations for file access patterns and user objectives
-   - In `--verbose` mode: expand truncated content
-   - Summarize session activity and identify workflow patterns
+   Codex persists session history under `~/.codex/sessions/YYYY/MM/DD/*.jsonl`.
+   The script reads JSON Lines events (e.g., `session_meta`, `turn.started`, `response_item` with `function_call`/`function_call_output`, and `item.*` events like `file_change`).
+
+   - Extract recent events for the last 2 days (configurable via `--days`)
+   - Filter to a specific session UUID via `--uuid`
+   - Optional semantic search via `--search-term` and `--semantic-variations`
+   - Parse tool calls; for `shell` calls, capture the command string; for `file_change`, capture `file_path`
+   - Summarize operations and identify workflow patterns
 
 2. **Git Status Review**
 
@@ -67,7 +69,7 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_code
 
 ## Process
 
-### 1. Context Bundle Discovery
+### 1. Session Discovery
 
 ```bash
 # Extract context data using the resolved script
@@ -177,7 +179,7 @@ The LLM should enhance this with context-aware variations based on the search do
 
 [Continue for remaining commits...]
 
-## Git Status (uncommited files)
+## Git Status (uncommitted files)
 
 ### Status Details
 
