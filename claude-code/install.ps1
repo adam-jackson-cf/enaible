@@ -314,6 +314,23 @@ function Install-PythonDependencies {
     Write-ColorOutput "Installing Python dependencies..." -Color $Colors.Yellow
     Write-Log "Starting Python dependencies installation"
 
+    # Resolve Python 3.11+ interpreter
+    function Get-PythonExe {
+        $candidates = @('python','python3')
+        foreach ($c in $candidates) {
+            try {
+                $v = & $c --version 2>&1
+                if ($LASTEXITCODE -eq 0 -and $v -match 'Python (\d+)\.(\d+)\.(\d+)') {
+                    $maj=[int]$matches[1]; $min=[int]$matches[2]
+                    if ($maj -gt 3 -or ($maj -eq 3 -and $min -ge 11)) { return $c }
+                }
+            } catch { }
+        }
+        throw "Python 3.11+ not found as 'python' or 'python3'"
+    }
+
+    $PythonExe = Get-PythonExe
+
     # Scripts are now in shared/ subdirectories
     $sharedDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared"
     $setupDir = Join-Path $sharedDir "setup"
@@ -331,8 +348,8 @@ function Install-PythonDependencies {
     }
 
     try {
-        Write-Output "Installing packages from requirements.txt..."
-        & pip install -r $requirementsPath --user
+        Write-Output "Installing packages from requirements.txt using $PythonExe ..."
+        & $PythonExe -m pip install -r $requirementsPath --user
 
         if ($LASTEXITCODE -eq 0) {
             Write-ColorOutput "[OK] Python dependencies installed successfully" -Color $Colors.Green
@@ -836,6 +853,36 @@ function Copy-SharedScripts {
     } else {
         Write-Log "Shared directory not found at: $sharedDir" -Level "ERROR"
         Write-ColorOutput "[WARNING] Shared scripts directory not found: $sharedDir" -Color $Colors.Yellow
+    }
+}
+
+function Ensure-StatuslineUserSupport {
+    param([string]$ScriptDir)
+
+    $userClaude = Join-Path $env:USERPROFILE ".claude"
+    $binSrc = Join-Path $ScriptDir "statusline-worktree"
+    $settingsSrc = Join-Path $ScriptDir "settings.json"
+    if (-not (Test-Path $binSrc)) { Write-Log "statusline-worktree not found; skipping"; return }
+
+    if (-not (Test-Path $userClaude)) { New-Item -ItemType Directory -Force -Path $userClaude | Out-Null }
+    Copy-Item -Force -Path $binSrc -Destination (Join-Path $userClaude "statusline-worktree")
+    Write-Log "Installed statusline-worktree to $userClaude"
+
+    $userSettings = Join-Path $userClaude "settings.json"
+    if (Test-Path $userSettings) {
+        try { $data = Get-Content -Raw -Path $userSettings | ConvertFrom-Json } catch { $data = [pscustomobject]@{} }
+        $data | Add-Member -Force -NotePropertyName statusLine -NotePropertyValue @{ type = 'command'; command = "~/.claude/statusline-worktree" }
+        ($data | ConvertTo-Json -Depth 10) | Set-Content -Path $userSettings -Encoding UTF8
+        Write-Log "Merged statusLine into $userSettings"
+    } else {
+        if (Test-Path $settingsSrc) {
+            Copy-Item -Force -Path $settingsSrc -Destination $userSettings
+            Write-Log "Installed $userSettings from template"
+        } else {
+            $obj = @{ statusLine = @{ type = 'command'; command = "~/.claude/statusline-worktree" } }
+            ($obj | ConvertTo-Json -Depth 5) | Set-Content -Path $userSettings -Encoding UTF8
+            Write-Log "Created minimal $userSettings"
+        }
     }
 }
 
@@ -1417,6 +1464,9 @@ try {
     # Phase 5: Installation Tracking
     Show-Phase -PhaseNumber 5 -TotalPhases 8 -Description "Creating installation tracking"
     # Installation log is created within Copy-WorkflowFiles
+
+    # Ensure user-level statusline support regardless of install scope
+    Ensure-StatuslineUserSupport -ScriptDir $SCRIPT_DIR
 
     # Phase 6: Dependencies
     Show-Phase -PhaseNumber 6 -TotalPhases 8 -Description "Installing dependencies"

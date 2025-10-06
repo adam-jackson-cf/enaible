@@ -217,34 +217,34 @@ detect_platform() {
 }
 
 # Environment validation
+PYTHON_BIN=""
 check_python() {
     log_verbose "Checking Python installation..."
 
-    if ! command -v python3 &> /dev/null; then
-        log_error "Python 3 is required but not installed"
-        echo "Please install Python 3.11+ and try again"
+    # Prefer `python` if it's 3.11+, else fall back to `python3` if it's 3.11+
+    local candidates=(python python3)
+    for cand in "${candidates[@]}"; do
+        if command -v "$cand" >/dev/null 2>&1; then
+            if "$cand" -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" 2>/dev/null; then
+                PYTHON_BIN="$cand"
+                break
+            fi
+        fi
+    done
+
+    if [[ -z "$PYTHON_BIN" ]]; then
+        log_error "Python 3.11+ is required but not found as 'python' or 'python3'"
+        echo "Please install/ensure a 3.11+ interpreter is available."
         exit 1
     fi
 
-    local python_version
-    python_version=$(python3 -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
-    log_verbose "Found Python $python_version"
-
-    if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"; then
-        log_error "Python 3.11+ is required, found Python $python_version"
-        echo "Please upgrade to Python 3.11 or later: https://www.python.org/downloads/"
-        exit 1
-    fi
-
-    if ! command -v pip3 &> /dev/null; then
-        log_error "pip3 is required but not found"
-        echo "Please install pip3 and try again"
-        exit 1
-    fi
+    local pyv
+    pyv=$($PYTHON_BIN -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
+    log_verbose "Selected interpreter: $PYTHON_BIN ($pyv)"
 
     # Cache pip list for faster package checks later
     log_verbose "Caching package list for performance..."
-    PIP_LIST_CACHE=$(pip3 list --format=freeze 2>/dev/null || echo "")
+    PIP_LIST_CACHE=$($PYTHON_BIN -m pip list --format=freeze 2>/dev/null || echo "")
 }
 
 check_node() {
@@ -787,6 +787,83 @@ copy_files() {
     log "Files copied successfully"
 }
 
+ensure_statusline_user_support() {
+    # Always ensure user-level ~/.claude has statusline-worktree and settings.json configured
+    local user_dir="$HOME/.claude"
+    local src_bin="$SCRIPT_DIR/statusline-worktree"
+    local src_settings="$SCRIPT_DIR/settings.json"
+
+    if [[ ! -f "$src_bin" ]]; then
+        vlog "statusline-worktree not found in source; skipping user statusline setup"
+        return
+    fi
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log "Would ensure $user_dir exists and copy statusline-worktree"
+    else
+        mkdir -p "$user_dir"
+        cp "$src_bin" "$user_dir/statusline-worktree"
+        chmod +x "$user_dir/statusline-worktree" || true
+        log "Installed statusline-worktree to $user_dir"
+    fi
+
+    # Merge or create settings.json with statusLine command reference
+    local user_settings="$user_dir/settings.json"
+    if [[ -f "$user_settings" ]]; then
+        if command -v jq >/dev/null 2>&1; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+                log "Would merge statusLine into $user_settings using jq"
+            else
+                tmpfile=$(mktemp)
+                jq '.statusLine = {"type":"command","command":"~/.claude/statusline-worktree"}' "$user_settings" > "$tmpfile" && mv "$tmpfile" "$user_settings"
+                log "Merged statusLine into $user_settings"
+            fi
+        else
+            # Fallback to Python
+            if [[ "$DRY_RUN" == "true" ]]; then
+                log "Would merge statusLine into $user_settings using python"
+            else
+                python - << 'PY'
+import json, os
+p = os.path.expanduser('~/.claude/settings.json')
+with open(p,'r',encoding='utf-8') as f:
+    try:
+        data = json.load(f)
+    except Exception:
+        data = {}
+data['statusLine'] = {"type":"command","command":"~/.claude/statusline-worktree"}
+with open(p,'w',encoding='utf-8') as f:
+    json.dump(data,f,indent=2,ensure_ascii=False)
+PY
+                log "Merged statusLine into $user_settings (python)"
+            fi
+        fi
+    else
+        # No user settings; copy our template if present, else write minimal
+        if [[ -f "$src_settings" ]]; then
+            if [[ "$DRY_RUN" == "true" ]]; then
+                log "Would copy $src_settings -> $user_settings"
+            else
+                cp "$src_settings" "$user_settings"
+                log "Installed $user_settings from template"
+            fi
+        else
+            if [[ "$DRY_RUN" == "true" ]]; then
+                log "Would create minimal $user_settings with statusLine"
+            else
+                cat > "$user_settings" << 'EOF'
+{
+  "statusLine": {
+    "type": "command",
+    "command": "~/.claude/statusline-worktree"
+  }
+}
+EOF
+                log "Created minimal $user_settings"
+            fi
+        fi
+    fi
+}
 
 # Create installation log for uninstall tracking
 create_installation_log() {
@@ -900,7 +977,7 @@ install_python_deps() {
     cd "$INSTALL_DIR"
 
     # Run Python dependency installation with automatic 'yes' response
-    ( echo "y" | PYTHONPATH="$INSTALL_DIR/scripts" python3 "$setup_script" > /tmp/pip_install.log 2>&1 ) &
+    ( echo "y" | PYTHONPATH="$INSTALL_DIR/scripts" "$PYTHON_BIN" "$setup_script" > /tmp/pip_install.log 2>&1 ) &
     if spinner $! "Installing Python packages" 300; then  # 5 minute timeout for Python packages
         log "Python dependencies installed successfully"
         # Clean up successful install log
@@ -908,7 +985,7 @@ install_python_deps() {
 
         # Check which packages are now installed and update log for newly installed ones
         for pkg in "${packages_to_check[@]}"; do
-            if python3 -m pip show "$pkg" &>/dev/null; then
+            if "$PYTHON_BIN" -m pip show "$pkg" &>/dev/null; then
                 # Check if this package was pre-existing by reading the installation log
                 local log_file="$INSTALL_DIR/installation-log.txt"
                 if [[ -f "$log_file" ]]; then
@@ -953,7 +1030,7 @@ verify_installation() {
         if [[ "$SKIP_PYTHON" != "true" ]] && [[ -f "$test_script" ]]; then
             log_verbose "Testing Python dependencies..."
             cd "$INSTALL_DIR"
-            if PYTHONPATH="$INSTALL_DIR/scripts" python3 "$test_script" >> "$LOG_FILE" 2>&1; then
+            if PYTHONPATH="$INSTALL_DIR/scripts" "$PYTHON_BIN" "$test_script" >> "$LOG_FILE" 2>&1; then
                 log_verbose "Python dependencies verification passed"
             else
                 log_error "Python dependencies verification failed"
@@ -1079,7 +1156,8 @@ main() {
     # Run installation steps with progress display
     show_phase 1 7 "Checking system requirements"
     detect_platform
-    check_python &
+    # Run Python check in foreground so PYTHON_BIN persists; Node can run in background if desired
+    check_python
     check_node &
     wait
 
@@ -1094,6 +1172,9 @@ main() {
 
     show_phase 5 7 "Creating installation tracking"
     create_installation_log
+
+    # Ensure user-level statusline support regardless of install scope
+    ensure_statusline_user_support
 
     show_phase 6 7 "Installing dependencies"
     install_python_deps

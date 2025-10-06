@@ -217,34 +217,26 @@ detect_platform() {
 }
 
 # Environment validation
+PYTHON_BIN=""
 check_python() {
     log_verbose "Checking Python installation..."
-
-    if ! command -v python3 &> /dev/null; then
-        log_error "Python 3 is required but not installed"
-        echo "Please install Python 3.11+ and try again"
+    local candidates=(python python3)
+    for cand in "${candidates[@]}"; do
+        if command -v "$cand" >/dev/null 2>&1; then
+            if "$cand" -c "import sys; raise SystemExit(0 if sys.version_info >= (3,11) else 1)" 2>/dev/null; then
+                PYTHON_BIN="$cand"
+                break
+            fi
+        fi
+    done
+    if [[ -z "$PYTHON_BIN" ]]; then
+        log_error "Python 3.11+ is required but not found as 'python' or 'python3'"
         exit 1
     fi
-
-    local python_version
-    python_version=$(python3 -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
-    log_verbose "Found Python $python_version"
-
-    if ! python3 -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)"; then
-        log_error "Python 3.11+ is required, found Python $python_version"
-        echo "Please upgrade to Python 3.11 or later: https://www.python.org/downloads/"
-        exit 1
-    fi
-
-    if ! command -v pip3 &> /dev/null; then
-        log_error "pip3 is required but not found"
-        echo "Please install pip3 and try again"
-        exit 1
-    fi
-
-    # Cache pip list for faster package checks later
-    log_verbose "Caching package list for performance..."
-    PIP_LIST_CACHE=$(pip3 list --format=freeze 2>/dev/null || echo "")
+    local pyv
+    pyv=$($PYTHON_BIN -c "import sys; print('.'.join(map(str, sys.version_info[:2])))")
+    log_verbose "Selected interpreter: $PYTHON_BIN ($pyv)"
+    PIP_LIST_CACHE=$($PYTHON_BIN -m pip list --format=freeze 2>/dev/null || echo "")
 }
 
 check_node() {
@@ -965,7 +957,7 @@ install_python_deps() {
     cd "$INSTALL_DIR"
 
     # Run Python dependency installation with automatic 'yes' response
-    ( echo "y" | PYTHONPATH="$INSTALL_DIR/scripts" python3 "$setup_script" > /tmp/pip_install.log 2>&1 ) &
+    ( echo "y" | PYTHONPATH="$INSTALL_DIR/scripts" "$PYTHON_BIN" "$setup_script" > /tmp/pip_install.log 2>&1 ) &
     if spinner $! "Installing Python packages" 300; then  # 5 minute timeout for Python packages
         log "Python dependencies installed successfully"
         # Clean up successful install log
@@ -973,7 +965,7 @@ install_python_deps() {
 
         # Check which packages are now installed and update log for newly installed ones
         for pkg in "${packages_to_check[@]}"; do
-            if python3 -m pip show "$pkg" &>/dev/null; then
+            if "$PYTHON_BIN" -m pip show "$pkg" &>/dev/null; then
                 # Check if this package was pre-existing by reading the installation log
                 local log_file="$INSTALL_DIR/installation-log.txt"
                 if [[ -f "$log_file" ]]; then
@@ -1018,7 +1010,7 @@ verify_installation() {
         if [[ "$SKIP_PYTHON" != "true" ]] && [[ -f "$test_script" ]]; then
             log_verbose "Testing Python dependencies..."
             cd "$INSTALL_DIR"
-            if PYTHONPATH="$INSTALL_DIR/scripts" python3 "$test_script" >> "$LOG_FILE" 2>&1; then
+            if PYTHONPATH="$INSTALL_DIR/scripts" "$PYTHON_BIN" "$test_script" >> "$LOG_FILE" 2>&1; then
                 log_verbose "Python dependencies verification passed"
             else
                 log_error "Python dependencies verification failed"
@@ -1144,7 +1136,8 @@ main() {
     # Run installation steps with progress display
     show_phase 1 7 "Checking system requirements"
     detect_platform
-    check_python &
+    # Ensure PYTHON_BIN from check_python is set in current shell
+    check_python
     check_node &
     wait
 

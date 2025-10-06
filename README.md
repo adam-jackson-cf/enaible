@@ -76,21 +76,28 @@ The principles for this project are designed around the realities of coding with
 
 ## ⚡ Quick Start
 
-Install the workflows for your editor. Full details: docs/installation.md
-
-Note some CLI tools are quite strict about operating within a sandbox i.e. the project folder, for these tools its recommended to install per project (user level operations will fail)
-
-\*Nb. for opencode, its is recommended run these slash commands using the command-executor primary agent (deployed as part of this framework), for better command adherence.
+Install for your preferred AI dev runtime. Details in docs/installation.md
 
 ```bash
+# Codex CLI (recommended)
+./codex/install.sh                   # interactive (choose scope & scripts location)
+./codex/install.sh ~                 # user-level (creates ~/.codex/)
+./codex/install.sh /my/project/path  # custom (creates <path>/.codex)
+
 # Claude Code
-./claude-code/install.sh        # project-local (creates ./.claude/)
-./claude-code/install.sh ~      # user-global  (creates ~/.claude/)
+./claude-code/install.sh             # project-local (creates ./.claude/)
+./claude-code/install.sh ~           # user-global  (creates ~/.claude/)
 
 # OpenCode
-./opencode/install.sh           # project-local (creates ./.opencode/)
-./opencode/install.sh ~         # user-global  (creates ~/.config/opencode/)
+./opencode/install.sh                # project-local (creates ./.opencode/)
+./opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
 ```
+
+Notes
+
+- Programmatic prompts (analysis, security, performance) require Python 3.11+.
+- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. Helpers available in `codex/codex-init-helpers.md`.
+- For OpenCode, prefer using the command-executor primary agent for best adherence to shell prompts.
 
 ---
 
@@ -657,6 +664,38 @@ Note some CLI tools are quite strict about operating within a sandbox i.e. the p
 These examples give a flavour, explore the repo and find what works for you.
 
 </details>
+
+---
+
+## 🧭 Using The Framework
+
+- Codex
+
+  - Launch: `cdx` (maps to `codex --full-auto`). For stricter sessions use workspace-write + approvals; see `codex/codex-init-helpers.md` and `codex/docs/sandbox.md`.
+  - Use prompts: In Codex composer type `/` then select items from `$CODEX_HOME/prompts/` (e.g., `/analyze-security`, `/plan-refactor`). See `codex/docs/prompts.md`.
+  - Config: Edit `$CODEX_HOME/config.toml` (model, trust entries, MCP servers). See `codex/docs/config.md`.
+
+- Claude Code
+
+  - After install, slash-commands appear from `./.claude/commands`. Try `/analyze-security` or `/plan-solution`.
+
+- OpenCode
+  - After install, slash-commands appear from `./.opencode/command`. Prefer the “command-executor” agent for shell-heavy prompts.
+
+---
+
+## 📚 Documentation Map
+
+- Install & setup: docs/installation.md
+- Analyzer scripts overview: docs/analysis-scripts.md
+- Monitoring & logs: docs/monitoring.md
+- Agent orchestration: docs/agents.md
+- Roadmap: docs/roadmap.md
+- Codex references (official excerpts mirrored in-repo):
+  - codex/docs/config.md
+  - codex/docs/prompts.md
+  - codex/docs/sandbox.md
+  - codex/docs/threads.md
 
 ---
 

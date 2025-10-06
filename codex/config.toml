@@ -1,21 +1,7 @@
 model = "gpt-5"
 model_reasoning_effort = "high"
-[projects."/Users/adamjackson/LocalDev/apj-local"]
-trust_level = "trusted"
 
-[projects."/Users/adamjackson/LocalDev/ai-assisted-workflows"]
-trust_level = "trusted"
-
-[projects."/Users/adamjackson/LocalDev/code-oracle"]
-trust_level = "trusted"
-
-[projects."/Users/adamjackson/.claude/scripts"]
-trust_level = "trusted"
-
-[projects."/Users/adamjackson/.codex"]
-trust_level = "trusted"
-
-[projects."/Users/adamjackson"]
+[projects."~/.codex"]
 trust_level = "trusted"
 
 [mcp_servers.chrome-devtools]

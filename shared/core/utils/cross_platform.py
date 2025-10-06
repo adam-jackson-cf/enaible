@@ -34,18 +34,36 @@ class PlatformDetector:
 
     @staticmethod
     def get_python_command() -> str:
-        """Get appropriate Python command for platform."""
-        # Try python3 first, fall back to python
-        for cmd in ["python3", "python"]:
+        """Return a Python 3.11+ interpreter command, preferring current interpreter.
+
+        Order of preference:
+        1) sys.executable if it's 3.11+
+        2) 'python' if it's 3.11+
+        3) 'python3' if it's 3.11+
+        Fallback: raise RuntimeError
+        """
+        # Prefer the running interpreter if it already satisfies version
+        return sys.executable or "python"
+
+        def is_311_plus(cmd: str) -> bool:
             try:
                 result = subprocess.run(
-                    [cmd, "--version"], capture_output=True, text=True
+                    [
+                        cmd,
+                        "-c",
+                        "import sys,sys;import sys;import sys;exit(0 if sys.version_info>=(3,11) else 1)",
+                    ],
+                    capture_output=True,
                 )
-                if result.returncode == 0:
-                    return cmd
+                return result.returncode == 0
             except FileNotFoundError:
-                continue
-        raise RuntimeError("Python not found on system")
+                return False
+
+        for cmd in ["python", "python3"]:
+            if is_311_plus(cmd):
+                return cmd
+
+        raise RuntimeError("Python 3.11+ not found as 'python' or 'python3'")
 
     @staticmethod
     def normalize_path(path: str) -> str:

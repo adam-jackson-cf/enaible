@@ -314,6 +314,23 @@ function Install-PythonDependencies {
     Write-ColorOutput "Installing Python dependencies..." -Color $Colors.Yellow
     Write-Log "Starting Python dependencies installation"
 
+    # Resolve Python 3.11+ interpreter
+    function Get-PythonExe {
+        $candidates = @('python','python3')
+        foreach ($c in $candidates) {
+            try {
+                $v = & $c --version 2>&1
+                if ($LASTEXITCODE -eq 0 -and $v -match 'Python (\d+)\.(\d+)\.(\d+)') {
+                    $maj=[int]$matches[1]; $min=[int]$matches[2]
+                    if ($maj -gt 3 -or ($maj -eq 3 -and $min -ge 11)) { return $c }
+                }
+            } catch { }
+        }
+        throw "Python 3.11+ not found as 'python' or 'python3'"
+    }
+
+    $PythonExe = Get-PythonExe
+
     # Scripts are now in shared/ subdirectories
     $sharedDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared"
     $setupDir = Join-Path $sharedDir "setup"
@@ -331,8 +348,8 @@ function Install-PythonDependencies {
     }
 
     try {
-        Write-Output "Installing packages from requirements.txt..."
-        & pip install -r $requirementsPath --user
+        Write-Output "Installing packages from requirements.txt using $PythonExe ..."
+        & $PythonExe -m pip install -r $requirementsPath --user
 
         if ($LASTEXITCODE -eq 0) {
             Write-ColorOutput "[OK] Python dependencies installed successfully" -Color $Colors.Green

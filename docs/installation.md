@@ -75,6 +75,30 @@ Full list of libraries used and languages supported found here: [Analysis Script
 ./opencode/install.sh --help         # Show detailed help and usage information
 ```
 
+### For Codex CLI
+
+```bash
+# Interactive install (choose scope and scripts location)
+./codex/install.sh                   # Recommended; copies prompts/rules and scripts
+
+# Non-interactive targets
+./codex/install.sh ~                 # User global (uses ~/.codex/)
+./codex/install.sh /my/project/path  # Custom (creates <path>/.codex)
+
+# Advanced options
+./codex/install.sh --dry-run         # Preview changes without making modifications
+./codex/install.sh --verbose         # Enable detailed debug output
+./codex/install.sh --skip-python     # Skip Python dependencies installation
+./codex/install.sh --mode fresh|merge|update|cancel  # Existing install handling
+```
+
+Notes
+
+- All prompts (including programmatic ones that invoke Python) are installed.
+- Programmatic prompts require Python 3.11+ and the scripts root (default `$CODEX_HOME/scripts`).
+- The installer adds trust entries for your chosen `CODEX_HOME` and `SCRIPTS_ROOT` in `$CODEX_HOME/config.toml` and ensures `chrome-devtools` MCP is present.
+- To minimize sandbox prompts, prefer placing scripts within the project (e.g., `./.codex/scripts`) and run Codex with workspace write.
+
 ### Dependencies Installation
 
 The installer automatically handles all dependencies:
@@ -85,11 +109,10 @@ The installer automatically handles all dependencies:
 - Optionally installs CI framework dependencies from `shared/setup/ci/requirements.txt`
 - Validates Python 3.11+ compatibility
 
-**Node.js Dependencies:**
+**Node.js Dependencies (Claude/OpenCode only):**
 
-- Automatically installs ESLint and plugins via npm if not present
-- Creates a `package.json` in the installation directory
-- Installs comprehensive frontend analysis tools (ESLint, TypeScript, React, Vue, Svelte plugins)
+- Installs ESLint and plugins when needed
+- Creates a local `package.json` for ESLint workspace when required
 
 **Installation Tracking:**
 
