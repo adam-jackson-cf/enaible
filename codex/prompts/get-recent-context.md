@@ -42,7 +42,6 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_code
 1. **Session Log Analysis (Codex)**
 
    Codex persists session history under `~/.codex/sessions/YYYY/MM/DD/*.jsonl`.
-   A rolling TUI log is also available at `~/.codex/log/codex-tui.log` for low-level troubleshooting (not required for this analysis).
    The script reads JSON Lines events (e.g., `session_meta`, `turn.started`, `response_item` with `function_call`/`function_call_output`, and `item.*` events like `file_change`).
 
    - Extract recent events for the last 2 days (configurable via `--days`)

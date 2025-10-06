@@ -1,45 +1,61 @@
-# Setup Serena MCP
+# Setup Serena MCP (Codex)
 
-Configures and adds the Serena MCP server to Codex Code for the current project directory, enabling advanced IDE-like code analysis and editing capabilities.
+Activate and validate the Serena MCP server in Codex using the global configuration approach.
 
-## Behavior
+## Overview
 
-This command sets up Serena MCP (Model Context Protocol) server for the current project with the IDE assistant context, providing powerful semantic code tools for efficient codebase navigation and editing.
+Serena runs as an MCP server that Codex connects to via stdio. We configure Serena globally in `~/.codex/config.toml`, then activate it per-project with a one-line instruction inside Codex.
 
-When invoked, Codex will:
+## Prerequisites
 
-1. Detect the current project directory
-2. Remove any existing Serena MCP configuration
-3. Add Serena MCP server with the correct configuration
-4. Verify the connection is established
+- `uvx` available (from the `uv` Python toolchain). Check with `uvx --version`.
+- Global Codex config contains a Serena entry:
 
-## Process
+```toml
+[mcp_servers.serena]
+command = "uvx"
+args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex"]
+```
 
-1. **Check Prerequisites**: Verify that `uvx` is installed (part of the `uv` Python package manager)
-2. **Get Project Path**: Determine the absolute path of the current working directory
-3. **Remove Existing Config**: Clean up any previous Serena configuration with `codex mcp remove serena` (ignore if it doesn't exist)
-4. **Add Serena MCP**: Execute the command:
-   ```bash
-   codex mcp add serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant --project $(pwd)
-   ```
-5. **Verify Connection**: Run `codex mcp list` to confirm Serena appears as connected
-6. **Report Status**: Inform the user whether setup was successful
+If this block is missing, add it to `~/.codex/config.toml`, then restart Codex.
 
-## Notes
+## Steps
 
-- Uses the `ide-assistant` context which excludes certain tools handled by Codex Code itself
-- The `--` separator is critical for passing complex arguments to the MCP server
-- Serena provides 20+ semantic tools for code analysis without reading entire files
-- Configuration is stored locally for the current project
-
-## Example Usage
+1. Verify global config
 
 ```bash
-# From any project directory:
-/add-serena-mcp
-
-# With optional confirmation:
-/add-serena-mcp verify
+rg -n "^\[mcp_servers\.serena\]" ~/.codex/config.toml || echo "Serena block missing in ~/.codex/config.toml"
 ```
+
+2. Check connection
+
+```bash
+codex mcp list
+# Expect to see: serena (connected or available)
+```
+
+3. Activate for current project
+
+Say this exactly in the current Codex session:
+
+Activate the current dir as project using serena
+
+4. Re-check status
+
+```bash
+codex mcp list
+```
+
+If `serena` still isn’t active, restart Codex and repeat step 3.
+
+## Optional
+
+- Open Serena dashboard for visibility: http://localhost:24282/dashboard/index.html
+- For troubleshooting, review `~/.codex/log/codex-tui.log`.
+
+## Troubleshooting
+
+- Ensure `uvx` is on PATH. If not, install `uv` and restart your shell.
+- After editing `~/.codex/config.toml`, you must restart Codex to pick up changes.
 
 $ARGUMENTS
