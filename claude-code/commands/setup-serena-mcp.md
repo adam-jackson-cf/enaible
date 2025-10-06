@@ -1,45 +1,68 @@
-# Setup Serena MCP
+# Setup Serena MCP (Claude Code)
 
-Configures and adds the Serena MCP server to Claude Code for the current project directory, enabling advanced IDE-like code analysis and editing capabilities.
+Configure and activate the Serena MCP server for Claude Code using the IDE-centric context recommended by the Serena README.
 
 ## Behavior
 
-This command sets up Serena MCP (Model Context Protocol) server for the current project with the IDE assistant context, providing powerful semantic code tools for efficient codebase navigation and editing.
+Claude should set up Serena with the `ide-assistant` context (best for IDE-style clients like Claude Code), verify connectivity, optionally disable the Serena web dashboard auto-open, and then activate Serena for the current project.
 
-When invoked, Claude will:
+## Steps
 
-1. Detect the current project directory
-2. Remove any existing Serena MCP configuration
-3. Add Serena MCP server with the correct configuration
-4. Verify the connection is established
+1. Check prerequisites
 
-## Process
+- Ensure `uvx` is installed and on PATH: `uvx --version`.
 
-1. **Check Prerequisites**: Verify that `uvx` is installed (part of the `uv` Python package manager)
-2. **Get Project Path**: Determine the absolute path of the current working directory
-3. **Remove Existing Config**: Clean up any previous Serena configuration with `claude mcp remove serena` (ignore if it doesn't exist)
-4. **Add Serena MCP**: Execute the command:
-   ```bash
-   claude mcp add serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context ide-assistant --project $(pwd)
-   ```
-5. **Verify Connection**: Run `claude mcp list` to confirm Serena appears as connected
-6. **Report Status**: Inform the user whether setup was successful
+2. Add or update the MCP server entry
+
+- Remove any previous entry (ignore errors):
+  ```bash
+  claude mcp remove serena || true
+  ```
+- Add Serena with the IDE assistant context and current project path:
+  ```bash
+  claude mcp add serena -- \
+    uvx --from git+https://github.com/oraios/serena \
+    serena start-mcp-server \
+    --context ide-assistant \
+    --project "$(pwd)"
+  ```
+
+3. Optionally disable the web dashboard auto-open
+
+- Edit `~/.serena/serena_config.yml` and set:
+  ```yaml
+  web_dashboard: false
+  web_dashboard_open_on_launch: false
+  ```
+  You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
+
+4. Verify connection
+
+```bash
+claude mcp list
+# Expect: serena (connected)
+```
+
+5. Activate Serena for this project
+
+- In your Claude Code session, say this exactly:
+
+Activate the current dir as project using serena
+
+6. Sanity check (optional)
+
+- Ask Serena to perform a lightweight action (e.g., list project files or analyze a single file) and confirm success.
 
 ## Notes
 
-- Uses the `ide-assistant` context which excludes certain tools handled by Claude Code itself
-- The `--` separator is critical for passing complex arguments to the MCP server
-- Serena provides 20+ semantic tools for code analysis without reading entire files
-- Configuration is stored locally for the current project
+- The `--` separator is required to pass arguments to the Serena process.
+- `ide-assistant` is the recommended context for Claude Code; use `codex` only when integrating with the Codex CLI.
+- Logs: check Claude’s logs and Serena’s own logs if needed.
 
 ## Example Usage
 
 ```bash
-# From any project directory:
-/add-serena-mcp
-
-# With optional confirmation:
-/add-serena-mcp verify
+/setup-serena-mcp
 ```
 
 $ARGUMENTS
