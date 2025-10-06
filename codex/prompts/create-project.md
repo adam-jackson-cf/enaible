@@ -1,4 +1,4 @@
-# Create Project (`create-project`)
+# Create Project
 
 **Purpose**: Setup new project using better-t-stack CLI with specified technologies or todos.md analysis
 **Usage**:

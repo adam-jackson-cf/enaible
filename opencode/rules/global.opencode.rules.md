@@ -1,6 +1,6 @@
 # General coding rules
 
-## **CRITICAL** Tooling preferences
+## **CRITICAL** Tooling preferences and project setup
 
 ### TypeScript / JavaScript
 

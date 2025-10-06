@@ -1,4 +1,10 @@
 # Codex helpers
+
+# Codex initialisation helpers
+
+- Use in global terminal settings files to offer shorthand start up of codex for different security policies i.e if using zsh you would put this in .zshrc file.
+
+```bash
 cdx() {
     if [[ "$1" == "update" ]]; then
         npm install -g @openai/codex@latest
@@ -49,3 +55,4 @@ cdx-exec() {
             "$@"
     fi
 }
+```

@@ -1,6 +1,15 @@
 # General coding rules
 
-## **CRITICAL** Tooling preferences
+## **CRITICAL** Internal Tool use preferences
+
+- **Codebase search** prefer the use of serena mcp for codebase search over other tools, available modes:
+
+  - find_symbol: global/local search for symbols by name/substring (optional type filters).
+  - find_referencing_symbols: find all symbols that reference a given symbol.
+  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
+  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
+
+## **CRITICAL** Tooling preferences and project setup
 
 ### TypeScript / JavaScript
 

@@ -43,20 +43,11 @@ claude mcp list
 # Expect: serena (connected)
 ```
 
-5. Activate Serena for this project
-
-- In your Claude Code session, say this exactly:
-
-Activate the current dir as project using serena
-
-6. Sanity check (optional)
-
-- Ask Serena to perform a lightweight action (e.g., list project files or analyze a single file) and confirm success.
-
 ## Notes
 
+- You may need restart claude code / ide environment after mcp install
 - The `--` separator is required to pass arguments to the Serena process.
-- `ide-assistant` is the recommended context for Claude Code; use `codex` only when integrating with the Codex CLI.
+- `ide-assistant` is the recommended context for Claude Code;
 - Logs: check Claude’s logs and Serena’s own logs if needed.
 
 ## Example Usage
