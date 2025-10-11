@@ -27,7 +27,18 @@ Claude should set up Serena with the `ide-assistant` context (best for IDE-style
     --project "$(pwd)"
   ```
 
-3. Optionally disable the web dashboard auto-open
+3. Add instructions to the project level AGENTS.md
+
+```markdown
+- **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back to those on serena mcp failure, available serena mcp tools:
+
+  - find_symbol: global/local search for symbols by name/substring (optional type filters).
+  - find_referencing_symbols: find all symbols that reference a given symbol.
+  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
+  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
+```
+
+4. Optionally disable the web dashboard auto-open
 
 - Edit `~/.serena/serena_config.yml` and set:
   ```yaml
@@ -36,7 +47,7 @@ Claude should set up Serena with the `ide-assistant` context (best for IDE-style
   ```
   You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
 
-4. Verify connection
+5. Verify connection
 
 ```bash
 claude mcp list

@@ -36,17 +36,18 @@ codex mcp list
 
 3. Activate for current project
 
-Say this exactly in the current Codex session:
+Add the following the project level `./AGENTS.md`
 
-Activate the current dir as project using serena
+```markdown
+- **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back to those on serena mcp failure, available serena mcp tools:
 
-4. Re-check status
-
-```bash
-codex mcp list
+  - find_symbol: global/local search for symbols by name/substring (optional type filters).
+  - find_referencing_symbols: find all symbols that reference a given symbol.
+  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
+  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
 ```
 
-If `serena` still isn’t active, restart Codex and repeat step 3.
+Now update the user with the following - "You will need to reload your codex session, on reload tell codex to activate serena by saying this in the session - Activate serena for current project - this will create a .serena folder and initiate its index."
 
 ## Optional
 
