@@ -87,3 +87,28 @@ Provide results in this exact structure:
 List concise facts to confirm completion (IDs, paths, counts, statuses).
 
 ## Examples (optional)
+
+```bash
+# 1) Minimal invocation with positional arguments
+/<command-name> feat api "add pagination"
+
+# 2) With explicit target path as $1 (used by Environment checks)
+/<command-name> ./services/api
+
+# 3) Reference files/directories for extra context
+/<command-name> "feat core" @src @README.md
+
+# 4) When analyzer scripts are required, and discovery fails
+#    You will be prompted to provide a scripts directory. Supply the path, e.g.:
+#    /Users/you/.claude/scripts/analyzers/architecture/
+
+# 5) Example frontmatter allowed-tools to support the above
+# ---
+# allowed-tools: |
+#   Bash(which python:*), Bash(ls:*), Bash(find:*),
+#   Bash(python -c:*), Bash(python -m core.cli.run_analyzer:*),
+#   Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*),
+#   Read(./**), Edit(./src/**), Write(./generated/**), Grep, Glob, Read, Write
+# description: One-line summary for /help
+# ---
+```
