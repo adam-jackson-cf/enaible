@@ -24,7 +24,11 @@ permission: <!-- allow | ask | deny (bash supports prefix/glob maps: {"*":"allow
 @path: <!-- include file or directory contents in context (e.g. @shared/tests, @pytest.ini) -->
 </FILE_REFERENCES>
 
-# Purpose
+# <Command Title>
+
+<!-- Replace with a concise, action-oriented title (imperative). -->
+
+## Purpose
 
 State the objective in one sentence. Be direct and outcome-focused.
 
@@ -46,7 +50,7 @@ State the objective in one sentence. Be direct and outcome-focused.
 3. Perform the core task deterministically.
 4. Save/emit artifacts and verify results.
 
-## Output
+## Output Format
 
 Provide results in this exact structure:
 
