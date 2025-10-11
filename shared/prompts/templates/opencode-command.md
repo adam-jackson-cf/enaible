@@ -1,34 +1,29 @@
 <!-- template format for opencode markdown command -->
 <!-- Docs: https://opencode.ai/docs/commands/ -->
 
-<FRONTMATTER>
-description: <!-- one-line summary shown in slash picker -->
-agent: <!-- build | plan | <custom-agent-name> (defined in opencode.json or .opencode/agent/) -->
-model: <!-- optional model override for this command (e.g. anthropic/claude-3-5-sonnet-20241022) -->
-subtask: <!-- true | false (run as a subtask) -->
-</FRONTMATTER>
+<!--
+FRONTMATTER (define these in real YAML frontmatter when instantiating):
+  description: One-line summary shown in slash picker
+  agent: build | plan | <custom-agent-name> (defined in opencode.json or .opencode/agent/)
+  model: anthropic/claude-3-5-sonnet-20241022 (optional override)
+  subtask: true | false (run as a subtask)
 
-<ARGUMENTS>
-$1..$9: <!-- expand to the first nine positional args -->
-$ARGUMENTS: <!-- expands to all arguments joined by a single space -->
-$$: <!-- preserved literally (use to emit a dollar sign) -->
-quoted: <!-- wrap an argument in double quotes to include spaces -->
-</ARGUMENTS>
+ARGUMENTS (expansion rules):
+  $1..$9: expand to first nine positional args
+  $ARGUMENTS: expands to all args joined by a single space
+  $$: preserved literally (emit a dollar sign)
+  quoted: wrap an argument in double quotes to include spaces
 
-<TOOLS>
-list: <!-- bash | edit | write | read | grep | glob | list | patch | todowrite | todoread | webfetch -->
-permission: <!-- allow | ask | deny (bash supports prefix/glob maps: {"*":"allow","git push":"ask","terraform *":"deny"}) -->
-</TOOLS>
+TOOLS (controlled by agent/permissions):
+  list: bash | edit | write | read | grep | glob | list | patch | todowrite | todoread | webfetch
+  permission values: allow | ask | deny
+  bash map example: {"*":"allow","git push":"ask","terraform *":"deny"}
 
-<FILE_REFERENCES>
-@path: <!-- include file or directory contents in context (e.g. @shared/tests, @pytest.ini) -->
-</FILE_REFERENCES>
+FILE REFERENCES:
+  @path includes file or directory contents in context (e.g., @shared/tests, @pytest.ini)
+-->
 
-# <Command Title>
-
-<!-- Replace with a concise, action-oriented title (imperative). -->
-
-## Purpose
+# Purpose
 
 State the objective in one sentence. Be direct and outcome-focused.
 

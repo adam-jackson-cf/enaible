@@ -1,33 +1,30 @@
 <!-- template format for claude-code custom slash command -->
 <!-- Docs: https://docs.claude.com/en/docs/claude-code/slash-commands -->
 
-<FRONTMATTER>
-allowed-tools: <!-- Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*); Read(./path|glob), Write(./path|glob), Edit(./path|glob), MultiEdit(./path|glob), NotebookEdit(./path|glob), NotebookRead(./path|glob); Grep, Glob, Task, TodoWrite, WebFetch, WebSearch, Write; MCP: mcp__server, mcp__server__tool (no wildcards) -->
-argument-hint: <!-- e.g. [type] [scope] [message] -->
-description: <!-- one-line summary for /help -->
-model: <!-- e.g. claude-3-5-haiku-20241022 (inherits if omitted) -->
-disable-model-invocation: <!-- true | false (default false) -->
-</FRONTMATTER>
+<!--
+FRONTMATTER (define these in real YAML frontmatter when instantiating):
+  allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*); Read(./path|glob); Write(./path|glob); Edit(./path|glob); MultiEdit(./path|glob); NotebookEdit(./path|glob); NotebookRead(./path|glob); Grep; Glob; Task; TodoWrite; WebFetch; WebSearch; Write; MCP tools by exact name: mcp__server, mcp__server__tool (no wildcards)
+  argument-hint: [type] [scope] [message]
+  description: One-line summary for /help
+  model: claude-3-5-haiku-20241022 (inherits if omitted)
+  disable-model-invocation: true | false (default false)
 
-<ARGUMENTS>
-$1..$9: <!-- expand to the first nine positional args -->
-$ARGUMENTS: <!-- expands to all arguments joined by a single space -->
-$$: <!-- preserved literally (use to emit a dollar sign) -->
-quoted: <!-- wrap an argument in double quotes to include spaces -->
-</ARGUMENTS>
+ARGUMENTS (expansion rules):
+  $1..$9: expand to first nine positional args
+  $ARGUMENTS: expands to all args joined by a single space
+  $$: preserved literally (emit a dollar sign)
+  quoted: wrap an argument in double quotes to include spaces
 
-<TOOLS>
-list: <!-- Bash | Edit | Glob | Grep | MultiEdit | NotebookEdit | NotebookRead | Read | Task | TodoWrite | WebFetch | WebSearch | Write -->
-mcprules: <!-- mcp__github | mcp__github__get_issue (no wildcards) -->
-</TOOLS>
+TOOLS (referenceable in allowed-tools):
+  list: Bash | Edit | Glob | Grep | MultiEdit | NotebookEdit | NotebookRead | Read | Task | TodoWrite | WebFetch | WebSearch | Write
+  mcp rules: mcp__github | mcp__github__get_issue (no wildcards)
 
-<SHELL_OUTPUT_INJECTION>
-!`<bash>`: <!-- injects command output into context; requires Bash(...) in allowed-tools -->
-</SHELL_OUTPUT_INJECTION>
+SHELL OUTPUT INJECTION:
+  !`<bash>` injects command output into context (requires a matching Bash(...) rule in allowed-tools)
 
-<FILE_REFERENCES>
-@path: <!-- include file or directory contents in context (e.g. @src, @README.md) -->
-</FILE_REFERENCES>
+FILE REFERENCES:
+  @path includes file or directory contents in context (e.g., @src, @README.md)
+-->
 
 # Purpose
 

@@ -1,12 +1,13 @@
 <!-- template format for codex prompts -->
 <!-- Docs: https://github.com/openai/codex/blob/main/docs/prompts.md -->
 
-<ARGUMENTS>
-$1..$9: <!-- expand to the first nine positional args -->
-$ARGUMENTS: <!-- expands to all arguments joined by a single space -->
-$$: <!-- preserved literally (use to emit a dollar sign) -->
-quoted: <!-- wrap an argument in double quotes to include spaces -->
-</ARGUMENTS>
+<!--
+ARGUMENTS (expansion rules):
+  $1..$9: expand to first nine positional args
+  $ARGUMENTS: expands to all args joined by a single space
+  $$: preserved literally (emit a dollar sign)
+  quoted: wrap an argument in double quotes to include spaces
+-->
 
 # Purpose
 
@@ -30,7 +31,7 @@ State the objective in one sentence. Be direct and outcome-focused.
 3. Perform the core task deterministically.
 4. Save/emit artifacts and verify results.
 
-## Output
+## Output Format
 
 Provide results in this exact structure:
 
