@@ -1,8 +1,5 @@
 ---
-description: "Todo orchestration with automated multi-agent coordination from implementation plan to delivery"
-argument-hint: <implementation-plan-path> [--prototype] [--parallel]
-allowed-tools:
-  ["Task", "Read", "Write", "Edit", "TodoWrite", "Bash", "Grep", "Glob", "LS"]
+description: Orchestrate a todo from plan to implementation with gates and commits
 ---
 
 # Todo Orchestrate - Implementation Plan Execution
@@ -12,7 +9,7 @@ Execute complete build workflow using intelligent sub-agent coordination with qu
 ## Usage
 
 ```bash
-/build-orchestrate <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel]
+/todo-build <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel]
 ```
 
 ## Arguments
@@ -40,20 +37,18 @@ You are the Build Orchestration Manager executing a comprehensive implementation
 
 **Parse and Initialize:**
 
-```markdown
+```
 First use the @agent-plan-manager sub agent to parse implementation plan and create task registry.
 
 # Intelligent expert routing with CTO fallback
-
 If implementation tasks match expert domain AND expert agent exists:
-
-- Python development > @agent-python-expert
-- TypeScript development > @agent-typescript-expert
-- Infrastructure/Terraform > @agent-terraform-gcp-expert
-- CI/CD workflows > @agent-git-action-expert
-- RAG/Search systems > @agent-rag-architecture-expert
-  Else:
-- for all other technologies > invoke a subagent with CTO role
+  - Python development > @agent-python-expert
+  - TypeScript development > @agent-typescript-expert
+  - Infrastructure/Terraform > @agent-terraform-gcp-expert
+  - CI/CD workflows > @agent-git-action-expert
+  - RAG/Search systems > @agent-rag-architecture-expert
+Else:
+  - for all other technologies > invoke a subagent with CTO role and Opus as the selected model
 
 Invoke relevant Subagent with task context and instruction:
 "Enhance the existing implementation plan by directly modifying it with your expert recommendations, whilst keeping the document in its current location."
@@ -62,7 +57,6 @@ Then use the @agent-documenter sub agent to check existing documentation resourc
 Set prototype mode flag if --prototype argument present.
 
 # Plan-manager re-parses updated plan
-
 Use @agent-plan-manager to re-parse the updated implementation plan
 ```
 
@@ -70,12 +64,11 @@ Use @agent-plan-manager to re-parse the updated implementation plan
 
 **Execute continuous task processing through all phases until all tasks completed:**
 
-```markdown
+```
 while (phases remain with incomplete tasks):
 
-# Process all tasks in current phase
-
-while (tasks remain in current phase in non-completed states):
+  # Process all tasks in current phase
+  while (tasks remain in current phase in non-completed states):
 
     ## 1. Task Selection
     Use the @agent-plan-manager sub agent to get next highest priority pending task in current phase.
@@ -122,13 +115,17 @@ while (tasks remain in current phase in non-completed states):
       @agent-problem-escalation is aware of --prototype quality expectations.
     After 2 @agent-problem-escalation failures: halt with human escalation message.
 
-end while (task loop)
+  end while (task loop)
 
-# Phase completed - generate user testing plan
+  # Phase completed - generate user testing plan
+  Use the @agent-documenter sub agent to:
+    - Create phase[id]-user-testing-plan.md
+    - Document all features implemented in this phase
+    - Provide step-by-step validation instructions
+    - Include expected outcomes and success criteria
+    - Store in centralized documentation area
 
-Use the @agent-documenter sub agent to: - Create phase[id]-user-testing-plan.md - Document all features implemented in this phase - Provide step-by-step validation instructions - Include expected outcomes and success criteria - Store in centralized documentation area
-
-Log: "Phase completed. User testing plan created. Moving to next phase with incomplete tasks."
+  Log: "Phase completed. User testing plan created. Moving to next phase with incomplete tasks."
 
 end while (phase loop)
 ```

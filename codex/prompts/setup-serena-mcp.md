@@ -64,4 +64,8 @@ If `serena` still isn’t active, restart Codex and repeat step 3.
 - Ensure `uvx` is on PATH. If not, install `uv` and restart your shell.
 - After editing `~/.codex/config.toml`, you must restart Codex to pick up changes.
 
+## Tips
+
+- ensure you activate serena once verified installed - this should produce a .serena folder and initial index in the current project
+
 $ARGUMENTS

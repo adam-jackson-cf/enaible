@@ -23,11 +23,11 @@ This command performs a comprehensive review of recent activity by:
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/context/context_bundle_capture_codex.py"
+   Bash: ls "~/.codex/scripts/context/context_bundle_capture_codex.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/context/` and `$HOME/.codex/scripts/context/`
+   - List searched locations: `.codex/scripts/context/` and `~/.codex/scripts/context/`
    - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
    - Validate provided path contains the script
    - Set SCRIPT_PATH to user-provided location

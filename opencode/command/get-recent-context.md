@@ -27,11 +27,11 @@ This command performs a comprehensive review of recent activity by:
 2. **Try user-level .claude folder**:
 
    ```bash
-   Bash: ls "$HOME/.claude/scripts/context/context_bundle_capture_opencode.py"
+   Bash: ls "~/.claude/scripts/context/context_bundle_capture_opencode.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.claude/scripts/context/` and `$HOME/.claude/scripts/context/`
+   - List searched locations: `.claude/scripts/context/` and `~/.claude/scripts/context/`
    - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
    - Validate provided path contains the script
    - Set SCRIPT_PATH to user-provided location
