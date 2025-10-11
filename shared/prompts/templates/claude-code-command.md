@@ -50,8 +50,13 @@ These are examples of env checks, some prompts will have no env checks, only cre
 
 ## Variables
 
-- Define inputs and their sources (e.g., from $ARGUMENTS or environment).
-- Example: TYPE, SCOPE, MESSAGE
+- Bind positional arguments to explicit names for clarity:
+  - $1 → TYPE (e.g., feat/fix/chore)
+  - $2 → SCOPE (e.g., api, ui)
+  - $3 → MESSAGE (short subject)
+  - $4..$9 → optional extras (document if used)
+  - $ARGUMENTS → full raw argument string (space-joined)
+- Rename TYPE/SCOPE/MESSAGE to suit your command; do not print the variable names in the final output.
 
 ## Instructions
 
@@ -66,40 +71,52 @@ These are examples of env checks, some prompts will have no env checks, only cre
 3. Perform the core task deterministically.
 4. Save/emit artifacts and verify results.
 
-## Output Contract
+## Output
 
-Use this structure for the final deliverable. Do not include the contract text, comments, or any example blocks in your response.
+This section should be an output structure detailing what this workflow should return and how, in a suitable format:
 
-- Top-level sections: `# RESULT`, `## DETAILS`
-- RESULT contains a single “Summary:” line (concise, one sentence)
-- DETAILS contains bullets describing:
-  - What changed
-  - Where it changed (files/paths)
-  - How to verify (exact commands or steps)
-
-## Example (do not copy verbatim)
+e.g.
 
 ```md
 # RESULT
 
-- Summary: Applied typed pagination to API list endpoint and updated tests.
+- Summary: <one line>
 
 ## DETAILS
 
-- What changed: Added `paginate()` helper, wired route, updated unit tests
-- Where it changed: src/api/list.ts, src/api/paginate.ts, tests/api/list.test.ts
-- How to verify: bun run test; curl "/api/list?page=2&limit=20" returns 20 items
+- What changed
+- Where it changed
+- How to verify
 ```
 
-## Response Rules
+Or
 
-- Output only the deliverable in the contract shape above.
-- Do not include this section, explanations, or any example text.
-- Replace all placeholders with concrete values; do not print angle brackets.
-
-## Report
-
-List concise facts to confirm completion (IDs, paths, counts, statuses).
+```json
+{
+  "CycleName": {
+    "version": 3,
+    "objective": {
+      "task_objective": "Deliver authentication hardening for user-facing API",
+      "purpose": "Reduce takeover risk for privileged accounts while keeping login latency flat.",
+      "affected_users": ["admin-operators", "support-analysts"],
+      "requirements": [
+        "Require MFA for admin roles",
+        "Provide backup codes during enrollment",
+        "Log MFA events for audit export"
+      ],
+      "constraints": ["no-db-schema-changes", "release-window:2025-Q4"],
+      "assumptions": ["backwards-compatible client SDKs"],
+      "open_questions": [],
+      "clarifications": [
+        {
+          "question": "Do support analysts require MFA on first login?",
+          "answer": "Yes, enforce MFA immediately after first login."
+        }
+      ]
+    }
+  }
+}
+```
 
 ## Examples (optional)
 
