@@ -36,6 +36,17 @@ subtask: <!-- true | false -->
 
 State the objective in one sentence. Be direct and outcome-focused.
 
+## Environment checks (optional)
+
+workflow should immediately exit if any of these conditions fail
+
+- Python available: !`python --version`
+- Target path readable: !`test -r "${1:-.}" && echo target-ok || echo target-missing`
+- Imports resolve (when using analyzer scripts): !`PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`
+- Runner help (optional): !`PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --help | head -n 5`
+- Script resolution (when needed): resolve `SCRIPT_PATH` from project → user → prompt; then set `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"`.
+- Permissions alignment: ensure `allowed-tools` include any Bash patterns used above (e.g., `Bash(which python:*)`, `Bash(ls:*)`, `Bash(find:*)`, `Bash(python -c:*)`, `Bash(python -m core.cli.run_analyzer:*)`).
+
 ## Variables
 
 - Define inputs and their sources (e.g., from $ARGUMENTS or config).
@@ -85,9 +96,4 @@ List concise facts to confirm completion (paths, counts, statuses, timings).
 
 # 3) With @file and @dir references for added context
 /<command-name> @shared/tests/unit @pytest.ini
-
-# 4) Switch agent (set in frontmatter) for read-only planning vs build
-#    agent: plan | build | <custom>
 ```
-
-## Examples (optional)

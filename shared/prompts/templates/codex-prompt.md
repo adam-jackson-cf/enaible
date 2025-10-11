@@ -13,6 +13,17 @@ ARGUMENTS (expansion rules):
 
 State the objective in one sentence. Be direct and outcome-focused.
 
+## Environment checks (optional)
+
+workflow should immediately exit if any of these conditions fail
+
+- Python available: !`python --version`
+- Target path readable: !`test -r "${1:-.}" && echo target-ok || echo target-missing`
+- Imports resolve (when using analyzer scripts): !`PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`
+- Runner help (optional): !`PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --help | head -n 5`
+- Script resolution (when needed): resolve `SCRIPT_PATH` from project → user → prompt; then set `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"`.
+- Permissions alignment: ensure `allowed-tools` include any Bash patterns used above (e.g., `Bash(which python:*)`, `Bash(ls:*)`, `Bash(find:*)`, `Bash(python -c:*)`, `Bash(python -m core.cli.run_analyzer:*)`).
+
 ## Variables
 
 - Define inputs and their sources (e.g., from $ARGUMENTS or context).
@@ -63,5 +74,3 @@ List concise facts to confirm completion (paths, counts, statuses).
 # 3) Provide extra context via pasted code blocks or references
 #    (Codex prompt files don’t support @file injection; include snippets inline.)
 ```
-
-## Examples (optional)

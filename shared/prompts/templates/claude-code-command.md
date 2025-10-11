@@ -39,12 +39,9 @@ model: claude-3-5-haiku-20241022 (inherits if omitted)
 
 State the objective in one sentence. Be direct and outcome-focused.
 
-## Variables
-
-- Define inputs and their sources (e.g., from $ARGUMENTS or environment).
-- Example: TYPE, SCOPE, MESSAGE
-
 ## Environment checks (optional)
+
+workflow should immediately exit if any of these conditions fail
 
 - Python available: !`python --version`
 - Target path readable: !`test -r "${1:-.}" && echo target-ok || echo target-missing`
@@ -52,6 +49,11 @@ State the objective in one sentence. Be direct and outcome-focused.
 - Runner help (optional): !`PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --help | head -n 5`
 - Script resolution (when needed): resolve `SCRIPT_PATH` from project → user → prompt; then set `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"`.
 - Permissions alignment: ensure `allowed-tools` include any Bash patterns used above (e.g., `Bash(which python:*)`, `Bash(ls:*)`, `Bash(find:*)`, `Bash(python -c:*)`, `Bash(python -m core.cli.run_analyzer:*)`).
+
+## Variables
+
+- Define inputs and their sources (e.g., from $ARGUMENTS or environment).
+- Example: TYPE, SCOPE, MESSAGE
 
 ## Instructions
 
@@ -94,21 +96,4 @@ List concise facts to confirm completion (IDs, paths, counts, statuses).
 
 # 2) With explicit target path as $1 (used by Environment checks)
 /<command-name> ./services/api
-
-# 3) Reference files/directories for extra context
-/<command-name> "feat core" @src @README.md
-
-# 4) When analyzer scripts are required, and discovery fails
-#    You will be prompted to provide a scripts directory. Supply the path, e.g.:
-#    /Users/you/.claude/scripts/analyzers/architecture/
-
-# 5) Example frontmatter allowed-tools to support the above
-# ---
-# allowed-tools: |
-#   Bash(which python:*), Bash(ls:*), Bash(find:*),
-#   Bash(python -c:*), Bash(python -m core.cli.run_analyzer:*),
-#   Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*),
-#   Read(./**), Edit(./src/**), Write(./generated/**), Grep, Glob, Read, Write
-# description: One-line summary for /help
-# ---
 ```
