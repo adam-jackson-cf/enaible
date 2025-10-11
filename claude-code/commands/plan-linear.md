@@ -20,47 +20,44 @@ Never: directly mutate Linear issues (handled only in mutation phase), guess mis
 2. Workspace Initialization:
    - Look for `.workspace` folder in project root (create if doesnt exist)
 3. Resolve & validate config (compute `config_fingerprint` = sha256(sorted JSON minus volatile fields)).
-4. Establish Objective Frame - invoke `@agent-linear-artifact-classifier` passing raw artifact from `--task`.
+4. Establish Objective Definition - invoke `@agent-linear-objective-definition` passing raw artifact from `--task`.
 5. Cycle Initialization:
    - Establish deterministic name using kebab-case slug with no spaces:
-   - `cycle_slug = kebab_case(lowercase(objective_frame.primary_feature))`
+   - `cycle_slug = kebab_case(lowercase(objective_frame.task_objective))`
    - Set `CYCLE_DIR` to cycle_slug deterministic value and create the folder (if doesnt exist)
-   - Move `linear-artifact-classifier-output.json` to `CYCLE_DIR`.
-6. Summarize: artifact type (after classification), feature count, constraint count, top risks (if any emerge)
+   - Move `linear-objective-definition-output.json` to `CYCLE_DIR`.
+6. Clarification Loop:
+   - Summarize task objective, purpose, affected users, requirements, and constraints discovered.
+   - Present `open_questions` gathered by the objective-definition agent back to the user.
+   - Capture user-provided clarifications and append them to `cycle_plan_report.json` under `objective.clarifications`.
 
-**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Initialisation complete, is objective frame correct? (y/n)" and WAIT for response before continuing to step 7. If user responds "n" or "no", stop workflow execution and work with user on amends until they explicitly confirm `proceed`.
+**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Objective frame prepared. Provide clarifications or type proceed to continue." WAIT for the user to either answer the questions or explicitly type `proceed`. Do not continue until confirmation is received. If user supplies new information, update the clarification record and restate the summary before requesting confirmation again.
 
 7. Autonomous Planning Loop (delegated to subagents), evolve `cycle_plan_report.json` state until plan readiness criteria satisfied:
 
-   - Subagents are invoked sequentially, never in parallel
-   - The Subagents `@agent-linear-context-harvester`, `@agent-linear-design-synthesizer`,`@agent-linear-issue-decomposer` MUST write three artifacts per run into `CYCLE_DIR`:
+   - Subagents are invoked sequentially, never in parallel.
+   - Each subagent must emit traceability artifacts into `CYCLE_DIR`:
 
-     1. `<agent-name>-input.md` — exact task payload the subagent received (for traceability)
-     2. `<agent-name>-summary.md` — concise human-readable summary of findings
-     3. `<agent-name>-output.json` — machine-readable full output
+     1. `<agent-name>-input.md` — exact task payload the subagent received.
+     2. `<agent-name>-summary.md` — concise human-readable summary of findings.
+     3. `<agent-name>-output.json` — machine-readable full output.
 
-   - Filenames strictly use the full agent name (e.g., `-linear-context-harvester-output.json`). No abbreviations or spaces.
-   - Subagents are instructed to review the previous agents findings:
+   - Filenames strictly use the full agent name (e.g., `-linear-issue-decomposer-output.json`). No abbreviations or spaces.
 
-     - `@agent-linear-context-harvester` → frameworks, languages, existing modules
-     - `@agent-linear-design-synthesizer` → architecture decisions, foundation tasks
-
-     **⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Review architecture decisions, proceed issue decomposition? (y/n)" and WAIT for response before continuing to `@agent-linear-issue-decomposer` step. If user responds "n" or "no", stop workflow execution and exit and await their amends.
-
-     - `@agent-linear-issue-decomposer` → atomic issue graph with ids/deps
+     - `@agent-linear-issue-decomposer` → atomic issue graph with ids/deps derived from confirmed requirements.
        <estimate-style if --estimate-style = tshirt>
        - `@agent-linear-estimation-engine` → size, rcs, oversize flags
          </estimate-style>
-     - `@agent-linear-acceptance-criteria-writer` → AC, DoD, implementation guidance
+     - `@agent-linear-acceptance-criteria-writer` → acceptance criteria only (no DoD or guidance sections)
      - `@agent-linear-hashing` (compute) → hashes + duplication detection
 
-   - Update the `cycle_plan_report.json`, as each subagent completes, with the latest findings
+   - Update the `cycle_plan_report.json`, as each subagent completes, with the latest findings.
 
 8. Readiness Check (`@agent-linear-readiness`):
    - Determine readiness and produce readiness object.
    - If readiness.ready=false → exit 2 unless user chooses remediation.
 
-**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Plan formed and readiness check successful, proceed with transfer to linear? (y/n)" and WAIT for response before continuing to step 8. If user responds "n" or "no", stop workflow execution and exit.
+**⚠️ PAUSE FOR REQUIRED USER CONFIRMATION**: Ask user "Plan formed and readiness check successful, proceed with transfer to linear? (y/n)" and WAIT for response before continuing to step 9. If user responds "n" or "no", stop workflow execution and exit.
 
 9. Optional Mutation:
    - Invoke `@agent-linear-issue-writer` (duplicate detection, project/cycle logic, then issue batch)
@@ -101,7 +98,7 @@ Mandatory keys (no inference): `label_rules`, `complexity_weights`, `thresholds`
 
 On missing missing config keys: → **STOP** emit exit code 1.
 
-## Failure & Exit Codes
+## Failure & Exit Codes & Output format
 
 | Code | Meaning                                               |
 | ---- | ----------------------------------------------------- |
@@ -112,52 +109,6 @@ On missing missing config keys: → **STOP** emit exit code 1.
 | 4    | Structural integrity or contract violations           |
 
 All errors must output a machine-parsable JSON envelope with `exit_code` and `error.code` fields.
-
-### Error Code Mapping
-
-**Exit Code 1 (Argument/Config Failures):**
-
-- `CONFIG_MISSING_KEYS` → Required configuration keys absent
-- `ARG_VALIDATION` → Invalid flag combinations or values
-- `EMPTY_ARTIFACT` → No planning input provided
-
-**Exit Code 2 (Readiness/Validation Failures):**
-
-- `READINESS_BLOCKING` → Plan not ready for Linear (from @agent-linear-readiness)
-- `MISSING_FEATURES` → No extractable features from artifact
-- `NO_ISSUES` → Issue decomposition produced no issues or no issues available for enrichment
-- `EMPTY_REPO` → No source code context available
-- `NO_FOUNDATION` → Features require foundation tasks but none provided
-- `SPLIT_TARGET_NOT_FOUND` → Cannot locate target for issue splitting
-- `MISSING_OBJECTIVES` → Objectives empty and cannot reference success alignment
-
-**Exit Code 3 (Linear Mutation Failures):**
-
-- `TOOLS_UNAVAILABLE` → Required Linear MCP tools not accessible
-- `RATE_LIMIT` → Linear API rate limit exceeded
-- `PERMISSION_DENIED` → Insufficient Linear permissions
-- `NOT_FOUND_PROJECT` → Specified project not found
-- `VALIDATION_ERROR` → Linear rejected issue data
-- `MUTATION_FAILED` → Generic Linear mutation failure
-- `NO_DEPENDENCIES` → No dependencies to link (non-fatal, may not need linking)
-- `MISSING_PROJECT_ID` → Project ID required for dependency linking operations
-- `NETWORK_ERROR` → Network connectivity issues
-- `AGENT_ACTION_FAILED` → Agent failed to perform required actions
-
-**Exit Code 4 (Structural/Contract Violations):**
-
-- `SCHEMA_VIOLATION` → Malformed input to subagents
-- `DUPLICATE_ISSUE_ID` → Conflicting issue identifiers
-- `DUPLICATE_ISSUE_HASH` → Structural duplicates detected
-- `HASH_MISMATCH` → Hash verification failed
-- `MALFORMED_DEP_GRAPH` → Invalid dependency structure
-- `ORCHESTRATOR_CONTRACT_VIOLATION` → Missing required workflow segments
-
-### Subagent Error Consistency
-
-Subagents return findings/warnings in normal output; only hard failures use the error envelope. The command maps subagent error codes to appropriate exit codes as listed above.
-
-Example JSON error envelope (config-missing example, exit code 1):
 
 ```json
 {
@@ -189,73 +140,48 @@ if an **Error condition** is met: _Immediately_ exit workflow, error envelope pr
 
 ## Subagent Responsibilities
 
-| Subagent                          | Responsibility                                | Key Outputs                                                            |
-| --------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------- |
-| linear-artifact-classifier        | Normalize + extract primitives                | artifact_type, features[], constraints[], assumptions[]                |
-| linear-context-harvester          | Repo / stack composition signals              | frameworks[], languages[], existing_modules[]                          |
-| linear-design-synthesizer         | Architecture & foundation scaffold            | architecture_decisions[], foundation_tasks[]                           |
-| linear-issue-decomposer           | Atomic issue graph                            | issues[] (ids, deps, category)                                         |
-| linear-estimation-engine          | Complexity & sizing                           | size, rcs, oversize_flag                                               |
-| linear-acceptance-criteria-writer | Outcome & quality enrichment                  | acceptance_criteria[], definition_of_done[], implementation_guidance[] |
-| linear-hashing                    | Deterministic hashing + duplication + diff    | plan_hash, artifact hashes, per-issue hashes, duplicates, diff         |
-| linear-readiness                  | Validation + labeling + readiness gating      | findings[], label_assignments[], dependency_suggestions[], readiness{} |
-| linear-issue-search               | Duplicate issue detection (existing projects) | matching_issues[], confidence_scores[], duplicate_warnings[]           |
-| linear-issue-writer               | Project/cycle creation + issue batch          | project_id, cycle_id, created_issue_ids[], project_url, issue_urls[]   |
-| linear-dependency-linker          | Apply dependency edges                        | applied_edges[]                                                        |
+| Subagent                          | Responsibility                                    | Key Outputs                                                                 |
+| --------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------- |
+| linear-objective-definition       | Normalize objective, purpose, users, requirements | task_objective, purpose, affected_users[], requirements[], open_questions[] |
+| linear-issue-decomposer           | Atomic issue graph                                | issues[] (ids, deps, category)                                              |
+| linear-estimation-engine          | Complexity & sizing                               | size, rcs, oversize_flag                                                    |
+| linear-acceptance-criteria-writer | Acceptance criteria enrichment                    | acceptance_criteria[]                                                       |
+| linear-hashing                    | Deterministic hashing + duplication + diff        | plan_hash, artifact hashes, per-issue hashes, duplicates, diff              |
+| linear-readiness                  | Validation + labeling + readiness gating          | findings[], label_assignments[], dependency_suggestions[], readiness{}      |
+| linear-issue-search               | Duplicate issue detection (existing projects)     | matching_issues[], confidence_scores[], duplicate_warnings[]                |
+| linear-issue-writer               | Project/cycle creation + issue batch              | project_id, cycle_id, created_issue_ids[], project_url, issue_urls[]        |
+| linear-dependency-linker          | Apply dependency edges                            | applied_edges[]                                                             |
 
 ## Cycle Plan Report (Canonical Schema)
 
 ```json
 {
   "CycleName": {
-    "version": 2,
+    "version": 3,
     "objective": {
-      "summary": "Deliver authentication hardening for user-facing API",
-      "artifact_type": "prd",
-      "features": [
-        "mfa-for-admins",
-        "rotate-api-keys",
-        "session-expiry-improvements"
+      "task_objective": "Deliver authentication hardening for user-facing API",
+      "purpose": "Reduce takeover risk for privileged accounts while keeping login latency flat.",
+      "affected_users": ["admin-operators", "support-analysts"],
+      "requirements": [
+        "Require MFA for admin roles",
+        "Provide backup codes during enrollment",
+        "Log MFA events for audit export"
       ],
       "constraints": ["no-db-schema-changes", "release-window:2025-Q4"],
-      "success_criteria": [
-        "all critical endpoints require MFA for admin roles",
-        "no regressions in login latency > 100ms"
-      ],
-      "assumptions": [
-        "backwards-compatible client SDKs",
-        "sufficient QA cycles"
-      ],
-      "risks": [
-        "third-party SSO outage impact",
-        "increased support tickets post-launch"
-      ],
-      "open_questions": [
-        "Which identity provider is canonical for SSO?",
-        "Do we deprecate legacy API keys?"
+      "assumptions": ["backwards-compatible client SDKs"],
+      "open_questions": [],
+      "clarifications": [
+        {
+          "question": "Do support analysts require MFA on first login?",
+          "answer": "Yes, enforce MFA immediately after first login."
+        }
       ]
     },
-    "planning": {
-      "decisions": [
-        {
-          "decision": "Adopt staged rollout for MFA",
-          "rationale": "Mitigates support load and enables telemetry-driven adjustments"
-        }
-      ],
-      "foundation_tasks": [
-        {
-          "id": "FT-001",
-          "title": "Create MFA onboarding docs"
-        },
-        {
-          "id": "FT-002",
-          "title": "Add feature flag for staged rollout"
-        }
-      ],
-      "issue_totals": {
+    "issues": {
+      "totals": {
         "total": 12,
-        "foundation": 2,
         "feature": 8,
+        "foundation": 2,
         "risk": 2
       },
       "complexity": {
@@ -270,39 +196,52 @@ if an **Error condition** is met: _Immediately_ exit workflow, error envelope pr
         "rcs_max": 8,
         "oversize": ["ISS-010"]
       },
-      "labels": {
-        "by_category": {
-          "foundation": ["type:foundation"],
-          "feature": ["type:feature"]
-        }
-      },
-      "glossary": [
+      "items": [
         {
-          "term": "RCS",
-          "definition": "Relative complexity score used for sizing"
+          "id": "ISS-001",
+          "title": "Require MFA for admin login",
+          "category": "feature",
+          "deps": ["ISS-004"],
+          "size": "M",
+          "rcs": 5,
+          "oversize_flag": false,
+          "requirements": [
+            "Prompt admin users for second factor on login",
+            "Provide recovery backup codes"
+          ],
+          "acceptance_criteria": [
+            "Admin login enforces second factor before granting session",
+            "Backup codes can be generated once per user and invalidate older codes"
+          ]
         }
       ],
       "dependencies": {
         "edges": 5,
         "roots": ["ISS-001"],
         "leaves": ["ISS-020"]
-      },
-      "audit": {
-        "errors": [],
-        "warnings": [
-          {
-            "code": "WARN_SPLIT_RECOMMENDATION",
-            "issue_id": "ISS-010",
-            "message": "Consider splitting large issue ISS-010 into smaller deliverables"
-          }
-        ]
-      },
-      "hashes": {
-        "artifact_raw": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-        "artifact_normalized": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-        "plan": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
-        "config_fingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
       }
+    },
+    "hashes": {
+      "artifact_raw": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "artifact_normalized": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "plan": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "config_fingerprint": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    },
+    "readiness": {
+      "findings": [],
+      "label_assignments": [
+        {
+          "issue_id": "ISS-001",
+          "labels": ["type:feature", "planning:ai-linear"]
+        }
+      ],
+      "dependency_suggestions": [],
+      "ready": true,
+      "requires_split": false,
+      "pending_steps": [],
+      "advisories": [],
+      "plan_hash": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "timestamp": "2025-09-30T12:34:56Z"
     },
     "mutation": {
       "project_id": "LINPROJ-123",

@@ -37,21 +37,22 @@ Single responsibility: determine whether current constructed plan is ready for L
       "category": "feature",
       "deps": ["ISS-000"],
       "oversize_flag": false,
-      "acceptance_criteria": ["..."],
-      "definition_of_done": ["..."],
-      "implementation_guidance": ["..."]
+      "requirements": ["..."],
+      "acceptance_criteria": ["..."]
     }
   ],
-  "artifact": {
-    "artifact_type": "prd",
-    "features": ["login-mfa"],
+  "objective": {
+    "task_objective": "Deliver MFA authentication for privileged accounts",
+    "purpose": "Reduce takeover risk without degrading login latency.",
+    "affected_users": ["admin-operators"],
+    "requirements": ["Require MFA for admin login"],
     "constraints": [],
-    "assumptions": [],
-    "open_questions": []
-  },
-  "design": {
-    "architecture_decisions": [],
-    "foundation_tasks": []
+    "clarifications": [
+      {
+        "question": "Is SMS provider available?",
+        "answer": "Yes, Twilio in production."
+      }
+    ]
   },
   "label_rules": { "risk": ["high", "medium", "low"] },
   "thresholds": {
@@ -70,8 +71,8 @@ Single responsibility: determine whether current constructed plan is ready for L
 
 ## Validation & Gating Checks
 
-- Mandatory structural presence: all issues have `size`, `rcs`, `acceptance_criteria`, `definition_of_done`.
-- Section completeness when `enforce_sections=true` (Context / Scope / AC / DoD implicitly represented by enriched fields).
+- Mandatory structural presence: all issues have `size`, `rcs`, `requirements`, `acceptance_criteria`.
+- Section completeness when `enforce_sections=true` (Objective → requirements → acceptance criteria).
 - Oversize: issue exceeds `thresholds.max_size` (if provided) → advisory OR error (policy driven) and sets `requires_split=true`.
 - Dependencies: no self-reference; all `deps` resolve to existing issue IDs; detect cycles (cycle → error).
 - Acceptance criteria cardinality: > `thresholds.max_acceptance` → warning.
@@ -87,7 +88,7 @@ Single responsibility: determine whether current constructed plan is ready for L
 3. All mandatory enrichment fields populated
 4. Hashes.plan supplied (integrity already checked upstream)
 
-`pending_steps[]` lists any unmet enrichment category if not ready (e.g., `["estimation","acceptance_criteria"]`).
+`pending_steps[]` lists any unmet enrichment category if not ready (e.g., `["requirements","acceptance_criteria"]`).
 
 ## Output Schema
 
@@ -97,7 +98,7 @@ Single responsibility: determine whether current constructed plan is ready for L
     {
       "severity": "error|warning",
       "code": "MISSING_SECTION",
-      "message": "Issue ISS-002 missing Definition of Done",
+      "message": "Issue ISS-002 missing Acceptance Criteria",
       "issue_id": "ISS-002"
     }
   ],

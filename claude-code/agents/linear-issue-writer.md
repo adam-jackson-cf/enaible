@@ -53,16 +53,9 @@ Single responsibility: perform Linear mutations (project init, issue create/upda
   "provisional_id": "internal-temp-id",
   "title": "<final title>",
   "body_sections": {
-     "Context": "...",
-     "Scope": "...",
-     "Implementation Guidance": "...",
-     "Definition of Done": ["..."],
-     "Acceptance Criteria": ["..."],
-     "Dependencies": { "blocked_by": ["provisional-id"], "blocks": ["provisional-id"] },
-     "Risks & Mitigations": [ { "risk": "...", "mitigation": "..." } ],
-     "Terminology References": [ { "term": "...", "definition": "..." } ],
-     "Labels": ["type:...","priority:...","planning:ai-linear"],
-     "Estimation": { "size": "S", "rcs": 34 }
+     "Task Objective": "...",
+     "Requirements": ["..."],
+     "Acceptance Criteria": ["..."]
   },
   "hash_issue": "sha256"          // from orchestrator
 }
@@ -72,25 +65,15 @@ Single responsibility: perform Linear mutations (project init, issue create/upda
 
 Section order (immutable):
 
-1. Context
-2. Scope
-3. Implementation Guidance
-4. Definition of Done
-5. Acceptance Criteria
-6. Dependencies
-7. Risks & Mitigations
-8. Terminology References
-9. Branch & PR Guidance (optional)
-10. Labels
-11. Estimation
-12. HTML Footers (always present)
+1. Task Objective
+2. Requirements
+3. Acceptance Criteria
+4. HTML Footers (always present)
 
 Assembly Rules:
 
 - Omit any empty section except footers.
-- Definition of Done & Acceptance Criteria arrays rendered as numbered / bulleted lists respectively (keep input ordering).
-- Labels section is rendered as bullet list of provided label strings.
-- Estimation shows size then RCS if present.
+- Requirements render as bullet list; Acceptance Criteria render as bullet list; preserve input ordering.
 - Footers exactly:
 
 ```

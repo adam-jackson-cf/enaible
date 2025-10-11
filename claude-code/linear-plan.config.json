@@ -72,9 +72,8 @@
     "terminology_drift_threshold": 0.55,
     "contradiction_check": true,
     "style_score_weights": {
-      "title_verb": 0.2,
-      "dod_parallelism": 0.2,
-      "acceptance_specificity": 0.3,
+      "title_verb": 0.3,
+      "acceptance_specificity": 0.4,
       "terminology_consistency": 0.3
     }
   },
@@ -84,17 +83,9 @@
   },
   "issueTemplate": {
     "sections_order": [
-      "Context",
-      "Scope",
-      "Implementation Guidance",
-      "Definition of Done",
-      "Acceptance Criteria",
-      "Dependencies",
-      "Risks & Mitigations",
-      "Terminology References",
-      "Branch & PR Guidance",
-      "Labels",
-      "Estimation"
+      "Task Objective",
+      "Requirements",
+      "Acceptance Criteria"
     ],
     "footer_format": "<!-- plan-hash: {hash} -->\\n<!-- plan-version: 1 -->\\n<!-- project-id: {project_id} -->"
   },

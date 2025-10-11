@@ -45,68 +45,67 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 
 **Validation:** Empty artifact → `EMPTY_ARTIFACT` error
 
-### Step 3: Objective Frame Establishment
+### Step 3: Objective Definition
 
-**Agent:** `@linear-artifact-classifier`
+**Agent:** `@linear-objective-definition`
 
 **Input:** Raw artifact text
 **Output:**
 
 ```json
 {
-  "artifact_type": "prd",
-  "features": ["mfa-auth", "social-login", "session-management"],
-  "constraints": ["no-db-schema-changes", "mobile-compatible"],
-  "assumptions": ["existing-user-base", "sso-provider-available"],
-  "open_questions": ["which-sso-provider", "grace-period-for-migration"]
-}
-```
-
-**Command Action:** Builds `objective` section for final report
-
-### Step 4: Context Harvesting
-
-**Agent:** `@linear-context-harvester`
-
-**Input:** Repository analysis + config
-**Output:**
-
-```json
-{
-  "frameworks": ["react", "node.js", "express"],
-  "languages": ["typescript", "javascript"],
-  "existing_modules": ["auth-service", "user-management"],
-  "infra": ["aws-cognito", "redis-sessions"]
-}
-```
-
-### Step 5: Design Synthesis
-
-**Agent:** `@linear-design-synthesizer`
-
-**Input:** Artifact features + context
-**Output:**
-
-```json
-{
-  "architecture_decisions": [
-    {
-      "decision": "Use AWS Cognito for MFA",
-      "rationale": "Managed service reduces operational overhead"
-    }
+  "task_objective": "Deliver MFA authentication for privileged accounts",
+  "purpose": "Strengthen account security in the core admin console without disrupting existing login flows.",
+  "affected_users": ["admin-operators", "support-analysts"],
+  "requirements": [
+    "Require MFA for admin users on login",
+    "Provide backup codes for recovery",
+    "Support SMS and authenticator app factors"
   ],
-  "foundation_tasks": [
-    { "id": "FT-001", "title": "Set up Cognito user pool" },
-    { "id": "FT-002", "title": "Configure MFA policies" }
+  "constraints": [
+    "No new database tables",
+    "Mobile clients must remain functional"
+  ],
+  "assumptions": ["Cognito tenant available"],
+  "open_questions": [
+    "Do support analysts require MFA on first login?",
+    "Is there an established SMS provider?"
   ]
 }
 ```
 
-### Step 6: Issue Decomposition
+**Command Action:** Persists the structured objective to `linear-objective-definition-output.json`, initializes `cycle_plan_report.json.objective`, and prepares a clarification checklist.
+
+### Step 4: Clarification Loop
+
+**Interaction:** Present the extracted objective summary, requirements, and open questions to the user.
+**Goal:** Capture clarifications before any decomposition.
+
+**Expected Flow:**
+
+1. Render summary (task objective, purpose, affected users).
+2. List requirements and constraints.
+3. Ask the user to answer each `open_questions` item or confirm no updates.
+4. Record clarifications in `cycle_plan_report.json.objective.clarifications[]`:
+
+```json
+{
+  "clarifications": [
+    {
+      "question": "Do support analysts require MFA on first login?",
+      "answer": "Yes, MFA mandatory after first login."
+    }
+  ]
+}
+```
+
+Proceed only after the user explicitly types `proceed`.
+
+### Step 5: Issue Decomposition
 
 **Agent:** `@linear-issue-decomposer`
 
-**Input:** Features + design decisions
+**Input:** Confirmed requirements + user clarifications
 **Output:**
 
 ```json
@@ -116,21 +115,21 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
       "id": "ISS-001",
       "provisional_title": "Implement MFA login flow",
       "category": "feature",
-      "deps": ["FT-001"],
+      "deps": [],
       "parent": null
     },
     {
       "id": "ISS-002",
-      "provisional_title": "Add social login providers",
+      "provisional_title": "Add backup code management",
       "category": "feature",
-      "deps": ["FT-001"],
+      "deps": ["ISS-001"],
       "parent": null
     }
   ]
 }
 ```
 
-### Step 7: Estimation
+### Step 6: Estimation
 
 **Agent:** `@linear-estimation-engine`
 
@@ -156,11 +155,11 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 }
 ```
 
-### Step 8: Acceptance Criteria & Guidance
+### Step 7: Acceptance Criteria
 
 **Agent:** `@linear-acceptance-criteria-writer`
 
-**Input:** Estimated issues + artifact context
+**Input:** Estimated issues + confirmed objective/clarifications
 **Output:**
 
 ```json
@@ -172,22 +171,13 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
         "User can enable MFA via SMS",
         "Backup codes generated",
         "MFA required for admin roles"
-      ],
-      "definition_of_done": [
-        "Unit tests > 80%",
-        "Security review completed",
-        "Documentation updated"
-      ],
-      "implementation_guidance": [
-        "Use Cognito SMS MFA provider",
-        "Implement graceful fallback"
       ]
     }
   ]
 }
 ```
 
-### Step 9: Hashing & Integrity Check
+### Step 8: Hashing & Integrity Check
 
 **Agent:** `@linear-hashing` (compute mode)
 
@@ -217,7 +207,7 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 
 **Critical:** Any `errors` array non-empty → immediate abort (exit 4)
 
-### Step 10: Readiness Validation
+### Step 9: Readiness Validation
 
 **Agent:** `@linear-readiness`
 
@@ -261,48 +251,39 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 - `ready: false` → abort (exit 2) with readiness details
 - `ready: true` → proceed to final report
 
-### Step 11: Final Report Assembly
+### Step 10: Final Report Assembly
 
 **Command Action:** Combine all outputs into canonical `PlanLinearReport`:
 
 ```json
 {
   "PlanLinearReport": {
-    "version": 2,
+    "version": 3,
     "objective": {
-      /* from Step 3 */
+      /* from Step 3 (plus Step 4 clarifications) */
     },
-    "planning": {
-      "decisions": [
+    "issues": {
+      "totals": {
         /* from Step 5 */
-      ],
-      "foundation_tasks": [
-        /* from Step 5 */
-      ],
-      "issue_totals": {
-        "total": 2,
-        "foundation": 0,
-        "feature": 2,
-        "risk": 0
       },
       "complexity": {
-        /* aggregated from Step 7 */
+        /* from Step 6 */
       },
-      "labels": {
-        /* from Step 10 */
-      },
-      "glossary": [
-        /* extracted from artifact */
+      "items": [
+        /* combined output from Steps 5-7 */
       ],
       "dependencies": {
-        /* from issues + suggestions */
-      },
-      "hashes": {
-        /* from Step 9 */
+        /* from Step 5 */
       }
     },
+    "hashes": {
+      /* from Step 8 */
+    },
     "readiness": {
-      /* from Step 10 */
+      /* from Step 9 */
+    },
+    "mutation": {
+      /* present only if Step 11 executed */
     },
     "diff": {
       /* if --diff used */
@@ -311,7 +292,7 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 }
 ```
 
-### Step 12: Optional Mutation (if not `--dry-run`)
+### Step 11: Optional Mutation (if not `--dry-run`)
 
 **Agents:** `@linear-issue-writer` → `@linear-dependency-linker`
 
@@ -351,12 +332,27 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 
 ```json
 {
-  "planning": {
-    "issue_totals": { "total": 3, "feature": 2, "foundation": 1 },
-    "issues": [
-      { "id": "ISS-001", "title": "Set up basic auth", "size": "M" },
-      { "id": "ISS-002", "title": "Add password reset", "size": "S" },
-      { "id": "ISS-003", "title": "Create user profile", "size": "M" }
+  "issues": {
+    "totals": { "total": 3, "feature": 3 },
+    "items": [
+      {
+        "id": "ISS-001",
+        "title": "Set up basic auth",
+        "size": "M",
+        "acceptance_criteria": ["User can log in"]
+      },
+      {
+        "id": "ISS-002",
+        "title": "Add password reset",
+        "size": "S",
+        "acceptance_criteria": ["Users receive reset email"]
+      },
+      {
+        "id": "ISS-003",
+        "title": "Create user profile",
+        "size": "M",
+        "acceptance_criteria": ["User can edit profile"]
+      }
     ]
   }
 }
@@ -554,7 +550,7 @@ fi
           {
             "code": "MISSING_SECTION",
             "issue_id": "ISS-002",
-            "message": "Missing Definition of Done"
+            "message": "Missing Acceptance Criteria"
           }
         ]
       }

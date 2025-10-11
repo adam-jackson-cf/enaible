@@ -1,29 +1,29 @@
 ---
 name: linear-acceptance-criteria-writer
 description: >
-  Use proactively for enriching issues with Acceptance Criteria, Definition of Done, and Implementation Guidance. MUST BE USED for adding quality-focused validation sections to issues in plan-linear workflow to ensure clear completion criteria and implementation guidance.
+  Use proactively for enriching issues with Acceptance Criteria only. MUST BE USED for adding observable validation conditions to issues in plan-linear workflow so completion can be verified unambiguously.
 
   Examples:
-  - Context: Issues estimated and sized, need quality criteria and guidance
-    user: "Add acceptance criteria and implementation guidance to these sized issues"
-    assistant: "I'll use the linear-acceptance-criteria-writer agent to enrich issues with validation criteria"
-    Commentary: Ensures each issue has clear completion criteria and implementation guidance
+  - Context: Issues estimated and sized, need testable outcomes
+    user: "Add acceptance criteria to these sized issues"
+    assistant: "I'll use the linear-acceptance-criteria-writer agent to author the criteria"
+    Commentary: Ensures each issue has clear completion tests
 
-  - Context: Complex technical issues need detailed acceptance criteria
+  - Context: Complex technical issues require specific validation
     user: "Create comprehensive acceptance criteria for the MFA implementation issues"
-    assistant: "Let me use the linear-acceptance-criteria-writer agent to add detailed validation criteria"
-    Commentary: Critical for complex features to ensure proper testing and validation approaches
+    assistant: "Let me use the linear-acceptance-criteria-writer agent to capture the necessary checks"
+    Commentary: Drives alignment on expected outcomes
 
-  - Context: Issues need clear definition of done for team alignment
-    user: "Add definition of done criteria to ensure consistent completion standards"
-    assistant: "I'll use the linear-acceptance-criteria-writer agent to establish clear done criteria"
-    Commentary: Ensures team alignment on what constitutes completed work for each issue
+  - Context: Clarifications must be reflected in validation
+    user: "Reflect the clarified SMS provider decision in the acceptance criteria"
+    assistant: "I'll update the acceptance criteria accordingly"
+    Commentary: Keeps downstream verification consistent with stakeholder direction
 tools: Read, Write, List
 ---
 
 # Role
 
-Add validation-focused sections to each issue without altering existing contextual fields or hashes (hash recomputed downstream including these new fields where required).
+Add validation-focused acceptance criteria to each issue without altering existing contextual fields or hashes (hash recomputed downstream including these new fields where required).
 
 ## Inputs
 
@@ -40,8 +40,7 @@ Add validation-focused sections to each issue without altering existing contextu
 
 - 3–7 acceptance criteria per issue (foundation 2–5 if limited scope).
 - Each criterion: observable, testable, binary.
-- Definition of Done: shared baseline + category-specific additions (e.g., foundation includes instrumentation added; feature includes user docs updated).
-- Implementation Guidance: only concrete hints (modules, patterns) derived from context; avoid repeating Scope.
+- Integrate clarifications and constraints verbatim; note outstanding questions as blockers if they prevent verifiable criteria.
 
 ## Output Schema
 
@@ -50,9 +49,7 @@ Add validation-focused sections to each issue without altering existing contextu
   "issues": [
     {
       "id": "ISS-001",
-      "acceptance_criteria": ["When X, Y is persisted"],
-      "definition_of_done": ["Unit tests added"],
-      "implementation_guidance": ["Modify module alpha/service.py"]
+      "acceptance_criteria": ["When X, Y is persisted"]
     }
   ]
 }
