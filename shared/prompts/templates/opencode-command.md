@@ -23,6 +23,15 @@ FILE REFERENCES:
   @path includes file or directory contents in context (e.g., @shared/tests, @pytest.ini)
 -->
 
+---
+
+description: <!-- one-line summary shown in slash picker -->
+agent: <!-- build | plan | <custom-agent-name> -->
+model: <!-- optional model override (e.g., anthropic/claude-3-5-sonnet-20241022) -->
+subtask: <!-- true | false -->
+
+---
+
 # Purpose
 
 State the objective in one sentence. Be direct and outcome-focused.
@@ -64,3 +73,21 @@ Provide results in this exact structure:
 ## Report
 
 List concise facts to confirm completion (paths, counts, statuses, timings).
+
+## Examples (optional)
+
+```bash
+# 1) Minimal invocation
+/<command-name>
+
+# 2) With a specific target argument used in the workflow
+/<command-name> ./shared/tests
+
+# 3) With @file and @dir references for added context
+/<command-name> @shared/tests/unit @pytest.ini
+
+# 4) Switch agent (set in frontmatter) for read-only planning vs build
+#    agent: plan | build | <custom>
+```
+
+## Examples (optional)

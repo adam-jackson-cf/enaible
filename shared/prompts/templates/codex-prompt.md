@@ -50,3 +50,18 @@ Provide results in this exact structure:
 ## Report
 
 List concise facts to confirm completion (paths, counts, statuses).
+
+## Examples (optional)
+
+```bash
+# 1) Minimal
+/plan core "import optimizer"
+
+# 2) Quoted args with spaces (affects $1/$2)
+/plan "core api" "import optimizer"
+
+# 3) Provide extra context via pasted code blocks or references
+#    (Codex prompt files don’t support @file injection; include snippets inline.)
+```
+
+## Examples (optional)
