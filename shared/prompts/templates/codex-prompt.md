@@ -15,19 +15,22 @@ State the objective in one sentence. Be direct and outcome-focused.
 
 ## Environment checks (optional)
 
-workflow should immediately exit if any of these conditions fail
+These are examples of env checks, some prompts will have no env checks, only create env checks where the prompt requires it - but do include a sentence oulining immediate exit if you include an env check section. Env checks are items required for a prompt workflow beyond its standard practice or available tools, which may not be supplied by a user request or argument.
 
 - Python available: !`python --version`
-- Target path readable: !`test -r "${1:-.}" && echo target-ok || echo target-missing`
 - Imports resolve (when using analyzer scripts): !`PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`
 - Runner help (optional): !`PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --help | head -n 5`
-- Script resolution (when needed): resolve `SCRIPT_PATH` from project → user → prompt; then set `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"`.
-- Permissions alignment: ensure `allowed-tools` include any Bash patterns used above (e.g., `Bash(which python:*)`, `Bash(ls:*)`, `Bash(find:*)`, `Bash(python -c:*)`, `Bash(python -m core.cli.run_analyzer:*)`).
+- Script resolution: resolve `SCRIPT_PATH` from project → user → prompt; then set `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"`
 
 ## Variables
 
-- Define inputs and their sources (e.g., from $ARGUMENTS or context).
-- Example: FEATURE_NAME, FILE_PATH, STRICT
+- Bind positional arguments to explicit names for clarity:
+  - $1 → AREA (e.g., core|api|ui)
+  - $2 → FEATURE (short name)
+  - $3 → OPTION (e.g., strict|fast)
+  - $4..$9 → optional extras (document if used)
+  - $ARGUMENTS → full raw argument string (space-joined)
+- Rename AREA/FEATURE/OPTION to suit your prompt; do not print the variable names in the final output.
 
 ## Instructions
 
@@ -42,25 +45,36 @@ workflow should immediately exit if any of these conditions fail
 3. Perform the core task deterministically.
 4. Save/emit artifacts and verify results.
 
-## Output Format
+## Output Contract
 
-Provide results in this exact structure:
+Use this structure for the final deliverable. Do not include the contract text, comments, or any example blocks in your response.
+
+- Top-level sections: `# RESULT`, `## DETAILS`
+- RESULT contains a single “Summary:” line (concise, one sentence)
+- DETAILS contains bullets describing:
+  - What changed
+  - Where it changed (files/paths)
+  - How to verify (exact commands or steps)
+
+## Example (do not copy verbatim)
 
 ```md
 # RESULT
 
-- Summary: <one line>
+- Summary: Produced a concrete TODO plan for the import optimizer feature.
 
 ## DETAILS
 
-- What changed
-- Where it changed
-- How to verify
+- What changed: Added tasks for src/core/optimizer.ts and tests
+- Where it changed: src/core/optimizer.ts, tests/core/optimizer.test.ts
+- How to verify: run bunx tsc --noEmit and bun run test
 ```
 
-## Report
+## Response Rules
 
-List concise facts to confirm completion (paths, counts, statuses).
+- Output only the deliverable in the contract shape above.
+- Do not include this section, explanations, or any example text.
+- Replace all placeholders with concrete values; do not print angle brackets.
 
 ## Examples (optional)
 
