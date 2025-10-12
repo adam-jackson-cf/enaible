@@ -1,10 +1,11 @@
 <!--
   Template Guidance:
   - Comments exist for author direction only; do NOT copy them into prompt outputs.
-  - prompt_template is the format to implement
-  - prompt_example shows examples of good using the propmt_template format
-  - add environmental / preflight checks in workflows is only necessary for requirements not supplied by the user or project - but a base level of
-  capability should be assumed e.g. that node, npm and python is available - but specific scripts location, library or configs should not
+  - prompt_template is the format to implement.
+  - prompt_example shows examples of prompt_template usage.
+  - Add preflight checks inside the Workflow section only when supplementary requirements are needed beyond baseline tooling.
+  - Templates may include rule directives using <!-- rule: ... --> comments; render-prompts.sh enforces them when generating command variants.
+
 -->
 
 <prompt_template>

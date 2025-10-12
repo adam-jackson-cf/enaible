@@ -2,6 +2,19 @@
 <!-- Docs: https://docs.claude.com/en/docs/claude-code/slash-commands -->
 
 <!--
+Claude specific items
+  Rules:
+    User level ~/.claude/CLAUDE.md
+    Project level ./CLAUDE.md
+  Directories:
+    User level ~/.claude
+    Project level ./.claude
+  Settings:
+    User level  ~/.claude/settings.json
+    Project level ./.claude/settings.local.json
+  Mcp config:
+    User level ~/.claude.json
+
 FRONTMATTER (define these in real YAML frontmatter when instantiating):
   allowed-tools: Bash(git add:*), Bash(git status:*), Bash(git commit:*), Bash(git log:*), Bash(git diff:*); Read(./path|glob); Write(./path|glob); Edit(./path|glob); MultiEdit(./path|glob); NotebookEdit(./path|glob); NotebookRead(./path|glob); Grep; Glob; Task; TodoWrite; WebFetch; WebSearch; Write; MCP tools by exact name: mcp__server, mcp__server__tool (no wildcards)
   argument-hint: [type] [scope] [message]
