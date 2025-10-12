@@ -17,8 +17,6 @@ TARGET_PATH=""
 # Global arrays for installation log tracking
 PRE_EXISTING_PYTHON=()
 NEWLY_INSTALLED_PYTHON=()
-PRE_EXISTING_MCP=()
-NEWLY_INSTALLED_MCP=()
 
 # Usage and help
 show_usage() {
@@ -56,13 +54,12 @@ DESCRIPTION:
     the .opencode directory structure and any user-added files:
 
     - Removes workflow command files
+    - Removes agent prompt files
     - Removes analysis scripts
     - Removes rule files
+    - Cleans up auxiliary files (configs, tooling)
     - Removes sections from agents.md
     - Optionally removes Python packages (interactive)
-    - Optionally removes MCP servers (interactive)
-
-    Creates backup of MCP configuration before making changes.
 EOF
 }
 
@@ -140,17 +137,17 @@ find_opencode_installation() {
     local our_files_found=0
 
     # Check for our command files
-    if [[ -f "$OPENCODE_DIR/command/analyze-security.md" ]]; then
+    if [[ -f "$OPENCODE_DIR/command/plan-solution.md" ]]; then
         ((our_files_found++))
     fi
 
     # Check for our scripts
-    if [[ -d "$OPENCODE_DIR/scripts/analyze" ]]; then
+    if [[ -d "$OPENCODE_DIR/scripts/core" ]] || [[ -d "$OPENCODE_DIR/scripts/analyzers" ]]; then
         ((our_files_found++))
     fi
 
     # Check for our rules
-    if [[ -f "$OPENCODE_DIR/rules/prototype.md" ]]; then
+    if [[ -f "$OPENCODE_DIR/rules/global.opencode.rules.md" ]]; then
         ((our_files_found++))
     fi
 
@@ -174,16 +171,19 @@ remove_command_files() {
 
     # List of our command files (OpenCode has 19 commands)
     local our_commands=(
+        "add-code-precommit-checks.md"
         "analyze-architecture.md"
         "analyze-code-quality.md"
         "analyze-performance.md"
         "analyze-root-cause.md"
         "analyze-security.md"
         "apply-rule-set.md"
-        "create-command.md"
+        "codify-opencode-history.md"
         "create-project.md"
         "create-rule.md"
         "create-session-notes.md"
+        "get-primer.md"
+        "get-recent-context.md"
         "improve-gpt5-prompt.md"
         "plan-refactor.md"
         "plan-solution.md"
@@ -191,10 +191,8 @@ remove_command_files() {
         "setup-dev-monitoring.md"
         "setup-package-monitoring.md"
         "todo-background.md"
-        "todo-orchestrate.md"
-        "todo-primer.md"
-        "todo-recent-context.md"
-        "todo-worktree.md"
+        "todo-build-worktree.md"
+        "todo-build.md"
     )
 
     local files_to_remove=()
@@ -242,6 +240,88 @@ remove_command_files() {
     fi
 }
 
+# Remove agent prompt files
+remove_agent_files() {
+    log "Checking for agent prompt files..."
+
+    if [[ ! -d "$OPENCODE_DIR/agent" ]]; then
+        log_verbose "No agent directory found"
+        return 0
+    fi
+
+    local our_agents=(
+        "command-executor.md"
+        "docker-expert.md"
+        "docs-scraper.md"
+        "documenter.md"
+        "git-action-expert.md"
+        "git-manager.md"
+        "log-monitor.md"
+        "market-analyst.md"
+        "plan-manager.md"
+        "problem-escalation.md"
+        "python-expert.md"
+        "quality-monitor.md"
+        "rag-architecture-expert.md"
+        "research-coordinator.md"
+        "senior-developer.md"
+        "solution-validator.md"
+        "technical-researcher.md"
+        "terraform-gcp-expert.md"
+        "typescript-expert.md"
+        "user-researcher.md"
+        "ux-designer.md"
+        "ux-reviewer.md"
+    )
+
+    local files_to_remove=()
+    for agent in "${our_agents[@]}"; do
+        if [[ -f "$OPENCODE_DIR/agent/$agent" ]]; then
+            files_to_remove+=("$agent")
+        fi
+    done
+
+    if [[ ${#files_to_remove[@]} -eq 0 ]]; then
+        log "No agent prompt files found to remove"
+        return 0
+    fi
+
+    echo ""
+    echo "Found ${#files_to_remove[@]} agent prompt files:"
+    for file in "${files_to_remove[@]}"; do
+        echo "  - agent/$file"
+    done
+    echo ""
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log "Would remove ${#files_to_remove[@]} agent prompt files"
+        return 0
+    fi
+
+    read -p "Remove these agent prompt files? (y/n): " -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        local removed_count=0
+        for file in "${files_to_remove[@]}"; do
+            if rm "$OPENCODE_DIR/agent/$file" 2>/dev/null; then
+                log_verbose "Removed agent file: $file"
+                ((removed_count++))
+            else
+                log_error "Failed to remove agent file: $file"
+            fi
+        done
+
+        if [[ -d "$OPENCODE_DIR/agent" ]] && [[ -z "$(ls -A "$OPENCODE_DIR/agent")" ]]; then
+            rmdir "$OPENCODE_DIR/agent" 2>/dev/null && log_verbose "Removed empty agent directory"
+        fi
+
+        log "Removed $removed_count agent prompt files"
+    else
+        log "Skipped removing agent prompt files"
+    fi
+}
+
 # Remove script directories
 remove_script_directories() {
     log "Checking for analysis script directories..."
@@ -253,10 +333,15 @@ remove_script_directories() {
 
     # List of our script directories and files
     local our_scripts=(
-        "scripts/analyze/"
-        "scripts/setup/"
-        "scripts/utils/"
-        "scripts/run_all_analysis.py"
+        "scripts/analyzers"
+        "scripts/config"
+        "scripts/context"
+        "scripts/core"
+        "scripts/generators"
+        "scripts/setup"
+        "scripts/utils"
+        "scripts/web_scraper"
+        "eslint"
     )
 
     local items_to_remove=()
@@ -326,6 +411,60 @@ remove_script_directories() {
     fi
 }
 
+# Remove miscellaneous helper files
+remove_misc_files() {
+    log "Checking for auxiliary workflow files..."
+
+    local candidates=(
+        "installation-log.txt"
+        "linear-plan.config.json"
+        "opencode.json"
+        "plugin"
+    )
+
+    local files_to_remove=()
+    for item in "${candidates[@]}"; do
+        if [[ -e "$OPENCODE_DIR/$item" ]]; then
+            files_to_remove+=("$item")
+        fi
+    done
+
+    if [[ ${#files_to_remove[@]} -eq 0 ]]; then
+        log "No auxiliary workflow files found to remove"
+        return 0
+    fi
+
+    echo ""
+    echo "Found ${#files_to_remove[@]} auxiliary files:"
+    for item in "${files_to_remove[@]}"; do
+        echo "  - $item"
+    done
+    echo ""
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        log "Would remove ${#files_to_remove[@]} auxiliary files"
+        return 0
+    fi
+
+    read -p "Remove these auxiliary files? (y/n): " -n 1 -r
+    echo
+
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        local removed_count=0
+        for item in "${files_to_remove[@]}"; do
+            if rm -rf "$OPENCODE_DIR/$item" 2>/dev/null; then
+                log_verbose "Removed auxiliary file: $item"
+                ((removed_count++))
+            else
+                log_error "Failed to remove auxiliary file: $item"
+            fi
+        done
+        log "Removed $removed_count auxiliary files"
+    else
+        log "Skipped removing auxiliary files"
+    fi
+}
+
 # Remove rule files
 remove_rule_files() {
     log "Checking for rule files..."
@@ -337,8 +476,10 @@ remove_rule_files() {
 
     # List of our rule files
     local our_rules=(
-        "prototype.md"
-        "tdd.md"
+        "global.opencode.rules.md"
+        "minimal.intrusion.rules.md"
+        "rapid.prototype.rules.md"
+        "tdd.rules.md"
     )
 
     local files_to_remove=()
@@ -442,27 +583,6 @@ remove_agents_md_sections() {
     fi
 }
 
-# Backup MCP server configuration
-backup_mcp_config() {
-    log "Creating backup of MCP server configuration..."
-
-    # Check if Claude CLI is available
-    if ! command -v claude &> /dev/null; then
-        log_verbose "Claude CLI not found, skipping MCP backup"
-        return 0
-    fi
-
-    # Create backup of MCP server list
-    local backup_file="/tmp/claude-mcp-servers-backup-$(date +%Y%m%d_%H%M%S).txt"
-
-    if claude mcp list > "$backup_file" 2>/dev/null; then
-        log "MCP server configuration backed up to: $backup_file"
-        echo "MCP backup saved at: $backup_file"
-    else
-        log_verbose "Failed to backup MCP configuration (this is non-critical)"
-    fi
-}
-
 # Read installation log for better removal warnings
 read_installation_log() {
     local log_file="$OPENCODE_DIR/installation-log.txt"
@@ -470,8 +590,6 @@ read_installation_log() {
     # Initialize arrays
     PRE_EXISTING_PYTHON=()
     NEWLY_INSTALLED_PYTHON=()
-    PRE_EXISTING_MCP=()
-    NEWLY_INSTALLED_MCP=()
 
     if [[ ! -f "$log_file" ]]; then
         log_verbose "No installation log found, using default warnings"
@@ -490,12 +608,6 @@ read_installation_log() {
             "[NEWLY_INSTALLED_PYTHON_PACKAGES]")
                 in_section="new_python"
                 ;;
-            "[PRE_EXISTING_MCP_SERVERS]")
-                in_section="pre_mcp"
-                ;;
-            "[NEWLY_INSTALLED_MCP_SERVERS]")
-                in_section="new_mcp"
-                ;;
             "["*"]")
                 in_section=""
                 ;;
@@ -508,12 +620,6 @@ read_installation_log() {
                         "new_python")
                             NEWLY_INSTALLED_PYTHON+=("$line")
                             ;;
-                        "pre_mcp")
-                            PRE_EXISTING_MCP+=("$line")
-                            ;;
-                        "new_mcp")
-                            NEWLY_INSTALLED_MCP+=("$line")
-                            ;;
                     esac
                 fi
                 ;;
@@ -521,7 +627,6 @@ read_installation_log() {
     done < "$log_file"
 
     log_verbose "Found installation log: ${#PRE_EXISTING_PYTHON[@]} pre-existing Python packages, ${#NEWLY_INSTALLED_PYTHON[@]} newly installed"
-    log_verbose "Found installation log: ${#PRE_EXISTING_MCP[@]} pre-existing MCP servers, ${#NEWLY_INSTALLED_MCP[@]} newly installed"
 }
 
 # Interactive Python package removal
@@ -529,21 +634,40 @@ remove_python_packages() {
     log "Checking for Python packages to remove..."
 
     # Check if requirements.txt exists in our script directory
-    local requirements_file="$SCRIPT_DIR/opencode/scripts/setup/requirements.txt"
-    if [[ ! -f "$requirements_file" ]]; then
-        log_verbose "No requirements.txt found, skipping Python package removal"
+    local requirement_files=()
+    if [[ -f "$OPENCODE_DIR/scripts/setup/requirements.txt" ]]; then
+        requirement_files+=("$OPENCODE_DIR/scripts/setup/requirements.txt")
+    fi
+    if [[ -f "$OPENCODE_DIR/scripts/setup/ci/requirements.txt" ]]; then
+        requirement_files+=("$OPENCODE_DIR/scripts/setup/ci/requirements.txt")
+    fi
+
+    if [[ ${#requirement_files[@]} -eq 0 ]]; then
+        log_verbose "No requirements files found, skipping Python package removal"
         return 0
     fi
 
-    # Extract package names from requirements.txt (remove version constraints)
+    # Extract package names from requirements files (remove version constraints)
     local packages=()
-    while IFS= read -r line; do
-        # Skip empty lines and comments
-        [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
-        # Extract package name (everything before ==, >=, etc.)
-        local pkg=$(echo "$line" | sed 's/[>=<].*//' | tr -d ' ')
-        [[ -n "$pkg" ]] && packages+=("$pkg")
-    done < "$requirements_file"
+    for requirements_file in "${requirement_files[@]}"; do
+        while IFS= read -r line; do
+            [[ -z "$line" || "$line" =~ ^[[:space:]]*# ]] && continue
+            local pkg=$(echo "$line" | sed 's/[>=<].*//' | tr -d ' ')
+            [[ -n "$pkg" ]] && packages+=("$pkg")
+        done < "$requirements_file"
+    done
+
+    if [[ ${#packages[@]} -gt 0 ]]; then
+        local unique_packages=()
+        declare -A seen_pkgs=()
+        for pkg in "${packages[@]}"; do
+            if [[ -z "${seen_pkgs[$pkg]:-}" ]]; then
+                unique_packages+=("$pkg")
+                seen_pkgs[$pkg]=1
+            fi
+        done
+        packages=("${unique_packages[@]}")
+    fi
 
     if [[ ${#packages[@]} -eq 0 ]]; then
         log "No Python packages found in requirements.txt"
@@ -650,119 +774,6 @@ remove_python_packages() {
 }
 
 # Interactive MCP server removal
-remove_mcp_servers() {
-    log "Checking for MCP servers to remove..."
-
-    # Check if Claude CLI is available
-    if ! command -v claude &> /dev/null; then
-        log_verbose "Claude CLI not found, skipping MCP server removal"
-        return 0
-    fi
-
-    # List of MCP servers we install
-    local our_mcp_servers=(
-        "sequential-thinking"
-        "grep"
-    )
-
-    # Check which of our servers are installed
-    local installed_servers=()
-    for server in "${our_mcp_servers[@]}"; do
-        if claude mcp list 2>/dev/null | grep -q "^$server"; then
-            installed_servers+=("$server")
-        fi
-    done
-
-    if [[ ${#installed_servers[@]} -eq 0 ]]; then
-        log "No AI-Assisted Workflows MCP servers found to remove"
-        return 0
-    fi
-
-    echo ""
-    echo "Found ${#installed_servers[@]} MCP servers that were installed by AI-Assisted Workflows:"
-
-    # Categorize servers based on installation log
-    local pre_existing_servers=()
-    local newly_installed_servers=()
-    local unknown_servers=()
-
-    for server in "${installed_servers[@]}"; do
-        if [[ ${#PRE_EXISTING_MCP[@]} -gt 0 ]] && [[ " ${PRE_EXISTING_MCP[*]} " =~ " $server " ]]; then
-            pre_existing_servers+=("$server")
-        elif [[ ${#NEWLY_INSTALLED_MCP[@]} -gt 0 ]] && [[ " ${NEWLY_INSTALLED_MCP[*]} " =~ " $server " ]]; then
-            newly_installed_servers+=("$server")
-        else
-            unknown_servers+=("$server")
-        fi
-    done
-
-    # Show servers with appropriate warnings
-    if [[ ${#newly_installed_servers[@]} -gt 0 ]]; then
-        echo ""
-        echo "🔧 Newly installed by AI-Assisted Workflows (safer to remove):"
-        for server in "${newly_installed_servers[@]}"; do
-            echo "  - $server"
-        done
-    fi
-
-    if [[ ${#pre_existing_servers[@]} -gt 0 ]]; then
-        echo ""
-        echo "⚠️  Pre-existing servers (likely used by other projects - CAUTION advised):"
-        for server in "${pre_existing_servers[@]}"; do
-            echo "  - $server"
-        done
-    fi
-
-    if [[ ${#unknown_servers[@]} -gt 0 ]]; then
-        echo ""
-        echo "❓ Unknown status servers (no installation log available):"
-        for server in "${unknown_servers[@]}"; do
-            echo "  - $server"
-        done
-    fi
-
-    echo ""
-    echo "⚠️  WARNING: These MCP servers may be used by other projects or workflows!"
-    echo "    Pre-existing servers were already installed before AI-Assisted Workflows."
-    echo ""
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log "Would prompt to remove ${#installed_servers[@]} MCP servers"
-        return 0
-    fi
-
-    local removed_count=0
-    for server in "${installed_servers[@]}"; do
-        # Show appropriate warning based on server status
-        local warning=""
-        if [[ ${#PRE_EXISTING_MCP[@]} -gt 0 ]] && [[ " ${PRE_EXISTING_MCP[*]} " =~ " $server " ]]; then
-            warning=" (⚠️  PRE-EXISTING - likely used elsewhere)"
-        elif [[ ${#NEWLY_INSTALLED_MCP[@]} -gt 0 ]] && [[ " ${NEWLY_INSTALLED_MCP[*]} " =~ " $server " ]]; then
-            warning=" (🔧 newly installed by workflows)"
-        fi
-
-        echo -n "Remove MCP server '$server'$warning? (y/n): "
-        read -n 1 -r
-        echo
-
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            if claude mcp remove "$server" &>/dev/null; then
-                log_verbose "Removed MCP server: $server"
-                ((removed_count++))
-            else
-                log_error "Failed to remove MCP server: $server"
-            fi
-        else
-            log_verbose "Skipped MCP server: $server"
-        fi
-    done
-
-    if [[ $removed_count -gt 0 ]]; then
-        log "Removed $removed_count MCP servers"
-    else
-        log "No MCP servers were removed"
-    fi
-}
 
 # Parse command line arguments
 parse_arguments() {
@@ -807,11 +818,12 @@ show_summary() {
     echo ""
     echo "What was processed:"
     echo "  ✓ Workflow command files checked/removed"
+    echo "  ✓ Agent prompt files checked/removed"
     echo "  ✓ Analysis script directories checked/removed"
+    echo "  ✓ Auxiliary files cleaned up"
     echo "  ✓ Rule files checked/removed"
     echo "  ✓ agents.md sections checked/removed"
     echo "  ✓ Python packages offered for removal"
-    echo "  ✓ MCP servers offered for removal"
     echo ""
     echo "The .opencode directory structure has been preserved."
     echo "Check the log for details: $LOG_FILE"
@@ -837,9 +849,6 @@ main() {
     # Read installation log for better removal warnings
     read_installation_log
 
-    # Backup MCP configuration first
-    backup_mcp_config
-
     echo ""
     echo "🧹 AI-Assisted Workflows Uninstaller"
     echo "===================================="
@@ -864,36 +873,12 @@ main() {
 
     # Remove components
     remove_command_files
+    remove_agent_files
     remove_script_directories
+    remove_misc_files
     remove_rule_files
     remove_agents_md_sections
     remove_python_packages
-    remove_mcp_servers
-
-    # Remove opencode.json if it exists
-    if [[ -f "$OPENCODE_DIR/opencode.json" ]]; then
-        echo ""
-        echo "Found opencode.json configuration file:"
-        echo "  - opencode.json"
-        echo ""
-
-        if [[ "$DRY_RUN" == "true" ]]; then
-            log "Would remove opencode.json"
-        else
-            read -p "Remove opencode.json? (y/n): " -n 1 -r
-            echo
-
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                if rm "$OPENCODE_DIR/opencode.json" 2>/dev/null; then
-                    log "Removed opencode.json"
-                else
-                    log_error "Failed to remove opencode.json"
-                fi
-            else
-                log "Skipped removing opencode.json"
-            fi
-        fi
-    fi
 
     if [[ "$DRY_RUN" != "true" ]]; then
         show_summary

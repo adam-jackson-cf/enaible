@@ -164,9 +164,25 @@ To safely remove AI-Assisted Workflows components while preserving your configur
 ./opencode/uninstall.sh --verbose
 ```
 
+### For Codex installations:
+
+```bash
+# Preview what would be removed (recommended first step)
+./.codex/uninstall.sh --dry-run
+
+# Uninstall from current directory
+./.codex/uninstall.sh
+
+# Uninstall from specific path
+./.codex/uninstall.sh /path/to/installation
+
+# Verbose output for detailed logging
+./.codex/uninstall.sh --verbose
+```
+
 **Smart Uninstall Features:**
 
-- **📦 Safe Removal**: Only removes workflow components, preserves `.claude`/`.opencode` structure and user files
+- **📦 Safe Removal**: Only removes workflow components, preserves `.claude`/`.opencode`/`.codex` structure and user files
 - **⚠️ Dependency Tracking**: Distinguishes pre-existing vs newly installed Python packages/MCP servers using installation-log.txt
 - **💾 Automatic Backups**: Creates backups of MCP configuration and platform docs before changes
 - **🧹 Thorough Cleanup**: Removes **pycache** folders and empty directories
@@ -176,7 +192,3 @@ The uninstaller will interactively prompt for each Python package and MCP server
 
 - **🔧 Newly installed** by AI-Assisted Workflows (safer to remove)
 - **⚠️ Pre-existing** before installation (likely used by other projects - caution advised)
-
-### For Codex installations:
-
-Codex currently relies on manual uninstallation. Remove the generated assets by deleting your chosen `CODEX_HOME` (for example `~/.codex` or `./.codex`) and its `scripts` directory. If you appended shell helpers during install, remove the related aliases from your shell profile (`~/.zshrc` or `~/.bashrc`). Python dependencies reside in your global environment, so uninstall only the packages you no longer need.
