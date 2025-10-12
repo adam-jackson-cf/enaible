@@ -30,11 +30,11 @@ Execute code quality analysis scripts via Bash tool for measurable quality metri
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/analyzers/quality/"
+   Bash: ls "~/.codex/scripts/analyzers/quality/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/quality/` and `$HOME/.codex/scripts/analyzers/quality/`
+   - List searched locations: `.codex/scripts/analyzers/quality/` and `~/.codex/scripts/analyzers/quality/`
    - Ask user: "Could not locate code_quality analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (complexity_lizard.py)
    - Set SCRIPT_PATH to user-provided location

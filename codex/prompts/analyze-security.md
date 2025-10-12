@@ -23,11 +23,11 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
    2. **Try user-level .codex folder**:
 
       ```bash
-      Bash: ls "$HOME/.codex/scripts/analyzers/security/"
+      Bash: ls "~/.codex/scripts/analyzers/security/"
       ```
 
    3. **Interactive fallback if not found**:
-      - List searched locations: `.codex/scripts/analyzers/security/` and `$HOME/.codex/scripts/analyzers/security/`
+      - List searched locations: `.codex/scripts/analyzers/security/` and `~/.codex/scripts/analyzers/security/`
       - Ask user: "Could not locate security analysis scripts. Please provide full path to the scripts directory:"
       - Validate provided path contains expected scripts (semgrep_analyzer.py, detect_secrets_analyzer.py)
       - Set SCRIPT_PATH to user-provided location

@@ -20,11 +20,11 @@
    2. **Try user-level .codex folder**:
 
       ```bash
-      Bash: ls "$HOME/.codex/scripts/"
+      Bash: ls "~/.codex/scripts/"
       ```
 
    3. **Interactive fallback if not found**:
-      - List searched locations: `.codex/scripts/` and `$HOME/.codex/scripts/`
+      - List searched locations: `.codex/scripts/` and `~/.codex/scripts/`
       - Ask user: "Could not locate analysis scripts. Please provide full path to the scripts directory:"
       - Validate provided path contains expected scripts (quality/complexity_lizard.py, architecture/coupling_analysis.py, performance/performance_baseline.py)
       - Set SCRIPT_PATH to user-provided location

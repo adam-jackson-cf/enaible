@@ -21,11 +21,11 @@ Execute performance analysis scripts via Bash tool for measurable bottleneck det
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/analyzers/performance/"
+   Bash: ls "~/.codex/scripts/analyzers/performance/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/performance/` and `$HOME/.codex/scripts/analyzers/performance/`
+   - List searched locations: `.codex/scripts/analyzers/performance/` and `~/.codex/scripts/analyzers/performance/`
    - Ask user: "Could not locate performance analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (ruff_analyzer.py, analyze_frontend.py, sqlglot_analyzer.py)
    - Set SCRIPT_PATH to user-provided location

@@ -60,11 +60,11 @@
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/setup/monitoring/install_monitoring_dependencies.py"
+   Bash: ls "~/.codex/scripts/setup/monitoring/install_monitoring_dependencies.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/setup/context/` and `$HOME/.codex/scripts/setup/context/`
+   - List searched locations: `.codex/scripts/setup/context/` and `~/.codex/scripts/setup/context/`
    - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
    - Set SCRIPT_PATH to user-provided location

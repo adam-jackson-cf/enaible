@@ -43,11 +43,11 @@ Multiple `--exclude` arguments can be provided to exclude multiple paths.
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/setup/security/"
+   Bash: ls "~/.codex/scripts/setup/security/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/setup/security/` and `$HOME/.codex/scripts/setup/security/`
+   - List searched locations: `.codex/scripts/setup/security/` and `~/.codex/scripts/setup/security/`
    - Ask user: "Could not locate package monitoring setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (setup_package_monitoring.py)
    - Set SCRIPT_PATH to user-provided location

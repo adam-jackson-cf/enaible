@@ -28,12 +28,12 @@ Load the specified rule set file and apply its contained rules to the current se
    **THEN - Try user-level .codex/rules folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/rules/[ARGUMENTS].rules.md"
+   Bash: ls "~/.codex/rules/[ARGUMENTS].rules.md"
    ```
 
    **FINALLY - Interactive fallback if not found**:
 
-   - List searched locations: `.codex/rules/[ARGUMENTS].rules.md` and `$HOME/.codex/rules/[ARGUMENTS].rules.md`
+   - List searched locations: `.codex/rules/[ARGUMENTS].rules.md` and `~/.codex/rules/[ARGUMENTS].rules.md`
    - Ask user: "Could not locate rule file '[ARGUMENTS].rules.md'. Please provide full path to the rule file:"
    - Validate provided path exists and is readable
    - Set RULE_FILE_PATH to user-provided location

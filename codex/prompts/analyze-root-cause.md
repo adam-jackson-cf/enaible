@@ -39,11 +39,11 @@ Execute root cause analysis scripts via Bash tool for systematic investigation:
 2. **Try user-level .codex folder**:
 
    ```bash
-   Bash: ls "$HOME/.codex/scripts/analyzers/root_cause/"
+   Bash: ls "~/.codex/scripts/analyzers/root_cause/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/root_cause/` and `$HOME/.codex/scripts/analyzers/root_cause/`
+   - List searched locations: `.codex/scripts/analyzers/root_cause/` and `~/.codex/scripts/analyzers/root_cause/`
    - Ask user: "Could not locate root cause analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (trace_execution.py, recent_changes.py, error_patterns.py)
    - Set SCRIPT_PATH to user-provided location
