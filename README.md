@@ -693,11 +693,6 @@ These examples give a flavour, explore the repo and find what works for you.
 - Monitoring & logs: docs/monitoring.md
 - Agent orchestration: docs/subagents.md
 - Roadmap: docs/roadmap.md
-- Codex references (official excerpts mirrored in-repo):
-  - codex/docs/config.md
-  - codex/docs/prompts.md
-  - codex/docs/sandbox.md
-  - codex/docs/threads.md
 
 ---
 

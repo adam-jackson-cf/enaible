@@ -370,22 +370,91 @@ update_agents_md() {
   local target="$CODEX_HOME/AGENTS.md"
   local header="# AI-Assisted Workflows (Codex Global Rules) v$SCRIPT_VERSION - Auto-generated, do not edit"
   local src_agents="$SCRIPT_DIR/rules/global.codex.rules.md"
+  local marker="AI-Assisted Workflows (Codex Global Rules)"
   [[ -f "$src_agents" ]] || { vlog "Global Codex rules not found; skipping AGENTS.md update"; return 0; }
 
   if [[ "$DRY_RUN" == true ]]; then
-    log "Would append project AGENTS.md section to $target if not present"
+    if [[ -f "$target" ]] && grep -q "$marker" "$target" 2>/dev/null; then
+      log "Would refresh Codex global rules section in $target"
+    else
+      log "Would append Codex global rules section to $target"
+    fi
     return
   fi
 
   mkdir -p "$CODEX_HOME"
   touch "$target"
-  if grep -qF "$header" "$target" 2>/dev/null; then
-    vlog "AGENTS.md section already exists"
-    return
-  fi
-  {
-    echo ""; echo "$header"; echo ""; cat "$src_agents"
-  } >> "$target"
+
+  TARGET="$target" SRC_AGENTS="$src_agents" HEADER="$header" MARKER="$marker" python <<'PY'
+import os
+from pathlib import Path
+
+target = Path(os.environ["TARGET"])
+header = os.environ["HEADER"].strip()
+marker = os.environ["MARKER"]
+src_rules = Path(os.environ["SRC_AGENTS"]).read_text(encoding="utf-8").strip()
+
+existing = ""
+if target.exists():
+    existing = target.read_text(encoding="utf-8")
+
+existing_norm = existing.replace("\r\n", "\n")
+# Block markers to preserve custom sections before/after Codex rules
+start_marker = "<!-- CODEx_GLOBAL_RULES_START -->"
+end_marker = "<!-- CODEx_GLOBAL_RULES_END -->"
+block = f"{start_marker}\n{header}\n\n{src_rules}\n{end_marker}"
+
+line_ending = "\r\n" if "\r\n" in existing else "\n"
+
+def assemble(prefix: str, suffix: str) -> str:
+    parts = []
+    prefix = prefix.rstrip("\n")
+    suffix = suffix.lstrip("\n")
+    if prefix:
+        parts.append(prefix)
+    parts.append(block)
+    if suffix:
+        parts.append(suffix)
+    return "\n\n".join(parts).strip() + "\n"
+
+updated = None
+
+if start_marker in existing_norm and end_marker in existing_norm:
+    before, rest = existing_norm.split(start_marker, 1)
+    block_and_suffix = rest.split(end_marker, 1)
+    if len(block_and_suffix) == 2:
+        _, suffix = block_and_suffix
+        updated = assemble(before.rstrip(), suffix.lstrip())
+
+if updated is None and marker in existing_norm:
+    idx = existing_norm.find(header)
+    if idx == -1:
+        idx = existing_norm.find(marker)
+    if idx != -1:
+        prefix = existing_norm[:idx].rstrip()
+        remainder = existing_norm[idx + len(header):].lstrip("\n")
+        src_norm = src_rules.strip()
+        suffix = ""
+        if remainder.startswith(src_norm):
+            suffix = remainder[len(src_norm):].lstrip("\n")
+        else:
+            pos = remainder.find(src_norm)
+            if pos != -1:
+                suffix = (remainder[:pos] + remainder[pos + len(src_norm):]).lstrip("\n")
+            else:
+                # Unable to safely identify existing Codex block; leave file untouched
+                updated = existing_norm
+        if updated is None:
+            updated = assemble(prefix, suffix)
+
+if updated is None:
+    prefix = existing_norm.rstrip()
+    updated = assemble(prefix, "")
+
+final = updated.replace("\n", line_ending)
+target.write_text(final, encoding="utf-8")
+PY
+
   log "Updated $target with AI‑Assisted Workflows section"
 }
 

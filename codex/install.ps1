@@ -313,18 +313,77 @@ $globalRules = Join-Path $ScriptDir 'rules\global.codex.rules.md'
 if (Test-Path $globalRules) {
   $targetAgents = Join-Path $CODEX_HOME 'AGENTS.md'
   $header = "# AI-Assisted Workflows (Codex Global Rules) v$VERSION - Auto-generated, do not edit"
+  $marker = "AI-Assisted Workflows (Codex Global Rules)"
+  $startMarker = "<!-- CODEx_GLOBAL_RULES_START -->"
+  $endMarker = "<!-- CODEx_GLOBAL_RULES_END -->"
   if ($DryRun) {
-    Write-Log "Would ensure Codex global rules are present in $targetAgents"
+    if (Test-Path $targetAgents -and ((Get-Content -Raw -Path $targetAgents) -match $marker)) {
+      Write-Log "Would refresh Codex global rules section in $targetAgents"
+    } else {
+      Write-Log "Would append Codex global rules section to $targetAgents"
+    }
   } else {
     if (-not (Test-Path $targetAgents)) { New-Item -ItemType File -Force -Path $targetAgents | Out-Null }
-    $raw = Get-Content -Raw -Path $targetAgents
-    if ($raw -notmatch [regex]::Escape($header)) {
-      Add-Content -Path $targetAgents -Value "`n$header`n"
-      Add-Content -Path $targetAgents -Value (Get-Content -Raw -Path $globalRules)
-      Write-Log "Updated AGENTS.md with Codex global rules"
-    } else {
-      Write-Log "Codex global rules already present in AGENTS.md"
+    $raw = [string]::Empty
+    if (Test-Path $targetAgents) { $raw = Get-Content -Raw -Path $targetAgents }
+    $normalized = $raw -replace "`r`n", "`n"
+    $rulesBody = (Get-Content -Raw -Path $globalRules).Trim()
+    $block = "{0}`n{1}`n`n{2}`n{3}" -f $startMarker, $header, $rulesBody, $endMarker
+
+    function Join-Sections([string]$prefix, [string]$suffix) {
+      $sections = @()
+      if ($prefix.Trim()) { $sections += $prefix.TrimEnd() }
+      $sections += $block
+      if ($suffix.Trim()) { $sections += $suffix.TrimStart() }
+      $joined = ($sections -join "`n`n").TrimEnd() + "`n"
+      return $joined
     }
+
+    $updated = $null
+
+    if ($normalized.Contains($startMarker) -and $normalized.Contains($endMarker)) {
+      $parts = $normalized.Split($startMarker, 2)
+      if ($parts.Length -eq 2) {
+        $afterStart = $parts[1].Split($endMarker, 2)
+        if ($afterStart.Length -eq 2) {
+          $prefixPart = $parts[0]
+          $suffixPart = $afterStart[1]
+          $updated = Join-Sections $prefixPart $suffixPart
+        }
+      }
+    }
+
+    if (-not $updated -and $normalized.Contains($marker)) {
+      $index = $normalized.IndexOf($header)
+      if ($index -lt 0) { $index = $normalized.IndexOf($marker) }
+      if ($index -ge 0) {
+        $prefixPart = $normalized.Substring(0, $index).TrimEnd()
+        $remainder = $normalized.Substring($index + $header.Length).TrimStart("`n".ToCharArray())
+        $rulesTrim = $rulesBody.Trim()
+        $suffixPart = ""
+        if ($remainder.StartsWith($rulesTrim)) {
+          $suffixPart = $remainder.Substring($rulesTrim.Length).TrimStart("`n".ToCharArray())
+        } else {
+          $pos = $remainder.IndexOf($rulesTrim)
+          if ($pos -ge 0) {
+            $suffixPart = ($remainder.Remove($pos, $rulesTrim.Length)).TrimStart("`n".ToCharArray())
+          } else {
+            $updated = $normalized
+          }
+        }
+        if (-not $updated) {
+          $updated = Join-Sections $prefixPart $suffixPart
+        }
+      }
+    }
+
+    if (-not $updated) {
+      $updated = Join-Sections $normalized.TrimEnd() ""
+    }
+
+    $final = $updated -replace "`n", "`r`n"
+    Set-Content -Path $targetAgents -Value $final
+    Write-Log "Updated AGENTS.md with Codex global rules"
   }
 }
 
