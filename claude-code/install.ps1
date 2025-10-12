@@ -392,6 +392,7 @@ function Install-ESLintPackages {
             "eslint-plugin-react" = "^7.32.0"
             "eslint-plugin-import" = "^2.27.0"
             "eslint-plugin-vue" = "^9.0.0"
+            "jscpd" = "^3.5.0"
         }
     } | ConvertTo-Json -Depth 10
 
@@ -479,20 +480,7 @@ function Check-ESLint {
 }
 
 function Test-SecurityTools {
-    Write-Host "Checking security analysis tools (required for semantic analysis)..." -ForegroundColor Yellow
-
-    # Check if Semgrep is available
-    if (-not (Get-Command "semgrep" -ErrorAction SilentlyContinue)) {
-        Write-Host "Semgrep not found, will be installed with Python dependencies..." -ForegroundColor Yellow
-        $script:SEMGREP_MISSING = $true
-    } else {
-        try {
-            $semgrepVersion = & semgrep --version 2>$null
-            Write-Verbose "Found Semgrep $semgrepVersion"
-        } catch {
-            Write-Verbose "Found Semgrep (version unknown)"
-        }
-    }
+    Write-Host "Checking security analysis tools (baseline)..." -ForegroundColor Yellow
 
     # Check if detect-secrets is available
     if (-not (Get-Command "detect-secrets" -ErrorAction SilentlyContinue)) {
@@ -504,19 +492,6 @@ function Test-SecurityTools {
             Write-Verbose "Found detect-secrets $detectSecretsVersion"
         } catch {
             Write-Verbose "Found detect-secrets (version unknown)"
-        }
-    }
-
-    # Check if sqlfluff is available
-    if (-not (Get-Command "sqlfluff" -ErrorAction SilentlyContinue)) {
-        Write-Host "SQLFluff not found, will be installed with Python dependencies..." -ForegroundColor Yellow
-        $script:SQLFLUFF_MISSING = $true
-    } else {
-        try {
-            $sqlfluffVersion = & sqlfluff --version 2>$null
-            Write-Verbose "Found SQLFluff $sqlfluffVersion"
-        } catch {
-            Write-Verbose "Found SQLFluff (version unknown)"
         }
     }
 }

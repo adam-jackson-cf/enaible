@@ -31,7 +31,7 @@ Execute performance analysis scripts via Bash tool for measurable bottleneck det
 3. **Interactive fallback if not found**:
    - List searched locations: `.opencode/scripts/analyzers/performance/` and `$HOME/.config/opencode/scripts/analyzers/performance/`
    - Ask user: "Could not locate performance analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (flake8_performance_analyzer.py, analyze_frontend.py, sqlfluff_analyzer.py)
+   - Validate provided path contains expected scripts (ruff_analyzer.py, analyze_frontend.py, sqlglot_analyzer.py)
    - Set SCRIPT_PATH to user-provided location
 
 **Pre-flight environment check (fail fast if imports not resolved):**

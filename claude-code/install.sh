@@ -292,36 +292,13 @@ check_eslint() {
 }
 
 check_security_tools() {
-    log "Checking security analysis tools (required for semantic analysis)..."
-
-    # Check if Semgrep is available
-    if ! command -v semgrep &> /dev/null; then
-        log "Semgrep not found, will be installed with Python dependencies..."
-        SEMGREP_MISSING=true
-    else
-        local semgrep_version
-        semgrep_version=$(semgrep --version 2>/dev/null || echo "unknown")
-        log_verbose "Found Semgrep $semgrep_version"
-    fi
-
-    # Check if detect-secrets is available
-    if ! command -v detect-secrets &> /dev/null; then
-        log "detect-secrets not found, will be installed with Python dependencies..."
-        DETECT_SECRETS_MISSING=true
-    else
+    log "Checking security analysis tools (baseline)..."
+    if command -v detect-secrets &> /dev/null; then
         local detect_secrets_version
         detect_secrets_version=$(detect-secrets --version 2>/dev/null || echo "unknown")
         log_verbose "Found detect-secrets $detect_secrets_version"
-    fi
-
-    # Check if sqlfluff is available
-    if ! command -v sqlfluff &> /dev/null; then
-        log "SQLFluff not found, will be installed with Python dependencies..."
-        SQLFLUFF_MISSING=true
     else
-        local sqlfluff_version
-        sqlfluff_version=$(sqlfluff --version 2>/dev/null || echo "unknown")
-        log_verbose "Found SQLFluff $sqlfluff_version"
+        log "detect-secrets will be installed with Python dependencies..."
     fi
 }
 
@@ -339,7 +316,7 @@ install_eslint_packages() {
     mkdir -p "$eslint_dir"
     cd "$eslint_dir"
 
-    # Create package.json if it doesn't exist
+    # Create/refresh package.json with required tools
     if [[ ! -f "package.json" ]]; then
         log_verbose "Creating package.json..."
         cat > package.json << EOF
@@ -354,10 +331,17 @@ install_eslint_packages() {
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "eslint-plugin-react": "^7.32.0",
     "eslint-plugin-import": "^2.27.0",
-    "eslint-plugin-vue": "^9.0.0"
+    "eslint-plugin-vue": "^9.0.0",
+    "jscpd": "^3.5.0"
   }
 }
 EOF
+    else
+        # Ensure jscpd is present if package.json already exists
+        if ! grep -q '"jscpd"' package.json; then
+            tmpfile=$(mktemp)
+            awk '{print} /"dependencies"\s*:\s*\{/ && !x {print "    \"jscpd\": \"^3.5.0\","; x=1}' package.json > "$tmpfile" && mv "$tmpfile" package.json
+        fi
     fi
 
     # Install ESLint and required plugins
@@ -408,6 +392,25 @@ verify_eslint_plugins() {
     done
 
     log_verbose "ESLint plugin verification completed"
+}
+
+# Verify jscpd availability (global via npx or locally installed in the ESLint workspace)
+check_jscpd() {
+    log "Checking jscpd installation (copy/paste detector)..."
+    if npx jscpd --version &> /dev/null; then
+        log_verbose "jscpd available via npx"
+        return 0
+    fi
+    local eslint_dir="$INSTALL_DIR/eslint"
+    if [[ -x "$eslint_dir/node_modules/.bin/jscpd" ]] || [[ -x "$eslint_dir/node_modules/.bin/jscpd.cmd" ]]; then
+        log_verbose "jscpd found in local ESLint workspace"
+        return 0
+    fi
+    log "Installing jscpd into ESLint workspace..."
+    ( cd "$eslint_dir" && npm install --no-fund --no-audit --silent jscpd > /tmp/npm_install_jscpd.log 2>&1 ) || {
+        log_error "Failed to install jscpd. See /tmp/npm_install_jscpd.log"
+        return 1
+    }
 }
 
 # Directory setup with custom paths
@@ -1179,6 +1182,7 @@ main() {
     show_phase 6 7 "Installing dependencies"
     install_python_deps
     check_eslint
+    check_jscpd || true
 
     show_phase 7 7 "Verifying installation"
     verify_installation

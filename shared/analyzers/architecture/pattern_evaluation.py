@@ -88,6 +88,8 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
         self._init_architectural_patterns()
         self._init_language_patterns()
         self._init_config_file_patterns()
+        # Cache to reduce repeated Lizard CLI invocations per file
+        self._lizard_cache: dict[str, dict[str, Any]] = {}
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
         """Return metadata about this analyzer."""
@@ -432,6 +434,8 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
 
     def _get_lizard_metrics(self, file_path: str) -> dict[str, Any]:
         """Get Lizard complexity metrics for the file."""
+        if file_path in self._lizard_cache:
+            return self._lizard_cache[file_path]
         try:
             result = subprocess.run(
                 ["lizard", "-C", "999", "-L", "999", "-a", "999", file_path],
@@ -512,6 +516,7 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                         / metrics["total_functions"]
                     )
 
+                self._lizard_cache[file_path] = metrics
                 return metrics
 
         except (
@@ -521,7 +526,9 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
         ):
             pass
 
-        return {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+        metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+        self._lizard_cache[file_path] = metrics
+        return metrics
 
     def _check_complexity_patterns(
         self, content: str, lines: list[str], file_path: str, language: str = "unknown"

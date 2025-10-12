@@ -19,14 +19,15 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ## Workflow
 
 1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `flake8_performance_analyzer.py`, `analyze_frontend.py`, and `sqlfluff_analyzer.py`, then exit if none is provided.
+   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `ruff_analyzer.py`, `analyze_frontend.py`, and `sqlglot_analyzer.py`, then exit if none is provided.
 2. Prepare environment
    - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Run automated analyzers
    - Execute sequentially:
-     - `performance:flake8-perf`
+     - `performance:ruff`
      - `performance:frontend`
-     - `performance:sqlfluff`
+     - `performance:sqlglot`
+     - `performance:semgrep` (universal heuristics; deferred install if missing)
    - Save JSON outputs and note start/end timestamps.
 4. Aggregate findings
    - Parse slow hotspots (function-level metrics, lint warnings, SQL anti-patterns).
@@ -51,9 +52,9 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 | Layer    | Location              | Finding                            | Evidence Source      |
 | -------- | --------------------- | ---------------------------------- | -------------------- |
-| Backend  | api/orders.py#L142    | N+1 query detected                 | performance:sqlfluff |
+| Backend  | api/orders.py#L142    | N+1 query detected                 | performance:sqlglot  |
 | Frontend | src/App.tsx#L88       | Expensive re-render (missing memo) | performance:frontend |
-| Database | migrations/202310.sql | Full table scan on large dataset   | performance:sqlfluff |
+| Database | migrations/202310.sql | Full table scan on large dataset   | performance:sqlglot  |
 
 ## RECOMMENDED ACTIONS
 
@@ -67,9 +68,10 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## ATTACHMENTS
 
-- performance:flake8-perf → <path>
+- performance:ruff → <path>
 - performance:frontend → <path>
-- performance:sqlfluff → <path>
+- performance:sqlglot → <path>
+- performance:semgrep → <path>
 ```
 
 ## Examples

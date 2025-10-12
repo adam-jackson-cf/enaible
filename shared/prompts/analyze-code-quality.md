@@ -26,7 +26,8 @@ Assess code quality by combining automated metrics with architectural review to 
    - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Execute automated analysis
    - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target "$TARGET_PATH" --output-format json`.
-   - Persist the JSON output for later reference.
+   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:jscpd --target "$TARGET_PATH" --output-format json`.
+   - Persist the JSON outputs for later reference.
 4. Interpret metrics
    - Identify hotspots exceeding thresholds (e.g., cyclomatic complexity > 10, function length > 80 lines).
    - Detect duplicated code blocks and high parameter counts.
@@ -69,6 +70,7 @@ Assess code quality by combining automated metrics with architectural review to 
 ## ATTACHMENTS
 
 - quality:lizard report → <path>
+- quality:jscpd report → <path>
 ```
 
 ## Examples

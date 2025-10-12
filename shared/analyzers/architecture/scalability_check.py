@@ -234,6 +234,8 @@ class ScalabilityAnalyzer(BaseAnalyzer):
             "architecture": self.architecture_patterns,
         }
         self._pattern_evaluators = self._build_pattern_evaluators()
+        # Cache for lizard metrics to avoid repeated CLI calls per file
+        self._lizard_cache: dict[str, dict[str, Any]] = {}
 
     def get_analyzer_metadata(self) -> dict[str, Any]:
         """Return metadata about this analyzer."""
@@ -368,6 +370,8 @@ class ScalabilityAnalyzer(BaseAnalyzer):
 
     def _get_lizard_metrics(self, file_path: str) -> dict[str, Any]:
         """Get Lizard complexity metrics for the file."""
+        if file_path in self._lizard_cache:
+            return self._lizard_cache[file_path]
         try:
             result = subprocess.run(
                 ["lizard", "-C", "999", "-L", "999", "-a", "999", file_path],
@@ -410,6 +414,7 @@ class ScalabilityAnalyzer(BaseAnalyzer):
                         / metrics["total_functions"]
                     )
 
+                self._lizard_cache[file_path] = metrics
                 return metrics
 
         except (
@@ -419,7 +424,9 @@ class ScalabilityAnalyzer(BaseAnalyzer):
         ):
             pass
 
-        return {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+        metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+        self._lizard_cache[file_path] = metrics
+        return metrics
 
     def _should_flag_scalability_issue(self, match: "PatternMatchContext") -> bool:
         """Determine if a scalability issue should be flagged based on context."""

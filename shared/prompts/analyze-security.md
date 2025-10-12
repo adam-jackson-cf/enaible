@@ -25,7 +25,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Phase 1 — Automated Security Assessment
    - Execute sequentially:
-     - `security:semgrep`
+     - `security:semgrep` (installs on-demand if permitted)
      - `security:detect_secrets`
    - Summarize findings against OWASP categories.
    - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”

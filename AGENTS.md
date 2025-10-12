@@ -5,8 +5,8 @@ A comprehensive development automation system that combines Claude Code CLI work
 ## Tech Stack
 
 - Languages: Python 3.11+, TypeScript/JavaScript, Bash/Shell, SQL
-- Security Tools: Semgrep, Detect-secrets, Bandit, Safety, SQLFluff
-- Quality Analysis: Flake8, Pylint, Lizard, Radon, McCabe, Vulture
+- Security Tools: Semgrep (deferred), Detect-secrets
+- Quality Analysis: Lizard, Ruff, JSCPD, Pattern Classifier
 - Testing: pytest, pytest-cov, Karma, Jasmine, Custom evaluation frameworks
 - Development Tools: Biome, Ruff, Black, Rich CLI, Click
 - CI/CD: GitHub Actions, Cross-platform workflows
@@ -81,10 +81,10 @@ User Input → Claude Commands → Agent Orchestration → Analysis Tools → Re
 
 ## Dependencies
 
-**Two requirements files serve different purposes:**
+**Dependencies:**
 
 - `requirements-dev.txt` - Minimal CI/testing dependencies (pytest, ruff, mypy)
-- `shared/setup/requirements.txt` - Full framework dependencies (60+ analysis tools)
+- `shared/setup/requirements.txt` - Slim base (lizard, ruff, sqlglot, detect-secrets, infra)
 
 **CI workflow** (`.github/workflows/ci-quality-gates.yml`) - Manually maintained quality gates using dev dependencies for fast execution.
 

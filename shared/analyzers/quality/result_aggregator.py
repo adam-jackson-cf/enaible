@@ -47,18 +47,40 @@ from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
 
 try:
-    from .code_duplication_analyzer import DuplicateMatch
     from .pattern_classifier import (
         PatternMatch,
         PatternSeverity,
     )
-except ImportError:
-    # Handle direct script execution
-    from code_duplication_analyzer import DuplicateMatch
+except ImportError:  # pragma: no cover - fallback for direct execution
     from pattern_classifier import (
         PatternMatch,
         PatternSeverity,
     )
+
+# Provide a lightweight fallback DuplicateMatch type so this module doesn't depend
+# on the removed Python-only duplication analyzer.
+try:
+    # Prefer an import if available (compatibility if legacy module exists)
+    from .code_duplication_analyzer import DuplicateMatch
+except Exception:  # pragma: no cover
+    from dataclasses import dataclass
+
+    @dataclass
+    class _Block:
+        content: str
+        file_path: str
+        start_line: int
+        end_line: int
+
+    @dataclass
+    class DuplicateMatch:
+        similarity_score: float
+        block1: _Block
+        block2: _Block
+        match_type: str
+        confidence: float
+        metadata: dict[str, Any]
+
 
 # Configure logging
 # Only configure basic logging if no handlers exist and use WARNING by default
@@ -508,7 +530,6 @@ class AnalysisAggregator(BaseAnalyzer):
                 "YAML",
             ],
             "dependencies": [
-                "code_duplication_analyzer",
                 "pattern_classifier",
                 "Python standard library (json, datetime, pathlib, collections)",
             ],

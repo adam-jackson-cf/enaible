@@ -211,6 +211,51 @@ copy_python_framework() {
   log "Copied Python framework to $SCRIPTS_ROOT"
 }
 
+# --- Node tools (ESLint + jscpd) setup ---
+check_node() {
+  if ! command -v node >/dev/null 2>&1; then
+    err "Node.js is required for frontend analysis and jscpd. Install from https://nodejs.org"
+    exit 1
+  fi
+  if ! command -v npm >/dev/null 2>&1; then
+    err "npm is required for Node tool installation"
+    exit 1
+  fi
+  vlog "Node $(node --version), npm $(npm --version)"
+}
+
+install_node_tools() {
+  check_node
+  local tools_dir="$CODEX_HOME/eslint"
+  mkdir -p "$tools_dir"
+  cd "$tools_dir"
+  if [[ ! -f package.json ]]; then
+    cat > package.json << 'EOF'
+{
+  "name": "codex-node-tools",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "eslint": "^8.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "eslint-plugin-react": "^7.32.0",
+    "eslint-plugin-import": "^2.27.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "jscpd": "^3.5.0"
+  }
+}
+EOF
+  else
+    if ! grep -q '"jscpd"' package.json; then
+      tmpfile=$(mktemp)
+      awk '{print} /"dependencies"\s*:\s*\{/ && !x {print "    \"jscpd\": \"^3.5.0\","; x=1}' package.json > "$tmpfile" && mv "$tmpfile" package.json
+    fi
+  fi
+  vlog "Installing Node tools (ESLint + jscpd)..."
+  npm install --no-fund --no-audit --silent >> "$LOG_FILE" 2>&1 || { err "npm install failed"; exit 1; }
+}
+
 PYTHON_BIN=""
 select_python() {
   local candidates=(python python3)
@@ -377,6 +422,7 @@ main() {
   copy_prompts_and_rules
   copy_python_framework
   install_python_deps
+  install_node_tools
   ensure_config
   update_agents_md
   inject_shell_helpers

@@ -16,17 +16,18 @@ from analyzers.architecture import (
 # Performance analyzers
 from analyzers.performance import (
     analyze_frontend as _pf,  # noqa: F401
-    flake8_performance_analyzer as _pp,  # noqa: F401
     performance_baseline as _pb,  # noqa: F401
     profile_code as _pc,  # noqa: F401
-    sqlfluff_analyzer as _ps,  # noqa: F401
+    ruff_analyzer as _pr,  # noqa: F401
+    semgrep_analyzer as _pm,  # noqa: F401
+    sqlglot_analyzer as _pg,  # noqa: F401
 )
 
 # Quality analyzers
 from analyzers.quality import (
-    code_duplication_analyzer as _qd,  # noqa: F401
     complexity_lizard as _ql,  # noqa: F401
     coverage_analysis as _qc,  # noqa: F401
+    jscpd_analyzer as _qj,  # noqa: F401
     pattern_classifier as _qp,  # noqa: F401
     result_aggregator as _qa,  # noqa: F401
 )

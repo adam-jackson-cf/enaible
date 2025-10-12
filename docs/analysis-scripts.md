@@ -37,95 +37,28 @@
 | **Go**              | ✅ go test, coverage     | ✅ go build, benchmarks       | ✅ import patterns      | ✅ performance patterns |
 | **Rust**            | ✅ cargo test, tarpaulin | ✅ cargo bench, flamegraph    | ✅ use statements       | ✅ performance patterns |
 | **C#**              | ✅ dotnet test, coverlet | ✅ dotnet build, profiling    | ✅ using statements     | ✅ performance patterns |
-| **SQL**             | ✅ SQLFluff integration  | ✅ Query performance analysis | ✅ Schema dependencies  | ✅ Query optimization   |
+| **SQL**             | ✅ SQLGlot parsing       | ✅ Query performance analysis | ✅ Schema dependencies  | ✅ Query optimization   |
 | **Other Languages** | ✅ Framework detection   | ✅ Language-specific patterns | ✅ Full import analysis | ✅ Performance patterns |
 
-## Python Libraries and Dependencies
+## Base & Deferred Dependencies
 
-### Core Dependencies
+### Python (installed by installer)
 
-- `python-dotenv>=0.19.0` - Environment variable management
-- `requests>=2.25.0` - HTTP requests for external API integrations
-- `pathlib2>=2.3.5` - Backport for older Python versions
+- `lizard` — Cross-language complexity metrics
+- `ruff` — Python linting + performance rules (PERF/C4/B)
+- `sqlglot` — SQL parsing and rule-based analysis
+- `detect-secrets` — Hardcoded secrets detection
+- Lightweight infra: `pyyaml`, `jinja2`, `click`, `rich`, `platformdirs`, `filelock`, `watchdog`
 
-### Web Crawling and Scraping
+### Node (installed by installer)
 
-- `crawl4ai>=0.4.0` - Web crawling and scraping framework
-- `httpx>=0.28.1` - Modern HTTP client for crawl4ai
+- `eslint` + plugins — Frontend/JS/TS analysis
+- `jscpd` — Universal copy/paste detection
 
-### Security Analysis
+### Deferred Tools (installed on demand or detected if present)
 
-- `bandit>=1.7.0` - Python security linting
-- `safety>=2.0.0` - Vulnerability scanning against CVE database
-- `semgrep>=1.45.0` - Semantic static analysis security scanner (replacing bespoke patterns)
-- `detect-secrets>=1.4.0` - Hardcoded secrets detection (replacing regex patterns)
-- `sqlfluff>=2.3.0` - SQL linting and security analysis
-
-### Performance Analysis
-
-- `psutil>=5.8.0` - System and process monitoring utilities
-- `memory-profiler>=0.60.0` - Memory usage profiling and tracking
-- `py-spy>=0.3.0` - Python profiler for performance analysis (Unix only)
-- `perflint>=0.7.0` - Performance anti-pattern detection (PERF error codes)
-- `flake8-comprehensions>=3.10.0` - List/dict comprehension performance rules
-- `flake8-bugbear>=23.3.0` - Bug and performance issue detection
-
-### Code Quality Analysis
-
-- `flake8>=4.0.0` - Python style guide enforcement (PEP 8)
-- `pylint>=2.12.0` - Comprehensive code analysis and linting
-- `radon>=5.1.0` - Code complexity metrics (cyclomatic, halstead)
-- `lizard>=1.17.0` - Advanced complexity analysis for multiple languages
-- `vulture>=2.3` - Dead code detection and cleanup
-- `mccabe>=0.6.0` - Complexity checker for functions
-
-### Architecture Analysis
-
-- `pydeps>=1.10.0` - Dependency analysis and visualization
-- `networkx>=2.6.0` - Graph analysis for architectural patterns
-
-### Development and Testing
-
-- `pytest>=6.2.0` - Python testing framework
-- `pytest-cov>=3.0.0` - Python test coverage measurement
-- `black>=22.0.0` - Opinionated code formatting
-- `isort>=5.10.0` - Import statement organization
-
-### Foundation Layer - Agent Orchestration
-
-- `pyyaml>=6.0` - YAML configuration parsing
-- `jinja2>=3.0.0` - Template rendering for dynamic commands
-- `click>=8.0.0` - CLI framework for command processing
-- `rich>=12.0.0` - Rich terminal output and progress bars
-- `typing-extensions>=4.0.0` - Enhanced type hints for Python <3.9
-
-### Foundation Layer - Cross-Platform Support
-
-- `platformdirs>=2.5.0` - Cross-platform directory detection
-- `shutil-backports>=1.0.0` - Enhanced file operations (Python <3.8)
-- `subprocess32>=3.5.4` - Backport subprocess improvements (Python <3.2)
-
-### Foundation Layer - State Management
-
-- `filelock>=3.8.0` - File-based locking for task coordination
-- `watchdog>=2.1.0` - File system monitoring for dynamic updates
-
-### Foundation Layer - State Management
-
-- `dataclasses>=0.6` - Backport for older Python versions (Python <3.7)
-
-### Frontend Analysis (Required - Node.js)
-
-These dependencies are automatically installed by the installer via npm:
-
-- `eslint@latest` - JavaScript/TypeScript linting
-- `@typescript-eslint/parser@latest` - TypeScript parsing for ESLint
-- `@typescript-eslint/eslint-plugin@latest` - TypeScript-specific linting rules
-- `eslint-plugin-react@latest` - React-specific linting rules
-- `eslint-plugin-react-hooks@latest` - React Hooks linting rules
-- `eslint-plugin-import@latest` - Import/export syntax checking
-- `eslint-plugin-vue@latest` - Vue.js-specific linting rules
-- `eslint-plugin-svelte@latest` - Svelte-specific linting rules
+- `semgrep` — Universal performance/security heuristics
+- Language add‑ons (opt-in): `clang-tidy` (C/C++), PMD (Java), detekt (Kotlin), `golangci-lint` (Go), `cargo clippy` (Rust), Roslyn/.NET analyzers (C#)
 
 ## Analysis Scripts Architecture
 
@@ -141,8 +74,9 @@ shared/
 │   │   ├── profile_code.py
 │   │   ├── performance_baseline.py
 │   │   ├── analyze_frontend.py
-│   │   ├── flake8_performance_analyzer.py
-│   │   └── sqlfluff_analyzer.py
+│   │   ├── ruff_analyzer.py
+│   │   ├── sqlglot_analyzer.py
+│   │   └── semgrep_analyzer.py
 │   ├── architecture/       # Design and architectural analysis
 │   │   ├── dependency_analysis.py
 │   │   ├── coupling_analysis.py
@@ -150,7 +84,7 @@ shared/
 │   │   └── pattern_evaluation.py
 │   ├── quality/           # Code quality and complexity metrics
 │   │   ├── complexity_lizard.py
-│   │   ├── code_duplication_analyzer.py
+│   │   ├── jscpd_analyzer.py
 │   │   ├── coverage_analysis.py
 │   │   ├── pattern_classifier.py
 │   │   └── result_aggregator.py
@@ -205,19 +139,22 @@ shared/
 - React/Vue/Angular specific performance patterns
 - Integration with ESLint performance plugins
 
-**`flake8_performance_analyzer.py`** - Python Performance Anti-patterns
+**`ruff_analyzer.py`** - Python Performance Anti-patterns
 
-- Uses flake8-bugbear and perflint for performance issue detection
-- Identifies inefficient list comprehensions and loops
-- Detects memory leaks and resource management issues
-- PERF error codes for systematic performance improvements
+- Uses Ruff (PERF/C4/B) for performance/efficiency rules
+- Identifies inefficient comprehensions, loops, and constructs
+- Maps codes to actionable recommendations
 
-**`sqlfluff_analyzer.py`** - SQL Performance and Security Analysis
+**`sqlglot_analyzer.py`** - SQL Performance Analysis
 
-- SQL query performance analysis using SQLFluff
-- Identifies inefficient queries and missing indexes
-- SQL security vulnerability detection
-- Multi-dialect SQL support
+- SQL parsing and config-driven anti-pattern detection via SQLGlot
+- Identifies inefficient queries, missing pagination, and N+1 indicators
+- Multi-dialect SQL support with parser-driven heuristics
+
+**`semgrep_analyzer.py`** - Universal Performance Heuristics
+
+- Multi-language performance/best-practice rules via Semgrep
+- Deferred installation; runs when available or auto‑installs if enabled
 
 ### Architecture Analysis (4 Analyzers)
 
@@ -258,12 +195,10 @@ shared/
 - Identifies overly complex functions and classes
 - Supports Python, JavaScript, Java, C++, and more
 
-**`code_duplication_analyzer.py`** - Duplicate Code Detection
+**`jscpd_analyzer.py`** - Duplicate Code Detection
 
-- Identifies code duplication across files and projects
-- Semantic similarity analysis using embeddings
-- Refactoring suggestions for duplicate code elimination
-- Configurable similarity thresholds
+- Universal copy/paste detection using jscpd (Node)
+- Deterministic token-based detection across many languages
 
 **`coverage_analysis.py`** - Test Coverage Analysis
 
@@ -346,7 +281,7 @@ The analysis system leverages proven, established tools rather than bespoke impl
 | **Security**    | detect-secrets              | All text files                | Hardcoded secrets detection      |
 | **Quality**     | Lizard                      | 20+ languages                 | Complexity analysis              |
 | **Performance** | Language-specific profilers | Python, JS/TS, Java, Go, Rust | Performance profiling            |
-| **SQL**         | SQLFluff                    | All SQL dialects              | SQL quality and security         |
+| **SQL**         | SQLGlot                     | All SQL dialects              | SQL quality and performance      |
 | **Frontend**    | ESLint ecosystem            | JavaScript, TypeScript        | Performance and quality          |
 
 ### Language-Specific Analysis
@@ -362,5 +297,5 @@ The analysis system leverages proven, established tools rather than bespoke impl
 | **Go**              | ✅ go test, coverage     | ✅ go build, benchmarks       | ✅ import patterns      | ✅ performance patterns |
 | **Rust**            | ✅ cargo test, tarpaulin | ✅ cargo bench, flamegraph    | ✅ use statements       | ✅ performance patterns |
 | **C#**              | ✅ dotnet test, coverlet | ✅ dotnet build, profiling    | ✅ using statements     | ✅ performance patterns |
-| **SQL**             | ✅ SQLFluff integration  | ✅ Query performance analysis | ✅ Schema dependencies  | ✅ Query optimization   |
+| **SQL**             | ✅ SQLGlot parsing       | ✅ Query performance analysis | ✅ Schema dependencies  | ✅ Query optimization   |
 | **Other Languages** | ✅ Framework detection   | ✅ Language-specific patterns | ✅ Full import analysis | ✅ Performance patterns |

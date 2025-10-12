@@ -140,7 +140,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ## Workflow
 
 1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `flake8_performance_analyzer.py`, `analyze_frontend.py`, and `sqlfluff_analyzer.py`, then exit if none is provided.
+   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `ruff_analyzer.py`, `analyze_frontend.py`, and `sqlglot_analyzer.py`, then exit if none is provided.
 2. Prepare environment
    - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Run automated analyzers

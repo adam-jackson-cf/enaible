@@ -413,7 +413,7 @@ Notes
 - **Best practices compliance evaluation** comparing code patterns against SOLID principles and design standards
 - **Improvement roadmap generation** with specific recommendations and refactoring strategies
 - **Lizard complexity analyzer** provides cyclomatic complexity, function length, and parameter count analysis
-- **Code duplication detection** identifies repeated patterns and refactoring candidates
+- **Code duplication detection (jscpd)** identifies repeated patterns and refactoring candidates
 - **Coverage analysis integration** assesses test quality and testability
 - **Pattern classification** detects anti-patterns and design pattern compliance
 
@@ -494,9 +494,10 @@ Notes
 - **Bottleneck prioritization** ranking optimizations by user experience impact and implementation complexity
 - **Optimization strategy recommendations** with before/after validation approaches and performance benchmarks
 - **User experience context** connecting technical metrics to business impact and user satisfaction
-- **Flake8-perf analyzer** detects Python performance anti-patterns and inefficient code constructs
+- **Ruff analyzer** detects Python performance anti-patterns and inefficient code constructs
 - **Frontend performance analysis** examines bundle size, render optimization, and memory leak patterns
-- **SQLFluff analyzer** identifies database query optimization opportunities and N+1 problems
+- **SQLGlot analyzer** identifies database query optimization opportunities and N+1 problems
+- **Semgrep heuristics (optional)** provide multi-language performance best‑practice checks
 - **Algorithm complexity assessment** profiles CPU/memory usage and identifies optimization candidates
 
 **Benefits**:

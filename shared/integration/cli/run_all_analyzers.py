@@ -33,18 +33,24 @@ class AnalysisRunner:
             # Security (may rely on external tools)
             "security_semgrep": "security:semgrep",
             "security_secrets": "security:detect_secrets",
-            # Performance (may rely on external tools)
-            "performance_frontend": "performance:frontend",
-            "performance_flake8": "performance:flake8-perf",
-            "performance_baseline": "performance:baseline",
-            "performance_sqlfluff": "performance:sqlfluff",
+            # Performance (some rely on external tools)
+            "performance_frontend": "performance:frontend",  # Node (ESLint)
+            "performance_python": "performance:ruff",  # Python
+            "performance_sql": "performance:sqlglot",  # SQL (Python)
+            "performance_semgrep": "performance:semgrep",  # Universal (deferred)
+            "performance_baseline": "performance:baseline",  # Pure Python
             # Code quality
-            "code_quality": "quality:lizard",
-            "code_quality_coverage": "quality:coverage",
+            "quality_lizard": "quality:lizard",
+            "quality_jscpd": "quality:jscpd",  # Node (jscpd)
+            "quality_coverage": "quality:coverage",
             # Architecture
             "architecture_patterns": "architecture:patterns",
             "architecture_scalability": "architecture:scalability",
             "architecture_coupling": "architecture:coupling",
+            # Root cause
+            "root_cause_trace": "root_cause:trace_execution",
+            "root_cause_changes": "root_cause:recent_changes",
+            "root_cause_errors": "root_cause:error_patterns",
         }
         # Optionally skip categories requiring external tools in constrained envs
         self.skip_external = os.environ.get("NO_EXTERNAL", "").lower() == "true"
@@ -232,9 +238,10 @@ class AnalysisRunner:
         perf_high = 0
         for category in [
             "performance_frontend",
-            "performance_flake8",
+            "performance_python",
+            "performance_sql",
+            "performance_semgrep",
             "performance_baseline",
-            "performance_sqlfluff",
         ]:
             if category in summary["by_category"]:
                 perf_critical += (
