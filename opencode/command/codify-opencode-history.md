@@ -35,7 +35,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 ## Workflow
 
-1. Read rules: `./AGENTS.md`, `$HOME/.config/opencode/AGENTS.md`.
+1. Read rules: `./AGENTS.md`, `~/.config/opencode/AGENTS.md`.
 2. Capture: `PYTHONPATH=shared python shared/context/context_bundle_capture_opencode.py --days ${DAYS:-7} ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} --output-format json`.
    - Prefer `sessions[].user_messages[]` as primary signal for ways‑of‑working.
    - Keep `operations` as secondary context (assistant_message, bash, file_change/read/write).

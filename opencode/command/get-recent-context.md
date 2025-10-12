@@ -27,7 +27,7 @@ This command performs a comprehensive review of recent activity by:
 2. **Try user-level .opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/context/context_bundle_capture_opencode.py"
+   Bash: ls "~/.config/opencode/scripts/context/context_bundle_capture_opencode.py"
    ```
 
 3. **Try shared/ fallback**:
@@ -37,7 +37,7 @@ This command performs a comprehensive review of recent activity by:
    ```
 
 4. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/context/`, `$HOME/.config/opencode/scripts/context/`, and `shared/context/`
+   - List searched locations: `.opencode/scripts/context/`, `~/.config/opencode/scripts/context/`, and `shared/context/`
    - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
    - Validate provided path contains the script
    - Set SCRIPT_PATH to user-provided location

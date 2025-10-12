@@ -43,11 +43,11 @@ Execute root cause analysis scripts via Bash tool for systematic investigation:
 2. **Try user-level opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/analyzers/root_cause/"
+   Bash: ls "~/.config/opencode/scripts/analyzers/root_cause/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/root_cause/` and `$HOME/.config/opencode/scripts/analyzers/root_cause/`
+   - List searched locations: `.opencode/scripts/analyzers/root_cause/` and `~/.config/opencode/scripts/analyzers/root_cause/`
    - Ask user: "Could not locate root cause analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (trace_execution.py, recent_changes.py, error_patterns.py)
    - Set SCRIPT_PATH to user-provided location

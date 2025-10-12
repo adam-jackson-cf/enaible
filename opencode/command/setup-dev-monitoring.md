@@ -64,11 +64,11 @@ description: Propose developer‑friendly monitoring (logs, health checks, basic
 2. **Try user-level opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/setup/monitoring/install_monitoring_dependencies.py"
+   Bash: ls "~/.config/opencode/scripts/setup/monitoring/install_monitoring_dependencies.py"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/setup/context/` and `$HOME/.config/opencode/scripts/setup/context/`
+   - List searched locations: `.opencode/scripts/setup/context/` and `~/.config/opencode/scripts/setup/context/`
    - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
    - Set SCRIPT_PATH to user-provided location

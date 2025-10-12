@@ -24,11 +24,11 @@ description: Plan a minimal, high‑impact refactor with clear boundaries and te
    2. **Try user-level opencode folder**:
 
       ```bash
-      Bash: ls "$HOME/.config/opencode/scripts/"
+      Bash: ls "~/.config/opencode/scripts/"
       ```
 
    3. **Interactive fallback if not found**:
-      - List searched locations: `.opencode/scripts/` and `$HOME/.config/opencode/scripts/`
+      - List searched locations: `.opencode/scripts/` and `~/.config/opencode/scripts/`
       - Ask user: "Could not locate analysis scripts. Please provide full path to the scripts directory:"
       - Validate provided path contains expected scripts (quality/complexity_lizard.py, architecture/coupling_analysis.py, performance/performance_baseline.py)
       - Set SCRIPT_PATH to user-provided location

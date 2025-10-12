@@ -28,11 +28,11 @@ Comprehensive security analysis using OWASP Top 10 framework with automated scri
    2. **Try user-level opencode folder**:
 
       ```bash
-      Bash: ls "$HOME/.config/opencode/scripts/analyzers/security/"
+      Bash: ls "~/.config/opencode/scripts/analyzers/security/"
       ```
 
    3. **Interactive fallback if not found**:
-      - List searched locations: `.opencode/scripts/analyzers/security/` and `$HOME/.config/opencode/scripts/analyzers/security/`
+      - List searched locations: `.opencode/scripts/analyzers/security/` and `~/.config/opencode/scripts/analyzers/security/`
       - Ask user: "Could not locate security analysis scripts. Please provide full path to the scripts directory:"
       - Validate provided path contains expected scripts (semgrep_analyzer.py, detect_secrets_analyzer.py)
       - Set SCRIPT_PATH to user-provided location

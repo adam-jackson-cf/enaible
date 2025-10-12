@@ -25,11 +25,11 @@ Execute architecture analysis scripts via Bash tool for measurable design metric
 2. **Try user-level opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/analyzers/architecture/"
+   Bash: ls "~/.config/opencode/scripts/analyzers/architecture/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/architecture/` and `$HOME/.config/opencode/scripts/analyzers/architecture/`
+   - List searched locations: `.opencode/scripts/analyzers/architecture/` and `~/.config/opencode/scripts/analyzers/architecture/`
    - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py, dependency_analysis.py)
    - Set SCRIPT_PATH to user-provided location

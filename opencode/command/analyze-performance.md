@@ -25,11 +25,11 @@ Execute performance analysis scripts via Bash tool for measurable bottleneck det
 2. **Try user-level opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/analyzers/performance/"
+   Bash: ls "~/.config/opencode/scripts/analyzers/performance/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/performance/` and `$HOME/.config/opencode/scripts/analyzers/performance/`
+   - List searched locations: `.opencode/scripts/analyzers/performance/` and `~/.config/opencode/scripts/analyzers/performance/`
    - Ask user: "Could not locate performance analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (ruff_analyzer.py, analyze_frontend.py, sqlglot_analyzer.py)
    - Set SCRIPT_PATH to user-provided location

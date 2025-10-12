@@ -34,11 +34,11 @@ Execute code quality analysis scripts via Bash tool for measurable quality metri
 2. **Try user-level opencode folder**:
 
    ```bash
-   Bash: ls "$HOME/.config/opencode/scripts/analyzers/quality/"
+   Bash: ls "~/.config/opencode/scripts/analyzers/quality/"
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/quality/` and `$HOME/.config/opencode/scripts/analyzers/quality/`
+   - List searched locations: `.opencode/scripts/analyzers/quality/` and `~/.config/opencode/scripts/analyzers/quality/`
    - Ask user: "Could not locate code_quality analysis scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (complexity_lizard.py)
    - Set SCRIPT_PATH to user-provided location
