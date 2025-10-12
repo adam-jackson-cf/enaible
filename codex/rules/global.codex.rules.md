@@ -1,15 +1,6 @@
 # General coding rules
 
-## **CRITICAL** Internal Tool use preferences
-
-- **Codebase search** prefer the use of serena mcp for codebase search over other tools, available modes:
-
-  - find_symbol: global/local search for symbols by name/substring (optional type filters).
-  - find_referencing_symbols: find all symbols that reference a given symbol.
-  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
-  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
-
-## **CRITICAL** Tooling preferences and project setup
+## **CRITICAL** Tooling preferences
 
 ### TypeScript / JavaScript
 
@@ -122,3 +113,8 @@
 - **NEVER** bypass quality gates by using `--skip` or `--no-verify`
 
 ---
+
+## Personal Workflow Habits
+
+- Planning loop: Research → propose options → wait for approval → implement → document decisions in `session-notes.md` (timestamped).
+- UI stack: Align style changes to shadcn/Tailwind/Radix patterns and Lucide assets; avoid bespoke classes and direct style hardcoding to objects.

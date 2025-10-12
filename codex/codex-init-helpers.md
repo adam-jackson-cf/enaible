@@ -5,20 +5,8 @@
 - Use in global terminal settings files to offer shorthand start up of codex for different security policies i.e if using zsh you would put this in .zshrc file.
 
 ```bash
-cdx() {
-    if [[ "$1" == "update" ]]; then
-        npm install -g @openai/codex@latest
-    else
-        codex \
-            --model 'gpt-5-codex' \
-            --full-auto
-            --ask-for-approval on-failure \
-            --search \
-            "$@"
-    fi
-}
-
-cdx-no-sandbox-on-failure() {
+# Codex helper
+cdx-no-sandbox() {
     if [[ "$1" == "update" ]]; then
         npm install -g @openai/codex@latest
     else
@@ -31,7 +19,7 @@ cdx-no-sandbox-on-failure() {
     fi
 }
 
-cdx-no-sandbox-on-request() {
+cdx-no-sandbox-request() {
     if [[ "$1" == "update" ]]; then
         npm install -g @openai/codex@latest
     else
@@ -51,7 +39,7 @@ cdx-exec() {
         codex exec \
             --model 'gpt-5-codex' \
             --sandbox workspace-write \
-            --search \
+            --config 'sandbox_workspace_write.network_access=true' \
             "$@"
     fi
 }

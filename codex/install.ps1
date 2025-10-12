@@ -4,6 +4,7 @@ param(
   [Parameter(Position=0)] [string]$TargetPath = "",
   [ValidateSet('Fresh','Merge','Update','Cancel')]
   [string]$Mode = '',
+  [string]$ScriptsRoot = '',
   [switch]$Verbose,
   [switch]$DryRun,
   [switch]$SkipPython
@@ -39,16 +40,43 @@ OPTIONS:
 "@
 }
 
+function Show-Header {
+  Write-Host ""
+  Write-Host "┌─────────────────────────────────────┐"
+  Write-Host "│        Codex CLI Installer          │"
+  Write-Host ("│        Version {0}            │" -f $VERSION)
+  Write-Host "└─────────────────────────────────────┘"
+}
+
+$script:TotalPhases = 11
+$script:CurrentPhase = 0
+function Next-Phase([string]$Description) {
+  $script:CurrentPhase++
+  Write-Host ""
+  Write-Host ([string]::Format("[{0}/{1}] {2}", $script:CurrentPhase, $script:TotalPhases, $Description))
+  Write-Host "----------------------------------------"
+}
+
+function Resolve-NormalizedPath([string]$Path) {
+  if (-not $Path) { return '' }
+  if ($Path -eq '~') { $Path = $env:USERPROFILE }
+  if (-not [System.IO.Path]::IsPathRooted($Path)) {
+    $Path = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $Path))
+  }
+  return $Path
+}
+
 if ($args -contains '--help' -or $args -contains '-h') { Show-Usage; exit 0 }
 
 Write-Log "Starting Codex installer v$VERSION"
+Show-Header
+Next-Phase "Resolve installation paths"
 
 # Resolve CODEX_HOME interactively
 $CODEX_HOME = ''
 if ($TargetPath) {
-  if ($TargetPath -eq '~') { $TargetPath = $env:USERPROFILE }
-  if (-not [System.IO.Path]::IsPathRooted($TargetPath)) { $TargetPath = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $TargetPath)) }
-  if ($TargetPath.ToLower().EndsWith('\u002Ecodex')) { $CODEX_HOME = $TargetPath } else { $CODEX_HOME = Join-Path $TargetPath '.codex' }
+  $normalizedTarget = Resolve-NormalizedPath $TargetPath
+  if ($normalizedTarget.ToLower().EndsWith('\u002Ecodex')) { $CODEX_HOME = $normalizedTarget } else { $CODEX_HOME = Join-Path $normalizedTarget '.codex' }
 } else {
   if (-not [Console]::KeyAvailable) {
     $CODEX_HOME = Join-Path $env:USERPROFILE '.codex'
@@ -65,47 +93,42 @@ if ($TargetPath) {
       '2' { $CODEX_HOME = Join-Path (Get-Location) '.codex' }
       '3' {
         $tp = Read-Host 'Enter absolute path (we will create <path>\.codex if needed)'
-        if (-not [System.IO.Path]::IsPathRooted($tp)) { $tp = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $tp)) }
+        $tp = Resolve-NormalizedPath $tp
         if ($tp.ToLower().EndsWith('\u002Ecodex')) { $CODEX_HOME = $tp } else { $CODEX_HOME = Join-Path $tp '.codex' }
       }
       default { $CODEX_HOME = Join-Path $env:USERPROFILE '.codex' }
     }
   }
 }
+if (-not $CODEX_HOME) { $CODEX_HOME = Join-Path $env:USERPROFILE '.codex' }
 
-# Choose scripts root
-$SCRIPTS_ROOT = ''
-if (-not [Console]::KeyAvailable) {
-  $SCRIPTS_ROOT = Join-Path $CODEX_HOME 'scripts'
+if ($ScriptsRoot) {
+  $SCRIPTS_ROOT = Resolve-NormalizedPath $ScriptsRoot
 } else {
-  Write-Host "Where should Python scripts live?" -ForegroundColor Yellow
-  Write-Host "  1) Inside Codex home ($CODEX_HOME/scripts) [default]"
-  Write-Host "  2) User (~/.codex/scripts)"
-  Write-Host "  3) Custom path"
-  $choice = Read-Host 'Enter choice [1-3]'
-  if (-not $choice) { $choice = '1' }
-  switch ($choice) {
-    '1' { $SCRIPTS_ROOT = Join-Path $CODEX_HOME 'scripts' }
-    '2' { $SCRIPTS_ROOT = Join-Path $env:USERPROFILE '.codex\scripts' }
-    '3' {
-      $sp = Read-Host 'Enter absolute path to scripts root'
-      if (-not [System.IO.Path]::IsPathRooted($sp)) { $sp = [System.IO.Path]::GetFullPath((Join-Path (Get-Location) $sp)) }
-      $SCRIPTS_ROOT = $sp
-    }
-    default { $SCRIPTS_ROOT = Join-Path $CODEX_HOME 'scripts' }
-  }
+  $SCRIPTS_ROOT = Join-Path $CODEX_HOME 'scripts'
 }
 
-if (-not $DryRun) {
+Write-Log "Resolved CODEX_HOME=$CODEX_HOME"
+Write-Log "Resolved SCRIPTS_ROOT=$SCRIPTS_ROOT"
+
+Next-Phase "Prepare target directories"
+if ($DryRun) {
+  Write-Log "Would create $CODEX_HOME"
+  Write-Log "Would create $SCRIPTS_ROOT"
+} else {
   New-Item -ItemType Directory -Force -Path $CODEX_HOME | Out-Null
   New-Item -ItemType Directory -Force -Path $SCRIPTS_ROOT | Out-Null
 }
 
-# Backup and mode handling
+Next-Phase "Backup existing installation (if present)"
 if (Test-Path $CODEX_HOME) {
   $backup = "$CODEX_HOME.backup.$(Get-Date -Format 'yyyyMMdd_HHmmss')"
-  if (-not $DryRun) { Copy-Item -Recurse -Force -Path $CODEX_HOME -Destination $backup }
-  Write-Log "Backup created: $backup"
+  if ($DryRun) {
+    Write-Log "Would back up $CODEX_HOME to $backup"
+  } else {
+    Copy-Item -Recurse -Force -Path $CODEX_HOME -Destination $backup
+    Write-Log "Backup created: $backup"
+  }
   if (-not $Mode) {
     if ([Console]::KeyAvailable) {
       Write-Host "Existing $CODEX_HOME found" -ForegroundColor Yellow
@@ -119,26 +142,33 @@ if (Test-Path $CODEX_HOME) {
     'Cancel' { Write-Log 'Cancelled by user'; exit 0 }
     default { }
   }
+} else {
+  Write-Log "No existing installation detected"
 }
 
-# Copy prompts and rules
+Next-Phase "Copy Codex prompts and rules"
 $srcPrompts = Join-Path $ScriptDir 'prompts'
 $srcRules   = Join-Path $ScriptDir 'rules'
 if (-not (Test-Path $srcPrompts)) { throw "Missing prompts dir: $srcPrompts" }
 if (-not (Test-Path $srcRules)) { throw "Missing rules dir: $srcRules" }
-if (-not $DryRun) {
+if ($DryRun) {
+  Write-Log "Would copy prompts to $(Join-Path $CODEX_HOME 'prompts')"
+  Write-Log "Would copy rules to $(Join-Path $CODEX_HOME 'rules')"
+} else {
   New-Item -ItemType Directory -Force -Path (Join-Path $CODEX_HOME 'prompts') | Out-Null
   New-Item -ItemType Directory -Force -Path (Join-Path $CODEX_HOME 'rules')   | Out-Null
   Copy-Item -Recurse -Force -Path (Join-Path $srcPrompts '*') -Destination (Join-Path $CODEX_HOME 'prompts')
   Copy-Item -Recurse -Force -Path (Join-Path $srcRules   '*') -Destination (Join-Path $CODEX_HOME 'rules')
+  Write-Log "Copied prompts and rules"
 }
-Write-Log "Copied prompts and rules"
 
-# Copy Python framework
+Next-Phase "Copy Python framework"
 $sharedRoot = Join-Path (Split-Path $ScriptDir -Parent) 'shared'
 $subdirs = @('core','analyzers','setup','config','utils','generators','context')
 foreach ($d in $subdirs) { if (-not (Test-Path (Join-Path $sharedRoot $d))) { throw "Missing shared subtree: $d" } }
-if (-not $DryRun) {
+if ($DryRun) {
+  Write-Log "Would copy Python framework to $SCRIPTS_ROOT"
+} else {
   New-Item -ItemType Directory -Force -Path $SCRIPTS_ROOT | Out-Null
   foreach ($d in $subdirs) {
     $src = Join-Path $sharedRoot $d
@@ -146,8 +176,8 @@ if (-not $DryRun) {
     if (Test-Path $dst) { Remove-Item -Recurse -Force -Path $dst }
     Copy-Item -Recurse -Force -Path $src -Destination $dst
   }
+  Write-Log "Copied Python framework to $SCRIPTS_ROOT"
 }
-Write-Log "Copied Python framework to $SCRIPTS_ROOT"
 
 function Get-PythonExe {
   $candidates = @('python','python3')
@@ -163,25 +193,80 @@ function Get-PythonExe {
   throw "Python 3.11+ not found as 'python' or 'python3'"
 }
 
+function Install-NodeTools {
+  param([bool]$DryRunFlag)
+
+  if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw "Node.js is required for frontend analysis" }
+  if (-not (Get-Command npm  -ErrorAction SilentlyContinue)) { throw "npm is required for frontend analysis" }
+
+  $toolsDir = Join-Path $CODEX_HOME 'eslint'
+  if ($DryRunFlag) {
+    Write-Log "Would install Node tools into $toolsDir"
+    return
+  }
+
+  New-Item -ItemType Directory -Force -Path $toolsDir | Out-Null
+  $packageJson = Join-Path $toolsDir 'package.json'
+  if (-not (Test-Path $packageJson)) {
+    Set-Content -Path $packageJson -Value @'
+{
+  "name": "codex-node-tools",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "eslint": "^8.0.0",
+    "@typescript-eslint/parser": "^5.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.0.0",
+    "eslint-plugin-react": "^7.32.0",
+    "eslint-plugin-import": "^2.27.0",
+    "eslint-plugin-vue": "^9.0.0",
+    "jscpd": "^3.5.0"
+  }
+}
+'@
+  } else {
+    $raw = Get-Content -Raw -Path $packageJson
+    if ($raw -notmatch '"jscpd"') {
+      $updated = $raw -replace '("dependencies"\s*:\s*\{)', "$1`n    \"jscpd\": \"^3.5.0\","
+      Set-Content -Path $packageJson -Value $updated
+    }
+  }
+
+  Push-Location $toolsDir
+  try {
+    Write-Log "Installing Node tools (ESLint + jscpd)..."
+    npm install --no-fund --no-audit --silent | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+    Write-Log "Installed Node tools (ESLint + jscpd)"
+  } finally {
+    Pop-Location
+  }
+}
+
 $PythonExe = $null
 try { $PythonExe = Get-PythonExe; Write-Log "Selected interpreter: $PythonExe" } catch { }
 
-# Install Python dependencies
+Next-Phase "Install Python dependencies"
 if (-not $SkipPython) {
   if (-not $PythonExe) { throw "Python 3.11+ is required" }
   $req = Join-Path $SCRIPTS_ROOT 'setup/requirements.txt'
   if (-not (Test-Path $req)) { throw "Missing requirements: $req" }
-  if (-not $DryRun) {
+  if ($DryRun) {
+    Write-Log "Would install Python dependencies from $req"
+  } else {
     $installer = Join-Path $SCRIPTS_ROOT 'setup/install_dependencies.py'
     $env:PYTHONPATH = $SCRIPTS_ROOT
     & $PythonExe $installer 2>$null 3>$null < <(echo y) | Out-Null
+    Write-Log "Python dependencies installed"
   }
-  Write-Log "Python dependencies installed"
 } else {
   Write-Log "Skipping Python dependency installation"
 }
 
-# Ensure config and trust entries
+Next-Phase "Install Node-based tooling"
+Install-NodeTools -DryRunFlag $DryRun
+
+Next-Phase "Configure codex config.toml"
 $cfg = Join-Path $CODEX_HOME 'config.toml'
 if (-not $DryRun) {
   if (-not (Test-Path $cfg)) { Copy-Item -Path (Join-Path $ScriptDir 'config.toml') -Destination $cfg }
@@ -216,42 +301,53 @@ args = ["chrome-devtools-mcp@latest", "--headless", "--isolated"]
   }
   Add-Trust $CODEX_HOME
   if (-not ($SCRIPTS_ROOT -like "$CODEX_HOME*")) { Add-Trust $SCRIPTS_ROOT }
+  Write-Log "Updated $cfg with Codex defaults and trust entries"
 }
 
-# Update AGENTS.md (Codex global rules only)
+if ($DryRun) {
+  Write-Log "Would ensure config at $cfg"
+}
+
+Next-Phase "Update AGENTS.md"
 $globalRules = Join-Path $ScriptDir 'rules\global.codex.rules.md'
 if (Test-Path $globalRules) {
   $targetAgents = Join-Path $CODEX_HOME 'AGENTS.md'
-  if (-not $DryRun) { if (-not (Test-Path $targetAgents)) { New-Item -ItemType File -Force -Path $targetAgents | Out-Null } }
   $header = "# AI-Assisted Workflows (Codex Global Rules) v$VERSION - Auto-generated, do not edit"
-  if (-not $DryRun) {
+  if ($DryRun) {
+    Write-Log "Would ensure Codex global rules are present in $targetAgents"
+  } else {
+    if (-not (Test-Path $targetAgents)) { New-Item -ItemType File -Force -Path $targetAgents | Out-Null }
     $raw = Get-Content -Raw -Path $targetAgents
     if ($raw -notmatch [regex]::Escape($header)) {
       Add-Content -Path $targetAgents -Value "`n$header`n"
       Add-Content -Path $targetAgents -Value (Get-Content -Raw -Path $globalRules)
       Write-Log "Updated AGENTS.md with Codex global rules"
+    } else {
+      Write-Log "Codex global rules already present in AGENTS.md"
     }
   }
 }
 
-# Offer to inject shell helpers (PowerShell profile)
+Next-Phase "Offer shell helpers"
 if ([Console]::KeyAvailable) {
   $ans = Read-Host 'Append Codex helpers to your PowerShell profile? [Y/n]'
   if (-not $ans -or $ans -match '^[Yy]$') {
     $profilePath = $PROFILE
-    if (-not $DryRun) {
+    if ($DryRun) {
+      Write-Log "Would append Codex helpers to $profilePath"
+    } else {
       if (-not (Test-Path (Split-Path $profilePath -Parent))) { New-Item -ItemType Directory -Force -Path (Split-Path $profilePath -Parent) | Out-Null }
       if (-not (Test-Path $profilePath)) { New-Item -ItemType File -Force -Path $profilePath | Out-Null }
       $block = Select-String -Path (Join-Path $ScriptDir 'codex-init-helpers.md') -Pattern '^```bash$','^```$' -Context 0,0 | ForEach-Object { $_ }
       # Fallback: just append the whole helpers file (PowerShell can run 'codex' commands via cmd)
       Add-Content -Path $profilePath -Value "`n# Codex helpers`n"
       Add-Content -Path $profilePath -Value (Get-Content -Raw -Path (Join-Path $ScriptDir 'codex-init-helpers.md'))
+      Write-Log "Appended helpers to $PROFILE"
     }
-    Write-Log "Appended helpers to $PROFILE"
   }
 }
 
-# Verify
+Next-Phase "Verify installation"
 if (-not $DryRun) {
   $ok = $true
   if (-not (Test-Path (Join-Path $CODEX_HOME 'prompts'))) { Write-Host "Missing prompts" -ForegroundColor Red; $ok=$false }
@@ -269,6 +365,8 @@ PY
     if ($LASTEXITCODE -ne 0) { throw 'import failed' }
   } catch { Write-Host "Python import failed; programmatic prompts may not work" -ForegroundColor Yellow; $ok=$false }
   if (-not $ok) { Write-Host "Verification had warnings/errors. See $LogFile" -ForegroundColor Yellow } else { Write-Host "Verification successful" -ForegroundColor Green }
+} else {
+  Write-Log "Dry-run: skipping verification"
 }
 
 Write-Host "`n✅ Codex installation complete" -ForegroundColor Green

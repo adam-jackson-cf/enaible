@@ -18,6 +18,10 @@ INSTALL_MODE=""   # fresh|merge|update|cancel (same semantics as Claude)
 
 CODEX_HOME=""
 SCRIPTS_ROOT=""
+SCRIPTS_ROOT_OVERRIDE=""
+
+TOTAL_PHASES=11
+CURRENT_PHASE=0
 
 show_usage() {
   cat << 'EOF'
@@ -52,6 +56,30 @@ log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 vlog() { [[ "$VERBOSE" == true ]] && log "$@" || echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" >> "$LOG_FILE"; }
 err() { echo "[ERROR] $*" | tee -a "$LOG_FILE" >&2; }
 
+show_header() {
+  echo ""
+  echo "┌─────────────────────────────────────┐"
+  echo "│        Codex CLI Installer          │"
+  echo "│        Version $SCRIPT_VERSION          │"
+  echo "└─────────────────────────────────────┘"
+}
+
+next_phase() {
+  CURRENT_PHASE=$((CURRENT_PHASE + 1))
+  echo ""
+  echo "[$CURRENT_PHASE/$TOTAL_PHASES] $1"
+  echo "----------------------------------------"
+}
+
+normalize_path() {
+  local raw="$1"
+  [[ "$raw" == "~" ]] && raw="$HOME"
+  if [[ "$raw" == ~* ]]; then
+    raw="${raw/#\~/$HOME}"
+  fi
+  realpath "$raw" 2>/dev/null || echo "$raw"
+}
+
 parse_args() {
   TARGET_PATH=""
   while [[ $# -gt 0 ]]; do
@@ -66,6 +94,12 @@ parse_args() {
           shift 2
         else err "--mode requires a value"; exit 1; fi
         ;;
+      --scripts-root)
+        if [[ -n "${2:-}" ]]; then
+          SCRIPTS_ROOT_OVERRIDE="$2"
+          shift 2
+        else err "--scripts-root requires a value"; exit 1; fi
+        ;;
       -*) err "Unknown option: $1"; show_usage; exit 1 ;;
       *) if [[ -z "${TARGET_PATH}" ]]; then TARGET_PATH="$1"; else err "Multiple target paths"; exit 1; fi; shift ;;
     esac
@@ -73,66 +107,56 @@ parse_args() {
 }
 
 resolve_scope_interactive() {
-  local default_non_tty="$HOME"
-
   if [[ -n "${TARGET_PATH}" ]]; then
-    # Convert ~ and relative -> absolute
-    [[ "$TARGET_PATH" == "~" ]] && TARGET_PATH="$HOME"
-    [[ "$TARGET_PATH" == ~* ]] && TARGET_PATH="${TARGET_PATH/#\~/$HOME}"
-    TARGET_PATH=$(realpath "$TARGET_PATH" 2>/dev/null || echo "$TARGET_PATH")
-    if [[ "$TARGET_PATH" == */.codex ]]; then CODEX_HOME="$TARGET_PATH"; else CODEX_HOME="$TARGET_PATH/.codex"; fi
-    return
-  fi
-
-  if [[ ! -t 0 ]]; then
+    local normalized_target
+    normalized_target=$(normalize_path "${TARGET_PATH}")
+    if [[ "$normalized_target" == */.codex ]]; then
+      CODEX_HOME="$normalized_target"
+    else
+      CODEX_HOME="$normalized_target/.codex"
+    fi
+  elif [[ ! -t 0 ]]; then
     CODEX_HOME="$HOME/.codex"
-    vlog "Non‑TTY detected; defaulting CODEX_HOME=$CODEX_HOME"
-    return
+    vlog "Non-TTY detected; defaulting CODEX_HOME=$CODEX_HOME"
+  else
+    echo ""
+    echo "Choose install scope for Codex home (stores prompts/rules/config):"
+    echo "  1) User level (~/.codex) [default]"
+    echo "  2) Project level (./.codex)"
+    echo "  3) Custom path"
+    local choice
+    read -r -p "Enter choice [1-3]: " choice; choice=${choice:-1}
+    case "$choice" in
+      1) CODEX_HOME="$HOME/.codex" ;;
+      2) CODEX_HOME="$(pwd)/.codex" ;;
+      3)
+        read -r -p "Enter absolute path (we will create <path>/.codex if needed): " TARGET_PATH
+        local normalized_custom
+        normalized_custom=$(normalize_path "${TARGET_PATH}")
+        if [[ "$normalized_custom" == */.codex ]]; then
+          CODEX_HOME="$normalized_custom"
+        else
+          CODEX_HOME="$normalized_custom/.codex"
+        fi
+        ;;
+      *) CODEX_HOME="$HOME/.codex" ;;
+    esac
   fi
 
-  echo ""
-  echo "Choose install scope for Codex home (stores prompts/rules/config):"
-  echo "  1) User level (~/.codex) [default]"
-  echo "  2) Project level (./.codex)"
-  echo "  3) Custom path"
-  local choice
-  read -r -p "Enter choice [1-3]: " choice; choice=${choice:-1}
-  case "$choice" in
-    1) CODEX_HOME="$HOME/.codex" ;;
-    2) CODEX_HOME="$(pwd)/.codex" ;;
-    3) read -r -p "Enter absolute path (we will create <path>/.codex if needed): " TARGET_PATH
-       [[ "$TARGET_PATH" == "~" ]] && TARGET_PATH="$HOME"
-       [[ "$TARGET_PATH" == ~* ]] && TARGET_PATH="${TARGET_PATH/#\~/$HOME}"
-       TARGET_PATH=$(realpath "$TARGET_PATH" 2>/dev/null || echo "$TARGET_PATH")
-       if [[ "$TARGET_PATH" == */.codex ]]; then CODEX_HOME="$TARGET_PATH"; else CODEX_HOME="$TARGET_PATH/.codex"; fi
-       ;;
-    *) CODEX_HOME="$HOME/.codex" ;;
-  esac
-}
+  if [[ -z "$CODEX_HOME" ]]; then
+    CODEX_HOME="$HOME/.codex"
+  fi
 
-choose_scripts_root() {
-  if [[ ! -t 0 ]]; then
-    # Default scripts beside home
+  if [[ -n "$SCRIPTS_ROOT_OVERRIDE" ]]; then
+    SCRIPTS_ROOT=$(normalize_path "$SCRIPTS_ROOT_OVERRIDE")
+  else
     SCRIPTS_ROOT="$CODEX_HOME/scripts"
-    return
   fi
-  echo ""
-  echo "Where should Python scripts (programmatic prompts) live?"
-  echo "  1) Inside Codex home ($CODEX_HOME/scripts) [default]"
-  echo "  2) User level (~/.codex/scripts)"
-  echo "  3) Custom path"
-  local choice; read -r -p "Enter choice [1-3]: " choice; choice=${choice:-1}
-  case "$choice" in
-    1) SCRIPTS_ROOT="$CODEX_HOME/scripts" ;;
-    2) SCRIPTS_ROOT="$HOME/.codex/scripts" ;;
-    3) read -r -p "Enter absolute path to scripts root: " SCRIPTS_ROOT
-       [[ "$SCRIPTS_ROOT" == "~" ]] && SCRIPTS_ROOT="$HOME"
-       [[ "$SCRIPTS_ROOT" == ~* ]] && SCRIPTS_ROOT="${SCRIPTS_ROOT/#\~/$HOME}"
-       SCRIPTS_ROOT=$(realpath "$SCRIPTS_ROOT" 2>/dev/null || echo "$SCRIPTS_ROOT")
-       ;;
-    *) SCRIPTS_ROOT="$CODEX_HOME/scripts" ;;
-  esac
+
+  vlog "Resolved CODEX_HOME=$CODEX_HOME"
+  vlog "Resolved SCRIPTS_ROOT=$SCRIPTS_ROOT"
 }
+
 
 ensure_dirs() {
   [[ "$DRY_RUN" == true ]] && { log "Would create: $CODEX_HOME"; log "Would create: $SCRIPTS_ROOT"; return; }
@@ -227,6 +251,10 @@ check_node() {
 install_node_tools() {
   check_node
   local tools_dir="$CODEX_HOME/eslint"
+  if [[ "$DRY_RUN" == true ]]; then
+    log "Would install Node tools into $tools_dir"
+    return
+  fi
   mkdir -p "$tools_dir"
   cd "$tools_dir"
   if [[ ! -f package.json ]]; then
@@ -252,7 +280,7 @@ EOF
       awk '{print} /"dependencies"\s*:\s*\{/ && !x {print "    \"jscpd\": \"^3.5.0\","; x=1}' package.json > "$tmpfile" && mv "$tmpfile" package.json
     fi
   fi
-  vlog "Installing Node tools (ESLint + jscpd)..."
+  log "Installing Node tools (ESLint + jscpd)..."
   npm install --no-fund --no-audit --silent >> "$LOG_FILE" 2>&1 || { err "npm install failed"; exit 1; }
 }
 
@@ -415,18 +443,42 @@ completion_msg() {
 main() {
   echo "Codex Installer v$SCRIPT_VERSION" > "$LOG_FILE"
   parse_args "$@"
+  show_header
+  CURRENT_PHASE=0
+
+  next_phase "Resolve installation paths"
   resolve_scope_interactive
-  choose_scripts_root
+
+  next_phase "Prepare target directories"
   ensure_dirs
+
+  next_phase "Backup existing installation (if present)"
   backup_existing
+
+  next_phase "Copy Codex prompts and rules"
   copy_prompts_and_rules
+
+  next_phase "Copy Python framework"
   copy_python_framework
+
+  next_phase "Install Python dependencies"
   install_python_deps
+
+  next_phase "Install Node-based tooling"
   install_node_tools
+
+  next_phase "Configure codex config.toml"
   ensure_config
+
+  next_phase "Update AGENTS.md"
   update_agents_md
+
+  next_phase "Offer shell helpers"
   inject_shell_helpers
+
+  next_phase "Verify installation"
   verify_install
+
   completion_msg
 }
 

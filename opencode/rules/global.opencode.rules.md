@@ -1,6 +1,6 @@
 # General coding rules
 
-## **CRITICAL** Tooling preferences and project setup
+## **CRITICAL** Tooling preferences
 
 ### TypeScript / JavaScript
 
@@ -113,3 +113,8 @@
 - **NEVER** bypass quality gates by using `--skip` or `--no-verify`
 
 ---
+
+## Personal Workflow Habits
+
+- Planning loop: Research → propose options → wait for approval → implement → document decisions in `session-notes.md` (timestamped).
+- UI stack: Align style changes to shadcn/Tailwind/Radix patterns and Lucide assets; avoid bespoke classes and direct style hardcoding to objects.
