@@ -1,0 +1,171 @@
+<!--
+  Template Guidance:
+  - Comments exist for author direction only; do NOT copy them into prompt outputs.
+  - prompt_template is the format to implement
+  - prompt_example shows examples of good using the propmt_template format
+  - add environmental / preflight checks in workflows is only necessary for requirements not supplied by the user or project - but a base level of
+  capability should be assumed e.g. that node, npm and python is available - but specific scripts location, library or configs should not
+-->
+
+<prompt_template>
+
+# Purpose
+
+<!-- Describe the command objective in one sentence. -->
+
+State the objective in one sentence. Be direct and outcome-focused.
+
+## Variables
+
+<!-- Bind positional arguments or flags used by the prompt. Rename placeholders to match the command context. -->
+
+- Bind positional arguments to explicit names for clarity:
+  - $1 → TYPE (e.g., feat/fix/chore)
+  - $2 → SCOPE (e.g., api, ui)
+  - $3 → MESSAGE (short subject)
+  - $4..$9 → optional extras (document if used)
+  - $ARGUMENTS → full raw argument string (space-joined)
+- Rename TYPE/SCOPE/MESSAGE to suit your command; do not print the variable names in the final output.
+
+## Instructions
+
+<!-- Short, imperative bullets covering invariants and guardrails. -->
+
+- Use short, imperative bullets.
+- Call out IMPORTANT constraints explicitly.
+- Avoid verbosity; prefer concrete actions over descriptions.
+
+## Workflow
+
+<!-- Sequential steps; when preflight checks are required, make them the first step (e.g., Locate analyzer scripts; exit on failure). -->
+
+1. Step-by-step list of actions (each step starts with a verb).
+2. Validate prerequisites and guard-rails early.
+3. Perform the core task deterministically.
+4. Save/emit artifacts and verify results.
+
+## Output
+
+<!-- Define the expected return structure. Provide one canonical example. -->
+
+This section should be an output structure detailing what this workflow should return and how, in a suitable format:
+
+e.g.
+
+```md
+# RESULT
+
+- Summary: <one line>
+
+## DETAILS
+
+- What changed
+- Where it changed
+- How to verify
+```
+
+## Examples (optional)
+
+<!-- Show CLI invocations. Include only when helpful. -->
+
+```bash
+# 1) Minimal invocation with positional arguments
+/<command-name> feat api "add pagination"
+
+# 2) With explicit target path as $1 (used by Environment checks)
+/<command-name> ./services/api
+```
+
+</prompt_template>
+
+## Example prompts
+
+> complex multi step analyser with required pythons scripts for claude code, includes env checks (script locators) as initial steps
+
+<prompt_example>
+
+# Purpose
+
+Identify performance bottlenecks across backend, frontend, and data layers using automated analyzers coupled with contextual investigation.
+
+## Variables
+
+- `TARGET_PATH` ← first positional argument; defaults to `.`.
+- `SCRIPT_PATH` ← resolved performance analyzer directory.
+- `$ARGUMENTS` ← raw argument string (for logging).
+
+## Instructions
+
+- ALWAYS execute the registry-driven analyzers; never call the individual modules directly.
+- Treat analyzer outputs as evidence—cite metrics when highlighting bottlenecks.
+- Consider database, frontend, algorithmic, and network layers; avoid tunnel vision.
+- Tie each recommendation to measurable performance goals.
+- Document assumptions and required follow-up experiments (profiling, load tests).
+
+## Workflow
+
+1. Locate analyzer scripts
+   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `flake8_performance_analyzer.py`, `analyze_frontend.py`, and `sqlfluff_analyzer.py`, then exit if none is provided.
+2. Prepare environment
+   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+3. Run automated analyzers
+   - Execute sequentially:
+     - `performance:flake8-perf`
+     - `performance:frontend`
+     - `performance:sqlfluff`
+   - Save JSON outputs and note start/end timestamps.
+4. Aggregate findings
+   - Parse slow hotspots (function-level metrics, lint warnings, SQL anti-patterns).
+   - Map findings to system components (API endpoints, React routes, SQL migrations).
+5. Investigate context
+   - Examine code around flagged areas for caching gaps, unnecessary re-renders, unindexed queries.
+   - Consider infrastructure or configuration contributors (rate limits, memory caps).
+6. Prioritize remediations
+   - Group issues by impact: critical (user-facing latency, OOM risks), high, medium.
+   - Recommend targeted actions (index creation, memoization, batching, background jobs).
+7. Produce report
+   - Provide a structured summary, include metric tables, and outline validation steps (profiling, load tests).
+
+## Output
+
+```md
+# RESULT
+
+- Summary: Performance analysis completed for <TARGET_PATH>.
+
+## BOTTLENECKS
+
+| Layer    | Location              | Finding                            | Evidence Source      |
+| -------- | --------------------- | ---------------------------------- | -------------------- |
+| Backend  | api/orders.py#L142    | N+1 query detected                 | performance:sqlfluff |
+| Frontend | src/App.tsx#L88       | Expensive re-render (missing memo) | performance:frontend |
+| Database | migrations/202310.sql | Full table scan on large dataset   | performance:sqlfluff |
+
+## RECOMMENDED ACTIONS
+
+1. <High priority optimization with expected impact and verification plan>
+2. <Secondary optimization>
+
+## VALIDATION PLAN
+
+- Benchmark: <command or script>
+- Success Criteria: <quantitative target>
+
+## ATTACHMENTS
+
+- performance:flake8-perf → <path>
+- performance:frontend → <path>
+- performance:sqlfluff → <path>
+```
+
+## Examples
+
+```bash
+# Run full performance assessment
+/analyze-performance .
+
+# Target a service directory
+/analyze-performance services/api
+```
+
+</prompt_example>
