@@ -26,9 +26,9 @@ Develop and compare solution approaches for a technical challenge using targeted
      2. Technical Environment Constraints
      3. Development Approach Preferences
    - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
-2. Conditional system analysis (only when working against an existing codebase)
-   - Resolve `SCRIPT_PATH` for architecture analyzers.
-   - Validate imports (`core.base`).
+2. **Conditional** system analysis (only when working against an existing codebase)
+   - Locate analyzer scripts: Run `ls .claude/scripts/analyzers/architecture/pattern_evaluation.py || ls "$HOME/.claude/scripts/analyzers/architecture/pattern_evaluation.py"`; if both fail, prompt for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
+   - Prepare environment: Compute `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
    - Run:
      - `architecture:patterns`
      - `architecture:scalability`

@@ -22,7 +22,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 1. Validate inputs
    - Ensure `ISSUE_DESCRIPTION` is present; prompt for details when absent.
    - Store any CLI flags, notably `--verbose`.
-2. Resolve analyzer location
+2. Locate analyzer scripts
    - Run `ls .claude/scripts/analyzers/root_cause/*.py || ls "$HOME/.claude/scripts/analyzers/root_cause/"`; if both fail, prompt the user for a path containing `trace_execution.py`, `recent_changes.py`, and `error_patterns.py`, and exit if none is provided.
 3. Prepare environment
    - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.

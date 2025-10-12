@@ -1,107 +1,93 @@
 # Purpose
 
-Convert an unstructured planning artifact into a Linear-ready plan by orchestrating gated subagents, clarification loops, hashing, and optional mutation.
+Transform a raw planning artifact into a Linear-ready cycle plan using gated clarification, deterministic workspace artifacts, and optional mutation.
 
 ## Variables
 
-- `TASK_INPUT` ← value passed to `--task` (string, file path, or stdin).
+- `TASK_INPUT` ← first positional argument or piped stdin.
 - `PROJECT_ID` ← `--linear-project-id` (optional).
-- `CONFIG_PATH` ← explicit `--config` path (optional).
-- `ESTIMATE_STYLE` ← value from `--estimate-style` (default `tshirt`).
-- `MAX_SIZE` ← value from `--max-size` (default from config).
-- `DRY_RUN` ← boolean flag when `--dry-run` present.
-- `AUTO_MODE` ← boolean flag when `--auto` present.
-- `DIFF_BASE` ← value from `--diff` (optional).
-- `$ARGUMENTS` ← raw argument string.
+- `ESTIMATE_STYLE` ← `--estimate-style` (default `tshirt`).
+- `MAX_SIZE` ← `--max-size` (default from config).
+- `DRY_RUN` ← `--dry-run` flag.
+- `AUTO_MODE` ← `--auto` flag.
+- `DIFF_BASE` ← `--diff` value when provided.
+- `CONFIG_PATH` ← explicit `--config` override.
+- `SCRIPT_ARGS` ← full raw argument string for traceability.
 
 ## Instructions
 
-- ALWAYS validate arguments and configuration before invoking subagents; reject unknown flags.
-- NEVER mutate Linear issues unless readiness is confirmed, the user approves, and `--dry-run` is absent.
-- Maintain deterministic artifacts: stable ordering, consistent slug generation, hash integrity.
-- Pause at every confirmation gate (`objective`, `readiness`, `transfer`) unless `AUTO_MODE` is active.
-- Trust `@agent-linear-hashing` for all hash computations and differencing; do not recompute locally.
+- NEVER continue without a valid artifact; emit `EMPTY_ARTIFACT` envelope on failure.
+- Maintain deterministic ordering for config fingerprint, requirements, and issue IDs.
+- ALWAYS store subagent artifacts inside `.workspace/<cycle_slug>` with full agent names.
+- Surface open questions and pause for confirmation unless `AUTO_MODE` is enabled.
+- Trust hash outputs from `@agent-linear-hashing`; do not recalculate locally.
+- Do not mutate Linear unless readiness is confirmed, user approves, and `DRY_RUN` is false.
 
 ## Workflow
 
 1. Prepare workspace
-   - Run `mkdir -p .workspace && test -w .workspace`; exit immediately if the planning workspace cannot be created or written.
-2. Parse and validate arguments
-   - Ensure `--task` present; error with exit code 1 otherwise.
-   - Normalize optional flags (`--linear-project-id`, `--config`, `--estimate-style`, `--max-size`, `--dry-run`, `--auto`, `--diff`).
-3. Initialize workspace
-   - Confirm `.workspace` directory exists; create if missing.
+   - Run `mkdir -p .workspace && test -w .workspace`; exit immediately if the cycle workspace cannot be created or written.
+2. Parse arguments and validate flag set; compute `config_fingerprint` using resolved config (explicit path → project → user).
+3. Acquire artifact from positional argument, stdin, or file. On empty artifact, emit `EMPTY_ARTIFACT` error and stop.
+4. Initialize workspace
+   - Ensure `.workspace` exists.
    - Resolve configuration by checking explicit `--config`, then `.claude/linear-plan.config.json`, then `$HOME/.claude/linear-plan.config.json`; exit with `CONFIG_NOT_FOUND` if none are available.
-   - Compute `config_fingerprint = sha256(sorted JSON excluding volatile fields)`; abort on missing mandatory keys (`label_rules`, `complexity_weights`, `thresholds`, `decomposition`, `audit_rules`, `idempotency`).
-4. Acquire artifact
-   - Resolve `TASK_INPUT` from argument value or stdin/file content.
-   - On empty artifact, emit `EMPTY_ARTIFACT` error envelope and exit with code 1.
-5. Objective definition
-   - Invoke `@agent-linear-objective-definition` with the raw artifact.
-   - Derive `cycle_slug = kebab_case(task_objective)`; create `.workspace/<cycle_slug>` (`CYCLE_DIR`).
-   - Persist `linear-objective-definition-output.json` within `CYCLE_DIR`.
+   - Derive `cycle_slug = kebab_case(task_objective)` after objective extraction.
+   - Create `CYCLE_DIR = .workspace/<cycle_slug>`.
+5. Invoke `@agent-linear-objective-definition`
+   - Store `linear-objective-definition-output.json` in `CYCLE_DIR`.
+   - Seed `cycle_plan_report.json.objective`.
 6. Clarification loop
-   - Summarize objective, purpose, affected users, requirements, constraints, and open questions.
-   - Collect user responses to `open_questions`; append to `cycle_plan_report.json.objective.clarifications`.
-   - **STOP:** “Objective frame prepared. Provide clarifications or type proceed to continue.” Wait unless `AUTO_MODE`.
-7. Autonomous planning loop
-   - Sequentially invoke subagents, storing `<agent>-input.md`, `<agent>-summary.md`, `<agent>-output.json` inside `CYCLE_DIR`:
+   - Present summary of objective, affected users, requirements, constraints.
+   - List `open_questions`; collect answers and append to `objective.clarifications`.
+   - **STOP:** “Provide clarifications or type proceed to continue.” Wait unless `AUTO_MODE`.
+7. Planning loop (sequential subagents)
+   - For each agent, write `<agent>-input.md`, `<agent>-summary.md`, `<agent>-output.json` to `CYCLE_DIR`:
      1. `@agent-linear-issue-decomposer`
      2. If `ESTIMATE_STYLE=tshirt`, `@agent-linear-estimation-engine`
      3. `@agent-linear-acceptance-criteria-writer`
      4. `@agent-linear-hashing`
-   - Update `cycle_plan_report.json` after each invocation.
-   - Abort with exit code 4 on structural integrity violations.
-8. Readiness check
-   - Invoke `@agent-linear-readiness`; append findings to the report.
-   - If `ready=false`, exit with code 2 unless remediation requested.
-   - **STOP:** “Plan formed and readiness check successful, proceed with transfer to Linear? (y/n)” Await confirmation unless `AUTO_MODE`.
-9. Optional mutation (executed only when approved and not `DRY_RUN`)
-   - Preflight duplicates with `@agent-linear-issue-search` when `PROJECT_ID` provided.
-   - Invoke `@agent-linear-issue-writer` followed by `@agent-linear-dependency-linker`.
-   - Validate hashes unchanged; append mutation results to the report.
-   - On mutation failures, emit exit code 3.
-10. Finalization
+   - Update `cycle_plan_report.json` after each subagent.
+   - Abort with exit code 4 on hashing errors.
+8. Readiness gate
+   - Run `@agent-linear-readiness`; embed findings, labels, dependency suggestions.
+   - Exit with code 2 if `ready=false` and remediation is required.
+   - **STOP:** “Plan formed and readiness check successful, proceed with transfer to Linear? (y/n)” Wait unless `AUTO_MODE`.
+9. Optional mutation
+   - When approved and not `DRY_RUN`:
+     - `@agent-linear-issue-search` per issue (duplicate detection).
+     - `@agent-linear-issue-writer` to create/update issues.
+     - `@agent-linear-dependency-linker` to apply edges.
+     - Verify hashes unchanged; append mutation results to report.
+10. Emit final artifacts
 
-- Persist `cycle_plan_report.json` and any diff info (`DIFF_BASE`).
-- Surface summary, readiness state, mutation results, and artifact locations.
+- Persist `cycle_plan_report.json`, diff info (when `DIFF_BASE` provided), and mutation results.
+- Summarize readiness, totals, complexity, hashes, and mutation status.
 
 ## Output
 
-```md
-# Cycle Plan Report
+### Cycle Plan Report (Canonical Schema)
 
-- Summary: Plan created for "<task_objective>" (slug: <cycle_slug>).
-- Readiness: <ready|not ready> (findings: <count>)
-- Mutation: <skipped|completed|dry-run>
-
-## ARTIFACTS
-
-- Report: .workspace/<cycle_slug>/cycle_plan_report.json
-- Objective: .workspace/<cycle_slug>/linear-objective-definition-output.json
-- Issue Graph: .workspace/<cycle_slug>/@agent-linear-issue-decomposer-output.json
-- Hashes: .workspace/<cycle_slug>/@agent-linear-hashing-output.json
-
-## EXIT CODES
-
-- 0: Success (planning complete; mutation optional)
-- 1: Argument/config validation failure
-- 2: Readiness failure or blocking validation
-- 3: Linear mutation failure
-- 4: Structural integrity violation
-
-## NEXT STEPS
-
-- For readiness=false: address findings and rerun planning.
-- For mutation skipped: rerun with `--auto` or user approval when ready.
+```json
+{
+  "CycleName": {
+    "version": 3,
+    "objective": { ... },
+    "issues": { ... },
+    "hashes": { ... },
+    "readiness": { ... },
+    "mutation": { ... },
+    "diff": { "added": [], "removed": [], "changed": [] }
+  }
+}
 ```
+
+- Markdown variant mirrors JSON structure for readability.
+- Exit codes: 0 (success), 1 (validation failure), 2 (readiness failure), 3 (mutation failure), 4 (contract violation).
 
 ## Examples
 
 ```bash
-# Plan from inline artifact with estimation
-/plan-linear --task "Implement OAuth2 integration" --estimate-style tshirt
-
-# Plan using artifact file and skip mutation
-/plan-linear --task ./docs/auth-plan.md --linear-project-id LINPROJ-123 --dry-run
+/plan-linear-v2 "Add MFA to admin console" --linear-project-id SEC-PLATFORM --dry-run
+/plan-linear-v2 ./docs/auth-prd.md --estimate-style none
 ```

@@ -21,7 +21,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 ## Workflow
 
 1. Verify prerequisites
-   - Run `ls .claude/scripts/setup/monitoring/*.py || ls "$HOME/.claude/scripts/setup/monitoring/"`; if both fail, prompt for a script directory and exit if unavailable.
+   - Run `ls .claude/scripts/setup/monitoring/*.py || ls "$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py"`; if both fail, prompt for a script directory containing `install_monitoring_dependencies.py` and exit if unavailable.
    - Run `python3 --version`; exit immediately if Python 3 is unavailable.
    - Run `test -w .`; exit immediately if the project root is not writable because generated files must be saved here.
 2. Project component discovery

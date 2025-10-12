@@ -19,9 +19,9 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 ## Workflow
 
-1. Resolve analyzer location
+1. Locate analyzer scripts
    - Run `ls .claude/scripts/analyzers/security/*.py || ls "$HOME/.claude/scripts/analyzers/security/"`; if both fail, prompt the user for a directory containing `semgrep_analyzer.py` and `detect_secrets_analyzer.py`, and exit if none is provided.
-2. Validate environment
+2. Prepare environment
    - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Phase 1 — Automated Security Assessment
    - Execute sequentially:

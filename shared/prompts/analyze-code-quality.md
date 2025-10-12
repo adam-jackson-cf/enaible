@@ -19,9 +19,10 @@ Assess code quality by combining automated metrics with architectural review to 
 ## Workflow
 
 1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/quality/*.py || ls "$HOME/.claude/scripts/analyzers/quality/"`; if both fail, prompt the user for a path containing `complexity_lizard.py` and exit if none is provided.
-2. Set environment context
-   - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
+   - Run `ls .claude/scripts/analyzers/quality/*.py || ls "$HOME/.claude/scripts/analyzers/quality/"`; if both fail, exit and request a valid path.
+   - When scripts are missing locally, prompt the user for a directory containing `complexity_lizard.py`, then set `SCRIPT_PATH`.
+2. Prepare environment
+   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
    - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 3. Execute automated analysis
    - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target "$TARGET_PATH" --output-format json`.

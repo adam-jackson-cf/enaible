@@ -19,9 +19,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 ## Workflow
 
-1. Confirm workspace write access
-   - Run `touch ./prd-drafts.tmp && rm ./prd-drafts.tmp`; exit immediately if the working directory is not writable because the PRD draft must be saved locally.
-2. Information gathering
+1. Information gathering
    - Review provided context and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
    - Conduct targeted question sequence covering:
      - Product foundation
@@ -32,7 +30,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - Onboarding experience
    - Summarize understanding and confirm key requirements with user.
    - **STOP:** “Ready to generate the PRD? (y/n)”
-3. PRD generation
+2. PRD generation
    - Populate the mandated PRD structure in exact order:
      1. Overview
      2. Personas
@@ -46,7 +44,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      10. Risks & Assumptions
      11. Release Plan (milestones + validation)
    - Ensure cross-references (features ↔ screens ↔ flows) are consistent.
-4. Quality validation
+3. Quality validation
    - Verify checklist:
      - All MoSCoW features map to screens and flows.
      - Personas include screen usage patterns.
@@ -69,12 +67,6 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 ## DELIVERABLE
 
 - Saved PRD: <path or inline document>
-
-## NEXT STEPS
-
-1. Review with product/design stakeholders.
-2. Align engineering feasibility and timeline.
-3. Update PRD based on stakeholder feedback.
 ```
 
 ## Examples

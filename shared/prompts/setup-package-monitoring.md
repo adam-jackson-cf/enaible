@@ -24,8 +24,7 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 ## Workflow
 
 1. Verify prerequisites
-   - Run `python3 --version`; exit immediately if Python 3 is unavailable because the setup script requires it.
-   - Run `ls .claude/scripts/setup/security/*.py || ls "$HOME/.claude/scripts/setup/security/"`; if both fail, prompt for a directory containing `setup_package_monitoring.py` and exit if unavailable.
+   - Run `ls .claude/scripts/setup/security/setup_package_monitoring.py || ls "$HOME/.claude/scripts/setup/security/setup_package_monitoring.py"`; if both fail, prompt for a directory containing `setup_package_monitoring.py` and exit if unavailable.
    - Run `git rev-parse --is-inside-work-tree`; exit immediately if not in a git repository because generated workflows rely on repository structure.
 2. Parse arguments
    - Capture `AUDIT_LEVEL`, `PACKAGE_FILE`, multiple `--exclude` values, and `SETUP_BRANCH_PROTECTION`.

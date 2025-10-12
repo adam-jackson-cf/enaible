@@ -19,7 +19,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 ## Workflow
 
 1. Resolve analyzer scripts
-   - Run `ls .claude/scripts/analyzers/**/*.py || ls "$HOME/.claude/scripts/analyzers/"`; if both fail, prompt for a directory containing `quality/lizard.py`, `architecture/coupling_analysis.py`, and `performance/baseline.py`, then exit if none is provided.
+   - Run `ls .claude/scripts/analyzers/quality/complexity_lizard.py || ls "$HOME/.claude/scripts/analyzers/quality/complexity_lizard.py"`; if both fail, prompt for a directory containing `quality/complexity_lizard.py`, `architecture/coupling_analysis.py`, and `performance/performance_baseline.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
    - Once resolved, compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
 2. Phase 1 — Technical Debt Assessment
    - Execute analyzers:
