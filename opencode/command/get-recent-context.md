@@ -18,20 +18,26 @@ This command performs a comprehensive review of recent activity by:
 
 **FIRST - Resolve SCRIPT_PATH:**
 
-1. **Try project-level .claude folder**:
+1. **Try project-level .opencode folder**:
 
    ```bash
-   Glob: ".claude/scripts/context/context_bundle_capture_opencode.py"
+   Glob: ".opencode/scripts/context/context_bundle_capture_opencode.py"
    ```
 
-2. **Try user-level .claude folder**:
+2. **Try user-level .opencode folder**:
 
    ```bash
-   Bash: ls "~/.claude/scripts/context/context_bundle_capture_opencode.py"
+   Bash: ls "$HOME/.config/opencode/scripts/context/context_bundle_capture_opencode.py"
    ```
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.claude/scripts/context/` and `~/.claude/scripts/context/`
+3. **Try shared/ fallback**:
+
+   ```bash
+   Glob: "shared/context/context_bundle_capture_opencode.py"
+   ```
+
+4. **Interactive fallback if not found**:
+   - List searched locations: `.opencode/scripts/context/`, `$HOME/.config/opencode/scripts/context/`, and `shared/context/`
    - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
    - Validate provided path contains the script
    - Set SCRIPT_PATH to user-provided location
@@ -105,6 +111,11 @@ PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"
 
 # Cross-project aggregation
 PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
+
+# From the JSON, present a compact view when available:
+# - Sessions: group `sessions[].user_messages` by session, newest first (limit 3 per session)
+# - High-activity files: top `operations[].file_path` by frequency (read/write)
+# - Commands: recent `operations[].command` (bash) with timestamps
 ```
 
 ### 2. Git Status Analysis

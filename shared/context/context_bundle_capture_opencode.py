@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """Context bundle capture for OpenCode session tracking."""
 import argparse
 import json
@@ -232,7 +231,14 @@ def find_recent_sessions(storage_path, project_id, project_root, days=2):
         if not recent_files:
             continue
 
-        sessions.append({"id": session_id, "path": message_dir, "files": recent_files})
+        sessions.append(
+            {
+                "id": session_id,
+                "path": message_dir,
+                "files": recent_files,
+                "cwd": session_directory,
+            }
+        )
 
     return sessions
 
@@ -534,12 +540,55 @@ def capture_opencode_context():
             )
             all_operations.extend(session_ops)
 
+        # Build base payload
         result = build_result_payload(
             (session["id"] for session in sessions),
             all_operations,
             args.uuid,
             args.search_term,
         )
+
+        # Enrich with per-session summaries (parity with Codex capture)
+        try:
+            from collections import Counter, defaultdict
+
+            ops_by_sid: dict[str | None, list[dict]] = defaultdict(list)
+            for op in all_operations:
+                ops_by_sid[op.get("session_id")].append(op)
+
+            sessions_out: list[dict] = []
+            for s in sessions:
+                sid = s.get("id")
+                s_ops = ops_by_sid.get(sid, [])
+                c = Counter(o.get("operation") for o in s_ops)
+                ts_vals = [o.get("timestamp") for o in s_ops if o.get("timestamp")]
+                date_range = {
+                    "earliest": min(ts_vals) if ts_vals else None,
+                    "latest": max(ts_vals) if ts_vals else None,
+                }
+                user_msgs = [
+                    {"timestamp": o.get("timestamp"), "text": o.get("prompt")}
+                    for o in s_ops
+                    if o.get("operation") == "prompt" and o.get("prompt")
+                ]
+                sessions_out.append(
+                    {
+                        "id": sid,
+                        "cwd": str(s.get("cwd")) if s.get("cwd") else None,
+                        "date_range": date_range,
+                        "counts": {
+                            "user_messages": len(user_msgs),
+                            "operations": len(s_ops),
+                            **{k: v for k, v in c.items() if k},
+                        },
+                        "user_messages": user_msgs,
+                    }
+                )
+            result["sessions"] = sessions_out
+        except Exception:
+            # If aggregation fails, continue with base payload
+            pass
+
         emit_result(result, args.output_format)
 
     except Exception as e:
