@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Context bundle capture for Claude Code session tracking."""
+"""Context bundle capture for Claude Code session tracking.
+
+Emits a backward-compatible operations[] list and an enriched sessions[] array
+with per-session user and assistant messages to support ways-of-working analysis.
+"""
 import argparse
 import json
 import sys
@@ -126,174 +130,164 @@ def find_recent_sessions(project_path, days=2):
 def extract_session_operations(
     session, config, search_term=None, semantic_variations=None
 ):
-    """Extract operations from Claude session."""
+    """Extract operations from Claude session (legacy, operations only)."""
+    full = extract_session_full(session, config, search_term, semantic_variations)
+    return full["operations"]
+
+
+def extract_session_full(session, config, search_term=None, semantic_variations=None):
+    """Parse one session file and return operations, user and assistant messages, counts, date_range."""
     operations = []
+    user_messages = []
+    assistant_messages = []
+    op_counts: dict[str, int] = {}
+    timestamps: list[str] = []
 
-    session_file = session["files"][0]  # Single JSONL file
-
+    session_file = session["files"][0]
     try:
-        with open(session_file) as f:
+        with open(session_file, encoding="utf-8") as f:
             for line in f:
                 try:
                     entry = json.loads(line.strip())
-
-                    # Extract user prompts
-                    if entry.get("type") == "user" and "message" in entry:
-                        user_content = entry["message"].get("content", "")
-
-                        # Handle both string and list content
-                        if isinstance(user_content, list):
-                            # Extract text from content blocks
-                            text_parts = []
-                            for block in user_content:
-                                if isinstance(block, dict):
-                                    if block.get("type") == "text":
-                                        text_parts.append(block.get("text", ""))
-                                    elif block.get("type") == "tool_use":
-                                        # Skip tool use blocks for prompts
-                                        continue
-                            user_text = " ".join(text_parts)
-                        else:
-                            user_text = str(user_content)
-
-                        # Skip command messages (wrapped in <command-name> tags)
-                        if "<command-name>" in user_text:
-                            continue
-
-                        # Skip empty or system-generated text
-                        user_text = user_text.strip()
-                        if not user_text or user_text.lower() in [
-                            "perfect!",
-                            "thanks!",
-                            "ok",
-                            "done",
-                            "yes",
-                            "no",
-                        ]:
-                            continue
-
-                        # Check if prompt should be excluded
-                        if should_exclude_prompt(user_text, config):
-                            continue
-
-                        # Apply semantic search if provided
-                        if search_term and not semantic_match(
-                            user_text, search_term, semantic_variations
-                        ):
-                            continue
-
-                        # Apply truncation and redaction
-                        prompt_limit = config.get("truncation_limits", {}).get(
-                            "prompt_max_length", 100
-                        )
-                        redacted_text = redact_if_available(user_text, config)
-
-                        if len(redacted_text) > prompt_limit:
-                            display_text = redacted_text[:prompt_limit] + "..."
-                        else:
-                            display_text = redacted_text
-
-                        operations.append(
-                            {
-                                "timestamp": entry.get(
-                                    "timestamp", datetime.now().isoformat() + "Z"
-                                ),
-                                "operation": "prompt",
-                                "prompt": display_text,
-                                "session_id": session["id"],
-                                "search_match": bool(search_term),
-                            }
-                        )
-
-                    # Extract tool operations from assistant messages
-                    elif entry.get("type") == "assistant" and "message" in entry:
-                        message = entry["message"]
-                        content = message.get("content", [])
-
-                        if isinstance(content, list):
-                            # Look for tool_use blocks
-                            for block in content:
-                                if (
-                                    isinstance(block, dict)
-                                    and block.get("type") == "tool_use"
-                                ):
-                                    tool_name = block.get("name", "").lower()
-
-                                    # Check if operation should be excluded
-                                    if should_exclude_operation(tool_name, config):
-                                        continue
-
-                                    tool_input = block.get("input", {})
-
-                                    # File operations
-                                    if "file_path" in tool_input:
-                                        file_path = tool_input["file_path"]
-
-                                        if should_exclude_by_string_pattern(
-                                            file_path, config
-                                        ):
-                                            continue
-
-                                        # Apply semantic search to file paths
-                                        if search_term and not semantic_match(
-                                            file_path, search_term, semantic_variations
-                                        ):
-                                            continue
-
-                                        if not is_operation_seen(tool_name, file_path):
-                                            operations.append(
-                                                {
-                                                    "timestamp": entry.get(
-                                                        "timestamp",
-                                                        datetime.now().isoformat()
-                                                        + "Z",
-                                                    ),
-                                                    "operation": tool_name,
-                                                    "file_path": redact_if_available(
-                                                        file_path, config
-                                                    ),
-                                                    "session_id": session["id"],
-                                                    "search_match": bool(search_term),
-                                                }
-                                            )
-
-                                    # Bash operations
-                                    elif (
-                                        tool_name == "bash" and "command" in tool_input
-                                    ):
-                                        command = tool_input["command"]
-
-                                        if should_exclude_bash_command(command, config):
-                                            continue
-
-                                        # Apply semantic search to commands
-                                        if search_term and not semantic_match(
-                                            command, search_term, semantic_variations
-                                        ):
-                                            continue
-
-                                        operations.append(
-                                            {
-                                                "timestamp": entry.get(
-                                                    "timestamp",
-                                                    datetime.now().isoformat() + "Z",
-                                                ),
-                                                "operation": "bash",
-                                                "command": redact_if_available(
-                                                    command, config
-                                                ),
-                                                "session_id": session["id"],
-                                                "search_match": bool(search_term),
-                                            }
-                                        )
-
                 except json.JSONDecodeError:
                     continue
 
+                ts = entry.get("timestamp", datetime.now().isoformat() + "Z")
+                etype = entry.get("type")
+                msg = entry.get("message", {})
+                content = msg.get("content", [])
+                timestamps.append(ts)
+
+                # User messages (ways-of-working primary signal)
+                if etype == "user" and msg:
+                    text_parts = []
+                    if isinstance(content, list):
+                        for block in content:
+                            if isinstance(block, dict) and block.get("type") == "text":
+                                text_parts.append(block.get("text", ""))
+                    elif isinstance(content, str):
+                        text_parts.append(content)
+                    user_text = " ".join(text_parts).strip()
+                    if not user_text:
+                        pass
+                    else:
+                        if (
+                            user_text.lower()
+                            in {
+                                "perfect!",
+                                "thanks!",
+                                "ok",
+                                "done",
+                                "yes",
+                                "no",
+                            }
+                            or should_exclude_prompt(user_text, config)
+                            or search_term
+                            and not semantic_match(
+                                user_text, search_term, semantic_variations
+                            )
+                        ):
+                            pass
+                        else:
+                            red = redact_if_available(user_text, config)
+                            user_messages.append({"timestamp": ts, "text": red})
+                            # Also short prompt op
+                            limit = config.get("truncation_limits", {}).get(
+                                "prompt_max_length", 100
+                            )
+                            display = red[:limit] + ("..." if len(red) > limit else "")
+                            operations.append(
+                                {
+                                    "timestamp": ts,
+                                    "operation": "prompt",
+                                    "prompt": display,
+                                    "session_id": session["id"],
+                                    "search_match": bool(search_term),
+                                }
+                            )
+                            op_counts["prompt"] = op_counts.get("prompt", 0) + 1
+                    continue
+
+                # Assistant messages
+                if etype == "assistant" and msg and isinstance(content, list):
+                    # Assistant text blocks (cap)
+                    texts = [
+                        blk.get("text", "")
+                        for blk in content
+                        if isinstance(blk, dict) and blk.get("type") == "text"
+                    ]
+                    if texts:
+                        t = "\n".join(texts).strip()
+                        if t:
+                            red = redact_if_available(t, config)
+                            if len(red) > 500:
+                                red = red[:500] + "..."
+                            assistant_messages.append({"timestamp": ts, "text": red})
+                    # Tool uses → operations
+                    for blk in content:
+                        if not (
+                            isinstance(blk, dict) and blk.get("type") == "tool_use"
+                        ):
+                            continue
+                        tool_name = (blk.get("name") or "").lower()
+                        if should_exclude_operation(tool_name, config):
+                            continue
+                        tool_input = blk.get("input") or {}
+                        if "file_path" in tool_input:
+                            file_path = tool_input["file_path"]
+                            if should_exclude_by_string_pattern(file_path, config):
+                                continue
+                            if search_term and not semantic_match(
+                                file_path, search_term, semantic_variations
+                            ):
+                                continue
+                            if not is_operation_seen(tool_name, file_path):
+                                operations.append(
+                                    {
+                                        "timestamp": ts,
+                                        "operation": tool_name,
+                                        "file_path": redact_if_available(
+                                            file_path, config
+                                        ),
+                                        "session_id": session["id"],
+                                        "search_match": bool(search_term),
+                                    }
+                                )
+                                op_counts[tool_name] = op_counts.get(tool_name, 0) + 1
+                            continue
+                        if tool_name == "bash" and "command" in tool_input:
+                            command = tool_input["command"]
+                            if should_exclude_bash_command(command, config):
+                                continue
+                            if search_term and not semantic_match(
+                                command, search_term, semantic_variations
+                            ):
+                                continue
+                            operations.append(
+                                {
+                                    "timestamp": ts,
+                                    "operation": "bash",
+                                    "command": redact_if_available(command, config),
+                                    "session_id": session["id"],
+                                    "search_match": bool(search_term),
+                                }
+                            )
+                            op_counts["bash"] = op_counts.get("bash", 0) + 1
+                            continue
     except Exception:
         pass
 
-    return operations
+    sdr = {
+        "earliest": min(timestamps) if timestamps else None,
+        "latest": max(timestamps) if timestamps else None,
+    }
+    return {
+        "operations": operations,
+        "user_messages": user_messages,
+        "assistant_messages": assistant_messages,
+        "counts": op_counts,
+        "date_range": sdr,
+    }
 
 
 def capture_claude_context():
@@ -383,13 +377,29 @@ def capture_claude_context():
             emit_result(result, args.output_format)
             return
 
-        # Extract operations from all sessions
+        # Extract operations and messages from all sessions
         all_operations = []
+        sessions_out = []
         for session in sessions:
-            session_ops = extract_session_operations(
+            full = extract_session_full(
                 session, config, args.search_term, semantic_variations
             )
-            all_operations.extend(session_ops)
+            all_operations.extend(full["operations"])
+            sessions_out.append(
+                {
+                    "id": session["id"],
+                    "project_root": str(current_dir),
+                    "date_range": full["date_range"],
+                    "counts": {
+                        "user_messages": len(full["user_messages"]),
+                        "assistant_messages": len(full["assistant_messages"]),
+                        "operations": len(full["operations"]),
+                        **full["counts"],
+                    },
+                    "user_messages": full["user_messages"],
+                    "assistant_messages": full["assistant_messages"],
+                }
+            )
 
         result = build_result_payload(
             (session["id"] for session in sessions),
@@ -397,6 +407,7 @@ def capture_claude_context():
             args.uuid,
             args.search_term,
         )
+        result["sessions"] = sessions_out
         emit_result(result, args.output_format)
 
     except Exception as e:

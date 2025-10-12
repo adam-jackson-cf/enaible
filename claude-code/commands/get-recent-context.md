@@ -50,9 +50,11 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_clau
    - Extract context data using the resolved script path
    - Filter to specific UUID if `--uuid` provided
    - Search for semantic matches if `--search-term` provided
-   - Parse returned operations for file access patterns and user objectives
+   - Parse returned operations for file access patterns and session activity
+   - Enrich with recent prompts:
+     - Use `sessions[].user_messages` and `sessions[].assistant_messages` (when present) to surface a compact “what was asked / what was said” view.
+     - Show newest 1–3 prompts per session (truncate as needed); prefer user messages for objectives.
    - In `--verbose` mode: expand truncated content
-   - Summarize session activity and identify workflow patterns
 
 2. **Git Status Review**
 
@@ -107,6 +109,12 @@ PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"
 
 # Include all projects when cross-repo context is required
 PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
+
+# From the JSON, present a compact view:
+# - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)
+# - Recent Assistant Replies: include `sessions[].assistant_messages` (limit 1–2 per session)
+# - High-activity files: list top `file_path` values from `operations` (file tool ops)
+# - Optional: a short timeline from `turn.*` or other milestones
 ```
 
 ### 2. Git Status Analysis
