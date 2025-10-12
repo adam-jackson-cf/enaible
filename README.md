@@ -132,11 +132,13 @@ Notes
 - Combines automated scanning with contextual interpretation
 - Fast onboarding with comprehensive coverage (structure + patterns + recent changes)
 
+**Available via:** Claude Code `/get-primer`, OpenCode `/get-primer`, Codex `/get-primer`.
+
 **Common workflow**:
 
 ```bash
 # 📋 Generate comprehensive project primer
-/todo-primer
+/get-primer
 ```
 
 ---
@@ -149,9 +151,10 @@ Notes
 
 **Task Actions**:
 
-- **Dual-platform session tracking** with dedicated capture scripts for both Claude Code and OpenCode, reading directly from each tool's session storage
+- **Multi-platform session tracking** with dedicated capture scripts for Claude Code, OpenCode, and Codex, reading directly from each tool's session storage
 - **Claude Code integration** accessing session data from `~/.claude/projects/` JSONL files with comprehensive operation extraction
 - **OpenCode integration** accessing session data from `~/.local/share/opencode/storage/` with message and part file parsing
+- **Codex integration** accessing session data from `~/.codex/sessions/` JSONL archives with shared parsing utilities
 - **Intelligent exclusion system** filtering sensitive data, duplicate operations, and noise patterns through configurable exclusion rules
 - **Automatic redaction** detecting and masking API keys, passwords, tokens, and other sensitive data in captured context
 - **Recent activity analysis** reviewing captured operations and git history to understand current development focus
@@ -166,9 +169,7 @@ Notes
 - **Time-based filtering** (`--days`) - Limit analysis to recent sessions within configurable time windows
 - **Verbose expansion** (`--verbose`) - Expand truncated content for detailed investigation of specific sessions
 
-**Benefits**:
-
-- Prevents repeated investigation by maintaining searchable action history across both Claude and OpenCode platforms
+- Prevents repeated investigation by maintaining searchable action history across Claude Code, OpenCode, and Codex platforms
 - Enables quick orientation on recent work through automated activity summaries with flexible search capabilities
 - **Security-first design** with automatic redaction of sensitive data and configurable exclusion patterns
 - Creates objective record of development actions beyond git commits with direct session file system access
@@ -176,23 +177,25 @@ Notes
 - **Noise reduction** through intelligent filtering of duplicate operations and irrelevant system files
 - Provides data-driven insights into development patterns and productivity with multi-platform support
 
+**Available via:** Claude Code `/get-recent-context`, OpenCode `/get-recent-context`, Codex `/get-recent-context`.
+
 **Common workflow**:
 
 ```bash
 # 📊 Review recent activity for quick orientation (default: last 2 days)
-/todo-recent-context
+/get-recent-context
 
 # 🔍 Search for sessions with semantic matching
-/todo-recent-context --search-term "authentication bug"
+/get-recent-context --search-term "authentication bug"
 
 # 🎯 Analyze specific session by UUID
-/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890
+/get-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 # 📝 Get detailed analysis with full conversation content
-/todo-recent-context --verbose
+/get-recent-context --verbose
 
 # 🔎 Combined search within specific session
-/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
+/get-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
 ```
 
 ---
@@ -260,19 +263,18 @@ Notes
 - Consistent planning format enables better estimation and team coordination
 - Quality considerations integrated from planning prevent post-development issues
 
+**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution` and `/plan-refactor`.
+
 **Common workflow**:
 
 ```bash
 # ⚙️ Feature planning with technical validation
 
-# 1. Analyze requirements and constraints
-/analyze-requirements "user authentication with OAuth2"
+# 1. Analyze requirements and constraints while validating the approach
+/plan-solution "user authentication with OAuth2" --critique
 
-# 2. Generate implementation strategy
-/plan-feature-implementation --with-validation
-
-# 3. Create task breakdown
-/generate-user-stories --technical-tasks
+# 2. Outline supporting refactors or migrations
+/plan-refactor "align legacy auth flows with OAuth2 rollout"
 ```
 
 ---
@@ -302,6 +304,8 @@ Notes
 - Structured PRD process ensures all stakeholders align on product vision
 - More UX focused than standard PRD, aims to make it focused at LLM's as opposed to PM's
 
+**Available via:** Claude Code `/plan-ux-prd`, OpenCode `/plan-ux-prd`, Codex `/plan-ux-prd`.
+
 **Common workflow**:
 
 ```bash
@@ -328,7 +332,7 @@ Notes
 - **Architecture design guidance** balancing complexity, maintainability, and performance requirements
 - **Risk assessment integration** identifying technical risks, scalability concerns, and mitigation strategies
 - **Implementation roadmap generation** with milestones, dependencies, and validation checkpoints
-- **CTO agent validation** provides senior-level technical review and architectural feedback with --critique (using reasoning through perspective)
+- **Solution validator agent review** provides senior-level technical feedback with `--critique` (using reasoning through perspective)
 - **Clarifying questions methodology** gathering requirements, constraints, scale, and success criteria systematically
 - **Prototype mode support** enables rapid validation of core concepts before full implementation
 - **Implementation plan documentation** captures decisions, rationale, and next steps for team alignment
@@ -340,19 +344,21 @@ Notes
 - Clear implementation roadmap enables team coordination and progress tracking
 - Systematic risk assessment reduces project failures
 
+**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution`.
+
 **Common workflow**:
 
 ```bash
 # Structured technical solution planning
-/plan-solution "implement real-time collaboration features with conflict resolution" [Optional: --critique]
+/plan-solution "implement real-time collaboration features with conflict resolution" --critique
 
 # [System asks clarifying questions about scale, requirements, constraints]
 
 # Senior technical validation
-# validate the plan with @agent-cto
+# validate the plan with @agent-solution-validator
 
-# Multi-agent implementation orchestration
-/todo-orchestrate implementation-plan.md --prototype
+# Multi-agent implementation orchestration (Claude Code • OpenCode today)
+/todo-build implementation-plan.md --prototype
 
 # Expected output: Validated technical plan, risk assessment,
 # implementation roadmap, and agent orchestration workflow
@@ -383,6 +389,8 @@ Notes
 - Quality enforcement from first commit prevents technical debt accumulation
 - Automated setup reduces configuration errors and saves setup time
 - Monitoring and analysis tools integrated from project start
+
+**Available via:** Claude Code `/create-project`, OpenCode `/create-project`, Codex `/create-project` (with `/setup-dev-monitoring`, `/add-code-precommit-checks`, `/setup-serena-mcp` available across all three).
 
 **Common workflow**:
 
@@ -424,6 +432,8 @@ Notes
 - Works across multiple programming languages with consistent analysis
 - Prioritized recommendations focus efforts on high-impact improvements
 
+**Available via:** Claude Code `/analyze-code-quality`, OpenCode `/analyze-code-quality`, Codex `/analyze-code-quality`.
+
 **Common workflow**:
 
 ```bash
@@ -463,6 +473,8 @@ Notes
 - False positive reduction through contextual analysis and semantic understanding
 - Framework-aware assessment provides technology-specific recommendations
 - Systematic approach prevents security debt accumulation
+
+**Available via:** Claude Code `/analyze-security`, OpenCode `/analyze-security`, Codex `/analyze-security`.
 
 **Common workflow**:
 
@@ -506,6 +518,8 @@ Notes
 - Measurable metrics enable objective optimization tracking and validation
 - Prioritized recommendations focus efforts on high-impact improvements
 - Works across backend, frontend, and database performance domains
+
+**Available via:** Claude Code `/analyze-performance`, OpenCode `/analyze-performance`, Codex `/analyze-performance`.
 
 **Common workflow**:
 
@@ -555,6 +569,8 @@ Notes
 - Looks for process failures not just bugs
 - ensures comprehensive investigation (code patterns + change history + execution analysis)
 
+**Available via:** Claude Code `/analyze-root-cause`, OpenCode `/analyze-root-cause`, Codex `/analyze-root-cause`.
+
 **Common workflow**:
 
 ```bash
@@ -600,6 +616,8 @@ Notes
 - **Multi-ecosystem support**: Handles polyglot projects with unified configuration across Python, JavaScript, Go, Rust, .NET
 - **Cost-efficient CI**: Path-triggered workflows minimize CI costs by running only when dependencies actually change
 - **Zero maintenance**: Automated setup and configuration requires no ongoing developer intervention
+
+**Available via:** Claude Code `/setup-package-monitoring`, OpenCode `/setup-package-monitoring`, Codex `/setup-package-monitoring`.
 
 **Common workflow**:
 
@@ -665,23 +683,6 @@ Notes
 These examples give a flavour, explore the repo and find what works for you.
 
 </details>
-
----
-
-## 🧭 Using The Framework
-
-- Codex
-
-  - Launch: `cdx` (maps to `codex --full-auto`). For stricter sessions use workspace-write + approvals; see `codex/codex-init-helpers.md` and `codex/docs/sandbox.md`.
-  - Use prompts: In Codex composer type `/` then select items from `$CODEX_HOME/prompts/` (e.g., `/analyze-security`, `/plan-refactor`). See `codex/docs/prompts.md`.
-  - Config: Edit `$CODEX_HOME/config.toml` (model, trust entries, MCP servers). See `codex/docs/config.md`.
-
-- Claude Code
-
-  - After install, slash-commands appear from `./.claude/commands`. Try `/analyze-security` or `/plan-solution`.
-
-- OpenCode
-  - After install, slash-commands appear from `./.opencode/command`. Prefer the “command-executor” agent for shell-heavy prompts.
 
 ---
 
