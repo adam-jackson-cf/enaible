@@ -2,12 +2,20 @@
 """Context bundle capture for Codex sessions.
 
 Parses Codex JSONL session logs under ~/.codex/sessions/YYYY/MM/DD/*.jsonl
-to extract a concise list of operations (shell commands, file changes, etc.)
-from the last N days. Supports filtering by session UUID and semantic search.
+and correlates them with user prompts from ~/.codex/history.jsonl.
+
+Defaults emphasize ways-of-working over tool noise:
+- Includes recent user prompts mapped to sessions and filtered to the caller
+  project by default (based on session_meta cwd).
+- Keeps operations for compatibility, but trims low‑signal tool output.
+
+Use --days (default 2), --uuid, --search-term, --project-root, and
+--include-all-projects as before. No additional flags are required.
 """
 
 import argparse
 import json
+import re
 import sys
 from collections.abc import Iterable
 from datetime import datetime, timedelta
@@ -65,6 +73,10 @@ def get_codex_sessions_root() -> Path:
     return Path.home() / ".codex" / "sessions"
 
 
+def get_codex_history_path() -> Path:
+    return Path.home() / ".codex" / "history.jsonl"
+
+
 def parse_date_from_path(p: Path) -> datetime:
     return datetime.fromtimestamp(p.stat().st_mtime)
 
@@ -79,6 +91,63 @@ def iter_recent_jsonl_files(root: Path, days: int) -> Iterable[Path]:
                 yield p
         except Exception:
             continue
+
+
+_ERR_WARN_PAT = re.compile(r"\b(error|warning|failed|fatal|traceback)\b", re.IGNORECASE)
+
+
+def _summarize_tool_output(text: str) -> str:
+    """Reduce tool output noise: keep first 12 lines and any lines with error/warning signal.
+
+    Caps to ~2000 characters to avoid oversized payloads.
+    """
+    try:
+        lines = text.splitlines()
+    except Exception:
+        lines = [text]
+    chosen: list[str] = []
+    chosen.extend(lines[:12])
+    for ln in lines[12:200]:
+        if _ERR_WARN_PAT.search(ln):
+            chosen.append(ln)
+    short = "\n".join(chosen)
+    if len(short) > 2000:
+        short = short[:2000] + "..."
+    return short
+
+
+def _iter_user_prompts_recent(history_path: Path, days: int) -> list[dict[str, Any]]:
+    """Return recent user prompts from ~/.codex/history.jsonl within the window.
+
+    Each item: {"session_id": str, "timestamp": iso, "text": str}
+    """
+    if not history_path.exists():
+        return []
+    cutoff = datetime.now().timestamp() - days * 24 * 3600
+    results: list[dict[str, Any]] = []
+    try:
+        with open(history_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except Exception:
+                    continue
+                ts = obj.get("ts")
+                sid = obj.get("session_id")
+                text = obj.get("text")
+                if not (sid and text and isinstance(ts, int | float) and ts >= cutoff):
+                    continue
+                try:
+                    iso = datetime.fromtimestamp(ts).isoformat() + "Z"
+                except Exception:
+                    iso = None
+                results.append({"session_id": sid, "timestamp": iso, "text": text})
+    except Exception:
+        return []
+    return results
 
 
 def session_matches_project(session_cwd: str | None, project_root: Path) -> bool:
@@ -268,7 +337,7 @@ def extract_jsonl_operations(
                     if ptype == "function_call_output":
                         out = payload.get("output")
                         if isinstance(out, str):
-                            short = out[:2000] + ("..." if len(out) > 2000 else "")
+                            short = _summarize_tool_output(out)
                         else:
                             short = out
                         op = build_operation(
@@ -377,8 +446,64 @@ def capture_codex_context() -> None:
             session_ids.append(sid)
             all_ops.extend(ops)
 
-        result = build_result_payload(session_ids, all_ops, args.uuid, args.search_term)
-        emit_result(result, args.output_format)
+        # Build minimal result for backward compatibility
+        base = build_result_payload(session_ids, all_ops, args.uuid, args.search_term)
+
+        # Include user prompts per session by default (ways-of-working focus)
+        prompts = _iter_user_prompts_recent(get_codex_history_path(), args.days)
+        # Map session cwd by parsing operations once
+        sid_to_cwd: dict[str, str | None] = {}
+        for op in all_ops:
+            if op.get("operation") == "session_meta":
+                sid_to_cwd.setdefault(op.get("session_id"), op.get("cwd"))
+
+        # Filter prompts to project (unless include-all-projects)
+        sessions_out: list[dict[str, Any]] = []
+        seen: set[str] = set()
+        from collections import Counter
+
+        for sid in session_ids:
+            if sid in seen:
+                continue
+            seen.add(sid)
+            cwd = sid_to_cwd.get(sid)
+            if not args.include_all_projects and not session_matches_project(
+                cwd, resolve_project_root(args.project_root)
+            ):
+                continue
+            ops_for_sid = [o for o in all_ops if o.get("session_id") == sid]
+            c = Counter(o.get("operation") for o in ops_for_sid)
+            # attach user messages
+            msgs = [
+                {
+                    "timestamp": p.get("timestamp"),
+                    "text": redact_if_available(p.get("text"), config),
+                }
+                for p in prompts
+                if p.get("session_id") == sid
+            ]
+            ts_values = [t for t in [o.get("timestamp") for o in ops_for_sid] if t]
+            sdr = {
+                "earliest": min(ts_values) if ts_values else None,
+                "latest": max(ts_values) if ts_values else None,
+            }
+            sessions_out.append(
+                {
+                    "id": sid,
+                    "cwd": cwd,
+                    "date_range": sdr,
+                    "counts": {
+                        "user_messages": len(msgs),
+                        "operations": len(ops_for_sid),
+                        **dict(c),
+                    },
+                    "user_messages": msgs,
+                }
+            )
+
+        # Merge enriched sessions into the result (JSON mode consumers can use it)
+        base["sessions"] = sessions_out
+        emit_result(base, args.output_format)
 
     except Exception as e:
         print(f"Error extracting Codex context: {e}", file=sys.stderr)

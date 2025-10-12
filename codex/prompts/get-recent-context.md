@@ -41,10 +41,10 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_code
 
 1. **Session Log Analysis (Codex)**
 
-   Codex persists session history under `~/.codex/sessions/YYYY/MM/DD/*.jsonl`.
-   The script reads JSON Lines events (e.g., `session_meta`, `turn.started`, `response_item` with `function_call`/`function_call_output`, and `item.*` events like `file_change`).
+   Codex persists session history under `~/.codex/sessions/YYYY/MM/DD/*.jsonl` and user prompts in `~/.codex/history.jsonl`.
+   The capture script returns both low‑level operations and per‑session user prompts (`sessions[].user_messages`).
 
-   - Extract recent events for the last 2 days (configurable via `--days`)
+   - Extract recent context for the last 2 days (configurable via `--days`)
    - Filter to a specific session UUID via `--uuid`
    - Optional semantic search via `--search-term` and `--semantic-variations`
    - Parse tool calls; for `shell` calls, capture the command string; for `file_change`, capture `file_path`
@@ -103,6 +103,11 @@ PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"
 
 # To include all projects (ignore project scoping)
 PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
+
+# From the JSON, present a compact view:
+# - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)
+# - High-activity files: list top `file_change.file_path` values from `operations`
+# - Optional: a short timeline from `turn.*` events to anchor recency
 ```
 
 ### 2. Git Status Analysis
