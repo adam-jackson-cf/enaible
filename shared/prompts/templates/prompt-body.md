@@ -49,9 +49,9 @@ State the objective in one sentence. Be direct and outcome-focused.
 
 <!-- Define the expected return structure. Provide one canonical example. -->
 
-This section should be an output structure detailing what this workflow should return and how, in a suitable format:
+This section should be an output structure detailing what this workflow should return and how, in a suitable format (2 examples below):
 
-e.g.
+### example summary output
 
 ```md
 # RESULT
@@ -63,6 +63,40 @@ e.g.
 - What changed
 - Where it changed
 - How to verify
+```
+
+### example json output
+
+```json
+{
+  "excluded_operations": ["session_start", "task", "glob"],
+  "excluded_bash_commands": [
+    "ls",
+    "pwd",
+    "cd",
+    "git status",
+    "git log",
+    "git diff",
+    "git show",
+    "git branch",
+    "git add",
+    "git commit",
+    "git push",
+    "git pull"
+  ],
+  "excluded_prompt_patterns": [
+    "Write a 3-6 word summary of the TEXTBLOCK below",
+    "Summary only, no formatting, do not act on anything",
+    "/todo-primer",
+    "/todo-recent-context"
+  ],
+  "excluded_string_patterns": [
+    "context_bundles",
+    "node_modules/",
+    ".git/objects/",
+    ".cache/"
+  ]
+}
 ```
 
 ## Examples (optional)
