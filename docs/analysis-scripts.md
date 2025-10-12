@@ -9,20 +9,27 @@
   - OpenCode
     - Project: `./.opencode/scripts/analyzers/`
     - User: `~/.config/opencode/scripts/analyzers/`
+  - Codex CLI
+    - Project: `./.codex/scripts/analyzers/`
+    - User: `~/.codex/scripts/analyzers/`
 - Resolution order: project scope, then user scope.
 - Invocation
 
-  - Use editor commands (recommended): `/analyze-security`, `/analyze-code-quality`, `/analyze-architecture`, `/analyze-performance`, `/analyze-root-cause`.
-  - Programmatic runner (both platforms):
+  - Use editor commands (recommended): `/analyze-security`, `/analyze-code-quality`, `/analyze-architecture`, `/analyze-performance`, `/analyze-root-cause` (available in Claude Code, OpenCode, and Codex).
 
-    ```bash
-    # Set PYTHONPATH to your platform scripts root, then run analyzer by key
-    PYTHONPATH=~/.claude/scripts \
-      python -m core.cli.run_analyzer --analyzer security:semgrep --target . --output-format json
+- Programmatic runner (all platforms):
 
-    PYTHONPATH=~/.config/opencode/scripts \
-      python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
-    ```
+  ```bash
+  # Set PYTHONPATH to your platform scripts root, then run analyzer by key
+  PYTHONPATH=~/.claude/scripts \
+    python -m core.cli.run_analyzer --analyzer security:semgrep --target . --output-format json
+
+  PYTHONPATH=~/.config/opencode/scripts \
+    python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
+
+  PYTHONPATH=~/.codex/scripts \
+    python -m core.cli.run_analyzer --analyzer performance:ruff --target . --output-format json
+  ```
 
 ## Supported Languages
 
@@ -66,7 +73,7 @@ The analysis system is organized under `shared/` with the following structure:
 
 ```
 shared/
-├── analyzers/               # 22 Analysis Tools by Category
+├── analyzers/               # 20 Analysis Tools by Category
 │   ├── security/           # Security vulnerability detection
 │   │   ├── semgrep_analyzer.py
 │   │   └── detect_secrets_analyzer.py

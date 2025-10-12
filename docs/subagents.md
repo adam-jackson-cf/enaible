@@ -1,6 +1,6 @@
 # Agent Orchestration System
 
-Platform support: Available for Claude Code and OpenCode. Prompts live in `claude-code/agents` and `opencode/agent`; parity is maintained where possible.
+Platform support: Available for Claude Code and OpenCode. Prompts live in `claude-code/agents` and `opencode/agent`; parity is maintained where possible. Codex CLI currently executes single-agent workflows, so these subagents are not yet exposed there.
 
 The overall approach taken with subagents as seeing them as specific context managers for a given task - the ideas is to break off items that can be self contained tasks where we are only interested in the result, rather than polluting the context with the process.
 
@@ -69,12 +69,12 @@ The overall approach taken with subagents as seeing them as specific context man
 
 ## Todo Orchestration
 
-The `/todo-orchestrate` command executes complete build workflows using intelligent sub-agent coordination with quality gates.
+The `/todo-build` command executes complete build workflows using intelligent sub-agent coordination with quality gates (Claude Code and OpenCode).
 
 ### Usage
 
 ```bash
-/todo-orchestrate <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel] [--max-retries=3]
+/todo-build <IMPLEMENTATION_PLAN_PATH> [--prototype] [--parallel] [--max-retries=3]
 ```
 
 ### Workflow Orchestration Logic
@@ -101,7 +101,7 @@ The system follows a comprehensive orchestration workflow:
 
 ## Todo Worktree Implementation
 
-The `/todo-worktree` command provides a structured workflow to transform vague todos into implemented features using git worktrees and subagent assignment.
+The `/todo-build-worktree` command provides a structured workflow to transform vague todos into implemented features using git worktrees and subagent assignment (Claude Code and OpenCode).
 
 ### Workflow Phases
 

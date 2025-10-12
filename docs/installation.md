@@ -19,11 +19,9 @@
 ### Post-Installation Setup
 
 ```bash
-/setup-dev-monitoring                 # Optional: Setup unified dev logging
-/setup-package-monitoring                  # Optional: Package auditing on change looking for security risks
-
-
-/add-serena-mcp                       # Recommended per project mcp lsp tool - only available in claude code as lacks LSP support
+/setup-dev-monitoring                 # Optional: Setup unified dev logging (Claude • OpenCode • Codex)
+/setup-package-monitoring             # Optional: Package auditing for dependency security (Claude • OpenCode • Codex)
+/setup-serena-mcp                     # Recommended MCP LSP integration across all CLIs
 ```
 
 ## 🔧 Dependencies
@@ -109,7 +107,7 @@ The installer automatically handles all dependencies:
 - Optionally installs CI framework dependencies from `shared/setup/ci/requirements.txt`
 - Validates Python 3.11+ compatibility
 
-**Node.js Dependencies (Claude/OpenCode only):**
+**Node.js Dependencies (all platforms):**
 
 - Installs ESLint and plugins when needed
 - Creates a local `package.json` for ESLint workspace when required
@@ -123,7 +121,7 @@ The installer automatically handles all dependencies:
 
 **Automatic Backup:** All installation options automatically create a timestamped backup of your existing installation before making any changes.
 
-The installer automatically detects existing `.claude` directories (Claude Code) and `.opencode` or `$HOME/.config/opencode` directories (OpenCode) and offers four options:
+The installers automatically detect existing `.claude` (Claude Code), `.opencode`/`$HOME/.config/opencode` (OpenCode), and `.codex` directories (Codex CLI) and offer four options:
 
 1. **Fresh Install:** Complete replacement of existing installation
 2. **Merge:** Preserve user customizations while adding new features (no overwrites)
@@ -178,3 +176,7 @@ The uninstaller will interactively prompt for each Python package and MCP server
 
 - **🔧 Newly installed** by AI-Assisted Workflows (safer to remove)
 - **⚠️ Pre-existing** before installation (likely used by other projects - caution advised)
+
+### For Codex installations:
+
+Codex currently relies on manual uninstallation. Remove the generated assets by deleting your chosen `CODEX_HOME` (for example `~/.codex` or `./.codex`) and its `scripts` directory. If you appended shell helpers during install, remove the related aliases from your shell profile (`~/.zshrc` or `~/.bashrc`). Python dependencies reside in your global environment, so uninstall only the packages you no longer need.

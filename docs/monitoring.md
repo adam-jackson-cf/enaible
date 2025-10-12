@@ -10,7 +10,7 @@ _After running `/setup-dev-monitoring`, you'll see:_
 _Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
 
 ![Unified Logs](../images/dev-logs-unified.png)
-_Timestamped unified logging: All services stream to `/dev.log` - Claude/OpenCode can query logs directly_
+_Timestamped unified logging: All services stream to `/dev.log` - Claude, OpenCode, and Codex commands can query logs directly_
 
 ![Service Status](../images/service-status-dashboard.png)
 _Real-time service monitoring: Live status for API and Mobile services with health indicators_
@@ -29,7 +29,7 @@ _Real-time service monitoring: Live status for API and Mobile services with heal
 
 ## Setup Development Monitoring
 
-The `/setup-dev-monitoring` command establishes comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
+The `/setup-dev-monitoring` command (available in Claude Code, OpenCode, and Codex) establishes comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
 
 ### Workflow
 
@@ -45,7 +45,7 @@ The `/setup-dev-monitoring` command establishes comprehensive development monito
 
 ## Quality Gates
 
-The `/add-code-precommit-checks` command sets up pre-commit framework to enforce quality standards by preventing commits containing code violations.
+The `/add-code-precommit-checks` command (available across all three CLIs) sets up pre-commit framework to enforce quality standards by preventing commits containing code violations.
 
 ### Workflow
 
