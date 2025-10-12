@@ -11,7 +11,7 @@
 
 ![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)
 ![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-22_analyzers-success?style=flat-square)
+![Tests](https://img.shields.io/badge/tests-20_analyzers-success?style=flat-square)
 ![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen?style=flat-square)
 
   <!-- Platform & Language Support -->
@@ -24,10 +24,10 @@
   <!-- License & Community -->
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
-![Claude Code](https://img.shields.io/badge/Claude_Code-24_Commands-8A2BE2?style=flat-square)
+![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
 ![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
-![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-23_Specialists-ff6b35?style=flat-square>)
-![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-21_Specialists-ff6b35?style=flat-square>)
+![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
+![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-22_Specialists-ff6b35?style=flat-square>)
 
 </div>
 
@@ -690,7 +690,7 @@ These examples give a flavour, explore the repo and find what works for you.
 - Install & setup: docs/installation.md
 - Analyzer scripts overview: docs/analysis-scripts.md
 - Monitoring & logs: docs/monitoring.md
-- Agent orchestration: docs/agents.md
+- Agent orchestration: docs/subagents.md
 - Roadmap: docs/roadmap.md
 - Codex references (official excerpts mirrored in-repo):
   - codex/docs/config.md
@@ -706,12 +706,12 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|   **Category**    | **Document**                                    | **Description**                                 |
-| :---------------: | :---------------------------------------------- | :---------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
-|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | 19 specialized agents and multi-agent workflows |
-|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 22 analysis tools across 5+ languages           |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
+|   **Category**    | **Document**                                    | **Description**                                          |
+| :---------------: | :---------------------------------------------- | :------------------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions            |
+|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude/OpenCode agent catalog and orchestration guidance |
+|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories              |
+| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components              |
 
 ---
 
