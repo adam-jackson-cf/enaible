@@ -14,102 +14,51 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-# Optional redaction
-try:
-    from sensitive_data_redactor import redact_sensitive_data
+from context.context_capture_utils import (
+    build_result_payload,
+    emit_result,
+    load_config_with_defaults,
+    normalize_path,
+    parse_semantic_variations,
+    redact_if_available,
+    resolve_project_root,
+    semantic_match,
+    should_exclude_bash_command,
+    should_exclude_operation,
+    should_exclude_prompt,
+)
 
-    REDACTION_AVAILABLE = True
-except Exception:
-    REDACTION_AVAILABLE = False
+DEFAULT_CONFIG: dict[str, Any] = {
+    "excluded_operations": ["session_meta", "turn_context", "token_count"],
+    "excluded_bash_commands": [
+        "ls",
+        "pwd",
+        "cd",
+        "git status",
+        "git log",
+        "git diff",
+        "git show",
+        "git branch",
+    ],
+    "excluded_prompt_patterns": [],
+    "excluded_string_patterns": [
+        "__pycache__",
+        ".pyc",
+        "node_modules/",
+        ".git/objects/",
+        "/tmp/",
+        ".cache/",
+    ],
+    "redaction": {"enabled": True, "custom_patterns": []},
+    "truncation_limits": {
+        "prompt_max_length": 200,
+        "edit_string_max_length": 2000,
+    },
+}
 
 
 def load_config() -> dict[str, Any]:
-    try:
-        cfg_path = Path(__file__).parent / "context_capture_config.json"
-        if cfg_path.exists():
-            return json.loads(cfg_path.read_text())
-    except Exception:
-        pass
-    return {
-        "excluded_operations": ["session_meta", "turn_context", "token_count"],
-        "excluded_bash_commands": [
-            "ls",
-            "pwd",
-            "cd",
-            "git status",
-            "git log",
-            "git diff",
-            "git show",
-            "git branch",
-        ],
-        "excluded_prompt_patterns": [],
-        "excluded_string_patterns": [
-            "__pycache__",
-            ".pyc",
-            "node_modules/",
-            ".git/objects/",
-            "/tmp/",
-            ".cache/",
-        ],
-        "redaction": {"enabled": True, "custom_patterns": []},
-        "truncation_limits": {
-            "prompt_max_length": 200,
-            "edit_string_max_length": 2000,
-        },
-    }
-
-
-def should_exclude_operation(op: str | None, config: dict[str, Any]) -> bool:
-    return op in config.get("excluded_operations", [])
-
-
-def should_exclude_bash_command(cmd: str | None, config: dict[str, Any]) -> bool:
-    if not cmd:
-        return False
-    excluded = config.get("excluded_bash_commands", [])
-    low = cmd.lower().strip()
-    return any(low.startswith(e.lower()) for e in excluded)
-
-
-def should_exclude_prompt(text: str | None, config: dict[str, Any]) -> bool:
-    if not text:
-        return False
-    pats = config.get("excluded_prompt_patterns", [])
-    t = text.strip().lower()
-    return any(p.lower() in t for p in pats)
-
-
-def redact_if_available(val: Any, config: dict[str, Any]) -> Any:
-    if not isinstance(val, str):
-        return val
-    if not config.get("redaction", {}).get("enabled", True):
-        return val
-    if REDACTION_AVAILABLE:
-        try:
-            return redact_sensitive_data(val, config.get("redaction", {}))
-        except Exception:
-            return val
-    return val
-
-
-def semantic_match(
-    text: str | None, term: str | None, variations: dict[str, list[str]] | None = None
-) -> bool:
-    if not term or not text:
-        return False
-    text_lower = text.lower()
-    term_lower = term.lower()
-    if term_lower in text_lower:
-        return True
-    words = term_lower.split()
-    if all(w in text_lower for w in words):
-        return True
-    if variations:
-        for w in words:
-            for v in variations.get(w, []):
-                if v in text_lower:
-                    return True
-    return False
+    return load_config_with_defaults(DEFAULT_CONFIG)
 
 
 def get_codex_sessions_root() -> Path:
@@ -130,6 +79,20 @@ def iter_recent_jsonl_files(root: Path, days: int) -> Iterable[Path]:
                 yield p
         except Exception:
             continue
+
+
+def session_matches_project(session_cwd: str | None, project_root: Path) -> bool:
+    session_path = normalize_path(session_cwd)
+    if session_path is None:
+        return False
+    try:
+        if session_path == project_root:
+            return True
+        if project_root in session_path.parents:
+            return True
+        return session_path in project_root.parents
+    except Exception:
+        return False
 
 
 def build_operation(
@@ -168,8 +131,9 @@ def extract_jsonl_operations(
     config: dict[str, Any],
     search_term: str | None,
     semantic_variations: dict[str, list[str]] | None,
-) -> tuple[str, list[dict[str, Any]]]:
+) -> tuple[str, str | None, list[dict[str, Any]]]:
     session_id: str | None = None
+    session_cwd: str | None = None
     ops: list[dict[str, Any]] = []
     try:
         with open(jsonl_path, encoding="utf-8") as f:
@@ -197,6 +161,7 @@ def extract_jsonl_operations(
                     session_id = (
                         payload.get("id") or payload.get("thread_id") or session_id
                     )
+                    session_cwd = payload.get("cwd") or session_cwd
                     op = build_operation(
                         timestamp=ts,
                         operation="session_meta",
@@ -337,7 +302,7 @@ def extract_jsonl_operations(
         # Skip unreadable files
         pass
 
-    return (session_id or jsonl_path.stem, ops)
+    return (session_id or jsonl_path.stem, session_cwd, ops)
 
 
 def capture_codex_context() -> None:
@@ -362,21 +327,34 @@ def capture_codex_context() -> None:
         default="json",
         help="Output format",
     )
+    parser.add_argument(
+        "--project-root",
+        help="Absolute path to the project root. Defaults to current working directory.",
+    )
+    parser.add_argument(
+        "--include-all-projects",
+        action="store_true",
+        help="Include sessions from all projects, ignoring project root filtering.",
+    )
     args = parser.parse_args()
 
     # Parse semantic variations if provided
-    semantic_variations: dict[str, list[str]] | None = None
-    if args.semantic_variations:
-        try:
-            semantic_variations = json.loads(args.semantic_variations)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing semantic variations JSON: {e}", file=sys.stderr)
-            sys.exit(1)
+    try:
+        semantic_variations = parse_semantic_variations(args.semantic_variations)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
 
     try:
         config = load_config()
         root = get_codex_sessions_root()
         files = list(iter_recent_jsonl_files(root, args.days))
+
+        try:
+            project_root = resolve_project_root(args.project_root)
+        except ValueError as exc:
+            print(str(exc), file=sys.stderr)
+            sys.exit(1)
 
         if args.uuid:
             files = [p for p in files if args.uuid in p.name]
@@ -384,7 +362,7 @@ def capture_codex_context() -> None:
         all_ops: list[dict[str, Any]] = []
         session_ids: list[str] = []
         for fpath in sorted(files):
-            sid, ops = extract_jsonl_operations(
+            sid, session_cwd, ops = extract_jsonl_operations(
                 fpath,
                 config=config,
                 search_term=args.search_term,
@@ -392,33 +370,15 @@ def capture_codex_context() -> None:
             )
             if args.uuid and args.uuid not in (sid or ""):
                 continue
+            if not args.include_all_projects and not session_matches_project(
+                session_cwd, project_root
+            ):
+                continue
             session_ids.append(sid)
             all_ops.extend(ops)
 
-        timestamps = [op.get("timestamp") for op in all_ops if op.get("timestamp")]
-        date_range = {
-            "earliest": min(timestamps) if timestamps else None,
-            "latest": max(timestamps) if timestamps else None,
-        }
-
-        result = {
-            "sessions_found": len(set(session_ids)),
-            "date_range": date_range,
-            "filter": f"UUID: {args.uuid}" if args.uuid else "All recent sessions",
-            "search_term": args.search_term,
-            "operations": all_ops,
-        }
-
-        if args.output_format == "json":
-            print(json.dumps(result, indent=2))
-        else:
-            print(f"Sessions Found: {result['sessions_found']}")
-            if date_range["earliest"]:
-                print(f"Date Range: {date_range['earliest']} to {date_range['latest']}")
-            print(f"Filter: {result['filter']}")
-            if args.search_term:
-                print(f"Search Term: {args.search_term}")
-            print(f"Operations: {len(all_ops)}")
+        result = build_result_payload(session_ids, all_ops, args.uuid, args.search_term)
+        emit_result(result, args.output_format)
 
     except Exception as e:
         print(f"Error extracting Codex context: {e}", file=sys.stderr)

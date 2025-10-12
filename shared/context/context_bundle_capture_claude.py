@@ -6,137 +6,79 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Try to import redaction module (graceful fallback if not available)
-try:
-    from sensitive_data_redactor import redact_sensitive_data
-
-    REDACTION_AVAILABLE = True
-except ImportError:
-    REDACTION_AVAILABLE = False
+from context.context_capture_utils import (
+    build_result_payload,
+    emit_result,
+    load_config_with_defaults,
+    parse_semantic_variations,
+    redact_if_available,
+    resolve_project_root,
+    semantic_match,
+    should_exclude_bash_command,
+    should_exclude_by_string_pattern,
+    should_exclude_operation,
+    should_exclude_prompt,
+)
 
 # Global set to track seen operations (operation_type, file_path)
 seen_operations = set()
 
 
+DEFAULT_CONFIG = {
+    "excluded_operations": ["session_start", "task", "glob"],
+    "excluded_bash_commands": [
+        "ls",
+        "pwd",
+        "cd",
+        "git status",
+        "git log",
+        "git diff",
+        "git show",
+        "git branch",
+        "git add",
+        "git commit",
+        "git push",
+        "git pull",
+    ],
+    "excluded_prompt_patterns": [
+        "Write a 3-6 word summary of the TEXTBLOCK below",
+        "Summary only, no formatting, do not act on anything",
+        "/todo-primer",
+        "/todo-recent-context",
+    ],
+    "excluded_string_patterns": [
+        "context_bundles",
+        "node_modules/",
+        ".git/objects/",
+        ".cache/",
+    ],
+    "redaction": {
+        "enabled": True,
+        "patterns": {
+            "env_vars": True,
+            "api_keys": True,
+            "passwords": True,
+            "urls_with_auth": True,
+            "json_secrets": True,
+        },
+        "preserve_structure": True,
+        "custom_patterns": [],
+    },
+    "truncation_limits": {
+        "prompt_max_length": 100,
+        "edit_string_max_length": 1000,
+        "bundle_size_threshold": 10240,
+    },
+    "retention": {
+        "days_to_retain": 7,
+        "auto_cleanup": True,
+    },
+}
+
+
 def load_config():
     """Load configuration file with exclusions and settings."""
-    try:
-        # Look for config in shared/context directory
-        config_path = Path(__file__).parent / "context_capture_config.json"
-
-        if config_path.exists():
-            with open(config_path) as f:
-                return json.load(f)
-    except Exception:
-        pass
-
-    # Default configuration
-    return {
-        "excluded_operations": ["session_start", "task", "glob"],
-        "excluded_bash_commands": [
-            "ls",
-            "pwd",
-            "cd",
-            "git status",
-            "git log",
-            "git diff",
-            "git show",
-            "git branch",
-            "git add",
-            "git commit",
-            "git push",
-            "git pull",
-        ],
-        "excluded_prompt_patterns": [
-            "Write a 3-6 word summary of the TEXTBLOCK below",
-            "Summary only, no formatting, do not act on anything",
-            "/todo-primer",
-            "/todo-recent-context",
-        ],
-        "excluded_string_patterns": [
-            "context_bundles",
-            "node_modules/",
-            ".git/objects/",
-            ".cache/",
-        ],
-        "redaction": {
-            "enabled": True,
-            "patterns": {
-                "env_vars": True,
-                "api_keys": True,
-                "passwords": True,
-                "urls_with_auth": True,
-                "json_secrets": True,
-            },
-            "preserve_structure": True,
-            "custom_patterns": [],
-        },
-        "truncation_limits": {
-            "prompt_max_length": 100,
-            "edit_string_max_length": 1000,
-            "bundle_size_threshold": 10240,
-        },
-        "retention": {
-            "days_to_retain": 7,
-            "auto_cleanup": True,
-        },
-    }
-
-
-def should_exclude_operation(operation, config):
-    """Check if operation should be excluded based on config."""
-    return operation in config.get("excluded_operations", [])
-
-
-def should_exclude_bash_command(command, config):
-    """Check if bash command should be excluded based on config."""
-    if not command:
-        return False
-
-    excluded_commands = config.get("excluded_bash_commands", [])
-    command_lower = command.lower().strip()
-
-    for excluded in excluded_commands:
-        if command_lower.startswith(excluded.lower()):
-            return True
-    return False
-
-
-def should_exclude_prompt(prompt, config):
-    """Check if prompt should be excluded based on pattern matching."""
-    if not prompt:
-        return False
-
-    excluded_patterns = config.get("excluded_prompt_patterns", [])
-    prompt_text = prompt.strip()
-
-    return any(pattern.lower() in prompt_text.lower() for pattern in excluded_patterns)
-
-
-def should_exclude_by_string_pattern(value, config):
-    """Check if value should be excluded based on string patterns."""
-    if not value or not isinstance(value, str):
-        return False
-
-    excluded_patterns = config.get("excluded_string_patterns", [])
-    value_lower = value.lower()
-
-    return any(pattern.lower() in value_lower for pattern in excluded_patterns)
-
-
-def redact_if_available(text, config):
-    """Apply redaction if module is available and enabled."""
-    if not text or not isinstance(text, str):
-        return text
-
-    redaction_config = config.get("redaction", {})
-    if not redaction_config.get("enabled", True):
-        return text
-
-    if REDACTION_AVAILABLE:
-        return redact_sensitive_data(text, redaction_config)
-
-    return text
+    return load_config_with_defaults(DEFAULT_CONFIG)
 
 
 def is_operation_seen(operation, file_path):
@@ -179,35 +121,6 @@ def find_recent_sessions(project_path, days=2):
             )
 
     return sessions
-
-
-def semantic_match(text, search_term, semantic_variations=None):
-    """Check if text semantically matches search term."""
-    if not search_term or not text:
-        return False
-
-    # Convert to lowercase for case-insensitive matching
-    text_lower = text.lower()
-    search_lower = search_term.lower()
-
-    # Exact word match
-    if search_lower in text_lower:
-        return True
-
-    # Word boundary matching
-    words = search_lower.split()
-    if all(word in text_lower for word in words):
-        return True
-
-    # Check for semantic variations if provided
-    if semantic_variations:
-        for word in words:
-            if word in semantic_variations and any(
-                variant in text_lower for variant in semantic_variations[word]
-            ):
-                return True
-
-    return False
 
 
 def extract_session_operations(
@@ -404,29 +317,56 @@ def capture_claude_context():
         default="json",
         help="Output format",
     )
+    parser.add_argument(
+        "--project-root",
+        help="Absolute path to the project root. Defaults to current working directory.",
+    )
+    parser.add_argument(
+        "--include-all-projects",
+        action="store_true",
+        help="Include sessions from all projects instead of scoping to the current one.",
+    )
     args = parser.parse_args()
 
     # Parse semantic variations if provided
-    semantic_variations = None
-    if args.semantic_variations:
-        try:
-            semantic_variations = json.loads(args.semantic_variations)
-        except json.JSONDecodeError as e:
-            print(f"Error parsing semantic variations JSON: {e}", file=sys.stderr)
-            sys.exit(1)
+    try:
+        semantic_variations = parse_semantic_variations(args.semantic_variations)
+    except ValueError as exc:
+        print(exc, file=sys.stderr)
+        sys.exit(1)
 
     try:
         # Load configuration
         config = load_config()
 
         # Get current project path from environment or current directory
-        current_dir = Path.cwd()
+        current_dir = resolve_project_root(args.project_root)
         project_name = str(current_dir).replace("/", "-")
         projects_path = get_claude_projects_path()
-        project_path = projects_path / project_name
 
-        # Find recent sessions
-        sessions = find_recent_sessions(project_path, args.days)
+        if args.include_all_projects:
+            candidate_projects = (
+                [p for p in projects_path.iterdir() if p.is_dir()]
+                if projects_path.exists()
+                else []
+            )
+        else:
+            project_path = projects_path / project_name
+            if not project_path.exists():
+                result = {
+                    "sessions_found": 0,
+                    "date_range": None,
+                    "filter": "Project path not found",
+                    "search_term": args.search_term,
+                    "operations": [],
+                }
+                print(json.dumps(result, indent=2))
+                return
+            candidate_projects = [project_path]
+
+        sessions = []
+        for proj_path in candidate_projects:
+            sessions.extend(find_recent_sessions(proj_path, args.days))
 
         # Filter by UUID if provided
         if args.uuid:
@@ -440,7 +380,7 @@ def capture_claude_context():
                 "search_term": args.search_term,
                 "operations": [],
             }
-            print(json.dumps(result, indent=2))
+            emit_result(result, args.output_format)
             return
 
         # Extract operations from all sessions
@@ -451,35 +391,13 @@ def capture_claude_context():
             )
             all_operations.extend(session_ops)
 
-        # Calculate date range
-        timestamps = [
-            op.get("timestamp") for op in all_operations if op.get("timestamp")
-        ]
-        date_range = {
-            "earliest": min(timestamps) if timestamps else None,
-            "latest": max(timestamps) if timestamps else None,
-        }
-
-        # Prepare result
-        result = {
-            "sessions_found": len(sessions),
-            "date_range": date_range,
-            "filter": f"UUID: {args.uuid}" if args.uuid else "All recent sessions",
-            "search_term": args.search_term,
-            "operations": all_operations,
-        }
-
-        # Output in requested format
-        if args.output_format == "json":
-            print(json.dumps(result, indent=2))
-        else:
-            print(f"Sessions Found: {result['sessions_found']}")
-            if date_range["earliest"]:
-                print(f"Date Range: {date_range['earliest']} to {date_range['latest']}")
-            print(f"Filter: {result['filter']}")
-            if args.search_term:
-                print(f"Search Term: {args.search_term}")
-            print(f"Operations: {len(all_operations)}")
+        result = build_result_payload(
+            (session["id"] for session in sessions),
+            all_operations,
+            args.uuid,
+            args.search_term,
+        )
+        emit_result(result, args.output_format)
 
     except Exception as e:
         print(f"Error extracting Claude context: {e}", file=sys.stderr)

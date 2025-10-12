@@ -62,14 +62,23 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_clau
 
 3. **Git History Review**
 
-   - Retrieve last 5 commits with details using `git log`
-   - Analyze commit messages, changed files, and modification patterns
-   - Identify areas of active development and recent focus
+   - Build a recent timeline: `git log --stat --date=iso --max-count 8`
+   - For high-activity files (from context bundles or `git status`), trace evolution with `git log --follow --oneline -20 -- <file>`
+   - When specific code chunks matter, run `git blame -w -C -C -C -- <file>` to surface origins while ignoring whitespace/moves
+   - Mine commit intent: `git log --grep "\bfix\b" --since="30 days ago"` and other targeted keywords (refactor, perf, security)
+   - Surface first/last occurrence of patterns via `git log -S"<pattern>" --oneline`
+   - Record architectural turning points, renames, and rationale pulled from these commands
 
-4. **Generate Consolidated Summary**
-   - Combine findings from both sources into a cohesive activity report
-   - Highlight active development areas and common workflows
-   - Provide context for resuming work or understanding team activity
+4. **Contributor & Pattern Mapping**
+
+   - Identify key contributors with `git shortlog -sn --since="90 days ago"`
+   - Cross-reference contributors with the files they touch most (use `git log --stat --author="<name>" --since="90 days ago"` when necessary)
+   - Note recurring problem themes, follow-up fixes, and outstanding risks
+
+5. **Generate Consolidated Summary**
+   - Combine findings from context bundles, status, and history into a cohesive narrative
+   - Highlight active development areas, contributors, and historical risk patterns
+   - Provide clear orientation for resuming work or onboarding teammates
 
 ## Process
 
@@ -95,21 +104,34 @@ else
 fi
 
 PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} --output-format json
+
+# Include all projects when cross-repo context is required
+PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
 ```
 
-### 2. Git History Analysis
-
-```bash
-# Get recent commit history with details
-git log --oneline -3
-git log --stat -3 --pretty=format:"%h - %s (%an, %ar)"
-```
-
-### 3. Git Status Analysis
+### 2. Git Status Analysis
 
 ```bash
 # Show any modified but yet to be commit files
-git status --oneline -3
+git status --short
+```
+
+### 3. Git History Analysis
+
+```bash
+# Recent timeline overview
+git log --stat --date=iso --max-count 8
+
+# Contributor map
+git shortlog -sn --since="90 days ago"
+
+# Pattern searches (swap keyword/pattern as needed)
+git log --grep="fix" --since="30 days ago"
+git log -S"TODO" --oneline
+
+# File-focused archaeology (run for top N files)
+git log --follow --oneline -20 -- path/to/file
+git blame -w -C -C -C -- path/to/file
 ```
 
 ### 4. Data Analysis and Summary
@@ -169,44 +191,42 @@ The LLM should enhance this with context-aware variations based on the search do
 - **Common Workflows**: [identified patterns in operation sequences]
 - **User Objectives**: [summary of goals extracted from prompts]
 
-## Git History (Last 3 Commits)
+_Timeline of File Evolution_
 
-### Commit Details
+1. `[date]` — `[hash]` `[commit message]` (Authored by [author])
+   - **Scope**: [files / modules]
+   - **Intent**: [feature, fix, refactor, etc.]
+   - **Notes**: [renames, follow-up TODOs, regressions addressed]
 
-1. `[hash]` - [commit message] ([author], [relative_date])
-   **Files Changed**: [count] ([additions/deletions])
-   **Key Changes**: [summary of main changes]
+[Repeat for meaningful hops]
 
-2. `[hash]` - [commit message] ([author], [relative_date])
-   **Files Changed**: [count] ([additions/deletions])
-   **Key Changes**: [summary of main changes]
+_Key Contributors & Domains_
 
-[Continue for remaining commits...]
+- **[Contributor]**: [primary areas touched, sample commits, expertise inference]
+- **[Contributor]**: [primary areas touched, sample commits, expertise inference]
 
-## Git Status (uncommited files)
+_Historical Issues & Fixes_
 
-### Status Details
+- **Pattern**: `[keyword or failure mode]`
+  - **Introduced**: `[commit hash/date]`
+  - **Fix / Mitigation**: `[commit hash/date]`
+  - **Outstanding Risks**: [notes]
 
-**Files Changed**: [count] ([additions/deletions])
-**Key Changes**: [summary of main changes]
+_Change Patterns_
 
-### Development Focus Areas
+- **File / Component**: [summary of change cadence, rewrite moments, churn indicators]
+- **Pattern Searches**: [results from `git log --grep` or `-S` calls]
 
-- **[Directory/Component]**: [description of recent changes and activity]
-- **[Directory/Component]**: [description of recent changes and activity]
+## Git Status (Uncommitted Work)
+
+- **Files Changed**: [count] ([additions/deletions])
+- **Hot Spots**: [directories/components with noteworthy deltas]
 
 ## Consolidated Analysis
 
-### Current Development Focus
-
-[Analysis combining both context bundles, git status and git history to identify main areas of work]
-
-### Most Active Files
-
-[Files that appear frequently in both context bundles, git status and git commits]
-
-1. `[file_path]` - [context: read/write operations + commit changes]
-2. `[file_path]` - [context: read/write operations + commit changes]
+- **Current Development Focus**: [link context bundles ↔ git history ↔ status]
+- **Most Active Files**: [list with reasoning]
+- **Recommended Next Checks**: [tests, follow-ups, stakeholders]
 ```
 
 ## Usage Examples
