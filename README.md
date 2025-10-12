@@ -26,7 +26,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
 ![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
-![Codex Prompts](https://img.shields.io/badge/Codex_Prompts-21_Workflows-FF69B4?style=flat-square)
+![Codex Prompts](https://img.shields.io/badge/Codex-21_Prompts-FF69B4?style=flat-square)
 ![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
 ![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-22_Specialists-ff6b35?style=flat-square>)
 
