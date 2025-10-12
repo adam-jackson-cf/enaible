@@ -55,9 +55,13 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
      - No prose or code blocks.
 
 6. Consolidate & propose
+
    - Merge YAML across chunks; sort by frequency and clarity.
    - Produce a merge-ready block for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
    - STOP → "Apply to ~/.claude/CLAUDE.md? (y/n)"
+
+7. Cleanup
+   - !`rm -rf .workspace/codify-history || true`
 
 ## Output
 

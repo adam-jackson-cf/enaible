@@ -1,70 +1,79 @@
-# Setup Serena MCP (Claude Code)
+# Purpose
 
-Configure and activate the Serena MCP server for Claude Code using the IDE-centric context recommended by the Serena README.
+Configure the Serena MCP server with the IDE-assistant context, update project guidance, and verify Claude Code connectivity.
 
-## Behavior
+## Variables
 
-Claude should set up Serena with the `ide-assistant` context (best for IDE-style clients like Claude Code), verify connectivity, optionally disable the Serena web dashboard auto-open, and then activate Serena for the current project.
+- `PROJECT_ROOT` ← output of `pwd`.
+- `SERENA_CONFIG` ← `~/.serena/serena_config.yml`.
+- `$ARGUMENTS` ← raw argument string (no additional flags supported).
 
-## Steps
+## Instructions
+
+- ALWAYS remove any existing `serena` MCP entry before re-adding to avoid duplicate registrations.
+- Use the IDE-assistant context and current project path for optimal Claude Code integration.
+- Document the MCP tools available in `AGENTS.md`; emphasize that Serena search tools are mandatory.
+- Offer optional configuration to disable the Serena web dashboard auto-open.
+- Verify connection status via `claude mcp list` and surface the result.
+
+## Workflow
 
 1. Check prerequisites
+   - Run `uvx --version`; exit immediately if `uvx` is unavailable because it is required to launch the Serena MCP server.
+   - Run `claude --version`; exit immediately if the Claude CLI cannot be reached because configuration steps will fail.
+   - Capture current working directory as `PROJECT_ROOT`.
+2. Register MCP server
+   - Remove existing entry (ignore errors):
+     ```bash
+     claude mcp remove serena || true
+     ```
+   - Add Serena using IDE-assistant context:
+     ```bash
+     claude mcp add serena -- \
+       uvx --from git+https://github.com/oraios/serena \
+       serena start-mcp-server \
+       --context ide-assistant \
+       --project "$PROJECT_ROOT"
+     ```
+3. Update project documentation
+   - Append the required instruction block to the project-level `AGENTS.md`, describing mandatory Serena tool usage (`find_symbol`, `find_referencing_symbols`, `get_symbols_overview`, `search_for_pattern`).
+4. Optional dashboard configuration
+   - If requested, edit `~/.serena/serena_config.yml` to set:
+     ```yaml
+     web_dashboard: false
+     web_dashboard_open_on_launch: false
+     ```
+   - Mention manual dashboard URL: `http://localhost:24282/dashboard/index.html`.
+5. Verify connectivity
+   - Run `claude mcp list` and confirm Serena appears as `connected`.
+6. Report completion
+   - Summarize registered command, documentation update, optional config, and connection status.
 
-- Ensure `uvx` is installed and on PATH: `uvx --version`.
+## Output
 
-2. Add or update the MCP server entry
+```md
+# RESULT
 
-- Remove any previous entry (ignore errors):
-  ```bash
-  claude mcp remove serena || true
-  ```
-- Add Serena with the IDE assistant context and current project path:
-  ```bash
-  claude mcp add serena -- \
-    uvx --from git+https://github.com/oraios/serena \
-    serena start-mcp-server \
-    --context ide-assistant \
-    --project "$(pwd)"
-  ```
+- Summary: Serena MCP configured for Claude Code.
 
-3. Add instructions to the project level AGENTS.md
+## DETAILS
 
-```markdown
-- **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back to those on serena mcp failure, available serena mcp tools:
+- Context: ide-assistant
+- Project Path: <PROJECT_ROOT>
+- Dashboard Auto-Open: <disabled|unchanged>
+- AGENTS.md Updated: <yes/no>
+- MCP Status: <connected|error> (from `claude mcp list`)
 
-  - find_symbol: global/local search for symbols by name/substring (optional type filters).
-  - find_referencing_symbols: find all symbols that reference a given symbol.
-  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
-  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
+## NEXT STEPS
+
+1. Restart Claude Code or IDE if connection isn’t detected.
+2. Use Serena tools (`find_symbol`, `find_referencing_symbols`, etc.) for code searches.
+3. Visit http://localhost:24282/dashboard/index.html when manual dashboard access is needed.
 ```
 
-4. Optionally disable the web dashboard auto-open
-
-- Edit `~/.serena/serena_config.yml` and set:
-  ```yaml
-  web_dashboard: false
-  web_dashboard_open_on_launch: false
-  ```
-  You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
-
-5. Verify connection
+## Examples
 
 ```bash
-claude mcp list
-# Expect: serena (connected)
-```
-
-## Notes
-
-- You may need restart claude code / ide environment after mcp install
-- The `--` separator is required to pass arguments to the Serena process.
-- `ide-assistant` is the recommended context for Claude Code;
-- Logs: check Claude’s logs and Serena’s own logs if needed.
-
-## Example Usage
-
-```bash
+# Configure Serena MCP for the current project
 /setup-serena-mcp
 ```
-
-$ARGUMENTS
