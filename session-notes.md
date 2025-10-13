@@ -43,3 +43,24 @@ System Settings → Privacy & Security → Accessibility.
   - Example alias in `~/.zshrc`:
     `alias g3='open -na Ghostty.app'`
   - Then hit `Cmd+N` to create a window and run `g3` for a separate instance if you want another default 3‑pane layout.
+
+---
+
+# Installer Notes — Codex CLI
+
+Date: 2025-10-13
+
+Fixed an installation path bug in the Codex installers where the Python framework was looked up at `systems/shared/` instead of the repository-level `shared/` directory.
+
+What changed
+
+- systems/codex/install.sh: in `copy_python_framework()`, changed the shared root resolution from `$(cd "$SCRIPT_DIR/.." && pwd)/shared` to `$(cd "$SCRIPT_DIR/../.." && pwd)/shared` (two levels up from `systems/codex/`).
+- systems/codex/install.ps1: compute `$repoRoot` two levels up with `Split-Path (Split-Path $ScriptDir -Parent) -Parent` and set `$sharedRoot = Join-Path $repoRoot 'shared'`. Also improved the error message to print the full missing path.
+
+Verification
+
+- Ran `./systems/codex/install.sh --dry-run --verbose` and confirmed Phase [5/11] "Copy Python framework" now resolves correctly and proceeds. Dry-run succeeded end-to-end.
+
+Impact
+
+- Addresses the error: `Missing shared subtree: /.../systems/shared/core` observed during step [5/11] of the installer.

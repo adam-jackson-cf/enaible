@@ -331,8 +331,9 @@ function Install-PythonDependencies {
 
     $PythonExe = Get-PythonExe
 
-    # Scripts are now in shared/ subdirectories
-    $sharedDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared"
+    # Scripts are in repo-level shared/ (two levels up from systems/opencode)
+    $repoRoot = Split-Path (Split-Path $SCRIPT_DIR -Parent) -Parent
+    $sharedDir = Join-Path $repoRoot "shared"
     $setupDir = Join-Path $sharedDir "setup"
     $requirementsPath = Join-Path $setupDir "requirements.txt"
 
@@ -692,7 +693,8 @@ function Copy-WorkflowFiles {
                 # Backup custom scripts if they exist
                 $customScripts = @()
                 if (Test-Path $scriptsPath) {
-                    $sharedDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared"
+                    $repoRoot = Split-Path (Split-Path $SCRIPT_DIR -Parent) -Parent
+                    $sharedDir = Join-Path $repoRoot "shared"
                     foreach ($scriptFile in Get-ChildItem $scriptsPath -Recurse -File) {
                         $relativePath = [System.IO.Path]::GetRelativePath($scriptsPath, $scriptFile.FullName)
                         $foundInSource = $false
@@ -824,7 +826,8 @@ Python Dependencies: $pythonStatus
 function Copy-SharedScripts {
     param([string]$OpenCodePath)
 
-    $sharedDir = Join-Path (Split-Path $SCRIPT_DIR -Parent) "shared"
+    $repoRoot = Split-Path (Split-Path $SCRIPT_DIR -Parent) -Parent
+    $sharedDir = Join-Path $repoRoot "shared"
     Write-Log "Looking for shared directory at: $sharedDir"
 
     if (Test-Path $sharedDir) {

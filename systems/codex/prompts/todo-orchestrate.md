@@ -7,22 +7,7 @@
 ## Variables
 
 - `$TASK_INPUT` ← task spec (free text, file path, or Linear issue ID like `ABC-123`)
-- `$TARGET_PATH` ← project root (default `.`)
-- `$REMOTE` ← git remote (default `origin`)
-- `$WORKTREES` ← worktree root (default `.worktrees`)
-- `$BASE` ← base branch for build (optional; else read from plan)
-- `$DAYS` ← investigation window (default `20`)
 - `$EXCLUDE_GLOBS` ← CSV globs to ignore (optional; e.g., `node_modules,dist`)
-- `$SLUG` ← derived from `$TASK_INPUT` (kebab-case)
-- `$TS` ← timestamp `YYYYmmddHHMM`
-- `$BRANCH` ← feature branch (e.g., `feature/$SLUG-$TS`)
-- `$WORKTREE_PATH` ← `$WORKTREES/$SLUG-$TS`
-- `$WSDIR` ← `$WORKTREE_PATH/.workspace/orchestrate/$SLUG-$TS`
-- `$SPEC_PATH` ← `$WSDIR/spec.md`
-- `$INSPECT_REPORT` ← `$WSDIR/inspect.md`
-- `$PLAN_PATH` ← `$WSDIR/execplan.md`
-- `$BUILD_SUMMARY` ← `$WSDIR/build.md`
-- `$PR_URL` ← populated during BUILD
 
 ## Instructions
 
@@ -43,6 +28,10 @@
     - `$BRANCH` = `feature/$SLUG-$TS`
     - `$WORKTREE_PATH` = `$WORKTREES/$SLUG-$TS`
     - `$WSDIR` = `$WORKTREE_PATH/.workspace/orchestrate/$SLUG-$TS`
+    - If repository is initialized (has commits):
+      - `BASE=${BASE:-$(git symbolic-ref -q --short HEAD || echo main)}`
+      - `REMOTE=${REMOTE:-$(git remote 2>/dev/null | head -n1 || echo origin)}`
+    - If not initialized yet: default to `REMOTE=origin` and `BASE=main`.
   - Ensure git repository:
     - If `.git` missing or no commits: `git init && git checkout -b ${BASE:-main}`; create a minimal tracked file (e.g., `README.md` or `.gitkeep`) and commit (`chore: init repo`).
     - If `$REMOTE` is configured, run `git fetch $REMOTE ${BASE:-main}`.

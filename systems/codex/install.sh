@@ -216,7 +216,9 @@ copy_prompts_and_rules() {
 
 copy_python_framework() {
   # Copy only required shared subtrees
-  local src_root="$(cd "$SCRIPT_DIR/.." && pwd)/shared"
+  # The repo layout has `shared/` at the repository root, sibling to `systems/`.
+  # This script lives in `systems/codex/`, so we must go two levels up.
+  local src_root="$(cd "$SCRIPT_DIR/../.." && pwd)/shared"
   local subdirs=(core analyzers setup config utils generators context)
   for d in "${subdirs[@]}"; do
     local src="$src_root/$d"

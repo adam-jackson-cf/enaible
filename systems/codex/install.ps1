@@ -163,9 +163,12 @@ if ($DryRun) {
 }
 
 Next-Phase "Copy Python framework"
-$sharedRoot = Join-Path (Split-Path $ScriptDir -Parent) 'shared'
+# Repo layout: `shared/` sits at the repository root (sibling to `systems/`).
+# This script lives in `systems/codex/`, so resolve two levels up.
+$repoRoot = Split-Path (Split-Path $ScriptDir -Parent) -Parent
+$sharedRoot = Join-Path $repoRoot 'shared'
 $subdirs = @('core','analyzers','setup','config','utils','generators','context')
-foreach ($d in $subdirs) { if (-not (Test-Path (Join-Path $sharedRoot $d))) { throw "Missing shared subtree: $d" } }
+foreach ($d in $subdirs) { if (-not (Test-Path (Join-Path $sharedRoot $d))) { throw "Missing shared subtree: $(Join-Path $sharedRoot $d)" } }
 if ($DryRun) {
   Write-Log "Would copy Python framework to $SCRIPTS_ROOT"
 } else {

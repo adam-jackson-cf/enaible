@@ -584,7 +584,8 @@ copy_files() {
 
     # Verify source files exist
     # Check if we have the expected subdirectories
-    local shared_dir="$(dirname "$source_dir")/shared"
+    # Resolve shared/ at repo root: systems/claude-code -> systems -> repo
+    local shared_dir="$(cd "$(dirname "$source_dir")/.." && pwd)/shared"
     if [[ ! -d "$source_dir/commands" ]] || [[ ! -d "$shared_dir" ]]; then
         log_error "Source files not found"
         log_error "Expected to find: $source_dir/commands/ and $shared_dir"
@@ -624,7 +625,7 @@ copy_files() {
         spinner $! "Copying workflow files"
 
         # Copy scripts from shared/ subdirectories if they don't exist
-        local shared_dir="$(dirname "$source_dir")/shared"
+        local shared_dir="$(cd "$(dirname "$source_dir")/.." && pwd)/shared"
         if [[ ! -d "$INSTALL_DIR/scripts" ]]; then
             mkdir -p "$INSTALL_DIR/scripts"
             for subdir in analyzers generators setup utils ci core config context; do
@@ -681,7 +682,7 @@ copy_files() {
         fi
 
         # Update scripts directory (preserve custom scripts)
-        local shared_dir="$(dirname "$source_dir")/shared"
+        local shared_dir="$(cd "$(dirname "$source_dir")/.." && pwd)/shared"
         if [[ -d "$shared_dir" ]]; then
             log "  Updating scripts directory (preserving custom scripts)..."
 
@@ -764,7 +765,7 @@ copy_files() {
         spinner $! "Copying workflow files"
 
         # Copy scripts from shared/ subdirectories
-        local shared_dir="$(dirname "$source_dir")/shared"
+        local shared_dir="$(cd "$(dirname "$source_dir")/.." && pwd)/shared"
         mkdir -p "$INSTALL_DIR/scripts"
         for subdir in analyzers generators setup utils core config context web_scraper; do
             if [[ -d "$shared_dir/$subdir" ]]; then
