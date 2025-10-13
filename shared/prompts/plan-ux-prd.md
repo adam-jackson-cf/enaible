@@ -1,4 +1,6 @@
-# Purpose
+# plan-ux-prd v0.3
+
+## Purpose
 
 Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria.
 
@@ -7,7 +9,6 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 - `PRODUCT_BRIEF` ← first positional argument describing the feature or product.
 - `QUESTION_RESPONSES` ← structured answers gathered during Phase 1.
 - `PRD_OUTPUT` ← final markdown document adhering to the mandated contract.
-- `$ARGUMENTS` ← raw argument string.
 
 ## Instructions
 
@@ -31,19 +32,95 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
    - Summarize understanding and confirm key requirements with user.
    - **STOP:** “Ready to generate the PRD? (y/n)”
 2. PRD generation
-   - Populate the mandated PRD structure in exact order:
-     1. Overview
-     2. Personas
-     3. Scope (MoSCoW with feature IDs)
-     4. Screen Architecture (screen IDs)
-     5. Key User Flows (flow IDs with trigger, preconditions, steps, alternate paths, postconditions)
-     6. UX/UI Requirements (design principles, accessibility, interaction patterns, tone)
-     7. Data & Analytics
-     8. Non-Functional Requirements
-     9. Acceptance Criteria (per feature with Gherkin-style statements)
-     10. Risks & Assumptions
-     11. Release Plan (milestones + validation)
+
+   - Generate the complete PRD using the Output Contract below. Populate all required sections using the Phase 1 answers. Use stable IDs for cross‑references.
+
+   - Feature IDs: `F-001`, `F-002`, ...
+   - Screen IDs: `S-001`, `S-002`, ...
+   - Flow IDs: `FL-001`, `FL-002`, ...
+
+   **Output Contract (exact order and headings):**
+
+   ```markdown
+   # Product Requirements Document (PRD): <Product Name>
+
+   ## 1. Overview
+
+   - Brief: <one-paragraph description>
+   - Goals: <3–5 bullet goals>
+   - Non‑Goals: <2–4 bullets>
+
+   ## 2. Personas
+
+   - <Name> — <Role>
+     - Goals: [...]
+     - Pain Points: [...]
+     - Screen Patterns: { primary: [...], secondary: [...], admin: [...] }
+
+   ## 3. Scope (MoSCoW)
+
+   ### Must Have
+
+   - [F-001] <Name> — <1–2 sentence description>
+
+   ### Should Have
+
+   - [F-00X] ...
+
+   ### Could Have
+
+   - [F-00X] ...
+
+   ### Won't Have
+
+   - [F-00X] ...
+
+   ## 4. Screen Architecture
+
+   - Primary Screens: [S-001 <Name>, S-002 <Name>, ...]
+   - Secondary Screens: [...]
+   - Admin/Settings: [...]
+   - Navigation Model: <global nav, local nav, search>
+
+   ## 5. Key User Flows
+
+   - [FL-001] <Flow Name>
+     - Trigger
+     - Preconditions
+     - Steps (numbered)
+     - Alternate Paths
+     - Postconditions
+
+   ## 6. UX/UI Requirements
+
+   - Design Principles: [...]
+   - Accessibility (WCAG): <levels, color contrast, focus, ARIA>
+   - Interaction Patterns: <inputs, validation, empty states, errors>
+   - Content & Tone: <voice, microcopy rules>
+
+   ## 7. Data & Analytics
+
+   - Core Entities: <list>
+   - Events to Track: <event:name, properties>
+   - KPIs: <metrics>
+
+   ## 8. Non‑Functional Requirements
+
+   - Performance, Reliability, Privacy, Security
+
+   ## 9. Acceptance Criteria (per feature)
+
+   - [F-001] <Name>
+     - Given/When/Then cases (3–6 lines)
+
+   ## 10. Risks & Assumptions
+
+   - Risks: [...]
+   - Assumptions: [...]
+   ```
+
    - Ensure cross-references (features ↔ screens ↔ flows) are consistent.
+
 3. Quality validation
    - Verify checklist:
      - All MoSCoW features map to screens and flows.
@@ -59,14 +136,12 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 # RESULT
 
 - Summary: UX PRD generated for "<PRODUCT_BRIEF>".
-- Document Length: <word count / sections>
 - Personas: <count>
 - Features: <count> (Must: <n>, Should: <n>, Could: <n>, Won't: <n>)
-- Screens: <count> (Primary <n> / Secondary <n> / Admin <n>)
 
 ## DELIVERABLE
 
-- Saved PRD: <path or inline document>
+- Saved PRD: <path-to-document>
 ```
 
 ## Examples

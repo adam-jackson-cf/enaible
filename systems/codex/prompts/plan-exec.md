@@ -1,8 +1,8 @@
 # plan-exec v0.1
 
-**Purpose**
+## Purpose
 
-- Transform a user objective into a concrete execution plan formatted exactly to ExecPlan.
+Transform a user objective into a concrete execution plan formatted exactly to ExecPlan.
 
 ## Variables
 

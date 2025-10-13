@@ -1,4 +1,6 @@
-# Purpose
+# plan-refactor v0.3
+
+## Purpose
 
 Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
 

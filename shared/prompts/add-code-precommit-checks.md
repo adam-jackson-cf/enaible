@@ -19,7 +19,6 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 
 1. Validate prerequisites
    - Run `git rev-parse --is-inside-work-tree`; exit immediately if this is not a git repository.
-   - Run `python --version`; exit immediately if Python is unavailable because pre-commit installation depends on it.
    - If `.pre-commit-config.yaml` already exists, emit a completion notice and stop.
 2. Inspect repository tooling
    - Detect package managers, lock files, and linters to infer the language stack.

@@ -1,8 +1,8 @@
 # todo-build v0.1
 
-**Purpose**
+## Purpose
 
-- Execute a provided plan end-to-end: implement changes, enforce the plan’s gates and tests, create a branch in an isolated git worktree, open a PR, and iterate on PR review feedback until approved with all checks passing — keeping the plan file as the single source of truth.
+Execute a provided plan end-to-end: implement changes, enforce the plan’s gates and tests, create a branch in an isolated git worktree, open a PR, and iterate on PR review feedback until approved with all checks passing — keeping the plan file as the single source of truth.
 
 ## Variables
 

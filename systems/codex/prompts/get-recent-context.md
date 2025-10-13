@@ -1,8 +1,10 @@
-# Recent Context Review
+# get-recent-context v0.2
+
+## Purpose
 
 Analyze recent Codex activity from session logs and git history to understand current work and provide quick orientation for continuing development.
 
-## Arguments
+## Variables
 
 - `--uuid UUID` - Filter analysis to a specific session UUID
 - `--verbose` - Expand truncated content from linked conversation files (when available)

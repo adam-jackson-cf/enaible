@@ -1,4 +1,6 @@
-# Purpose
+# plan-linear v0.1
+
+## Purpose
 
 Transform a raw planning artifact into a Linear-ready cycle plan using gated clarification, deterministic workspace artifacts, and optional mutation.
 

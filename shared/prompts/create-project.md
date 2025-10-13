@@ -5,8 +5,8 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 ## Variables
 
 - `PROJECT_NAME` ← first positional argument; required.
-- `MODE` ← `"direct"` when technologies follow the name; `"todos"` when `--from-todos <path>` is supplied.
-- `TODOS_FILE` ← path provided to `--from-todos`, when present.
+- `MODE` ← `"direct"` when technologies follow the name; `"plan"` when `--from-plan <path>` is supplied.
+- `PLAN_FILE` ← path provided to `--from-plan`, when present.
 - `TECH_ARGUMENTS[]` ← remaining positional arguments describing technology choices.
 - `$ARGUMENTS` ← raw argument string for logging.
 
@@ -22,11 +22,11 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 1. Parse inputs
    - Extract `PROJECT_NAME`.
-   - Detect `--from-todos`; set `MODE` and capture `TODOS_FILE`.
+   - Detect `--from-plan`; set `MODE` and capture `PLAN_FILE`.
    - Collect remaining arguments into `TECH_ARGUMENTS[]`.
 2. Gather requirements
-   - If `MODE="todos"`:
-     - Read `TODOS_FILE`.
+   - If `MODE="plan"`:
+     - Read `PLAN_FILE`.
      - Identify technology keywords (React Native, Expo, Zustand, OAuth, WebSocket, etc.).
      - Map findings to Better-T-Stack options.
    - If `MODE="direct"`:
@@ -74,7 +74,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 - `<dev command>` → <pass|fail>
 - `<type/build checks>` → <pass|fail>
 
-## NEXT STEPS
+## NEXT STEPS <!-- optional: if no next steps dont output this section to user -->
 
 1. <Action item (e.g., configure environment variables)>
 2. <Action item>
@@ -87,5 +87,5 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 /create-project acme-dashboard react-router hono bun sqlite drizzle
 
 # Infer stack from todos file
-/create-project mobile-app --from-todos ./todos/todos.md
+/create-project mobile-app --from-plan ./.workspace/execplan.md
 ```

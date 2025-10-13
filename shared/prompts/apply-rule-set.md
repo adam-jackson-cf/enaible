@@ -30,21 +30,17 @@ Load a named rule set and apply its guidance to the active session so subsequent
    - Read the file contents (`Read: RULE_FILE_PATH`).
    - Perform a sanity check for harmful or irrelevant instructions; abort on suspicion.
 4. Apply rule set
-   - Inject the rule content into session context.
-   - Provide confirmation including rule name, source path, and headline guidance.
-5. Record activation
-   - Log the applied rule set and timestamp in the session summary for traceability.
+   - Inject the rule content into session context by following the Output template
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Rule set "<RULESET_NAME>" activated.
+- Rule set "<RULESET_NAME>"
 
 ## DETAILS
 
-- Source: <RULE_FILE_PATH>
 - Scope: <one-line description from rule header>
 - Key Rules:
   - <bullet point 1>
@@ -52,8 +48,7 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 ## NEXT STEPS
 
-- Follow the active rules for subsequent commands.
-- Re-run /apply-rule-set <name> to switch or update guidance.
+- Enforce these rules for subsequent commands this session.
 ```
 
 ## Examples

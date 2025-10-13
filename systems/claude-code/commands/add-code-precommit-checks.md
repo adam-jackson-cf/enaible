@@ -1,106 +1,65 @@
-# Pre-Commit Checks
+# Purpose
 
-Setup pre-commit framework to enforce quality standards by preventing commits containing code violations.
+Establish pre-commit hooks so git rejects commits that violate the project's language and tooling standards.
 
-## Required Workflow
+## Variables
 
-**YOU MUST follow these steps in order:**
+- No positional arguments; operate from the repository root detected via `pwd`.
+- `$ARGUMENTS` is ignored and must remain empty.
 
-1. **Check git repository**: Verify this is a git repository (required for git hooks)
+## Instructions
 
-2. **Check existing setup**:
+- NEVER overwrite an existing `.pre-commit-config.yaml`; exit immediately if one is detected.
+- ALWAYS confirm you are inside a git repository before attempting hook setup.
+- Detect the active language stack; do NOT assume JavaScript or Python by default.
+- Match hook selections to the detected stack; only include tools that exist in the project.
+- Record the installation approach used (`pip`, `pipx`, `brew`, etc.) in the final summary.
 
-   - Look for `.pre-commit-config.yaml` in project root
-   - Check if pre-commit is already installed in the git repo
-   - If already configured, report and exit
+## Workflow
 
-3. **Install pre-commit**:
+1. Validate prerequisites
+   - Run `git rev-parse --is-inside-work-tree`; exit immediately if this is not a git repository.
+   - If `.pre-commit-config.yaml` already exists, emit a completion notice and stop.
+2. Inspect repository tooling
+   - Detect package managers, lock files, and linters to infer the language stack.
+   - Choose hook templates: use the TypeScript/JavaScript or Python baseline snippets when they match the detected stack; trim or augment hooks as needed.
+3. Ensure `pre-commit` is installed
+   - Prefer existing global/local installations (`pre-commit --version`).
+   - If missing, install via the first available option: `pipx install pre-commit`, `pip install pre-commit`, or `brew install pre-commit`.
+   - Capture the installation method for the final report.
+4. Generate `.pre-commit-config.yaml`
+   - Populate the file with repositories and hooks tailored to the project (e.g., Prettier + ESLint for TypeScript, Black + Ruff + Mypy for Python).
+   - Preserve YAML ordering and include only necessary hooks; no placeholders.
+5. Register git hooks
+   - Run `pre-commit install`.
+   - When supported by the project, also enable `pre-commit install --hook-type commit-msg`.
+6. Smoke-test the configuration
+   - Execute `pre-commit run --all-files`; collect failures and recommend fixes.
+7. Produce results
+   - Summarize configured repositories, hooks, and the installation method.
+   - Provide next steps when any hooks failed during the smoke test.
 
-   - Check if pre-commit is available globally
-   - If not, install it using pip/pipx/brew based on what's available
-   - Report installation method used
+## Output
 
-4. **Analyze project and generate config**:
+```md
+# RESULT
 
-   - Detect project languages and frameworks
-   - Select appropriate pre-commit hooks based on project type
-   - Create `.pre-commit-config.yaml` with relevant hooks
+- Summary: Pre-commit hook suite installed and validated.
 
-5. **Install git hooks**:
+## DETAILS
 
-   - Run `pre-commit install` to set up git hooks
-   - This makes pre-commit run automatically on `git commit`
-
-6. **Report completion**:
-   - List what hooks were configured
-   - Confirm pre-commit is active
-
-## Critical Rules
-
-- **NEVER assume specific tools**: Detect what's actually used in the project
-- **NEVER overwrite existing config**: If `.pre-commit-config.yaml` exists, report and exit
-- **ALWAYS verify git repository**: Pre-commit requires a git repo to function
-- **ALWAYS use appropriate hooks**: Match hooks to detected languages/tools
-
-## TypeScript/JavaScript Config Template
-
-```yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-json
-      - id: check-yaml
-      - id: check-merge-conflict
-
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
-    hooks:
-      - id: prettier
-        types_or: [javascript, typescript, jsx, tsx, json, css]
-
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v8.56.0
-    hooks:
-      - id: eslint
-        files: \.(js|jsx|ts|tsx)$
-        types: [file]
-        additional_dependencies:
-          - eslint@8.56.0
-          - typescript
+- Config: .pre-commit-config.yaml (language stack: <detected stack>)
+- Hooks Installed: <comma-separated hook ids>
+- Installation Method: <pip|pipx|brew|pre-existing>
+- Validation: <pass|fail> (attach failing hook names if any)
 ```
 
-## Python Config Template
+## Examples
 
-```yaml
-repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
-    hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-ast
-      - id: check-docstring-first
-      - id: check-yaml
+```bash
+# Install pre-commit hooks in the current repository
+/add-code-precommit-checks
 
-  - repo: https://github.com/psf/black
-    rev: 23.12.1
-    hooks:
-      - id: black
-
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.1.9
-    hooks:
-      - id: ruff
-        args: [--fix]
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.8.0
-    hooks:
-      - id: mypy
-        additional_dependencies: [types-all]
+# Run from a freshly cloned project (no arguments supported)
+/add-code-precommit-checks
 ```
-
-$ARGUMENTS

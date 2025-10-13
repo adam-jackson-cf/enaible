@@ -1,4 +1,6 @@
-# Purpose
+# setup-dev-monitoring v0.3
+
+## Purpose
 
 Configure development monitoring by generating Makefile and Procfile orchestration, central logging, and CLAUDE.md updates tailored to the project’s runnable components.
 
@@ -22,22 +24,8 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 1. Verify prerequisites
    - Run `ls .claude/scripts/setup/monitoring/*.py || ls "$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py"`; if both fail, prompt for a script directory containing `install_monitoring_dependencies.py` and exit if unavailable.
-   - Run `python3 --version`; exit immediately if Python 3 is unavailable.
-   - Run `test -w .`; exit immediately if the project root is not writable because generated files must be saved here.
-2. Project component discovery
-   - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
-   - Determine true start commands from scripts, documentation, or framework defaults.
-   - Assign log labels (FRONTEND, BACKEND, WORKER, etc.) and capture port information.
-   - Verify each component has a runnable command; halt if any remain unresolved.
-3. Component overlap analysis
-   - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
-   - Identify port conflicts.
-   - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
-4. Watch pattern analysis
-   - Decide which technologies rely on native hot reload vs. external watchers.
-   - Build `WATCH_PATTERNS[]` only for components lacking native watching.
-   - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
-5. Dependency verification
+   - Run `python3 --version || python --version`; exit immediately if Python is unavailable.
+2. Environment preparation
    - Resolve `SCRIPT_PATH` (project-level → user-level → prompt for path).
    - Compute `SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
    - Execute dry-run dependency check:
@@ -45,6 +33,19 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      python "$SCRIPT_PATH"/install_monitoring_dependencies.py --dry-run
      ```
    - If tools missing, **STOP:** “Install missing core tools: <list>? (y/n)” Run full install on approval.
+3. Project component discovery
+   - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
+   - Determine true start commands from scripts, documentation, or framework defaults.
+   - Assign log labels (FRONTEND, BACKEND, WORKER, etc.) and capture port information.
+   - Verify each component has a runnable command; halt if any remain unresolved.
+4. Component overlap analysis
+   - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
+   - Identify port conflicts.
+   - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
+5. Watch pattern analysis
+   - Decide which technologies rely on native hot reload vs. external watchers.
+   - Build `WATCH_PATTERNS[]` only for components lacking native watching.
+   - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
 6. Existing file handling
    - Detect existing `Makefile` or `Procfile`.
    - **STOP:** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”

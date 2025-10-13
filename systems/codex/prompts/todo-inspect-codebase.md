@@ -1,8 +1,8 @@
 # todo-inspect-codebase v0.1
 
-**Purpose**
+## Purpose
 
-- Explore the current project and produce a comprehensive, evidence-backed report that answers the provided `$USER_PROMPT`.
+Explore the current project and produce a comprehensive, evidence-backed report that answers the provided `$USER_PROMPT`.
 
 ## Variables
 
