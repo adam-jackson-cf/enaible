@@ -9,7 +9,7 @@ Run a Opencode instance in the background to perform tasks autonomously while yo
 ## Variables
 
 USER_PROMPT: $1
-MODEL: $2 (defaults to `zai-coding-plan/glm-4.5` if not provided)
+MODEL: $2 (defaults to `github-copilot/gpt-5-mini` if not provided)
 REPORT_FILE: $3 (defaults to './agents/background/background-report-DAY-NAME_HH_MM_SS.md' if not provided)
 
 ## Instructions
@@ -47,11 +47,12 @@ echo "## Task: $1" >> "$REPORT_FILE"
 echo "## Started: $(date)" >> "$REPORT_FILE"
 echo "" >> "$REPORT_FILE"
 
-# Launch opencode instance
-opencode --model "$2" \
+# Launch opencode instance (headless)
+opencode run \
+  --model "${2:-github-copilot/gpt-5-mini}" \
   --print-logs \
   --log-level "INFO" \
-  --prompt "$1"
+  "$1"
 ```
 
 ## Usage Examples

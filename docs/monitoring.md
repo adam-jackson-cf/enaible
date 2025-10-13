@@ -6,13 +6,13 @@ _After running `/setup-dev-monitoring`, you'll see:_
 
 <div align="center">
 
-![Stack Detection](../images/stack-detection-analysis.png)
+![Stack Detection](stack-detection-analysis.png)
 _Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
 
-![Unified Logs](../images/dev-logs-unified.png)
+![Unified Logs](dev-logs-unified.png)
 _Timestamped unified logging: All services stream to `/dev.log` - Claude, OpenCode, and Codex commands can query logs directly_
 
-![Service Status](../images/service-status-dashboard.png)
+![Service Status](service-status-dashboard.png)
 _Real-time service monitoring: Live status for API and Mobile services with health indicators_
 
 </div>
