@@ -12,7 +12,7 @@
 ## Instructions
 
 - Read artifacts first (spec, then inspect); extract objective, constraints, stack, and file/module references.
-- Incorporate project/user rules from `./AGENTS.md` and `~/.codex/AGENTS.md` (quality gates, stack conventions, security posture).
+- Incorporate global project/user rules (coding preferences, quality gates, stack conventions, security posture).
 - Use online research and always call `/plan-solution` for analysis; cite official documentation.
 - Answer clarifications autonomously from artifacts and rules; favor strict gates and established libraries.
 - Output only the final ExecPlan (no preface), in `systems/codex/execplan.md` shape.
@@ -22,7 +22,6 @@
 1. Collect Inputs
 
    - Load all `--artifact` values (local files or URLs). For URLs, summarize key facts; for files, extract salient sections (objective, constraints, tech stack, modules).
-   - If present, read `./AGENTS.md` and `~/.codex/AGENTS.md` to form a concise rules digest.
 
 2. Analyze (online)
 
@@ -49,11 +48,113 @@
    - Ensure all required sections are present and tailored to the project stack indicated by artifacts.
 
 4. Emit Plan
-   - Output the final ExecPlan text only.
+
+   - Output the final ExecPlan.
 
 ## Output
 
-- Final ExecPlan content only (no preface), compliant with `systems/codex/execplan.md`.
+- Final ExecPlan in the below format:
+
+```markdown
+# ExecPlan: <Short, action‑oriented title>
+
+- Status: Proposed
+- Repo/Branch: `<owner>/<repo>` • `<branch>`
+- Scope: <feature/bug/ops task> • Priority: <P0–P3>
+- Start: <YYYY-MM-DD> • Last Updated: <ISO8601 UTC>
+- Links: <issue/PR/runbook/design/PRD>
+
+## Purpose / Big Picture
+
+Explain the user‑visible outcome and business value.
+
+## Success Criteria / Acceptance Tests
+
+- [ ] <Deterministic check 1 (how to verify)>
+- [ ] <Deterministic check 2>
+- Non‑Goals: <explicitly excluded areas>
+
+## Context & Orientation
+
+- Code: `path/to/fileA:line`, `path/to/moduleB`
+- Data/Contracts: <APIs, schemas, events>
+- Constraints/Assumptions: <performance, security, platform, SLAs>
+
+## Plan of Work (Prose)
+
+- Edit 1: `path/to/file.ts:functionName` — <what/why>
+- Edit 2: `path/to/other.py:Class.method` — <what/why>
+
+## Concrete Steps (Checklist)
+
+- [ ] <step 1>
+- [ ] <step 2>
+- [ ] <step 3>
+
+## Progress (Running Log)
+
+- (YYYY-MM-DDThh:mmZ) <what changed, where, evidence>
+- (YYYY-MM-DDThh:mmZ) <next focus / blocker>
+
+## Surprises & Discoveries
+
+- Observation: <what> • Evidence: `<path/log/screenshot>`
+
+## Decision Log
+
+- Decision: <what>
+  Rationale: <why this over alternatives>
+  Date/Author: <YYYY-MM-DD • name>
+
+## Risks & Mitigations
+
+- Risk: <impact • likelihood> • Mitigation: <plan/owner/trigger>
+
+## Dependencies
+
+- Upstream/Downstream: <services, libraries, teams>
+- External Events: <releases, migrations, flags, approvals>
+
+## Security / Privacy / Compliance
+
+- Data touched: <PII/none> • Storage/Transit: <details>
+- Secrets: <none | how managed> • Threats: <summary>
+- Checks: <linters/scanners/tests to run>
+
+## Observability (Optional)
+
+- Metrics: <names, targets>
+- Logs/Traces: <keys to search, sampling>
+- Feature Flags/Experiments: <keys, rollout plan, guardrails>
+
+## Test Plan
+
+- Unit: <scope, fast cases>
+- Integration/E2E: <paths, fixtures, environments>
+- Performance/Accessibility: <budgets, tools>
+- How to run: `<commands>` (local/CI)
+
+### Quality Gates
+
+| Gate                  | Command                                            | Threshold / Expectation |
+| --------------------- | -------------------------------------------------- | ----------------------- |
+| Lint (Ruff/Ultracite) | `uv run ruff check .` / `bunx ultracite check src` | 0 errors                |
+| Type Check            | `uv run mypy src` / `bunx tsc --noEmit`            | 0 errors                |
+| Complexity            | `uv run lizard -C 10 <paths>`                      | Max CC ≤ 10             |
+| Duplication           | `npx jscpd --min-tokens 50`                        | Duplication ≤ 3%        |
+| Tests                 | `pytest -q` / `bun run test`                       | 100% passing            |
+
+## Handoff & Next Steps
+
+- Remaining work to productionize: <docs, training, tickets>
+- Follow‑ups/backlog: <links or bullets>
+
+## Outcomes & Retrospective
+
+- Result vs Goals: <met/partially/not met> • Evidence: <links>
+- What went well: <bullets>
+- What to change next time: <bullets>
+```
 
 ## Examples
 
