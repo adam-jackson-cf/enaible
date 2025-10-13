@@ -10,7 +10,7 @@ _After running `/setup-dev-monitoring`, you'll see:_
 _Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
 
 ![Unified Logs](dev-logs-unified.png)
-_Timestamped unified logging: All services stream to `/dev.log` - Claude, OpenCode, and Codex commands can query logs directly_
+_Timestamped unified logging: All services stream to `./dev.log` — Claude, OpenCode, and Codex commands can query logs directly_
 
 ![Service Status](service-status-dashboard.png)
 _Real-time service monitoring: Live status for API and Mobile services with health indicators_
@@ -22,7 +22,7 @@ _Real-time service monitoring: Live status for API and Mobile services with heal
 | Feature                    | Description                                       | Benefit                   |
 | :------------------------- | :------------------------------------------------ | :------------------------ |
 | 🚀 **Live Service Status** | Real-time health indicators for all services      | Immediate issue detection |
-| 📊 **Unified Logging**     | All logs stream to `/dev.log` with timestamps     | Centralized debugging     |
+| 📊 **Unified Logging**     | All logs stream to `./dev.log` with timestamps    | Centralized debugging     |
 | 🔍 **Smart Analysis**      | Auto-detects tech stack and configures monitoring | Zero-config setup         |
 | ⚡ **Hot Reload Tracking** | File watching and change detection                | Development efficiency    |
 | 🛠️ **Command Suite**       | `make dev`, `make status`, `make logs`            | Streamlined workflow      |
