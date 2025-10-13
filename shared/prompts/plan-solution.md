@@ -46,7 +46,6 @@ Develop and compare solution approaches for a technical challenge using targeted
 5. Recommendation & roadmap
    - Select a recommended solution with justification.
    - Outline phased implementation roadmap and success criteria.
-   - If `CRITIQUE_MODE`, call `@agent-solution-validator` to review reasoning and incorporate feedback.
 6. Task transfer (optional)
    - **STOP:** “Ready to transfer implementation roadmap to todos.md? (y/n)”
    - On approval:

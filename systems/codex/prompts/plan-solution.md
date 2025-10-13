@@ -1,6 +1,8 @@
 # plan-solution v0.2
 
-**Purpose**: Research-driven technical challenge solving with systematic analysis and implementation planning.
+## Purpose
+
+Research-driven technical challenge solving with systematic analysis and implementation planning.
 
 ## Workflow
 
@@ -31,7 +33,7 @@ Please provide your technical challenge and any relevant constraints, or confirm
 
 ### Phase 2: System Analysis (Conditional)
 
-**Only execute if analyzing a current codebase** (skip for general planning questions):
+**Only execute if analyzing a current codebase** (skip for general planning questions or if codebase context provided):
 
 1. **Run architecture analysis**:
 
@@ -116,21 +118,6 @@ Please provide your technical challenge and any relevant constraints, or confirm
 - Performance benchmarks: [metrics]
 - Integration success: [validation approach]
 - Monitoring setup: [observability plan]
-
-### Phase 6: Task Transfer
-
-**STOP** → "Ready to transfer implementation roadmap to todos.md?"
-
-**If confirmed**:
-
-1. Check `./todos/todos.md` exists
-2. Append implementation tasks
-3. Format as actionable checkboxes
-4. Confirm transfer complete
-
-## Flags
-
-- `--critique`: Invoke the `@agent-solution-validator` to critique your reasoning for the user request, the solution options you select and the final recommendation
 
 ## Templates
 
