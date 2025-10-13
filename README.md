@@ -264,7 +264,7 @@ Notes
 - Consistent planning format enables better estimation and team coordination
 - Quality considerations integrated from planning prevent post-development issues
 
-**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution` and `/plan-refactor`.
+**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution`.
 
 **Common workflow**:
 
@@ -318,51 +318,6 @@ Notes
 
 # Expected output: Comprehensive PRD with market analysis, user research insights,
 # competitive positioning, feature priorities, and go-to-market strategy
-```
-
----
-
-### 🏗️ Plan technical solution
-
-<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
-
-**Use case**: Complex technical implementations require structured planning with risk assessment, architectural considerations, and validation to avoid over-engineering while ensuring scalable, maintainable solutions.
-
-**Task Actions**:
-
-- **Architecture design guidance** balancing complexity, maintainability, and performance requirements
-- **Risk assessment integration** identifying technical risks, scalability concerns, and mitigation strategies
-- **Implementation roadmap generation** with milestones, dependencies, and validation checkpoints
-- **Solution validator agent review** provides senior-level technical feedback with `--critique` (using reasoning through perspective)
-- **Clarifying questions methodology** gathering requirements, constraints, scale, and success criteria systematically
-- **Prototype mode support** enables rapid validation of core concepts before full implementation
-- **Implementation plan documentation** captures decisions, rationale, and next steps for team alignment
-
-**Benefits**:
-
-- Structured approach prevents over-engineering and scope creep
-- Senior-level validation catches architectural issues early
-- Clear implementation roadmap enables team coordination and progress tracking
-- Systematic risk assessment reduces project failures
-
-**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution`.
-
-**Common workflow**:
-
-```bash
-# Structured technical solution planning
-/plan-solution "implement real-time collaboration features with conflict resolution" --critique
-
-# [System asks clarifying questions about scale, requirements, constraints]
-
-# Senior technical validation
-# validate the plan with @agent-solution-validator
-
-# Multi-agent implementation orchestration (Claude Code • OpenCode today)
-/todo-build implementation-plan.md --prototype
-
-# Expected output: Validated technical plan, risk assessment,
-# implementation roadmap, and agent orchestration workflow
 ```
 
 ---

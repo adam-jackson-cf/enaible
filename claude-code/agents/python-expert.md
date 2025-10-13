@@ -1,7 +1,7 @@
 ---
 name: python-expert
 description: >
-  Use proactively for Python task planning and codebase analysis. MUST BE USED for Python development planning, architecture decisions, and modernization strategies.
+  Use proactively for Python task planning, research and codebase analysis. MUST BE USED for Python development planning, architecture decisions, and modernization strategies.
 
   Examples:
   - Context: Need to implement a new Python feature or service.

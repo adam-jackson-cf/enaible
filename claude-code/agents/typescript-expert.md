@@ -1,7 +1,7 @@
 ---
 name: typescript-expert
 description: >
-  Use proactively for TypeScript task planning and codebase analysis. MUST BE USED for TypeScript development planning, architecture decisions, and modernization strategies.
+  Use for TypeScript task planning and codebase analysis. MUST BE USED for TypeScript development planning, architecture decisions, and modernization strategies.
 
   Examples:
   - Context: Need to implement a new TypeScript feature or service.
@@ -9,15 +9,6 @@ description: >
     assistant: "I'll use the typescript-expert agent to analyze the codebase and create an implementation plan"
     Commentary: TypeScript expert analyzes existing patterns and creates detailed task plans using modern TypeScript practices.
 
-  - Context: Optimize existing TypeScript code for performance or maintainability.
-    user: "Improve the data processing pipeline performance"
-    assistant: "Let me invoke the typescript-expert agent to analyze the current implementation and plan optimizations"
-    Commentary: Expert identifies bottlenecks and plans modern TypeScript solutions with async patterns and Bun optimizations.
-
-  - Context: Modernize TypeScript codebase with new language features.
-    user: "Update our API to use TypeScript 5.7 features and latest Bun patterns"
-    assistant: "I'll use the typescript-expert agent to research current patterns and plan the modernization"
-    Commentary: Expert leverages latest TypeScript developments and Bun runtime optimizations for forward-looking solutions.
 model: sonnet
 color: blue
 allowed-tools: Read, Grep, Glob, LS, WebSearch, WebFetch, mcp__serena__list_dir, mcp__serena__find_file, mcp__serena__search_for_pattern, mcp__serena__get_symbols_overview, mcp__serena__find_symbol, mcp__serena__find_referencing_symbols, Write

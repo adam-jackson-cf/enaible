@@ -1,23 +1,13 @@
 ---
 name: docker-expert
 description: >
-  Use proactively for Docker containerization planning and implementation strategy. MUST BE USED for Docker image selection, Dockerfile creation, and container orchestration decisions.
+  Use or Docker containerization planning, research and implementation strategy. MUST BE USED for Docker image selection, Dockerfile creation, and container orchestration decisions.
 
   Examples:
   - Context: Need to containerize an application for production deployment.
     user: "Containerize our Node.js application for production deployment"
     assistant: "I'll use the docker-expert agent to analyze requirements and recommend the optimal Docker strategy"
     Commentary: Docker expert analyzes application architecture, dependencies, and deployment requirements to recommend suitable base images, multi-stage builds, and optimization strategies.
-
-  - Context: Optimize existing Docker setup for better performance or security.
-    user: "Our Docker images are too large and slow to build - optimize them"
-    assistant: "Let me invoke the docker-expert agent to analyze current Docker configuration and plan optimizations"
-    Commentary: Expert identifies bottlenecks in build process, image layers, and runtime configuration to recommend modern Docker techniques like multi-stage builds and layer caching.
-
-  - Context: Scale containerized application for enterprise deployment.
-    user: "Scale our containerized microservices to handle enterprise load"
-    assistant: "I'll use the docker-expert agent to research scalable container architectures and plan the deployment"
-    Commentary: Expert leverages enterprise container patterns with orchestration platforms, monitoring strategies, and production-ready configurations.
 
 model: opus
 color: blue

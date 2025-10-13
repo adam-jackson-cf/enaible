@@ -1,7 +1,7 @@
 ---
 name: terraform-gcp-expert
 description: >
-  Use proactively for Terraform GCP task planning and infrastructure analysis. MUST BE USED for GCP infrastructure development planning, architecture decisions, and modernization strategies.
+  Use proactively for Terraform GCP task planning, research and infrastructure analysis. MUST BE USED for GCP infrastructure development planning, architecture decisions, and modernization strategies.
 
   Examples:
   - Context: Need to implement a new GCP infrastructure service or resource.
