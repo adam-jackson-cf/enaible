@@ -81,23 +81,23 @@ Install for your preferred AI dev runtime. Details in docs/installation.md
 
 ```bash
 # Codex CLI (recommended)
-./codex/install.sh                   # interactive (choose scope & scripts location)
-./codex/install.sh ~                 # user-level (creates ~/.codex/)
-./codex/install.sh /my/project/path  # custom (creates <path>/.codex)
+./systems/codex/install.sh                   # interactive (choose scope & scripts location)
+./systems/codex/install.sh ~                 # user-level (creates ~/.codex/)
+./systems/codex/install.sh /my/project/path  # custom (creates <path>/.codex)
 
 # Claude Code
-./claude-code/install.sh             # project-local (creates ./.claude/)
-./claude-code/install.sh ~           # user-global  (creates ~/.claude/)
+./systems/claude-code/install.sh             # project-local (creates ./.claude/)
+./systems/claude-code/install.sh ~           # user-global  (creates ~/.claude/)
 
 # OpenCode
-./opencode/install.sh                # project-local (creates ./.opencode/)
-./opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
+./systems/opencode/install.sh                # project-local (creates ./.opencode/)
+./systems/opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
 ```
 
 Notes
 
 - Programmatic prompts (analysis, security, performance) require Python 3.11+.
-- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. Helpers available in `codex/codex-init-helpers.md`.
+- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. Helpers available in `systems/codex/codex-init-helpers.md`.
 - For OpenCode, prefer using the command-executor primary agent for best adherence to shell prompts.
 
 ---

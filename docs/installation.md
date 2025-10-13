@@ -5,15 +5,15 @@
 ### For Claude Code CLI
 
 ```bash
-./claude-code/install.sh              # Install to current directory
-./claude-code/install.sh ~            # Install globally
+./systems/claude-code/install.sh              # Install to current directory
+./systems/claude-code/install.sh ~            # Install globally
 ```
 
 ### For OpenCode Editor
 
 ```bash
-./opencode/install.sh                 # Install to current directory
-./opencode/install.sh ~               # Install globally
+./systems/opencode/install.sh                 # Install to current directory
+./systems/opencode/install.sh ~               # Install globally
 ```
 
 ### Post-Installation Setup
@@ -37,57 +37,57 @@ Full list of libraries used and languages supported found here: [Analysis Script
 
 ```bash
 # Current directory (uses ./.claude/)
-./claude-code/install.sh
+./systems/claude-code/install.sh
 
 # User global (uses ~/.claude/)
-./claude-code/install.sh ~
+./systems/claude-code/install.sh ~
 
 # Custom location
-./claude-code/install.sh /my/project/path
+./systems/claude-code/install.sh /my/project/path
 
 # Advanced options
-./claude-code/install.sh --dry-run       # Preview changes without making modifications
-./claude-code/install.sh --verbose      # Enable detailed debug output
-./claude-code/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
-./claude-code/install.sh --skip-python  # Skip Python dependencies installation
-./claude-code/install.sh --help         # Show detailed help and usage information
+./systems/claude-code/install.sh --dry-run       # Preview changes without making modifications
+./systems/claude-code/install.sh --verbose      # Enable detailed debug output
+./systems/claude-code/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
+./systems/claude-code/install.sh --skip-python  # Skip Python dependencies installation
+./systems/claude-code/install.sh --help         # Show detailed help and usage information
 ```
 
 #### OpenCode Editor
 
 ```bash
 # Current directory (uses ./.opencode/)
-./opencode/install.sh
+./systems/opencode/install.sh
 
 # User global (uses ~/.config/opencode/)
-./opencode/install.sh ~
+./systems/opencode/install.sh ~
 
 # Custom location
-./opencode/install.sh /my/project/path
+./systems/opencode/install.sh /my/project/path
 
 # Advanced options
-./opencode/install.sh --dry-run       # Preview changes without making modifications
-./opencode/install.sh --verbose      # Enable detailed debug output
-./opencode/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
-./opencode/install.sh --skip-python  # Skip Python dependencies installation
-./opencode/install.sh --help         # Show detailed help and usage information
+./systems/opencode/install.sh --dry-run       # Preview changes without making modifications
+./systems/opencode/install.sh --verbose      # Enable detailed debug output
+./systems/opencode/install.sh --skip-mcp     # Skip MCP tools installation (Python scripts only)
+./systems/opencode/install.sh --skip-python  # Skip Python dependencies installation
+./systems/opencode/install.sh --help         # Show detailed help and usage information
 ```
 
 ### For Codex CLI
 
 ```bash
 # Interactive install (choose scope and scripts location)
-./codex/install.sh                   # Recommended; copies prompts/rules and scripts
+./systems/codex/install.sh                   # Recommended; copies prompts/rules and scripts
 
 # Non-interactive targets
-./codex/install.sh ~                 # User global (uses ~/.codex/)
-./codex/install.sh /my/project/path  # Custom (creates <path>/.codex)
+./systems/codex/install.sh ~                 # User global (uses ~/.codex/)
+./systems/codex/install.sh /my/project/path  # Custom (creates <path>/.codex)
 
 # Advanced options
-./codex/install.sh --dry-run         # Preview changes without making modifications
-./codex/install.sh --verbose         # Enable detailed debug output
-./codex/install.sh --skip-python     # Skip Python dependencies installation
-./codex/install.sh --mode fresh|merge|update|cancel  # Existing install handling
+./systems/codex/install.sh --dry-run         # Preview changes without making modifications
+./systems/codex/install.sh --verbose         # Enable detailed debug output
+./systems/codex/install.sh --skip-python     # Skip Python dependencies installation
+./systems/codex/install.sh --mode fresh|merge|update|cancel  # Existing install handling
 ```
 
 Notes
@@ -136,32 +136,32 @@ To safely remove AI-Assisted Workflows components while preserving your configur
 
 ```bash
 # Preview what would be removed (recommended first step)
-./claude-code/uninstall.sh --dry-run
+./systems/claude-code/uninstall.sh --dry-run
 
 # Uninstall from current directory
-./claude-code/uninstall.sh
+./systems/claude-code/uninstall.sh
 
 # Uninstall from specific path
-./claude-code/uninstall.sh /path/to/installation
+./systems/claude-code/uninstall.sh /path/to/installation
 
 # Verbose output for detailed logging
-./claude-code/uninstall.sh --verbose
+./systems/claude-code/uninstall.sh --verbose
 ```
 
 ### For OpenCode installations:
 
 ```bash
 # Preview what would be removed (recommended first step)
-./opencode/uninstall.sh --dry-run
+./systems/opencode/uninstall.sh --dry-run
 
 # Uninstall from current directory
-./opencode/uninstall.sh
+./systems/opencode/uninstall.sh
 
 # Uninstall from specific path
-./opencode/uninstall.sh /path/to/installation
+./systems/opencode/uninstall.sh /path/to/installation
 
 # Verbose output for detailed logging
-./opencode/uninstall.sh --verbose
+./systems/opencode/uninstall.sh --verbose
 ```
 
 ### For Codex installations:

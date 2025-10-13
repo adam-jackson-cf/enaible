@@ -41,7 +41,7 @@ function Ensure-TestDir { if (-not (Test-Path $TestDir)) { New-Item -ItemType Di
 function Test-InstallerSyntax {
     Start-Test "Installer Syntax Validation"
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\codex\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\codex\install.ps1"
         $resolved = Resolve-Path $installerPath -ErrorAction Stop
         $errors=$null; $tokens=[System.Management.Automation.PSParser]::Tokenize((Get-Content $resolved -Raw),[ref]$errors)
         Complete-Test "Installer Syntax Validation" ($errors.Count -eq 0) "Tokens: $($tokens.Count)"
@@ -51,7 +51,7 @@ function Test-InstallerSyntax {
 function Test-InstallerHelp {
     Start-Test "Installer Help Display"
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\codex\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\codex\install.ps1"
         $output = & $installerPath -? 2>&1
         Complete-Test "Installer Help Display" $true "Help executed"
     } catch { Complete-Test "Installer Help Display" $false $_.Exception.Message }
@@ -61,7 +61,7 @@ function Test-DryRun {
     Start-Test "Dry Run"
     try {
         Ensure-TestDir
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\codex\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\codex\install.ps1"
         $target = Join-Path $TestDir "dry-run"
         $out = & $installerPath $target -DryRun -SkipPython 2>&1
         $ok = ($LASTEXITCODE -eq 0)
@@ -73,7 +73,7 @@ function Test-FreshInstall {
     Start-Test "Fresh Install"
     try {
         Ensure-TestDir
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\codex\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\codex\install.ps1"
         $target = Join-Path $TestDir "fresh"
         if (Test-Path $target) { Remove-Item -Recurse -Force -Path $target }
         & $installerPath $target -Mode Fresh -SkipPython 2>&1 | Out-Null
@@ -87,7 +87,7 @@ function Test-NoDuplicateTrust {
     Start-Test "No Duplicate Trust Entries"
     try {
         Ensure-TestDir
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\codex\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\codex\install.ps1"
         $target = Join-Path $TestDir "dupe-check"
         if (Test-Path $target) { Remove-Item -Recurse -Force -Path $target }
         & $installerPath $target -Mode Fresh -SkipPython 2>&1 | Out-Null

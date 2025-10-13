@@ -12,7 +12,7 @@ This document tracks the dependency simplification and analyzer upgrades.
 - [x] Keep Lizard for cross-language complexity and add light batching/caching
 - [x] Remove unused Python analyzer deps from base requirements
 - [x] Update prompts, registry, and docs to reflect new analyzers
-- [x] Update installers (claude-code/opencode/codex) to set up Node tools (ESLint + jscpd)
+- [x] Update installers (systems/claude-code, systems/opencode, systems/codex) to set up Node tools (ESLint + jscpd)
 - [x] Ensure tests and integration suite pass
 
 ## Tasks
@@ -42,10 +42,10 @@ This document tracks the dependency simplification and analyzer upgrades.
 
 ### Installers
 
-- [x] claude-code/install.sh: add jscpd to Node tools, remove SQLFluff checks
-- [x] claude-code/install.ps1: same as above
-- [x] opencode/install.sh: same as above
-- [x] codex/install.sh: add Node tools (ESLint + jscpd) setup
+- [x] systems/claude-code/install.sh: add jscpd to Node tools, remove SQLFluff checks
+- [x] systems/claude-code/install.ps1: same as above
+- [x] systems/opencode/install.sh: same as above
+- [x] systems/codex/install.sh: add Node tools (ESLint + jscpd) setup
 
 ### CI/Docs/Tests
 

@@ -5,8 +5,8 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 ## Variables
 
 - `USER_PROMPT` ← first positional argument; required.
-- `MODEL_SELECTOR` ← second argument (`claude:model`, `qwen`, `gemini`); default `claude:sonnet`.
-- `REPORT_FILE` ← third argument; defaults to `./agents/background/background-report-<TIMESTAMP>.md`.
+- `MODEL_SELECTOR` ← second argument (`claude:model`, `codex:gpt-5-codex`, `qwen`, `gemini`); default `claude:sonnet`.
+- `REPORT_FILE` ← third argument; defaults to `./.workspace/agents/background/background-report-<TIMESTAMP>.md`.
 - `TIMESTAMP` ← `date +"%A_%H_%M_%S"`.
 - `$ARGUMENTS` ← raw argument string.
 
@@ -20,11 +20,14 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 
 ## Workflow
 
+0. Auth preflight
+   - Run `scripts/check-ai-cli-auth.sh <CLI> --report <REPORT_FILE>` using the parsed CLI from `MODEL_SELECTOR`.
+   - If the script exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
 1. Prepare reporting directory
-   - Run `mkdir -p agents/background && test -w agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
+   - Run `mkdir -p ./.workspace/agents/background && test -w ./.workspace/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
 2. Parse inputs
    - Require `USER_PROMPT`; if missing, prompt the user and stop.
-   - Split `MODEL_SELECTOR` on `:` to derive `CLI` (`claude`, `qwen`, `gemini`) and model name.
+   - Split `MODEL_SELECTOR` on `:` to derive `CLI` (`claude`, `codex`, `qwen`, `gemini`) and model name.
 3. Prepare reporting path
    - Compute `TIMESTAMP` and default `REPORT_FILE` path if not provided.
    - Create parent directories and initialize markdown header:
@@ -42,6 +45,13 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
          --dangerously-skip-permissions \
          --append-system-prompt "Report all progress and results to: <REPORT_FILE>. Use Write tool to append updates." \
          --print "<USER_PROMPT>"
+       ```
+     - Codex:
+     - Use the `cdx-exec` helper.
+       For Codex, prepend reporting instructions to the prompt (no append-system-prompt flag):
+       ```
+       ENHANCED_PROMPT="<USER_PROMPT> IMPORTANT: Report all progress and results to: <REPORT_FILE>. Use the Write tool to append updates."
+       cdx-exec "$ENHANCED_PROMPT"
        ```
      - Qwen / Gemini: prepend reporting instructions to prompt and use `--yolo`.
    - Execute via Bash tool with `run_in_background=true`.

@@ -13,7 +13,7 @@
 
 Improvement instructions:
 
-If you review todos/linear-workflow/run-001-log.txt you will see the complete log of a run of the opencode/command/plan-linear.md.  I have some bugs and observations for improvements that ill list
+If you review todos/linear-workflow/run-001-log.txt you will see the complete log of a run of the systems/opencode/command/plan-linear.md.  I have some bugs and observations for improvements that ill list
 here.
 
 bugs:

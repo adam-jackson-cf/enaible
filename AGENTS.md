@@ -14,19 +14,24 @@ A comprehensive development automation system that combines Claude Code CLI work
 ## Project Structure
 
 ai-assisted-workflows/
-├── claude-code/ # Claude Code CLI workflows and configurations
-│ ├── commands/ # 24 slash commands for development workflows
-│ ├── agents/ # 23 specialized agents (orchestration, specialists, research/UX, handlers)
-│ ├── rules/ # Technology-specific coding standards and best practices
-│ ├── templates/ # PRD, subagent, and todo templates
-│ ├── docs/ # CLI documentation and integration guides
-│ └── install.sh/.ps1 # Cross-platform installation scripts
-├── opencode/ # OpenCode CLI workflows and configurations
-│ ├── command/ # 22 commands for development workflows
-│ ├── agent/ # 21 specialized agents (parity with Claude where possible)
-│ ├── docs/ # CLI documentation and integration guides
-│ ├── rules/ # Technology-specific coding standards and best practices
-│ ├── plugin/ # Editor plugin hooks and integrations
+├── systems/ # CLI workflows and configurations for supported runtimes
+│ ├── claude-code/ # Claude Code CLI workflows and configurations
+│ │ ├── commands/ # 24 slash commands for development workflows
+│ │ ├── agents/ # 23 specialized agents (orchestration, specialists, research/UX, handlers)
+│ │ ├── rules/ # Technology-specific coding standards and best practices
+│ │ ├── templates/ # PRD, subagent, and todo templates
+│ │ ├── docs/ # CLI documentation and integration guides
+│ │ └── install.sh/.ps1 # Cross-platform installation scripts
+│ ├── opencode/ # OpenCode CLI workflows and configurations
+│ │ ├── command/ # 22 commands for development workflows
+│ │ ├── agent/ # 21 specialized agents (parity with Claude where possible)
+│ │ ├── docs/ # CLI documentation and integration guides
+│ │ ├── rules/ # Technology-specific coding standards and best practices
+│ │ ├── plugin/ # Editor plugin hooks and integrations
+│ │ └── install.sh/.ps1 # Cross-platform installation scripts
+│ └── codex/ # Codex CLI prompts, rules, and installers
+│ ├── prompts/ # Prompt definitions and bodies for Codex workflows
+│ ├── rules/ # Codex-specific operating rules and guardrails
 │ └── install.sh/.ps1 # Cross-platform installation scripts
 ├── shared/ # Core Python analysis infrastructure
 │ ├── core/base/ # BaseAnalyzer and BaseProfiler frameworks
@@ -54,8 +59,8 @@ ai-assisted-workflows/
 
 ### Entry Points
 
-- claude-code/commands/ - Claude Code slash commands
-- opencode/command/ - OpenCode slash commands
+- systems/claude-code/commands/ - Claude Code slash commands
+- systems/opencode/command/ - OpenCode slash commands
 - shared/analyzers/ - Direct Python analysis tool execution
 - shared/tests/integration/ - Comprehensive testing and evaluation frameworks
 
@@ -92,7 +97,7 @@ User Input → Claude Commands → Agent Orchestration → Analysis Tools → Re
 
 **Commands use a standardized script discovery pattern:**
 
-Covers command files added under `claude-code/commands/` and `opencode/command/` that invoke scripts located in `shared/` during local development and in their installed locations at runtime.
+Covers command files added under `systems/claude-code/commands/` and `systems/opencode/command/` that invoke scripts located in `shared/` during local development and in their installed locations at runtime.
 
 1. Project-level: `.claude/scripts/analyzers/` and `.opencode/scripts/analyzers/`
 2. User-level: `$HOME/.claude/scripts/analyzers/` and `$HOME/.config/opencode/scripts/analyzers/`

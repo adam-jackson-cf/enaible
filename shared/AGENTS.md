@@ -79,7 +79,7 @@ The installation provides the scripts and command workflows. Runners (commands o
 
 ### Commands
 
-- Setup: ./claude-code/install.sh - Install complete system
+- Setup: ./systems/claude-code/install.sh - Install complete system
 - Analysis: /analyze-security, /analyze-code-quality, /analyze-performance, /analyze-architecture
 - Development: /plan-solution, /plan-refactor, /create-project, /fix-bug
 - Orchestration: /todo-build implementation-plan.md - Multi-agent workflow execution

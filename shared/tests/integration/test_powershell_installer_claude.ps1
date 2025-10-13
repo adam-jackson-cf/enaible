@@ -72,7 +72,7 @@ function Test-InstallerSyntax {
     Start-Test "Installer Syntax Validation"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $resolvedPath = Resolve-Path $installerPath -ErrorAction Stop
 
         # Parse the script to check for syntax errors
@@ -96,7 +96,7 @@ function Test-InstallerHelp {
     Start-Test "Installer Help Display"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $output = & $installerPath -Help 2>&1
 
         if ($output -like "*AI-Assisted Workflows Installer*") {
@@ -114,7 +114,7 @@ function Test-InstallerDryRun {
     Start-Test "Installer Dry Run Mode"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "dry-run-test"
 
         $output = & $installerPath $testPath -DryRun -SkipPython 2>&1
@@ -135,7 +135,7 @@ function Test-FreshInstallation {
     Start-Test "Fresh Installation"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "fresh-install"
 
         # Ensure clean state
@@ -175,7 +175,7 @@ function Test-MergeMode {
     Start-Test "Merge Mode Installation"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "merge-mode"
         $claudeDir = Join-Path $testPath ".claude"
 
@@ -227,7 +227,7 @@ function Test-UpdateWorkflowsMode {
     Start-Test "Update Workflows Mode"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "update-workflows"
         $claudeDir = Join-Path $testPath ".claude"
 
@@ -269,7 +269,7 @@ function Test-ErrorHandling {
     Start-Test "Error Handling"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
 
         # Test with invalid path
         $invalidPath = "Z:\NonExistent\Path\That\Should\Not\Exist"
@@ -295,7 +295,7 @@ function Test-PerformanceMetrics {
     Start-Test "Performance Metrics"
 
     try {
-        $installerPath = Join-Path $PSScriptRoot "..\..\..\claude-code\install.ps1"
+        $installerPath = Join-Path $PSScriptRoot "..\..\..\systems\claude-code\install.ps1"
         $testPath = Join-Path $TestDir "performance"
 
         $iterations = 3
