@@ -31,10 +31,6 @@ State the objective in one sentence. Be direct and outcome‑focused.
   - --worktrees → $WORKTREES (default ".worktrees")
   - --days → $DAYS (default 20)
   - --exclude → $EXCLUDE_GLOBS (CSV)
-- Resolution rules (recommended):
-  - Resolve all variables once in INIT from arguments or defaults; reference only the resolved variables thereafter.
-  - Derive computed helpers (e.g., $EXCLUDE_ARG from $EXCLUDE_GLOBS as `--glob '!{...}'`).
-  - Always use $‑variables in commands; do not hardcode fallback paths or numbers after resolution.
 
 ## Instructions
 
@@ -49,24 +45,12 @@ State the objective in one sentence. Be direct and outcome‑focused.
 
 ## Workflow
 
-<!-- Use distinct phases with optional inner loops; keep intermediate outputs here. -->
+<!-- Sequential steps; when preflight checks are required, make them the first step (e.g., Locate analyzer scripts; exit on failure). -->
 
-- Prefer a phased structure with numbered stages, for example:
-
-  1. INIT — resolve variables, verify tools, gather context
-  2. PREPARE — set up work dirs/branches/worktrees as needed
-  3. EXECUTE_LOOP — implement steps/tasks in order (minimal diffs, low complexity)
-     - GATES_LOOP (blocking) — run gates/tests exactly; do not advance on failure
-  4. PR_OPEN (if applicable) — push branch, create PR, record URL
-  5. REVIEW_LOOP — poll/watch for reviews and CI updates; apply feedback until approved
-  6. FINALIZE — emit final summary/report
-
-- Interactive patterns (optional):
-
-  - Gate A (Clarify): ask questions until the user replies "continue".
-  - Gate B (Review): present a draft for "revise: ..." cycles until "approve".
-
-- Preflight checks, background watchers, or environment validation should appear at the start of relevant phases.
+1. Step-by-step list of actions (each step starts with a verb).
+2. Validate prerequisites and guard-rails early.
+3. Perform the core task deterministically.
+4. Save/emit artifacts and verify results.
 
 ## Output
 
@@ -166,37 +150,27 @@ Resolution rules
 
 ## Workflow
 
-1. INIT
-
-- Locate analyzer scripts (project or user scope). If not found, request a directory and exit on failure.
-
-2. PREPARE
-
-- Derive `SCRIPTS_ROOT="$(cd \"$(dirname \"$SCRIPT_PATH\")/../..\" && pwd)"` and verify imports with `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`.
-
-3. EXECUTE_LOOP — Automated analyzers
-
-- Run:
-  - `performance:flake8-perf`
-  - `performance:frontend`
-  - `performance:sqlfluff`
-- Save JSON outputs and timestamps.
-
-4. AGGREGATE
-
-- Parse hotspots (function metrics, lint warnings, SQL anti‑patterns) and map to components (APIs, routes, migrations).
-
-5. INVESTIGATE
-
-- Inspect flagged areas for caching gaps, re‑renders, unindexed queries; consider infra/config impacts.
-
-6. PRIORITIZE
-
-- Group by impact (critical/high/medium). Recommend targeted actions.
-
-7. FINALIZE
-
-- Produce final report with metrics and validation steps (profiling, load tests).
+1. Locate analyzer scripts
+   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `ruff_analyzer.py`, `analyze_frontend.py`, and `sqlglot_analyzer.py`, then exit if none is provided.
+2. Prepare environment
+   - Derive `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+3. Run automated analyzers
+   - Execute sequentially:
+     - `performance:flake8-perf`
+     - `performance:frontend`
+     - `performance:sqlfluff`
+   - Save JSON outputs and note start/end timestamps.
+4. Aggregate findings
+   - Parse slow hotspots (function-level metrics, lint warnings, SQL anti-patterns).
+   - Map findings to system components (API endpoints, React routes, SQL migrations).
+5. Investigate context
+   - Examine code around flagged areas for caching gaps, unnecessary re-renders, unindexed queries.
+   - Consider infrastructure or configuration contributors (rate limits, memory caps).
+6. Prioritize remediations
+   - Group issues by impact: critical (user-facing latency, OOM risks), high, medium.
+   - Recommend targeted actions (index creation, memoization, batching, background jobs).
+7. Produce report
+   - Provide a structured summary, include metric tables, and outline validation steps (profiling, load tests).
 
 ## Output
 
