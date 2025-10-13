@@ -104,26 +104,34 @@
 
 ## Output
 
-```markdown
-**Recommended Solution**:
+```md
+# RESULT
 
-**Justification**:
+- Summary: Refactoring plan created for <REFACTOR_SCOPE>.
+
+## ASSESSMENT
+
+- Hotspots: <key findings>
+- Architecture Risks: <items>
+- Performance Concerns: <items>
+
+## STRATEGY
+
+- Pattern(s): <e.g., Strangler Fig>
+- Phases: <Phase 1, Phase 2, Phase 3 titles>
+- Rollback Plan: <overview>
+
+## Justification
 
 - Technical alignment with current system
 - Balance of risk vs benefit
 - Resource/timeline fit
 
-**Implementation Roadmap**:
+## IMPLEMENTATION PLAN
 
-- **Phase 1**: Foundation setup ([timeline])
-- **Phase 2**: Core implementation ([timeline])
-- **Phase 3**: Optimization & testing ([timeline])
-
-**Success Criteria**:
-
-- Performance benchmarks: [metrics]
-- Integration success: [validation approach]
-- Monitoring setup: [observability plan]
+- Checklist: <bullet summary of tasks>
+- Testing Strategy: <coverage plan, tooling>
+- Success Metrics: <targets>
 
 ## [System/Component] Refactoring Implementation
 

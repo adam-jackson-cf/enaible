@@ -69,15 +69,25 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 - Phases: <Phase 1, Phase 2, Phase 3 titles>
 - Rollback Plan: <overview>
 
+## Justification
+
+- Technical alignment with current system
+- Balance of risk vs benefit
+- Resource/timeline fit
+
 ## IMPLEMENTATION PLAN
 
 - Checklist: <bullet summary of tasks>
 - Testing Strategy: <coverage plan, tooling>
 - Success Metrics: <targets>
 
-## TODOS TRANSFERRED
+## [System/Component] Refactoring Implementation
 
-- <yes/no> (if yes, list added sections)
+### Phase [PHASE-NUMBER]: [PHASE-TITLE]
+
+- [ ] [PHASE-TASK]
+- [ ] [PHASE-TASK]
+- [ ] [PHASE-TASK]
 ```
 
 ## Examples
