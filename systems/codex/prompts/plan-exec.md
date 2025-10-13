@@ -2,78 +2,59 @@
 
 **Purpose**
 
-- Transform a user objective (`USER_PROMPT`) into a concrete execution plan formatted exactly to `systems/codex/execplan.md`.
+- Transform a user objective into a concrete execution plan formatted exactly to ExecPlan.
 
-**Arguments**
+## Variables
 
-- `USER_PROMPT` (required): The objective/problem to solve. Provide as a quoted argument.
-- `--artifact PATH_OR_URL` (optional, repeatable): Supplemental context to ground the plan. May be a file path or an HTTP(S) URL. Specify multiple times to include multiple artifacts.
+- `$USER_PROMPT` ← first positional argument (required)
+- `$ARTIFACT` ← `--artifact PATH_OR_URL` (optional, repeatable)
+- `$ARGUMENTS` ← raw argument string
+
+Resolution rules
+
+- Resolve `$USER_PROMPT` and collect all `$ARTIFACT` values at INIT; treat artifacts as an ordered list `$ARTIFACTS`.
+- Classify each `$ARTIFACT` as `file` (exists on disk) or `url` (http/https). Use only resolved variables in the workflow.
 
 ## Instructions
 
-- Expect to be provided sufficient context via the prompt and optional artifacts; produce a detailed plan in the required ExecPlan format.
-- Use a two-gate interactive flow:
-  - Gate A (Clarify): Ask targeted questions to resolve ambiguities. Allow multiple back-and-forth rounds until the user replies "continue".
-  - Gate B (Review): Present a full Draft ExecPlan for redlines. Allow multiple rounds ("revise:") until user replies "approve" to finalize.
+- Expect sufficient context via `$USER_PROMPT` and optional `$ARTIFACTS`; produce a detailed plan in ExecPlan format.
+- Two-gate interactive flow with multi‑round loops:
+  - Gate A (Clarify): Ask targeted questions until the user replies `continue`.
+  - Gate B (Review): Present a Draft ExecPlan for redlines; iterate on `revise: ...` until the user replies `approve`.
 - When artifacts are provided:
-  - For file paths: read relevant portions only; reference findings with `path:line` when useful.
-  - For URLs: fetch text content only; ignore binaries; summarize key facts; cite source.
-- Evidence-led writing: tie each plan element to available context or artifacts; when unknowns remain after Gate A, document explicit assumptions and proceed.
-- Output only the requested block at each gate (Clarification → Draft → Final). Do not include extra narrative around the plan in the final output.
+  - Files: read relevant portions only; reference findings with `path:line` when useful.
+  - URLs: fetch text content only; ignore binaries; summarize key facts; cite source.
+- Evidence‑led writing: tie plan elements to context or artifacts; if unknowns remain after Gate A, state assumptions explicitly.
+- Output only the requested block at each gate within the Workflow. The final Output section returns the approved plan only.
 
 ## Workflow
 
-1. Parse Inputs
+1. INIT — Parse Inputs
 
-   - Capture `USER_PROMPT` and any `--artifact` values in order.
-   - Normalize artifacts into a list; classify each as `file` or `url` by scheme/presence on disk.
+- Resolve `$USER_PROMPT`; collect `$ARTIFACTS` in order and classify each as file/url.
 
-2. Artifact Collection (Optional)
+2. COLLECT — Artifact Collection (Optional)
 
-   - Files: inspect size and peek headers (e.g., `sed -n '1,200p' <file>`); skip clearly binary files; extract relevant snippets.
-   - URLs: `curl -Ls --max-time 20` text responses only; strip HTML to text if needed; record title/headers.
-   - Build a brief evidence index with pointers: `source`, `path_or_url`, and a one-line summary.
+- Files: peek headers (e.g., `sed -n '1,200p' "$FILE"`); skip binaries; extract relevant snippets.
+- URLs: `curl -Ls --max-time 20 "$URL"` for text only; strip HTML where needed; capture title/headers.
+- Build a brief evidence index: source, path_or_url, one‑line summary.
 
-3. Initial Analysis
+3. ANALYZE — Initial Analysis
 
-   - Derive scope, constraints, stakeholders, data/contracts, and risks from prompt + artifacts.
-   - Draft acceptance tests and initial success metrics.
-   - Identify unknowns/assumptions requiring user input.
+- Derive scope, constraints, stakeholders, data/contracts, and risks from `$USER_PROMPT` + `$ARTIFACTS`.
+- Draft acceptance tests and initial success metrics.
+- Identify unknowns/assumptions for Gate A.
 
 4. Gate A — Clarification Loop
 
-   - Output a "Clarification" block (see Output section) containing:
-     - A one-paragraph synopsis of the problem as currently understood
-     - An enumerated list of clarifying questions
-     - A compact list of explicit assumptions (only those necessary to proceed)
-     - A minimal list of inputs/artifacts still desired (if any)
-   - Wait for user responses. Repeat this step until the user replies "continue".
-
-5. Draft Plan Construction
-
-   - Populate an ExecPlan using the canonical section structure from `systems/codex/execplan.md`.
-   - Set `Status: Proposed`; `Start: <today>`; `Last Updated: <ISO8601 UTC>`.
-   - Include concrete, verifiable Acceptance Tests and a file-scoped Plan of Work (paths + symbol names).
-   - Reference evidence from artifacts where applicable.
-
-6. Gate B — Review Loop
-
-   - Output a "DRAFT ExecPlan" block for redlines. Invite "revise: <instructions>" or "approve".
-   - Incorporate user feedback and re-issue the draft until "approve".
-
-7. Finalization
-   - Output the final ExecPlan only (no preface), fully conforming to the template and reflecting all accepted feedback.
-
-## Output
-
-### Clarification Block (Gate A)
+- Emit a Clarification block and wait for responses; repeat until `continue`.
 
 ```markdown
 # Clarification
 
 **Understanding**
 
-- <one-paragraph synopsis>
+- <one‑paragraph synopsis>
 
 **Questions**
 
@@ -89,9 +70,16 @@
 - <artifact or data still useful>
 ```
 
-### Draft ExecPlan (Gate B)
+5. DRAFT — Plan Construction
 
-Label the plan as DRAFT at the top and follow the ExecPlan structure exactly.
+- Populate an ExecPlan per `systems/codex/execplan.md`.
+- Set `Status: Proposed`; set dates (`Start: <today>`, `Last Updated: <ISO8601 UTC>`).
+- Include concrete, verifiable Acceptance Tests; file‑scoped Plan of Work (paths + symbols).
+- Reference evidence from `$ARTIFACTS` where applicable.
+
+6. Gate B — Review Loop
+
+- Emit a DRAFT ExecPlan for redlines; accept `revise: ...` or `approve`.
 
 ```markdown
 # DRAFT — ExecPlan: <Short, action‑oriented title>
@@ -178,28 +166,21 @@ Label the plan as DRAFT at the top and follow the ExecPlan structure exactly.
 | Complexity            | `uv run lizard -C 10 <paths>`                      | Max CC ≤ 10             |
 | Duplication           | `npx jscpd --min-tokens 50`                        | Duplication ≤ 3%        |
 | Tests                 | `pytest -q` / `bun run test`                       | 100% passing            |
-
-## Handoff & Next Steps
-
-- Remaining work to productionize: <docs, training, tickets>
-- Follow‑ups/backlog: <links or bullets>
-
-## Outcomes & Retrospective
-
-- Result vs Goals: <met/partial/not> • Evidence: <links>
-- What went well: <bullets>
-- What to change next time: <bullets>
 ```
 
-After emitting the draft, append the following single line to initiate Gate B:
+After emitting the draft, append this line:
 
 ```
 STOP → "Provide redlines with `revise: ...` or reply `approve` to finalize."
 ```
 
-### Final ExecPlan (Approval Granted)
+7. FINAL — Finalization
 
-- Output only the finalized ExecPlan content (same structure as above, without the DRAFT label or STOP line). No preamble.
+- Output the approved ExecPlan only (no preface), conforming to the template and all accepted feedback.
+
+## Output
+
+- Final approved ExecPlan only (no preface), formatted per ExecPlan.
 
 ## Examples
 

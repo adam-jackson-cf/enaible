@@ -8,32 +8,11 @@ This command performs a deep analysis of the current project to create a standar
 
 ## Process
 
-1. **Read Core Documentation**
+1. **Run inspect codebase**
 
-   - Read CLAUDE.md if it exists
-   - Read AGENTS.md if it exists
-   - Read README.md or README.rst or similar files
-   - Extract initial project context
+   - Run prompt "/todo-inspect-codebase" pointed at current project
 
-2. **Parallel Codebase Analysis**
-
-   - Use `mcp__serena` if available, otherwise fall back to Grep/Glob tools
-   - Launch parallel Task agents to analyze:
-     - **Purpose & Features**: Identify what the project does and its key features
-     - **Tech Stack**: Detect languages, frameworks, build tools, dependency managers
-     - **Architecture**: Map component structure and how modules interact
-     - **Commands**: Extract available commands from package.json, Makefile, CMakeLists.txt, Cargo.toml, etc.
-     - **Project Structure**: Identify key directories, entry points, and important files
-     - **Testing**: Understand test setup, frameworks used, and how to create new tests
-
-3. **Review recent changes**
-
-   - Use `gh` or `git` to determine the last three commits;
-     - **Purpose & Features**: Identify what the objective of each commit was
-     - **Identify**: Files involved and changes made
-     - **Approach**: How was the objective achieved, any patterns, libraries or tools used, etc.
-
-4. **Generate Project Primer**
+2. **Generate Project Primer**
 
    - Compile findings into standardized markdown format
    - Present comprehensive project overview
@@ -85,7 +64,15 @@ project-root/
 - **[Component]**: [Role and responsibility]
 - **[Component]**: [Role and responsibility]
 
-## Commands
+## Backend Patterns and Practices to follow
+
+[Description for how to implement backend, database and service code in keeping with existing project standards]
+
+## Frontend Patterns and Practices to follow
+
+[Description for how to implement frontend, visual design and user experience approach in keeping with existing project standards]
+
+## Build & Quality Gate Commands
 
 - **Build**: `[command]` - [Description if needed]
 - **Test**: `[command]` - [Description if needed]
