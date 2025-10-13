@@ -456,6 +456,25 @@ target.write_text(final, encoding="utf-8")
 PY
 
   log "Updated $target with AI‑Assisted Workflows section"
+
+  # Also place the ExecPlan template alongside AGENTS.md
+  local src_execplan="$SCRIPT_DIR/execplan.md"
+  local dst_execplan="$CODEX_HOME/execplan.md"
+  if [[ -f "$src_execplan" ]]; then
+    if [[ "$DRY_RUN" == true ]]; then
+      log "Would copy ExecPlan template to $dst_execplan"
+    else
+      mkdir -p "$CODEX_HOME"
+      if [[ -f "$dst_execplan" ]] && cmp -s "$src_execplan" "$dst_execplan"; then
+        vlog "ExecPlan template already up to date at $dst_execplan"
+      else
+        cp "$src_execplan" "$dst_execplan"
+        log "Copied ExecPlan template to $dst_execplan"
+      fi
+    fi
+  else
+    vlog "No execplan.md found in script directory; skipping template copy"
+  fi
 }
 
 inject_shell_helpers() {

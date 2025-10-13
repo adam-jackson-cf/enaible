@@ -387,6 +387,34 @@ if (Test-Path $globalRules) {
   }
 }
 
+# Also place the ExecPlan template alongside AGENTS.md
+$srcExecplan = Join-Path $ScriptDir 'execplan.md'
+if (Test-Path $srcExecplan) {
+  $dstExecplan = Join-Path $CODEX_HOME 'execplan.md'
+  if ($DryRun) {
+    Write-Log "Would copy ExecPlan template to $dstExecplan"
+  } else {
+    if (Test-Path $dstExecplan) {
+      try {
+        $srcHash = (Get-FileHash -Algorithm SHA256 $srcExecplan).Hash
+        $dstHash = (Get-FileHash -Algorithm SHA256 $dstExecplan).Hash
+        if ($srcHash -ne $dstHash) {
+          Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
+          Write-Log "Refreshed ExecPlan template at $dstExecplan"
+        } else {
+          Write-Log "ExecPlan template already up to date at $dstExecplan"
+        }
+      } catch {
+        Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
+        Write-Log "Copied ExecPlan template to $dstExecplan"
+      }
+    } else {
+      Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
+      Write-Log "Copied ExecPlan template to $dstExecplan"
+    }
+  }
+}
+
 Next-Phase "Offer shell helpers"
 if ([Console]::KeyAvailable) {
   $ans = Read-Host 'Append Codex helpers to your PowerShell profile? [Y/n]'

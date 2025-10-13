@@ -118,3 +118,14 @@
 
 - Planning loop: Research → propose options → wait for approval → implement → document decisions in `session-notes.md` (timestamped).
 - UI stack: Align style changes to shadcn/Tailwind/Radix patterns and Lucide assets; avoid bespoke classes and direct style hardcoding to objects.
+
+## ExecPlan Protocol (Planning Standard)
+
+- When asked to ExecPlan, instantiate a living ExecPlan document from the template at `~/.codex/execplan.md`. Save it in the repo at `execplans/YYYYMMDD-<short-slug>.md`.
+- Keep these sections continuously updated during execution: `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective`.
+- Use ISO‑8601 UTC timestamps for each progress entry (example: `2025-10-13T19:00Z`).
+- In `Plan of Work`, cite exact file paths and symbol names (e.g., `shared/core/base/registry_bootstrap.py:bootstrap_registry`). Avoid vague tasks.
+- `Observability` is optional; include it when metrics/flags/logging are part of scope.
+- The `Test Plan` must include a `Quality Gates` row/table specifying commands and thresholds (lint, typecheck, complexity ≤ 10, duplication %, tests). Unmet gates block completion.
+- Acceptance tests in `Success Criteria` are the definition of done; do not mark complete until they can be executed and pass.
+- Store evidence links (diffs, logs, screenshots) next to entries; avoid placing secrets in the plan.
