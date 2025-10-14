@@ -121,7 +121,7 @@
 
 ## ExecPlan Protocol (Planning Standard)
 
-- When asked to ExecPlan, instantiate a living ExecPlan document from the template at `~/.codex/execplan.md`. Save it in the repo at `execplans/YYYYMMDD-<short-slug>.md`.
+- When asked to ExecPlan, instantiate a living ExecPlan document from the template at `~/.codex/execplan.md`.
 - Keep these sections continuously updated during execution: `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective`.
 - Use ISO‑8601 UTC timestamps for each progress entry (example: `2025-10-13T19:00Z`).
 - In `Plan of Work`, cite exact file paths and symbol names (e.g., `shared/core/base/registry_bootstrap.py:bootstrap_registry`). Avoid vague tasks.

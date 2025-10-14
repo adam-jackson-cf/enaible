@@ -1,3 +1,42 @@
+# create-execplan v0.3
+
+**Purpose**
+
+- Produce a complete execution plan for `$USER_PROMPT`, using supplied artifacts (spec, inspect report) and targeted research.
+
+## Variables
+
+- `$USER_PROMPT` ← $1 (required)
+- `--artifact PATH_OR_URL` (repeatable) ← context files or URLs (e.g., spec, inspect report)
+- `--out PATH` (required) ← write the final ExecPlan Markdown to this path and also print the same Markdown to stdout (no preface)
+
+## Instructions
+
+- Read artifacts first (spec, then inspect); extract objectives, constraints, stack details, file references.
+- Incorporate global rules (coding standards, quality gates, design principles).
+- Use online research for additional analysis; cite official documentation.
+- Respond autonomously to any clarifications requested by sub-prompts; favor strict gates and established libraries.
+- Output only the final ExecPlan—no preamble—using the template below. Write to `--out` and echo the same Markdown to stdout.
+
+## Workflow
+
+1. **Collect Inputs** – Load all artifacts; summarize salient information (objectives, constraints, target files, success criteria).
+2. **Analyze** – Run web search for strategy options; capture reasoning for final approach.
+3. **Synthesize** – Convert the recommended solution into the structured plan:
+   - Purpose / Big Picture
+   - Success Criteria / Acceptance Tests (checkbox list)
+   - Context & Orientation (files/modules, constraints)
+   - Plan of Work (Prose)
+   - Concrete Steps (comprehensive table with file, action type, action)
+   - Test Plan & Quality Gates (tables)
+   - Progress, Surprises, Decision Log (initial stubs)
+   - Risks & Mitigations, Dependencies, Security/Privacy, Observability
+   - PR & Review placeholders, Handoff, Outcomes
+4. **Emit Plan** – Write to `--out` and print to stdout with no additional commentary.
+
+## Output Template
+
+```markdown
 # ExecPlan: <Short, action-oriented title>
 
 - Status: <Proposed|In Progress|Blocked|Complete>
@@ -104,10 +143,8 @@
 - Result vs Goals: <met/partially/not met> • Evidence: <links>
 - What went well: <bullets>
 - What to change next time: <bullets>
+```
 
-<!-- Usage Notes:
-- Keep Progress, Surprises & Discoveries, Decision Log, and Outcomes & Retrospective up to date as a living document.
-- Use ISO-8601 UTC timestamps (e.g., 2025-10-13T19:00Z).
-- Cite exact file paths and symbol names in Plan of Work.
-- Acceptance tests are the definition of done.
--->
+## Examples
+
+- `/create-execplan "Add MFA to admin console" --artifact .workspace/2025-10-13-add-mfa/spec/spec.md --artifact .workspace/2025-10-13-add-mfa/inspect/report.md --out .workspace/2025-10-13-add-mfa/plan/execplan.md`

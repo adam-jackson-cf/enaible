@@ -1,0 +1,1 @@
+Create a concise readiness snapshot (≈2 paragraphs) covering analyzer centralization, prompt templating, and CI guardrails for the enaible CLI migration. Use at most three evidence citations, skip deep repo scans (no full-tree listings or git history), and after saving the Markdown to the requested path, reply with the single word DONE.

@@ -1,4 +1,4 @@
-# todo-build v0.1
+# todo-build v0.2
 
 ## Purpose
 
@@ -17,7 +17,7 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 ## Instructions
 
 - Autonomous; no interactive prompts. Fail fast on INIT critical failures.
-- Always use git worktrees; do not modify the primary working directory.
+- Always use git worktrees; do not modify the primary working directory. If CWD is already a git worktree, reuse it and skip creating a new one.
 - Treat `$PLAN_PATH` as the single source of truth; update status, tasks, logs, gates, and test entries in that file.
 - Commit code and plan updates together (atomic commits).
 - Enforce gates/tests exactly; do not advance on failures or relax thresholds.
@@ -35,9 +35,9 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 2. PREPARE
 
    - Ensure `$WORKTREES` exists (create if missing) and is gitignored.
-   - Reuse or create the branch/worktree:
-     - If `$BRANCH` exists: attach a worktree to it if needed; otherwise reuse the existing worktree path.
-     - If it does not exist: `git worktree add -b "$BRANCH" "$WORKTREES/$TS-$SLUG" "${BASE:-main}"`.
+   - If current directory is a git worktree, reuse it; otherwise reuse or create the branch/worktree:
+     - If `$BRANCH` exists: attach a worktree to it if needed; else reuse the existing worktree path.
+     - Else: `git worktree add -b "$BRANCH" "$WORKTREES/$TS-$SLUG" "${BASE:-main}"`.
    - If the plan tracks metadata (status/branch/timestamps), set Status=In Progress, set branch name, and update timestamps.
 
 3. EXECUTE_LOOP (per task in plan order)
@@ -45,6 +45,7 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
    - Implement minimal diffs (keep function complexity ≤ 10).
    - If tests are implied, add/modify tests and update the plan’s test entries.
    - Stage and commit code + plan changes atomically.
+   - Run pre‑commit on the staged files; if hooks modify files (e.g., ExecPlan formatting), re‑stage and commit once.
    - Mark the step complete in the plan and add a timestamped progress/log entry.
 
    - GATES_LOOP (blocking):
@@ -65,7 +66,7 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 
 6. FINALIZE
    - Leave the worktree intact for verification.
-   - Emit a concise final summary (see Output).
+   - Do not emit separate summary/PR files; ExecPlan remains the single source of truth (Progress; PR & Review; Results).
 
 ## Output
 

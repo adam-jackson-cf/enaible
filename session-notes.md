@@ -64,3 +64,73 @@ Verification
 Impact
 
 - Addresses the error: `Missing shared subtree: /.../systems/shared/core` observed during step [5/11] of the installer.
+
+---
+
+# CLI Migration Planning — Codex
+
+## 2025-10-14T10:43Z
+
+- Reviewed `.workspace/202510141138-cli-migration-cli-improvements/spec/spec.md` and current Codex prompt layout to shape the CLI migration ExecPlan.
+- Authored `execplans/20251014-cli-migration-improvements.md` and synced a copy to `.workspace/202510141138-cli-migration-cli-improvements/plan/execplan.md` to drive follow-on implementation.
+
+---
+
+# visualdb PRD Draft — Codex
+
+## 2025-10-14T15:14Z
+
+- Completed discovery Q&A with stakeholder for the visualdb explorer board prototype.
+- Authored `docs/prds/visualdb-prd.md` covering personas, MoSCoW scope, flows, UX requirements, and acceptance criteria with consistent feature/screen IDs.
+- Noted that the prototype stores only target URLs plus layout metadata, excludes authentication, analytics, and accessibility commitments for this iteration.
+
+---
+
+# visualdb PRD Source Request — Codex
+
+## 2025-10-14T15:16Z
+
+- Captured the original `/plan-ux-prd` request content and stored it verbatim in `docs/prds/spec.md` for reference alongside the generated PRD.
+
+---
+
+# visualdb Embedding Research — Codex
+
+## 2025-10-14T16:55Z
+
+- Investigated whiteboard foundations (Excalidraw, tldraw, React Flow) and documented licensing plus extensibility trade-offs.
+- Researched embed strategies for YouTube, X (Twitter) posts, and generic webpages, including iframe restrictions and fallback patterns.
+- Summarized findings with citations in `docs/prds/tech-research.md`, outlining recommended architecture and next steps for the proof of concept.
+
+# CLI Migration ExecPlan Refresh — Codex
+
+## 2025-10-14T16:20Z
+
+- Followed `create-execplan` v0.3 workflow with artifacts at `.workspace/202510141201-cli-migration-cli-improvements/*` and recorded Balanced plan favoring the Typer + uv approach.
+- Authored `execplans/20251014-cli-migration-cli-improvements.md` and synced copy to `.workspace/202510141201-cli-migration-cli-improvements/plan/execplan.md`; added citations for Typer, uv, and Jinja2 usage.
+- Captured comparative solution analysis in `.workspace/202510141201-cli-migration-cli-improvements/plan/plan-solution.md` to document why dual-mode wrappers were rejected.
+
+## 2025-10-14T16:45Z
+
+- Queried `codex --help` and `codex exec --help`, confirmed `gpt-5-codex` as the supported non-interactive model; smoketest run generated and removed `shared/tests/integration/fixtures/codex-cli-help-check.txt`.
+- Relocated CLI migration spec/inspect artifacts to `shared/tests/integration/fixtures/cli-migration-cli-improvements/` and backed up the previous ExecPlan baseline.
+- Authored `shared/tests/integration/fixtures/run-create-execplan.sh` to invoke `/create-execplan` via Codex, reusing the fixture invocation pattern; script now regenerates the plan file under fixtures for automated verification.
+
+# Enaible ExecPlan Generation — Codex
+
+## 2025-10-14T19:24Z
+
+- Generated `execplans/20251014-enaible-cli-migration.md` from latest Enaible migration report/spec and copied to `tests/integration/fixtures/execplan/execplan.md` per /create-execplan request.
+- Logged Typer + Jinja2 decisions and risks within the plan; no CLI code changes yet pending approval.
+
+## 2025-10-14T19:45Z
+
+- Created follow-up plan `execplans/20251014-enaible-cli-foundation.md` to capture refined scope for Enaible phase-one delivery and synced identical content to `tests/integration/fixtures/execplan/execplan.md` per latest /create-execplan run.
+- Documented updated success criteria, risks, and quality gates reflecting CLI JSON normalization, template adapters, and CI drift enforcement expectations.
+
+# Enaible ExecPlan Fixture Refresh — Codex
+
+## 2025-10-14T20:21Z
+
+- Regenerated `execplans/20251014-enaible-cli-migration.md` from updated spec/report fixtures and mirrored the content to `shared/tests/integration/fixtures/execplan/execplan.md` for integration coverage.
+- Captured current acceptance criteria, quality gates, and risk mitigations ensuring migration stays aligned with no-fallback directive ahead of implementation work.

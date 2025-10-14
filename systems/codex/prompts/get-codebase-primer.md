@@ -2,24 +2,42 @@
 
 ## Purpose
 
-Analyze the current project to generate a comprehensive primer with project details, architecture, and available commands.
+Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
 
-## Behavior
+## Variables
 
-This command performs a deep analysis of the current project to create a standardized project primer. It reads key documentation files, reviews recent changes and uses available search tools to understand the codebase structure, identify technologies, extract commands, and map the architecture.
+- `TARGET_PATH` ← $1 (defaults to `./`.
+
+## Instructions
+
+- Read all relevant docs (CLAUDE.md, AGENTS.md, README variants) before synthesizing conclusions.
+- Capture findings for purpose, features, tech stack, architecture, commands, and testing.
+- Summaries must be concise yet comprehensive, referencing concrete files and directories.
+- Include recent git history insights to surface active development themes.
 
 ## Process
 
-1. **Run inspect codebase**
+1. **Deep Analysis** (LLM + file-driven)
 
-   - Run prompt "/todo-inspect-codebase" pointed at current project
+Analyse the following aspects of the target codebase:
+
+- Architecture & Orchestration
+- Backend Patterns & Practices
+- Frontend Patterns & Practices
+- Data & State
+- Performance & Security
+- Observability
+- Quality gates and Testing Practices
+- Identify entry points, apps/services, CLIs, servers, and routing surfaces.
+- Locate key configurations and framework signals
+- Documentation, Global rules files and configs
 
 2. **Generate Project Primer**
 
    - Compile findings into standardized markdown format
    - Present comprehensive project overview
 
-## Output Format
+## Output
 
 ```markdown
 # Project: [Name]
