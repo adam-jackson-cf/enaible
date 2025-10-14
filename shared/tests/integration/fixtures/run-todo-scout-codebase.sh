@@ -19,7 +19,8 @@ mkdir -p "${ARTIFACT_ROOT}"
 rm -f "${REPORT_PATH}"
 
 USER_PROMPT="$(tr '\n' ' ' < "${SPEC_PATH}")"
-COMMAND="/todo-scout-codebase \"${USER_PROMPT}\" . --exclude test_codebase --out ${REPORT_PATH}"
+DAYS_DEFAULT="${DAYS:-20}"
+COMMAND="/prompts:todo-scout-codebase USER_PROMPT=\"${USER_PROMPT}\" TARGET_PATH=\".\" OUT=\"${REPORT_PATH}\" DAYS=\"${DAYS_DEFAULT}\" EXCLUDE_GLOBS=\"test_codebase\""
 
 if command -v cdx-exec >/dev/null 2>&1; then
   CODEX_CMD=(cdx-exec --model 'gpt-5-codex' --full-auto -c 'plan_tool.enabled=false' --config 'sandbox_workspace_write.network_access=true' "${COMMAND}")
