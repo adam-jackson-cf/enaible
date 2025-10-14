@@ -33,22 +33,22 @@ Accelerate the CLI migration by delivering the first Enaible CLI slice that cent
 
 ## Concrete Steps (Checklist)
 
-| #   | File                                               | Type   | Action                                                                         |
-| --- | -------------------------------------------------- | ------ | ------------------------------------------------------------------------------ | --------------------- | ---- | -------------------- |
-| 1   | docs/system/claude-code/templates                  | Write  | Ensure wrapper templates exist; migrate legacy markdown into Jinja2 scaffolds. |
-| 2   | docs/system/opencode/templates                     | Write  | Mirror template structure and document adapter metadata placeholders.          |
-| 3   | docs/system/codex/templates                        | Write  | Create Codex wrapper templates without YAML frontmatter per decision #1.       |
-| 4   | tools/enaible/**init**.py                          | Write  | Initialize package exports and Typer `app`.                                    |
-| 5   | tools/enaible/cli.py                               | Write  | Define Typer commands for `analyzers list                                      | run`, `prompts render | diff | validate`, `doctor`. |
-| 6   | tools/enaible/analyzers/service.py                 | Write  | Wrap registry bootstrap and normalize JSON schema for CLI output.              |
-| 7   | tools/enaible/prompts/renderer.py                  | Write  | Load shared prompt bodies and render system templates via Jinja2 includes.     |
-| 8   | shared/prompts/analyze-security.md                 | Update | Remove path-probing text; replace with `enaible analyzers run` instructions.   |
-| 9   | shared/prompts/get-primer.md                       | Update | Reference `enaible` invocation and shared includes.                            |
-| 10  | systems/claude-code/commands/analyze-security.md   | Update | Regenerate managed file via CLI and add generated header.                      |
-| 11  | systems/codex/prompts/analyze-security.md          | Update | Regenerate managed file via CLI, ensuring no frontmatter.                      |
-| 12  | systems/opencode/command/analyze-security.md       | Update | Regenerate managed file via CLI with system-specific frontmatter.              |
-| 13  | .github/workflows/ci-quality-gates-incremental.yml | Update | Add Enaible render/diff steps after install stage.                             |
-| 14  | shared/tests/integration/test_enaible_cli.py       | Add    | Cover CLI list/run behavior using temporary artifacts directory.               |
+| #   | File                                                 | Type   | Action                                                                                  |
+| --- | ---------------------------------------------------- | ------ | --------------------------------------------------------------------------------------- |
+| 1   | `docs/system/claude-code/templates`                  | Write  | Ensure wrapper templates exist; migrate legacy markdown into Jinja2 scaffolds.          |
+| 2   | `docs/system/opencode/templates`                     | Write  | Mirror template structure and document adapter metadata placeholders.                   |
+| 3   | `docs/system/codex/templates`                        | Write  | Create Codex wrapper templates without YAML frontmatter per decision #1.                |
+| 4   | `tools/enaible/__init__.py`                          | Write  | Initialize package exports and Typer `app`.                                             |
+| 5   | `tools/enaible/cli.py`                               | Write  | Define Typer commands for analyzers list/run, prompts render/diff/validate, and doctor. |
+| 6   | `tools/enaible/analyzers/service.py`                 | Write  | Wrap registry bootstrap and normalize JSON schema for CLI output.                       |
+| 7   | `tools/enaible/prompts/renderer.py`                  | Write  | Load shared prompt bodies and render system templates via Jinja2 includes.              |
+| 8   | `shared/prompts/analyze-security.md`                 | Update | Remove path-probing text; replace with `enaible analyzers run` instructions.            |
+| 9   | `shared/prompts/get-primer.md`                       | Update | Reference `enaible` invocation and shared includes.                                     |
+| 10  | `systems/claude-code/commands/analyze-security.md`   | Update | Regenerate managed file via CLI and add generated header.                               |
+| 11  | `systems/codex/prompts/analyze-security.md`          | Update | Regenerate managed file via CLI, ensuring no frontmatter.                               |
+| 12  | `systems/opencode/command/analyze-security.md`       | Update | Regenerate managed file via CLI with system-specific frontmatter.                       |
+| 13  | `.github/workflows/ci-quality-gates-incremental.yml` | Update | Add Enaible render/diff steps after install stage.                                      |
+| 14  | `shared/tests/integration/test_enaible_cli.py`       | Add    | Cover CLI list/run behavior using temporary artifacts directory.                        |
 
 ## Progress (Running Log)
 
