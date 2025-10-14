@@ -24,7 +24,7 @@ def _run(cmd: str, cwd: str | None = None) -> subprocess.CompletedProcess:
 
 
 @pytest.mark.slow
-def test_codex_todo_inspect_fixture(tmp_path: Path):
+def test_codex_todo_scout_fixture(tmp_path: Path):
     repo_root = Path(__file__).resolve().parents[3]
     script = repo_root / "shared/tests/integration/fixtures/run-todo-scout-codebase.sh"
     assert script.exists(), f"Missing fixture script: {script}"

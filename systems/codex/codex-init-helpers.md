@@ -14,6 +14,7 @@ cdx-no-sandbox() {
             --model 'gpt-5-codex' \
             --sandbox danger-full-access \
             --ask-for-approval on-failure \
+            -c model_reasoning_summary_format=experimental \
             --search \
             "$@"
     fi
@@ -27,6 +28,7 @@ cdx-no-sandbox-request() {
             --model 'gpt-5-codex' \
             --sandbox danger-full-access \
             --ask-for-approval on-request \
+            -c model_reasoning_summary_format=experimental \
             --search \
             "$@"
     fi
