@@ -1,76 +1,80 @@
-# analyze-architecture v0.2
+# Purpose
 
-**Mindset**: "Design for scale and maintainability" - Evaluate system architecture for scalability, maintainability, and best practices.
+Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
 
-## Behavior
+## Variables
 
-Comprehensive system architecture evaluation combining automated analysis with design pattern assessment for scalable, maintainable systems.
+- `TARGET_PATH` ← $1 (defaults to `./`).
 
-### Automated Architecture Analysis
+## Instructions
 
-Execute architecture analysis scripts via Bash tool for measurable design metrics:
+- ALWAYS verify analyzer scripts exist and are readable before running any checks.
+- NEVER substitute per-module CLIs; use the registry-driven runner exclusively.
+- Capture each analyzer’s JSON output for reporting; do not discard raw metrics.
+- Assess architecture dimensions using both quantitative (script output) and qualitative reasoning.
+- Summaries must connect findings to concrete improvement recommendations.
 
-**FIRST - Resolve SCRIPT_PATH:**
+## Workflow
 
-1. **Try project-level .codex folder**:
+1. Locate analyzer scripts
+   - Run `ls .codex/scripts/analyzers/architecture/*.py || ls "$HOME/.codex/scripts/analyzers/architecture/"`; if both fail, exit and request a valid path.
+   - When scripts are missing locally, prompt the user for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then set `SCRIPT_PATH`.
+2. Prepare environment
+   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
+   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+3. Run automated analyzers
+   - Execute sequentially:
+     - `architecture:patterns`
+     - `architecture:scalability`
+     - `architecture:coupling`
+     - `architecture:dependency`
+   - Store JSON reports alongside timestamps and command invocations.
+4. Synthesize quantitative findings
+   - Extract metrics: service boundaries, coupling indices, dependency depth, scalability bottlenecks.
+   - Highlight hotspots exceeding thresholds (complexity, fan-in/out, layering).
+5. Perform qualitative assessment
+   - Map findings to architectural concerns: service boundary clarity, SOLID adherence, data flow consistency, deployment topology.
+   - Identify design-pattern compliance and anti-patterns with traceable evidence.
+6. Draft recommendations
+   - Prioritize remediation steps with impact vs. effort notes.
+   - Include architecture diagrams or hierarchy sketches when beneficial.
+7. Deliver final report
+   - Provide structured summary with metrics, risk assessment, and next actions.
+   - Attach raw analyzer outputs or inlined excerpts in an appendix section.
 
-   ```bash
-   Glob: ".codex/scripts/analyzers/architecture/*.py"
-   ```
+## Output
 
-2. **Try user-level .codex folder**:
+```md
+# RESULT
 
-   ```bash
-   Bash: ls "~/.codex/scripts/analyzers/architecture/"
-   ```
+- Summary: Architecture assessment completed for <TARGET_PATH>.
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/architecture/` and `~/.codex/scripts/analyzers/architecture/`
-   - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py, dependency_analysis.py)
-   - Set SCRIPT_PATH to user-provided location
+## FINDINGS
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+- Service Boundaries: <observation + metric>
+- Coupling & Cohesion: <observation + metric>
+- Scalability Risks: <observation + metric>
+- Data Flow & State: <observation + metric>
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+## RECOMMENDATIONS
+
+1. <Highest-priority improvement with rationale and expected impact>
+2. <Next action>
+
+## ATTACHMENTS
+
+- architecture:patterns → <path to JSON>
+- architecture:scalability → <path to JSON>
+- architecture:coupling → <path to JSON>
+- architecture:dependency → <path to JSON>
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:patterns --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:scalability --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:coupling --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:dependency --target . --output-format json
+# Analyze repository architecture from the current directory
+/analyze-architecture .
+
+# Target a specific service directory
+/analyze-architecture services/api
 ```
-
-### Architecture Assessment Areas
-
-- **Service Boundaries**: Microservice decomposition and responsibility definition
-- **Design Pattern Compliance**: SOLID principles, GoF patterns, architectural patterns
-- **Coupling Analysis**: Inter-service dependencies and communication patterns
-- **Scalability Bottlenecks**: Infrastructure limitations and growth constraints
-- **Data Flow Architecture**: State management and data consistency patterns
-
-## Analysis Process
-
-1. **Execute automated scripts** for quantitative architecture metrics
-2. **Evaluate design patterns** against established best practices
-3. **Assess scalability** through bottleneck identification
-4. **Analyze coupling** between components and services
-5. **Generate recommendations** for architectural improvements
-
-## Assessment Areas
-
-Coupling, Cohesion, Scalability, Maintainability, Testability, Deployment
-
-## Output Requirements
-
-- Architecture metrics report with automated analysis results
-- Design pattern compliance assessment
-- Scalability bottleneck identification with mitigation strategies
-- Architectural improvement roadmap with implementation priorities
-
-$ARGUMENTS

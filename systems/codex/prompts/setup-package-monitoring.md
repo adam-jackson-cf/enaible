@@ -1,117 +1,98 @@
-# setup-package-monitoring v3.0
+# Purpose
 
-**Mindset**: "Smart dependency monitoring with Dependabot + minimal CI auditing"
+Install multi-ecosystem dependency monitoring with Dependabot and path-triggered CI audits configured for minimal noise.
 
-## Behavior
+## Variables
 
-Sets up comprehensive package monitoring through:
+- `AUDIT_LEVEL` ← value from `--audit-level` (default `critical`).
+- `PACKAGE_FILE` ← path from `--package-file` (optional).
+- `EXCLUDE_PATHS[]` ← paths supplied via `--exclude`.
+- `SETUP_BRANCH_PROTECTION` ← boolean when `--branch-protection=true`.
+- `SCRIPT_PATH` ← resolved path to `setup_package_monitoring.py`.
+- `SCRIPTS_ROOT` ← computed base directory.
+- `DETECTED_ECOSYSTEMS[]` ← languages/package managers discovered.
+- `$ARGUMENTS` ← raw argument string.
 
-1. **Dependabot** for automated dependency updates across all detected languages
-2. **Minimal CI auditing** that ONLY runs when package files change
-3. **Critical-only vulnerability blocking** to avoid duplication with Dependabot
+## Instructions
 
-## Workflow Process
+- Detect all package ecosystems unless `--package-file` explicitly narrows scope.
+- Use the registry-driven setup script; do not replicate its logic manually.
+- Document detection heuristics, excluded paths, and resulting configurations.
+- Generate Dependabot and GitHub Actions workflows with path-based triggers.
+- Update security policy documentation to reflect the monitoring approach.
 
-### Phase 1: Multi-Language Ecosystem Detection
+## Workflow
 
-Automatically detects ALL package ecosystems in the project:
+1. Verify prerequisites
+   - Run `ls .codex/scripts/setup/security/setup_package_monitoring.py || ls "$HOME/.codex/scripts/setup/security/setup_package_monitoring.py"`; if both fail, prompt for a directory containing `setup_package_monitoring.py` and exit if unavailable.
+   - Run `git rev-parse --is-inside-work-tree`; exit immediately if not in a git repository because generated workflows rely on repository structure.
+2. Parse arguments
+   - Capture `AUDIT_LEVEL`, `PACKAGE_FILE`, multiple `--exclude` values, and `SETUP_BRANCH_PROTECTION`.
+3. Resolve script location
+   - Search project-level `.codex/scripts/setup/security/`, then user-level equivalent.
+   - Prompt for path when unresolved; ensure `setup_package_monitoring.py` exists.
+4. Prepare environment
+   - Compute `SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
+5. Execute setup script
+   - Run:
+     ```bash
+     PYTHONPATH="$SCRIPTS_ROOT" python -m setup.security.setup_package_monitoring \
+       --audit-level "$AUDIT_LEVEL" \
+       --branch-protection "${SETUP_BRANCH_PROTECTION:-false}" \
+       ${PACKAGE_FILE:+--package-file "$PACKAGE_FILE"} \
+       $(printf ' --exclude %q' "${EXCLUDE_PATHS[@]}")
+     ```
+   - Capture stdout to extract detected ecosystems and generated files.
+6. Review generated artifacts
+   - `.github/dependabot.yml`
+   - `.github/workflows/package-audit.yml`
+   - `SECURITY.md` (new or updated)
+   - Optional branch protection configuration summary (if requested).
+7. Validate configuration
+   - Confirm workflow triggers monitor only package files.
+   - Ensure Dependabot entries cover each detected ecosystem with appropriate schedule.
+   - Verify audit workflow executes critical-level checks aligned with Dependabot PRs.
+8. Summarize outcome
+   - Report ecosystems, audit level, exclusions, and branch protection status.
+   - Provide next steps for enabling workflows (commit/push, review Actions tab).
 
-- **Python**: requirements.txt, pyproject.toml, Pipfile, setup.py, setup.cfg
-- **JavaScript/TypeScript**: package.json with lock files (npm, yarn, pnpm, bun)
-- **Go**: go.mod, go.sum
-- **Rust**: Cargo.toml, Cargo.lock
-- **.NET**: _.csproj, _.sln, packages.config
+## Output
 
-**Efficiency Arguments (Optional):**
+```md
+# RESULT
 
-- **--package-file=<path>**: Skip ecosystem detection by specifying package file directly (e.g., `--package-file=requirements.txt`)
-- **--exclude=<path>**: Exclude directories/files from package search (e.g., `--exclude=node_modules`, `--exclude=vendor`)
+- Summary: Package monitoring configured (audit level: <AUDIT_LEVEL>).
 
-When `--package-file` is provided, the command bypasses automatic detection and uses the specified file directly.
-Multiple `--exclude` arguments can be provided to exclude multiple paths.
+## ECOSYSTEMS
 
-### Phase 2: Script Integration
+- <ecosystem 1>
+- <ecosystem 2>
 
-**FIRST - Resolve SCRIPT_PATH:**
+## GENERATED FILES
 
-1. **Try project-level .codex folder**:
+- .github/workflows/package-audit.yml
+- .github/dependabot.yml
+- SECURITY.md (<created|updated>)
 
-   ```bash
-   Glob: ".codex/scripts/setup/security/*.py"
-   ```
+## SETTINGS
 
-2. **Try user-level .codex folder**:
+- Branch Protection: <enabled|disabled>
+- Exclusions: <paths or none>
+- Package File Override: <value or none>
 
-   ```bash
-   Bash: ls "~/.codex/scripts/setup/security/"
-   ```
+## NEXT STEPS
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/setup/security/` and `~/.codex/scripts/setup/security/`
-   - Ask user: "Could not locate package monitoring setup scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (setup_package_monitoring.py)
-   - Set SCRIPT_PATH to user-provided location
-
-**Pre-flight environment check (fail fast if imports not resolved):**
-
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+1. Commit and push generated files.
+2. Review Actions tab for package-audit workflow.
+3. Monitor Dependabot PRs for security updates.
 ```
 
-**THEN - Execute Package Monitoring Setup Script:**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m setup.security.setup_package_monitoring \
-  --audit-level "${AUDIT_LEVEL:-critical}" \
-  --branch-protection "${SETUP_BRANCH_PROTECTION:-false}" \
-  ${PACKAGE_FILE:+--package-file "$PACKAGE_FILE"} \
-  ${EXCLUDE_PATH:+--exclude "$EXCLUDE_PATH"}
-```
-
-## Example Usage
-
-```bash
-# Setup with default critical-only auditing
+# Default critical-only auditing across detected ecosystems
 /setup-package-monitoring
 
-# Setup with different audit level
-/setup-package-monitoring --audit-level=moderate
-
-# Setup with branch protection
-/setup-package-monitoring --branch-protection=true
-
-# Skip search by specifying package file directly
-/setup-package-monitoring --package-file=requirements.txt
-
-# Exclude large directories from search
-/setup-package-monitoring --exclude=node_modules --exclude=vendor
-
-# Combine for maximum efficiency
-/setup-package-monitoring --package-file=package.json --exclude=dist --audit-level=moderate
+# Specify a package file and enable branch protection
+/setup-package-monitoring --package-file=requirements.txt --branch-protection=true
 ```
-
-## Expected Output
-
-```
-🔧 Setting up package monitoring for python, javascript, go with audit level: critical
-✅ Created .github/workflows/package-audit.yml (path-triggered audit for package changes)
-✅ Created .github/dependabot.yml (multi-ecosystem dependency updates)
-✅ Created SECURITY.md (security policy documentation)
-
-🔧 Configuration:
-  - Ecosystems: python, javascript, go
-  - Audit Level: critical
-  - Branch Protection: false
-
-🚀 Next Steps:
-  1. Commit and push these files to activate the workflows
-  2. Check the 'Actions' tab in GitHub to see workflows
-  3. Review Dependabot PRs for security updates
-  4. Package monitoring will only run when dependency files change
-
-🔍 Detected ecosystems: python, javascript, go
-⚡ Minimal CI: Audit workflow only runs when package files change
-```
-
-$ARGUMENTS

@@ -1,138 +1,99 @@
-# analyze-security v0.3
+# Purpose
 
-**Mindset**: "What could go wrong?" - Combine automated scanning with contextual threat assessment.
+Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
 
-## Behavior
+## Variables
 
-Comprehensive security analysis using OWASP Top 10 framework with automated script integration and contextual threat assessment.
+- `$TARGET_PATH` ← $1 (defaults to `./`).
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is provided).
 
-## Workflow Process
+## Instructions
 
-### Phase 1: Automated Security Assessment
+- ALWAYS conduct automated scanning before manual analysis; abort if scripts or imports fail.
+- Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`) before proceeding.
+- Map findings to OWASP Top 10 categories, business impact, and exploitability.
+- Maintain immutable evidence—store JSON results, command transcripts, and severity scoring.
+- In `VERBOSE_MODE`, include exhaustive vulnerability details, gap tables, and remediation notes.
 
-1. **Execute automated security scripts** - Run comprehensive OWASP Top 10 vulnerability detection
+## Workflow
 
-   **FIRST - Resolve SCRIPT_PATH:**
+1. Locate analyzer scripts
+   - Run `ls .codex/scripts/analyzers/security/*.py || ls "$HOME/.codex/scripts/analyzers/security/"`; if both fail, prompt the user for a directory containing `semgrep_analyzer.py` and `detect_secrets_analyzer.py`, and exit if none is provided.
+2. Prepare environment
+   - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+3. Phase 1 — Automated Security Assessment
+   - Execute sequentially:
+     - `security:semgrep` (installs on-demand if permitted)
+     - `security:detect_secrets`
+   - Summarize findings against OWASP categories.
+   - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
+4. Phase 2 — Gap Assessment & Contextual Analysis
+   - Review coverage vs. OWASP Top 10 and stack-specific concerns.
+   - Perform targeted searches or manual inspections for uncovered areas (auth flows, configuration, data flow).
+   - Document technology-specific validations (e.g., Django CSRF, React XSS mitigations, Express headers).
+   - **STOP:** “Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)”
+5. Phase 3 — Risk Prioritization & Reporting
+   - Combine automated and contextual findings.
+   - Prioritize vulnerabilities (Critical/High/Medium/Low) using impact and likelihood.
+   - Draft remediation roadmap (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening).
+   - **STOP:** “Security analysis complete and validated. Transfer findings to todos.md? (y/n)”
+6. Phase 4 — Quality Validation & Task Transfer
+   - Confirm quality gates:
+     - OWASP Top 10 coverage verified.
+     - Script outputs processed and validated.
+     - Technology-specific patterns reviewed.
+     - Business logic risks evaluated.
+   - Upon approval, append remediation tasks to `todos.md` following the provided checklist format.
+   - Document whether transfer occurred or was declined.
 
-   1. **Try project-level .codex folder**:
+## Output
 
-      ```bash
-      Glob: ".codex/scripts/analyzers/security/*.py"
-      ```
+```md
+# RESULT
 
-   2. **Try user-level .codex folder**:
+- Summary: Security analysis completed for <TARGET_PATH>.
 
-      ```bash
-      Bash: ls "~/.codex/scripts/analyzers/security/"
-      ```
+## FINDINGS
 
-   3. **Interactive fallback if not found**:
-      - List searched locations: `.codex/scripts/analyzers/security/` and `~/.codex/scripts/analyzers/security/`
-      - Ask user: "Could not locate security analysis scripts. Please provide full path to the scripts directory:"
-      - Validate provided path contains expected scripts (semgrep_analyzer.py, detect_secrets_analyzer.py)
-      - Set SCRIPT_PATH to user-provided location
+| Severity | Category (OWASP)            | Location / Asset                | Description                          | Evidence Source         |
+| -------- | --------------------------- | ------------------------------- | ------------------------------------ | ----------------------- |
+| CRITICAL | A01: Injection              | services/api/user.py#L120       | Unsanitized SQL string concatenation | security:semgrep        |
+| HIGH     | A02: Cryptographic Failures | config/settings.py#L45          | Hardcoded API key                    | security:detect_secrets |
+| MEDIUM   | A05: SSRF                   | infra/terraform/modules/network | Missing egress restrictions          | Gap Assessment          |
 
-   **Pre-flight environment check (fail fast if imports not resolved):**
+## RISK SUMMARY
 
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-   ```
+- Scorecard: <overall risk score or narrative>
+- Blocking Issues: <list of critical/high items>
+- Recommended Timeline: <immediate / short-term / long-term>
 
-   **THEN - Execute via the registry-driven CLI (no per-module CLIs):**
-
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer security:semgrep --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer security:detect_secrets --target . --output-format json
-   ```
-
-2. **Analyze script outputs** - Process automated findings against OWASP framework
-
-   - **semgrep_analyzer.py**: Comprehensive OWASP Top 10 detection including A01 (Injection), A03 (XSS), A07 (Authentication Failures), and input validation using semantic analysis
-   - **detect_secrets_analyzer.py**: Advanced entropy-based secrets detection for hardcoded credentials and API keys (A02 - Cryptographic Failures)
-
-3. **Generate security baseline** - Compile automated results for contextual analysis
-
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Automated security analysis complete. Proceed with gap assessment? (y/n)" and WAIT for response before continuing to Phase 2. If user responds "n" or "no", stop workflow execution.
-
-### Phase 2: Gap Assessment and Contextual Analysis
-
-1. **Perform OWASP Top 10 systematic coverage review** - Compare automated findings against actual codebase
-
-   - Identify technology-specific security patterns not covered by the script based analysis
-   - Assess framework-specific requirements (Django CSRF, React XSS protections, Express.js headers)
-
-2. **Execute autonomous security searches** - Targeted analysis for identified gaps
-   - Custom vulnerability pattern searches based on identified technology stack
-   - Configuration security validation for detected frameworks
-   - Authorization matrix validation for detected user roles and permissions
-   - Data flow security analysis between components and external interfaces
-   - Infrastructure and deployment security review
-
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)" and WAIT for response before continuing to Phase 3. If user responds "n" or "no", stop workflow execution.
-
-### Phase 3: Risk Prioritization and Reporting
-
-1. **Correlate and prioritize findings** - Combine automated and contextual analysis results
-
-   - Generate security score based on identified vulnerabilities
-   - Prioritize by business impact and exploitability
-
-2. **Create security report** - Format findings by severity level
-
-   - **CRITICAL**: Data breach, system compromise, compliance violation
-   - **HIGH**: Privilege escalation, injection, auth bypass
-   - **MEDIUM**: Information disclosure, DoS, config issues
-   - **LOW**: Hardening opportunities, defense gaps
-
-3. **Generate remediation roadmap** - Phased approach with specific locations
-   - Phase 1: Critical security issues requiring immediate attention
-   - Phase 2: High priority security concerns
-   - Phase 3: Security hardening and configuration improvements
-
-### Phase 4: Quality Validation and Task Transfer
-
-1. **Validate analysis completeness** - Ensure comprehensive OWASP Top 10 coverage
-
-   - Verify all security script outputs processed
-   - Confirm gap assessment covered technology-specific patterns
-
-2. **Quality Gates Validation**
-
-   - [ ] All OWASP Top 10 categories systematically assessed
-   - [ ] Script outputs validated against codebase architecture
-   - [ ] Technology-specific security patterns identified
-   - [ ] Business logic vulnerabilities evaluated
-   - [ ] Security findings prioritized by business impact
-
-3. **Transfer security tasks to todos.md** - Generate actionable remediation tasks
-   - Append formatted security findings with clear priorities to todos.md
-
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Security analysis complete and validated. Transfer findings to todos.md? (y/n)" and WAIT for response before proceeding with todo transfer. If user responds "n" or "no", stop workflow execution.
-
-## Enhanced Optional Flags
-
-**--verbose**: Show detailed script outputs, gap analysis table, and comprehensive vulnerability descriptions
-
-## Task Format for todos.md Transfer
-
-```markdown
-## Security Remediation Implementation
+## REMEDIATION ROADMAP
 
 ### Phase 1: Critical Security Issues
 
-- [ ] [CRITICAL-FINDING] - [LOCATION]
-- [ ] [CRITICAL-FINDING] - [LOCATION]
+- [ ] <Task with owner and file path>
 
 ### Phase 2: High Priority Security Issues
 
-- [ ] [HIGH-FINDING] - [LOCATION]
-- [ ] [HIGH-FINDING] - [LOCATION]
+- [ ] <Task>
 
 ### Phase 3: Security Hardening
 
-- [ ] [MEDIUM-FINDING] - [LOCATION]
-- [ ] [LOW-FINDING] - [LOCATION]
+- [ ] <Task>
+
+## ATTACHMENTS
+
+- security:semgrep → <path>
+- security:detect_secrets → <path>
+- Gap Analysis Notes → <path>
 ```
 
-$ARGUMENTS
+## Examples
+
+```bash
+# Run default security assessment
+/analyze-security .
+
+# Include verbose gap tables and detailed findings
+/analyze-security services/web --verbose
+```

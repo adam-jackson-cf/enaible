@@ -2,11 +2,6 @@
 
 Establish pre-commit hooks so git rejects commits that violate the project's language and tooling standards.
 
-## Variables
-
-- No positional arguments; operate from the repository root detected via `pwd`.
-- `$ARGUMENTS` is ignored and must remain empty.
-
 ## Instructions
 
 - NEVER overwrite an existing `.pre-commit-config.yaml`; exit immediately if one is detected.
@@ -63,3 +58,5 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 # Run from a freshly cloned project (no arguments supported)
 /add-code-precommit-checks
 ```
+
+$ARGUMENTS

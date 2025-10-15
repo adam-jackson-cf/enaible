@@ -1,132 +1,106 @@
-# plan-solution v0.2
+# Purpose
 
-## Purpose
+Develop and compare solution approaches for a `$USER_PROMPT` using targeted context gathering, research, and structured recommendations.
 
-Research-driven technical challenge solving with systematic analysis and implementation planning.
+## Variables
+
+- `$USER_PROMPT` ← first positional argument or prompt input describing the technical problem.
+
+## Instructions
+
+- Begin by collecting detailed context based on `$USER_PROMPT`, environment constraints, and delivery preferences.
+- If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
+- Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
+- Support recommendations with research citations or code insights.
+- When `--critique` is used, invoke `@agent-solution-validator` after drafting the recommendation.
+- Wait for approval before appending tasks to `todos.md`.
 
 ## Workflow
 
-### Phase 1: Context Gathering
+1. Intake context
+   - Request explicit information when missing from `$USER_PROMPT` - frame with assumptions:
+     1. Defintion of problem to solve or feature to create
+     2. Any technical constraints or predetermined tech stack choices
+     3. Development approach preferences
+   - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
+2. **Conditional** system analysis (only when working against an existing codebase)
+   - Locate analyzer scripts: Run `ls .codex/scripts/analyzers/architecture/pattern_evaluation.py || ls "$HOME/.codex/scripts/analyzers/architecture/pattern_evaluation.py"`; if both fail, prompt for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
+   - Prepare environment: Compute `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+   - Run:
+     - `architecture:patterns`
+     - `architecture:scalability`
+     - `architecture:coupling`
+   - Record findings: patterns, scalability constraints, integration points, technical debt.
+3. Research & option development
+   - Perform targeted web/documentation research as needed.
+   - Draft three solution options:
+     - Solution 1: Conservative / established approach.
+     - Solution 2: Balanced trade-off.
+     - Solution 3: Innovative / modern approach.
+   - Include approach overview, stack, complexity, risk, and suitability.
+4. Comparative analysis
+   - Build a matrix evaluating Development Complexity, Integration Effort, Technology Risk, and Team Readiness.
+5. Recommendation & roadmap
+   - Select a recommended solution with justification.
+   - Outline phased implementation roadmap and success criteria.
+   - Write a summary using below output format with no additional commentary.
 
-**STOP** → "To ensure my analysis addresses your specific situation, please provide:
+## Output
 
-**1. Technical Challenge:**
+```md
+# RESULT
 
-- Describe the specific problem, feature, or system requirement you need to address
-- Include any current pain points or limitations you're experiencing
-- Specify if this involves analyzing/improving a current codebase or general planning
+- Summary: Solution plan generated for "<CHALLENGE>."
 
-**2. Technical Environment Constraints:**
+## SOLUTION OPTIONS
 
-- Existing technology stack, platforms, or infrastructure requirements
-- Legacy system integration requirements
-- Compliance, security, or regulatory constraints
-- Team skill sets and technology preferences
+### Solution 1 — Conservative
 
-**3. Development Approach Preferences:**
+- Approach: <summary>
+- Stack: <technologies>
+- Complexity: <low/medium/high>
+- Risk: <assessment>
 
-- Do you prefer leveraging established libraries/frameworks vs custom development?
-- Priority: speed to market, cost optimization, technical control, or long-term maintainability?
-- Available development resources and timeline constraints
+### Solution 2 — Balanced
 
-Please provide your technical challenge and any relevant constraints, or confirm if you'd like me to proceed with general assumptions."
+...
 
-### Phase 2: System Analysis (Conditional)
+### Solution 3 — Innovative
 
-**Only execute if analyzing a current codebase** (skip for general planning questions or if codebase context provided):
+...
 
-1. **Run architecture analysis**:
+## COMPARATIVE ANALYSIS
 
-   **FIRST - Resolve SCRIPT_PATH:**
+| Aspect                 | Solution 1 | Solution 2 | Solution 3 |
+| ---------------------- | ---------- | ---------- | ---------- |
+| Development Complexity | <value>    | <value>    | <value>    |
+| Integration Effort     | <value>    | <value>    | <value>    |
+| Technology Risk        | <value>    | <value>    | <value>    |
+| Team Readiness         | <value>    | <value>    | <value>    |
 
-   1. **Try project-level .codex folder**:
+## RECOMMENDATION
 
-      ```bash
-      Glob: ".codex/scripts/analyzers/architecture/*.py"
-      ```
+- Preferred Solution: <name>
+- Justification: <bullets>
 
-   2. **Try user-level .codex folder**:
+## IMPLEMENTATION ROADMAP
 
-      ```bash
-      Bash: ls "~/.codex/scripts/analyzers/architecture/"
-      ```
+- Phase 1: <milestones, timeline>
+- Phase 2: <milestones>
+- Phase 3: <milestones>
+- Success Criteria: <metrics/tests>
 
-   3. **Interactive fallback if not found**:
-      - List searched locations: `.codex/scripts/analyzers/architecture/` and `~/.codex/scripts/analyzers/architecture/`
-      - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
-      - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py)
-      - Set SCRIPT_PATH to user-provided location
+## TODOS TRANSFERRED
 
-   **Pre-flight environment check (fail fast if imports not resolved):**
-
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-   ```
-
-   **THEN - Execute via the registry-driven CLI (no per-module CLIs):**
-
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:patterns --target .
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:scalability --target .
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:coupling --target .
-   ```
-
-2. **Document findings**:
-   - Current patterns identified
-   - Scalability constraints
-   - Integration points
-   - Technical debt considerations
-
-**If general planning** (no current codebase): Proceed directly to Phase 3.
-
-### Phase 3: Research & Solutions
-
-1. **Research best practices** (web search)
-2. **Develop 3 solution approaches**:
-   - **Solution 1**: Conservative/established approach
-   - **Solution 2**: Balanced approach
-   - **Solution 3**: Innovative/modern approach
-
-### Phase 4: Comparative Analysis
-
-| Aspect                     | Solution 1     | Solution 2     | Solution 3     |
-| -------------------------- | -------------- | -------------- | -------------- |
-| **Development Complexity** | [Rating/Notes] | [Rating/Notes] | [Rating/Notes] |
-| **Integration Effort**     | [Rating/Notes] | [Rating/Notes] | [Rating/Notes] |
-| **Technology Risk**        | [Rating/Notes] | [Rating/Notes] | [Rating/Notes] |
-| **Team Readiness**         | [Rating/Notes] | [Rating/Notes] | [Rating/Notes] |
-
-### Phase 5: Recommendation & Roadmap
-
-**Recommended Solution**: [Choose one]
-
-**Justification**:
-
-- Technical alignment with current system
-- Balance of risk vs benefit
-- Resource/timeline fit
-
-**Implementation Roadmap**:
-
-- **Phase 1**: Foundation setup ([timeline])
-- **Phase 2**: Core implementation ([timeline])
-- **Phase 3**: Optimization & testing ([timeline])
-
-**Success Criteria**:
-
-- Performance benchmarks: [metrics]
-- Integration success: [validation approach]
-- Monitoring setup: [observability plan]
-
-## Templates
-
-**Solution format**:
-
+- <yes/no> (list added items if applicable)
 ```
-## [Solution Name]
-**Approach**: [Technical strategy]
-**Stack**: [Technologies]
-**Complexity**: [Effort/Resources]
-**Risk**: [Assessment]
+
+## Examples
+
+```bash
+# Explore solutions to a scalability challenge
+/plan-solution "Scale real-time collaboration engine"
+
+# Generate plan and trigger validator critique
+/plan-solution "Modernize authentication architecture" --critique
 ```

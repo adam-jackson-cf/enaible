@@ -4,10 +4,8 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.`.
-- `VERBOSE_MODE` ← boolean flag set when `--verbose` is provided.
-- `SCRIPT_PATH` ← resolved security analyzer directory.
-- `$ARGUMENTS` ← complete raw argument string for logging.
+- `$TARGET_PATH` ← $1 (defaults to `./`).
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is provided).
 
 ## Instructions
 

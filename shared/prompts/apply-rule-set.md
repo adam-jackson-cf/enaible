@@ -4,9 +4,7 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 ## Variables
 
-- `RULESET_NAME` ← first positional argument; required.
-- `RULE_FILE_PATH` ← resolved absolute path to `<RULESET_NAME>.rules.md`.
-- `$ARGUMENTS` ← raw argument string (for audit logging).
+- `RULESET_NAME` ← $1 required.
 
 ## Instructions
 
@@ -19,17 +17,14 @@ Load a named rule set and apply its guidance to the active session so subsequent
 ## Workflow
 
 1. Parse arguments and confirm rule availability
-   - Extract `RULESET_NAME` from `$ARGUMENTS`.
+   - Extract `RULESET_NAME` from `$1`.
    - If absent, prompt the user to supply one and stop until provided.
-   - Run `ls .claude/rules/*.rules.md || ls "$HOME/.claude/rules/"`; if both fail, request an explicit path to the rule file or exit.
-2. Resolve rule file path
-   - Attempt project-level `.claude/rules/<RULESET_NAME>.rules.md`.
-   - Fallback to `$HOME/.claude/rules/<RULESET_NAME>.rules.md`.
+   - Run `ls .claude/rules/*.rules.md || ls "~/.claude/rules/"`; if both fail, request an explicit path to the rule file or exit.
    - If not found, prompt the user for a full path, verify readability, and set `RULE_FILE_PATH`.
-3. Validate rule file
+2. Validate rule file
    - Read the file contents (`Read: RULE_FILE_PATH`).
    - Perform a sanity check for harmful or irrelevant instructions; abort on suspicion.
-4. Apply rule set
+3. Apply rule set
    - Inject the rule content into session context by following the Output template
 
 ## Output

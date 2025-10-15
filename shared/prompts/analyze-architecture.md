@@ -4,9 +4,7 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.` when omitted.
-- `SCRIPT_PATH` ← absolute path to the architecture analyzer directory resolved during workflow.
-- `$ARGUMENTS` ← raw argument string (space-joined) for logging.
+- `TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 

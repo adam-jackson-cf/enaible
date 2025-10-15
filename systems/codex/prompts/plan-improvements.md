@@ -2,105 +2,43 @@
 
 ## Purpose
 
-"Improve without breaking" - Strategic technical debt reduction and modernization planning through automated analysis, proven patterns, and comprehensive testing frameworks.
+Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
 
-## Workflow Process
+## Variables
 
-### Phase 1: Technical Debt Assessment
+- `$REFACTOR_SCOPE` ← $1 required, defines area or component.
 
-1. **Execute automated analysis** - Run comprehensive technical debt assessment
+## Instructions
 
-   **FIRST - Resolve SCRIPT_PATH:**
+- Execute the workflow phases in order and honor each STOP confirmation.
+- Run registry-driven analyzers only; capture outputs for quality documentation.
+- Anchor migration strategies in proven patterns (Strangler Fig, Module Federation, blue-green, etc.).
+- Define rollback steps and monitoring at every migration phase.
+- Translate the final plan into actionable todos when approved.
 
-   1. **Try project-level .codex folder**:
+## Workflow
 
-      ```bash
-      Glob: ".codex/scripts/*.py"
-      Glob: ".codex/scripts/analyzers/**/*.py"
-      ```
-
-   2. **Try user-level .codex folder**:
-
-      ```bash
-      Bash: ls "~/.codex/scripts/"
-      ```
-
-   3. **Interactive fallback if not found**:
-      - List searched locations: `.codex/scripts/` and `~/.codex/scripts/`
-      - Ask user: "Could not locate analysis scripts. Please provide full path to the scripts directory:"
-      - Validate provided path contains expected scripts (quality/complexity_lizard.py, architecture/coupling_analysis.py, performance/performance_baseline.py)
-      - Set SCRIPT_PATH to user-provided location
-
-   **Pre-flight environment check (fail fast if imports not resolved):**
-
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-   ```
-
-   **THEN - Execute via the registry-driven CLI (no per-module CLIs):**
-
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:coupling --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer performance:baseline --target . --output-format json
-   ```
-
-2. **Identify refactoring priorities** - Analyze complexity hotspots and architectural debt
-
-   - Cross-reference security vulnerabilities with refactoring scope
-
-3. **Generate technical debt report** - Compile results into executive summary
-
-   - Define migration scope with clear boundaries and dependencies
-
-**STOP** → "Technical debt analysis complete. Proceed with strategy development? (y/n)"
-
-### Phase 2: Migration Strategy Development
-
-1. **Research proven refactoring patterns** - Use web search for latest industry-proven strategies for the current scenario
-
-   - Identify patterns: Strangler Fig, Module Federation, Blue-Green deployment
-
-2. **Create phased migration plan** - Design incremental strategy with minimal risk
-
-   - Define feature flag integration for safe deployment
-
-3. **Define rollback procedures** - Establish automated rollback mechanisms
-   - Create safety nets and monitoring for each migration phase
-
-**STOP** → "Migration strategy defined. Ready to create implementation plan? (y/n)"
-
-### Phase 3: Implementation Planning
-
-1. **Generate detailed task breakdown** - Create implementation timeline with checkpoints
-
-   - Plan integration testing at each migration phase
-
-2. **Create testing strategy** - Establish baselines and regression coverage
-
-   **Use previously resolved SCRIPT_PATH (registry-driven CLI):**
-
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:coverage --target . --output-format json
-   ```
-
-3. **Define success metrics** - Set measurable complexity and performance targets
-   - Create development velocity impact assessment framework
-
-### Phase 4: Quality Validation
-
-1. **Validate plan completeness** - Verify approaches and rollback procedures
-
-   - Ensure success metrics are measurable and achievable
-
-2. **Quality Gates Validation**
-
-   - [ ] Technical debt hotspots identified and prioritized
-   - [ ] Migration strategy validated against proven patterns
-   - [ ] Implementation phases include comprehensive rollback procedures
-   - [ ] Testing strategy covers regression prevention and performance validation
-   - [ ] All refactoring targets have defined success metrics
+1. Resolve analyzer scripts
+   - Run `ls .codex/scripts/analyzers/quality/complexity_lizard.py || ls "$HOME/.codex/scripts/analyzers/quality/complexity_lizard.py"`; if both fail, prompt for a directory containing `quality/complexity_lizard.py`, `architecture/coupling_analysis.py`, and `performance/performance_baseline.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
+   - Once resolved, compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+2. Phase 1 — Technical Debt Assessment
+   - Execute analyzers:
+     - `quality:lizard`
+     - `architecture:coupling`
+     - `performance:baseline`
+   - Identify hotspots, architectural debt, security overlaps.
+   - Generate technical debt summary.
+   - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
+3. Phase 2 — Migration Strategy
+   - Research industry patterns tailored to `$REFACTOR_SCOPE`.
+   - Outline phased migration (feature flags, decomposition, deployment strategy).
+   - Define rollback procedures and monitoring hooks.
+   - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
+4. Phase 3 — Implementation Planning
+   - Break work into phases with timelines and checkpoints.
+   - Run `quality:coverage` analyzer to inform testing strategy.
+   - Establish success metrics (complexity targets, performance budgets, velocity impact).
+5. Phase 4 — Write a summary using below output format with no additional commentary.
 
 ## Output
 
@@ -127,19 +65,27 @@
 - Balance of risk vs benefit
 - Resource/timeline fit
 
-## IMPLEMENTATION PLAN
+## Implementation summary
 
-- Checklist: <bullet summary of tasks>
-- Testing Strategy: <coverage plan, tooling>
-- Success Metrics: <targets>
+### High Level Checklist:
 
-## [System/Component] Refactoring Implementation
+<bullet summary of tasks>
 
-### Phase [PHASE-NUMBER]: [PHASE-TITLE]
+### Testing Strategy:
 
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
+<coverage plan, tooling>
+
+### Success Metrics:
+
+<targets>
 ```
 
-$ARGUMENTS
+## Examples
+
+```bash
+# Plan refactor for the payments service
+/plan-refactor "payments service"
+
+# Use verbose notes (no additional flags currently supported; reserved for future)
+/plan-refactor "frontend shell"
+```

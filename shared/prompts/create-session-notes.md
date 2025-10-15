@@ -4,9 +4,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ## Variables
 
-- `SESSION_FILE` ← `./session-notes.md` (create if missing).
-- `TIMESTAMP` ← ISO-formatted timestamp (`date -u +"%Y-%m-%dT%H:%M:%SZ"`).
-- `$ARGUMENTS` ← optional context string to insert under Discussion Overview.
+- `SESSION_FILE` ← $1 (defaults to `./session-notes.md` - create if missing).
 
 ## Instructions
 

@@ -1,49 +1,55 @@
-# Create Session Notes
+# Purpose
 
-Capture a comprehensive summary of the current chat session including all discussions, actions taken, and outstanding tasks in an append only log.
+Append a timestamped summary of the current chat session to `session-notes.md`, capturing discussions, actions, and outstanding work.
 
-## Behavior
+## Variables
 
-When this command is invoked, Claude should:
+- `SESSION_FILE` ← $1 (defaults to `./session-notes.md` - create if missing).
 
-1. **Analyze the current session** to identify all significant discussions and actions
-2. **Append to session-notes.md** (create if it doesn't exist) with timestamp header `session-notes.md`
+## Instructions
 
-## Output Format
+- Gather a complete view of the current session before writing (messages, actions, command outputs).
+- Append—never overwrite—`session-notes.md`; maintain chronological order.
+- Summaries must be factual, concise, and actionable; highlight key decisions and pending items.
+- Use the provided markdown structure exactly; omit sections only when truly empty.
 
-```markdown
-## Session Summary - [TIMESTAMP]
+## Workflow
 
-### Discussion Overview
+1. Prepare workspace
+   - Run `mkdir -p . && test -w .`; exit immediately if the working directory is not writable because session notes must be persisted.
+2. Collect session context
+   - Review recent conversation history, executed commands, file edits, and outcomes.
+   - Extract key themes, actions, and blockers.
+3. Prepare note entry
+   - Capture `TIMESTAMP`.
+   - Derive bullet lists for Actions Taken, Files Referenced, Outstanding Tasks, etc.
+   - If `$ARGUMENTS` supplied, incorporate into Discussion Overview.
+4. Ensure file availability
+   - `touch session-notes.md` if the file does not exist.
+5. Append entry
+   - Use the template below, filling each section with session-specific content.
+   - Separate entries with `---`.
+6. Confirm write
+   - Optionally display the appended section for verification.
+7. Report completion
+   - Provide file path and summary of captured highlights.
 
-[Brief summary of main topics and goals]
+## Output
 
-### Actions Taken
+```md
+# RESULT
 
-- [List of completed tasks and changes made]
-
-### Files Referenced/Modified
-
-- `/path/to/file1.ext` - [Description of what was done]
-- `/path/to/file2.ext` - [Description of what was done]
-
-### Outstanding Tasks
-
-- [List of incomplete or pending tasks]
-
-### Key Decisions/Discoveries
-
-- [Important findings or choices made]
-
-### Next Steps
-
-- [Recommended actions for continuing the work]
-
-### Context for Continuation
-
-[Any additional context needed to pick up where this session left off]
-
----
+- Summary: Session notes appended for <TIMESTAMP>.
+- File: session-notes.md
+- Sections Updated: [Overview, Actions, Files, Outstanding, Decisions, Next Steps, Context]
 ```
 
-$ARGUMENTS
+## Examples
+
+```bash
+# Record current session summary
+/create-session-notes
+
+# Add contextual hint for discussion overview
+/create-session-notes "Focus: API error triage"
+```

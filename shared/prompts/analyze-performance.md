@@ -4,9 +4,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.`.
-- `SCRIPT_PATH` ← resolved performance analyzer directory.
-- `$ARGUMENTS` ← raw argument string (for logging).
+- `$TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 

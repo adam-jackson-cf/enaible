@@ -1,220 +1,169 @@
-# setup-dev-monitoring v0.91
+# setup-dev-monitoring v0.4
 
-**Purpose**: Establish comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
+## Purpose
 
-## Phase 1: Project Component Discovery
+Configure development monitoring by generating Makefile and Procfile orchestration, central logging, and CLAUDE.md updates tailored to the project’s runnable components.
 
-1. Use LS and Glob tools to explore project structure without assumptions
-2. Analyze project to identify runnable/compilable components and determine appropriate log labels:
-   - **Frontend examples**: Next.js web → FRONTEND, React app → WEB, Vue.js → UI
-   - **Backend examples**: Express API → API, Convex database → BACKEND, FastAPI → SERVER
-   - **Services examples**: Redis → CACHE, PostgreSQL → DB, Worker processes → WORKER
-   - **Build tools**: Webpack → BUILD, Vite → DEV, TypeScript → COMPILE
-3. Identify each component's ACTUAL start commands by examining:
-   - **package.json scripts**: `"dev"`, `"start"`, `"serve"` commands
-   - **Directory structure**: Look for `cd apps/web && npm run dev` patterns
-   - **Framework detection**: Next.js (`next dev`), Convex (`npx convex dev`), etc.
-   - **Port configuration**: Extract PORT settings from package.json or framework defaults
-4. **CRITICAL**: Never use placeholder commands like `echo "No start command defined"` - always find actual runnable commands
-5. **MANDATORY VALIDATION**: Before proceeding to file generation, ensure ALL components have valid start_command values:
-   - Each component MUST have real commands like `npm run dev`, `npx convex dev`, `python manage.py runserver`
-   - NO placeholder text, empty strings, or default values allowed
-   - Makefile generation will FAIL if any component lacks a proper start command
-6. Document component structure with proposed log labels AND verified start commands
+## Variables
 
-## Phase 2: Component Overlap Analysis
+- `$TARGET_PATH` ← repository root (default `.`)
+- `$SCRIPT_PATH` ← resolved monitoring script directory (dependency installer only)
+- `$SCRIPTS_ROOT` ← base path for PYTHONPATH (dependency installer only)
+- `$COMPONENTS_JSON` ← JSON array of services: `[{ name, label, cwd, start_command, port|null }]`
+- `$WATCH_GLOBS` ← optional CSV for non‑native watch patterns
+- `$LOG_FILE` ← unified log path (default `./dev.log`)
 
-1. Review discovered components for overlaps:
-   - **Single-focus**: Commands that start one service (e.g., `npm run dev` in specific directory)
-   - **Multi-focus**: Orchestrators that start multiple services (e.g., `turbo run dev`, `docker-compose up`)
-   - **Duplicates**: Same service started via different commands
-2. **Exclusion principle**: When orchestrator commands overlap with individual component commands, exclude the orchestrator for better log attribution
-3. Identify port conflicts between components
-4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Exclude overlapping components: [list components to exclude from monitoring]? (y/n)"
-5. Do not proceed until user confirmation received
+## Instructions
 
-## Phase 3: Watch Pattern Analysis
+- Discover real start commands; refuse placeholder or missing commands.
+- Keep the Python dependency installer; do not use Python generators for file content.
+- Write Makefile, Procfile, and documentation directly as specified below.
+- Exclude overlapping orchestrators when granular per‑component commands are preferable.
+- Confirm before excluding components, installing dependencies, or overwriting files.
+- Always log to `$LOG_FILE` (default `./dev.log`), never `/dev.log`.
+- Validate generated files (syntax, logging pipeline, ports) before success.
 
-1. Determine file watching requirements based on discovered technologies:
-   - **Native hot-reload**: Next.js, Vite, Create React App (no additional watching needed)
-   - **Requires watching**: Static sites, custom builds, non-framework projects
-   - **EXCLUDE from watching**: Documentation files (_.md), log files (_.log), config files
-   - **Watch patterns**: Only source code - `src/**/*.{ts,tsx,js,jsx}`, `**/*.py`, `**/*.go`, etc.
-2. **Default approach**: Allow projects with NO custom watch requirements - framework hot-reload is sufficient
-3. Identify technologies that handle their own file watching vs. those needing external tools
-4. 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Component analysis complete. Proceed with setup? (y/n)"
-5. Do not proceed until user confirmation received
+## Workflow
 
-## Phase 4: System Dependencies Check and Install
+1. Verify prerequisites (dependency installer only)
+   - Check for dependency installer: `ls .codex/scripts/setup/monitoring/*.py || ls "$HOME/.codex/scripts/setup/monitoring/install_monitoring_dependencies.py"`.
+   - If not found, prompt for a directory that includes `install_monitoring_dependencies.py`; exit if unavailable.
+   - Verify Python is present: `python3 --version || python --version` (abort if missing).
+2. Environment preparation (dependency installer only)
+   - Resolve `$SCRIPT_PATH` (project‑level → user‑level → prompt for path).
+   - Compute `$SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
+   - Dry‑run dependency check: `python "$SCRIPT_PATH"/install_monitoring_dependencies.py --dry-run`.
+   - If tools missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, run full install.
+3. Project component discovery
+   - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
+   - Determine true start commands from scripts, documentation, or framework defaults.
+   - Assign log labels (FRONTEND, BACKEND, WORKER, etc.) and capture port information.
+   - Verify each component has a runnable command; halt if any remain unresolved.
+4. Component overlap analysis
+   - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
+   - Identify port conflicts.
+   - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
+5. Watch pattern analysis
+   - Decide which technologies rely on native hot reload vs. external watchers.
+   - Build `WATCH_PATTERNS[]` only for components lacking native watching.
+   - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
+6. Existing file handling
+   - Detect existing `Makefile` or `Procfile`.
+   - **STOP:** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
+   - Respect choice and create timestamped backups when requested.
+7. Write Makefile (direct content)
 
-## Script Integration
+   - Write a Makefile that defines a timestamped log pipeline, core targets, and one run‑<LABEL> target per component.
+   - Content to write (template; expand per component from `$COMPONENTS_JSON`):
 
-**FIRST - Resolve SCRIPT_PATH:**
+     ```make
+     # Generated by setup-dev-monitoring on $(shell date +%Y-%m-%dT%H:%M:%S)
+     LOG_FILE ?= ./dev.log
 
-1. **Try project-level .codex folder**:
+     define PIPE_TS
+     2>&1 | while IFS= read -r line; do \
+       echo "[$$(date '+%H:%M:%S')] [$$1] $$line"; \
+     done | tee -a $(LOG_FILE)
+     endef
 
-   ```bash
-   Glob: ".codex/scripts/setup/monitoring/*.py"
-   ```
+     .PHONY: dev status logs clean-logs $(COMPONENT_TARGETS)
 
-2. **Try user-level .codex folder**:
+     dev: ## Start all services (parallel)
+     	@$(MAKE) -j $(COMPONENT_TARGETS)
 
-   ```bash
-   Bash: ls "~/.codex/scripts/setup/monitoring/install_monitoring_dependencies.py"
-   ```
+     status: ## Show service processes
+     	@ps aux | egrep "node|bun|python|next|vite|convex|fastapi|uvicorn" | egrep -v "grep" || true
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/setup/context/` and `~/.codex/scripts/setup/context/`
-   - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
-   - Set SCRIPT_PATH to user-provided location
+     logs: ## Tail unified log
+     	@touch $(LOG_FILE)
+     	@tail -f $(LOG_FILE)
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+     clean-logs: ## Truncate logs
+     	@: > $(LOG_FILE)
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-```
+     # Per-component targets (expand once per component)
+     # Example: FRONTEND at apps/web with Next.js on port 3000
+     run-FRONTEND:
+     	@cd apps/web && PORT=3000 next dev -- --port 3000 $(call PIPE_TS,FRONTEND)
 
-4. Execute dependency check and installation (script includes integrated prerequisite checking):
-
-```bash
-python [SCRIPT_PATH]/install_monitoring_dependencies.py --dry-run
-```
-
-5. Parse dry-run output to identify:
-   - Prerequisites status (Python 3.x)
-   - Core tools status (make, watchexec, foreman)
-   - Only missing dependencies that need installation
-6. ONLY if missing dependencies found: 🛑 STOP - USER CONFIRMATION REQUIRED → “Install missing core tools: [list only missing tools]? (y/n)”
-   - Only proceed with installation if user approves:
-
-```bash
-python [SCRIPT_PATH]/install_monitoring_dependencies.py
-```
-
-## Phase 5: Existing File Handling
-
-1. Check for existing Procfile and Makefile in current directory:
-   ```bash
-   if [ -f "Procfile" ] || [ -f "Makefile" ]; then
-       echo "Existing files found:"
-       [ -f "Procfile" ] && echo "  - Procfile"
-       [ -f "Makefile" ] && echo "  - Makefile"
-   fi
-   ```
-2. If existing files found:
-   - 🛑 **STOP - USER CONFIRMATION REQUIRED** → "Existing Procfile/Makefile found. Choose action: (b)ackup existing files, (o)verwrite, or (c)ancel?"
-   - Do not proceed until user confirmation received
-   - Respect user choice: backup, overwrite, or cancel workflow
-   - If backup chosen: Create timestamped backups before proceeding
-     ```bash
-     TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-     [ -f "Procfile" ] && cp Procfile "Procfile.backup.$TIMESTAMP"
-     [ -f "Makefile" ] && cp Makefile "Makefile.backup.$TIMESTAMP"
+     # Example: BACKEND at packages/api with bun
+     run-BACKEND:
+     	@cd packages/api && bun run dev $(call PIPE_TS,BACKEND)
      ```
-   - If overwrite chosen: Continue to next phase
-   - If cancel chosen: 🛑 **STOP Exit workflow**
-3. If no existing files: Continue to next phase
 
-## Phase 6: Makefile Generation
+   - Expansion rules:
+     - `COMPONENT_TARGETS` = space‑joined list `run-<LABEL>` for all components.
+     - For each component: `LABEL` is UPPER_SNAKE; `cwd` = component.cwd; `start_command` = component.start_command.
+     - If Next.js dev and `port` present: prefix `PORT=<port>` and append `-- --port <port>`.
 
-1. Execute Makefile generation using component analysis from Phases 1-3:
+8. Write Procfile (direct content)
+   - Add one line per component that cds into `cwd`, runs the start command, and applies a timestamped log pipeline to `$LOG_FILE`.
+   - Content to write (expand per component):
+     ```Procfile
+     FRONTEND: cd apps/web && PORT=3000 next dev -- --port 3000 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [FRONTEND] $$line"; done | tee -a ./dev.log
+     BACKEND: cd packages/api && bun run dev 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [BACKEND] $$line"; done | tee -a ./dev.log
+     ```
+   - Always use `./dev.log` for writeability; never `/dev.log`.
+9. Update AGENTS.md or CLAUDE.md (direct content)
 
-```bash
-python [SCRIPT_PATH]/generators/makefile.py \
-  --components '[
-    {
-      "name": "frontend",
-      "label": "FRONTEND",
-      "cwd": "apps/web",
-      "start_command": "npm run dev",
-      "port": 3000
-    },
-    {
-      "name": "backend",
-      "label": "BACKEND",
-      "cwd": "packages/backend",
-      "start_command": "npm run dev",
-      "port": null
-    }
-  ]' \
-  --watch-patterns '[
-    "src/**/*.{ts,tsx,js,jsx}",
-    "packages/**/*.py"
-  ]' \
-  --output-dir [current_directory]
+   - Prefer `AGENTS.md` if present; otherwise update/create `CLAUDE.md`.
+   - Insert or upsert this Development section:
+
+     ```md
+     ## Development
+
+     | Command         | Description            |
+     | --------------- | ---------------------- |
+     | make dev        | Start all services     |
+     | make status     | Show running processes |
+     | make logs       | Tail ./dev.log         |
+     | make clean-logs | Truncate unified log   |
+
+     Services log to `./dev.log` with timestamps. Each service can be run individually via `make run-<LABEL>`.
+     ```
+
+10. Validation
+
+- Ensure every component has a corresponding `run-<LABEL>` target and a Procfile process line.
+- Verify logging pipeline targets `$LOG_FILE` (`./dev.log`) in both files.
+- For Next.js services with `port`, verify both `PORT=<port>` and `-- --port <port>` are present.
+- Makefile syntax: `make -n dev` succeeds; if `foreman` is installed, `foreman check` succeeds.
+- Summarize results and provide run commands: `make dev`, `make status`, `make logs`.
+
+## Output
+
+```md
+# RESULT
+
+- Summary: Development monitoring configured for <component count> components.
+
+## COMPONENTS
+
+- <Label> — <cwd> — <start_command> (port: <value>)
+
+## FILES
+
+- Makefile: <status (created/backed up + created)>
+- Procfile: <status>
+- CLAUDE.md: <updated sections>
+- dev.log: <logging pipeline enabled>
+
+## VALIDATION
+
+- make dev: <pass|not run>
+- make status: <pass|not run>
+- make logs: <pass|not run>
+
+## NEXT STEPS
+
+1. Run `make dev` to start services.
+2. Use `make logs` to tail `./dev.log`.
+3. Review CLAUDE.md for updated workflow commands.
 ```
 
-2. Review generated Makefile targets and safety warnings
-
-## Phase 7: Procfile Generation
-
-1. Execute Procfile generation using same component analysis from Phases 1-3:
+## Examples
 
 ```bash
-python [SCRIPT_PATH]/generators/procfile.py \
-  --components '[
-    {
-      "name": "frontend",
-      "label": "FRONTEND",
-      "cwd": "apps/web",
-      "start_command": "npm run dev",
-      "port": 3000
-    },
-    {
-      "name": "backend",
-      "label": "BACKEND",
-      "cwd": "packages/backend",
-      "start_command": "npm run dev",
-      "port": null
-    }
-  ]' \
-  --log-format unified \
-  --output-dir [current_directory]
+# Configure monitoring for current repo
+/setup-dev-monitoring
 ```
-
-2. **CRITICAL**: Ensure ALL frontend and backend components include logging pipeline:
-   - Every service MUST pipe output to `./dev.log` with timestamps
-   - Format: `2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [SERVICE] $line"; done | tee -a ./dev.log`
-   - **Port handling**: Next.js services should use both `PORT=X` and `-- --port X` for reliability
-   - **No separate logs service**: Individual services handle their own logging via `tee`
-3. Review generated service definitions and log formatting
-
-## Phase 8: Project AGENTS.md Integration
-
-1. Execute AGENTS.md update to add development workflow commands:
-
-```bash
-python [[SCRIPT_PATH]/setup/monitoring/update_agents_md.py \
-  --project-dir [current_directory] \
-  --components '[
-    {
-      "name": "frontend",
-      "label": "FRONTEND",
-      "cwd": "apps/web",
-      "start_command": "npm run dev",
-      "port": 3000
-    },
-    {
-      "name": "backend",
-      "label": "BACKEND",
-      "cwd": "packages/backend",
-      "start_command": "npm run dev",
-      "port": null
-    }
-  ]'
-```
-
-## Phase 9: Validation and Testing
-
-1. **CRITICAL VALIDATION** - Check generated files contain real commands:
-   - **Makefile**: NO `echo "No start command defined"` placeholders allowed - must use actual start commands from component analysis
-   - **Procfile**: All services must have actual runnable commands (npm run dev, npx convex dev, etc.)
-   - **Log paths**: Must use `./dev.log` NOT `/dev.log` (read-only filesystem) in both Makefile and Procfile
-   - All services must include proper logging pipeline with timestamps
-2. Validate other files:
-   - Makefile syntax check
-   - Log aggregation setup works
-   - CLAUDE.md exists and contains make commands
-3. "Monitoring setup complete and validated. please test the commands with make dev / status / logs"

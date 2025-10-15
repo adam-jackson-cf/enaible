@@ -4,10 +4,8 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ## Variables
 
-- `ISSUE_DESCRIPTION` ← first positional argument; required narrative of the problem.
-- `VERBOSE_MODE` ← boolean flag set when `--verbose` is present.
-- `SCRIPT_PATH` ← resolved root cause analyzer directory.
-- `$ARGUMENTS` ← raw argument string for logging.
+- `ISSUE_DESCRIPTION` ← $1.
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is present).
 
 ## Instructions
 

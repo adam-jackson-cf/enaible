@@ -4,9 +4,7 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 ## Variables
 
-- `TECHNOLOGY_NAME` ← first positional argument; required (may contain spaces).
-- `RULE_FILE_PATH` ← `./<somefilepath>/<slugified TECHNOLOGY_NAME>.md`.
-- `$ARGUMENTS` ← raw argument string for inclusion in the rule header.
+- `$RULE_FILE_PATH` ← $1 required.
 
 ## Instructions
 
@@ -18,24 +16,21 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 ## Workflow
 
-1. Parse input
-   - Capture `TECHNOLOGY_NAME`; prompt if missing.
-   - Derive filename slug (lowercase, hyphen-separated) for `RULE_FILE_PATH`.
-2. Research implementation practices
+1. Research implementation practices
    - Collect documentation excerpts, style guides, and mature examples.
    - Note security, performance, and error-handling considerations specific to the technology.
-3. Draft rule file contents
+2. Draft rule file contents
    - Structure must include:
      - Header with technology name and applicable glob patterns.
      - Sections: Core Implementation Rules, Security Rules, Performance Rules, Error Handling Rules, Anti-Patterns.
    - Provide code blocks demonstrating required patterns and forbidden examples.
    - Use imperative language (“Always”, “Never”, “Must”).
-4. Write rule file
+3. Write rule file
    - Save markdown content to `RULE_FILE_PATH`.
-5. Quality review
+4. Quality review
    - Re-read file for completeness, accuracy, and clarity.
    - Confirm examples align with current best practices and are consistent with earlier sections.
-6. Summarize outcome
+5. Summarize outcome
    - Report the rule sections, number of rules per section, and any references used.
 
 ## Output

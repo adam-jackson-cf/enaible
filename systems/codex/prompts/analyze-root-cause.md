@@ -1,77 +1,88 @@
-# analyze-root-cause v0.2
+# Purpose
 
-**Mindset**: "Find the real problem" - Systematic root cause analysis using evidence-based investigation methodology.
+Discover the fundamental cause of an incident or defect through evidence-based investigation across code changes, execution traces, and environment factors.
 
-## Behavior
+## Variables
 
-Comprehensive root cause analysis combining automated investigation tools with systematic reasoning for accurate problem identification.
+- `ISSUE_DESCRIPTION` ← $1.
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is present).
 
-### Root Cause Investigation Areas
+## Instructions
 
-- **Change Correlation**: Recent code changes and their impact analysis
-- **Error Pattern Analysis**: Error log analysis and pattern identification
-- **Execution Tracing**: Code execution flow and failure point identification
-- **Five Whys Analysis**: Iterative questioning to reach fundamental causes
-- **Timeline Analysis**: Sequence of events leading to the issue
-- **Environmental Factors**: System configuration and dependency analysis
+- ALWAYS collect the user-provided issue description before running analyzers; stop if missing.
+- Use the registry-driven analyzers only; do not call module scripts directly.
+- Correlate findings across recent code changes, error patterns, and trace outputs; avoid single-source conclusions.
+- Clearly distinguish confirmed root causes from contributing factors and unknowns.
+- In `VERBOSE_MODE`, capture extended diagnostics (logs, stack traces) and include them in the report.
 
-### Enhanced Debugging (--verbose flag)
+## Workflow
 
-- **Comprehensive Logging**: Structured logging with contextual information and trace correlation
-- **Distributed Tracing**: Cross-service request tracing and performance analysis
-- **Diagnostic Instrumentation**: Metrics collection, profiling, and observability enhancement
-- **Error Context**: Detailed error information with stack traces and state capture
-- **Performance Monitoring**: Resource usage tracking and bottleneck identification
-- **Event Correlation**: Event timeline and causal relationship analysis
+1. Validate inputs
+   - Ensure `ISSUE_DESCRIPTION` is present; prompt for details when absent.
+   - Store any CLI flags, notably `--verbose`.
+2. Locate analyzer scripts
+   - Run `ls .codex/scripts/analyzers/root_cause/*.py || ls "$HOME/.codex/scripts/analyzers/root_cause/"`; if both fail, prompt the user for a path containing `trace_execution.py`, `recent_changes.py`, and `error_patterns.py`, and exit if none is provided.
+3. Prepare environment
+   - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+4. Execute automated investigation
+   - Run sequentially:
+     - `root_cause:trace_execution`
+     - `root_cause:recent_changes`
+     - `root_cause:error_patterns`
+   - Store JSON outputs and note relevant timestamps.
+5. Analyze results
+   - Correlate change timelines with error occurrences.
+   - Map stack traces to code locations and execution paths.
+   - Identify recurring error signatures and environmental triggers.
+   - In `VERBOSE_MODE`, gather additional diagnostics (process logs, tracing output, profiling data).
+6. Perform causal reasoning
+   - Apply techniques such as the Five Whys, timeline reconstruction, and hypothesis testing.
+   - Differentiate primary root cause(s) from secondary contributing factors.
+7. Recommend remediation
+   - Propose fixes, regression tests, and preventive measures.
+   - Surface open questions or missing data that requires follow-up.
+8. Deliver report
+   - Summarize evidence, findings, and next actions in a structured format.
+   - Attach analyzer outputs or reference paths for traceability.
 
-## Script Integration
+## Output
 
-Execute root cause analysis scripts via Bash tool for systematic investigation:
+```md
+# RESULT
 
-**FIRST - Resolve SCRIPT_PATH:**
+- Summary: Root cause identified for "<ISSUE_DESCRIPTION>".
 
-1. **Try project-level .codex folder**:
+## EVIDENCE
 
-   ```bash
-   Glob: ".codex/scripts/analyzers/root_cause/*.py"
-   ```
+- Recent Changes: <commit ids / files>
+- Error Patterns: <signature, frequency>
+- Execution Trace: <primary failure point>
+- Environment Factors: <config, dependency versions>
 
-2. **Try user-level .codex folder**:
+## ROOT CAUSE
 
-   ```bash
-   Bash: ls "~/.codex/scripts/analyzers/root_cause/"
-   ```
+1. <Primary cause with supporting evidence>
+2. <Contributing factor(s)>
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/root_cause/` and `~/.codex/scripts/analyzers/root_cause/`
-   - Ask user: "Could not locate root cause analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (trace_execution.py, recent_changes.py, error_patterns.py)
-   - Set SCRIPT_PATH to user-provided location
+## REMEDIATION PLAN
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+- Fix: <action items with owners or files>
+- Verification: <tests, monitors, checkpoints>
+- Preventive Measures: <telemetry, guardrails, process updates>
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+## ATTACHMENTS
+
+- root_cause:trace_execution → <path>
+- root_cause:recent_changes → <path>
+- root_cause:error_patterns → <path>
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:trace_execution --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:recent_changes --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:error_patterns --target . --output-format json
+# Investigate a crash reported in production
+/analyze-root-cause "API returns 500 when updating invoices"
+
+# Capture extended diagnostics
+/analyze-root-cause "Payment queue stuck in processing" --verbose
 ```
-
-## Optional Flags
-
---verbose: Use when you need detailed diagnostic output including comprehensive logging setup, distributed tracing configuration, and detailed error context capture for complex debugging scenarios
-
-## Output Requirements
-
-- Root cause analysis report with evidence-based findings
-- Change correlation analysis with impact assessment
-- Error pattern identification with frequency analysis
-- Investigation timeline with causal relationships
-
-$ARGUMENTS

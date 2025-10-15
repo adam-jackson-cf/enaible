@@ -1,62 +1,82 @@
-# analyze-code-quality v0.2
+# Purpose
 
-**Mindset**: "Quality first" - Systematic code quality assessment with measurable metrics and improvement recommendations.
+Assess code quality by combining automated metrics with architectural review to surface maintainability and technical-debt risks.
 
-## Behavior
+## Variables
 
-Comprehensive code quality analysis combining automated metrics with architectural assessment for maintainable, readable code.
+- `$TARGET_PATH` ← $1 (defaults to `./`).
 
-### Code Quality Assessment Areas
+## Instructions
 
-- **Complexity Metrics**: Cyclomatic complexity, function length, parameter count analysis
-- **Code Patterns**: Design pattern compliance and anti-pattern identification
-- **Maintainability**: Code readability, documentation quality, and structure assessment
-- **Technical Debt**: Code smells, duplication, and refactoring opportunities
-- **SOLID Principles**: Single responsibility, open-closed, Liskov substitution compliance
-- **Testing Quality**: Test coverage, test quality, and testability assessment
+- ALWAYS run the registry-driven analyzer (`quality:lizard`) instead of stand-alone tools.
+- Capture raw complexity metrics (cyclomatic complexity, function length, parameter counts) for transparency.
+- Cross-reference quantitative results with observed design patterns before making recommendations.
+- Prioritize remediation by impact and ease, citing exact files and symbols.
+- Do not proceed if analyzer scripts are missing or imports fail.
 
-## Script Integration
+## Workflow
 
-Execute code quality analysis scripts via Bash tool for measurable quality metrics:
+1. Locate analyzer scripts
+   - Run `ls .codex/scripts/analyzers/quality/*.py || ls "$HOME/.codex/scripts/analyzers/quality/"`; if both fail, exit and request a valid path.
+   - When scripts are missing locally, prompt the user for a directory containing `complexity_lizard.py`, then set `SCRIPT_PATH`.
+2. Prepare environment
+   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
+   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
+3. Execute automated analysis
+   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target "$TARGET_PATH" --output-format json`.
+   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:jscpd --target "$TARGET_PATH" --output-format json`.
+   - Persist the JSON outputs for later reference.
+4. Interpret metrics
+   - Identify hotspots exceeding thresholds (e.g., cyclomatic complexity > 10, function length > 80 lines).
+   - Detect duplicated code blocks and high parameter counts.
+5. Evaluate qualitative dimensions
+   - Examine documentation coverage, readability, adherence to SOLID principles, and test coverage signals.
+   - Highlight technical-debt themes (code smells, anti-patterns, refactor opportunities).
+6. Formulate improvement plan
+   - Group recommendations by category: maintainability, testing, patterns, debt reduction.
+   - Include quick wins vs. strategic refactors.
+7. Deliver report
+   - Summarize key findings, attach metric tables, and map recommendations to affected modules.
 
-**FIRST - Resolve SCRIPT_PATH:**
+## Output
 
-1. **Try project-level .codex folder**:
+```md
+# RESULT
 
-   ```bash
-   Glob: ".codex/scripts/analyzers/quality/*.py"
-   ```
+- Summary: Code quality assessment completed for <TARGET_PATH>.
 
-2. **Try user-level .codex folder**:
+## METRICS
 
-   ```bash
-   Bash: ls "~/.codex/scripts/analyzers/quality/"
-   ```
+| Metric                | Threshold | Worst Offender | Value |
+| --------------------- | --------- | -------------- | ----- |
+| Cyclomatic Complexity | 10        | <file#Lline>   | <n>   |
+| Function Length       | 80 lines  | <file#Lline>   | <n>   |
+| Parameter Count       | 5         | <symbol>       | <n>   |
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/analyzers/quality/` and `~/.codex/scripts/analyzers/quality/`
-   - Ask user: "Could not locate code_quality analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (complexity_lizard.py)
-   - Set SCRIPT_PATH to user-provided location
+## INSIGHTS
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+- Maintainability: <observation>
+- Technical Debt: <observation>
+- Testing Coverage Signals: <observation>
+- SOLID & Patterns: <observation>
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+## RECOMMENDATIONS
+
+1. <Highest priority action with target files>
+2. <Additional actions>
+
+## ATTACHMENTS
+
+- quality:lizard report → <path>
+- quality:jscpd report → <path>
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
+# Run quality analysis on entire repo
+/analyze-code-quality .
+
+# Focus on a specific package
+/analyze-code-quality packages/service
 ```
-
-## Output Requirements
-
-- Code quality metrics report with complexity analysis
-- Technical debt assessment with prioritized improvement opportunities
-- Best practices compliance evaluation with specific recommendations
-- Quality improvement roadmap with implementation guidance
-
-$ARGUMENTS

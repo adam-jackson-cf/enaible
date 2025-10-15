@@ -1,112 +1,89 @@
-# Create Project
+# Purpose
 
-**Purpose**: Setup new project using better-t-stack CLI with specified technologies or todos.md analysis
-**Usage**:
+Scaffold a new project with the Better-T-Stack CLI using either explicit technology selections or analysis of an existing todos file.
 
-- `codex /create-project [project-name] [technologies]`
-- `codex /create-project [project-name] --from-todos [todos-file-path]`
+## Variables
+
+- `PROJECT_NAME` ← $1 required.
+- `PLAN_FILE` ← $2 (optional derived from `--from-plan`).
+- `TECH_ARGUMENTS[]` ← Remaining items from $ARGUMENTS.
+
+## Instructions
+
+- ALWAYS confirm the project name and target directory before running the generator.
+- NEVER guess technology mappings; derive them from explicit arguments or todos analysis.
+- When analyzing todos, document the detection logic and resulting stack choices.
+- Present a full configuration summary and obtain user confirmation prior to execution.
+- After generation, run the project’s health checks and report outcomes.
 
 ## Workflow
 
-### Phase 1: Input Analysis
+1. Parse inputs
+   - Extract `PROJECT_NAME`.
+   - Detect `--from-plan`; set `MODE` and capture `PLAN_FILE`.
+   - Collect remaining arguments into `TECH_ARGUMENTS[]`.
+2. Gather requirements
+   - If `MODE="plan"`:
+     - Read `PLAN_FILE`.
+     - Identify technology keywords (React Native, Expo, Zustand, OAuth, WebSocket, etc.).
+     - Map findings to Better-T-Stack options.
+   - Else `MODE="direct"`:
+     - Interpret each tech choice from `$ARGUMENTS` as a technology or flag; validate against supported sets.
+3. Validate environment
+   - Ensure Node/NPM/Bun availability as required by the selected stack.
+   - Confirm target directory (`./<PROJECT_NAME>`) does not already exist.
+4. Present proposed configuration
+   - Build the command:
+     ```
+     npx create-better-t-stack@latest <PROJECT_NAME> <mapped-flags>
+     ```
+   - Display a table of components (Frontend, Backend, Runtime, Database, ORM, Auth, Addons) with their mapped values.
+   - **STOP:** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
+5. Execute scaffold
+   - Run the composed CLI command.
+   - Capture stdout/stderr for reporting.
+6. Post-setup actions
+   - `cd <PROJECT_NAME>`; install dependencies (`bun install` or tool specified in package.json).
+   - Run initial quality gates: `bun run dev` (or equivalent), `bun run check-types`, `bun run build`.
+7. Summarize results
+   - Provide success/failure status for each command.
+   - Record next steps (e.g., configure env vars, initialize git).
 
-1. **Check for todos mode**: If `--from-todos` flag present, analyze todos file
-2. **Extract project name**: First argument or prompt if missing
-3. **Parse input**: Either direct technologies or todos file analysis
+## Output
 
-**If using todos file**:
+```md
+# RESULT
 
-1. **Read todos file**: Parse markdown content
-2. **Extract technologies**: Analyze tasks for tech stack requirements
-3. **Map technologies**: Convert requirements to better-t-stack options
+- Summary: Project "<PROJECT_NAME>" scaffolded with Better-T-Stack.
 
-**Technology detection patterns**:
+## STACK
 
-- React Native → react-native-nativewind
-- NativeWind → react-native-nativewind
-- Expo → react-native-nativewind
-- Zustand → no direct mapping (state management)
-- GitHub OAuth → better-auth
-- WebSocket → backend requirement
-- GitHub API → backend requirement
+| Component | Selection | Source  |
+| --------- | --------- | ------- | ------ |
+| Frontend  | <value>   | <direct | todos> |
+| Backend   | <value>   | <direct | todos> |
+| Runtime   | <value>   | <direct | todos> |
+| Database  | <value>   | <direct | todos> |
 
-### Phase 2: Requirements Validation
+## COMMANDS RUN
 
-**STOP** → "Project setup details:
+- `npx create-better-t-stack@latest ...` → <pass|fail>
+- `<install command>` → <pass|fail>
+- `<dev command>` → <pass|fail>
+- `<type/build checks>` → <pass|fail>
 
-- **Project Name**: [name]
-- **Input Source**: [direct args | todos analysis]
-- **Detected Stack**: [parsed technologies]
-- **Location**: [current directory]/[project-name]
+## NEXT STEPS <!-- optional: if no next steps dont output this section to user -->
 
-Proceed with better-t-stack initialization?"
-
-### Phase 3: Technology Mapping
-
-1. **Map to CLI flags** (complete options):
-
-**Web Frontend**: tanstack-router, react-router, tanstack-start, nextjs, nuxt, svelte, solid, none
-**Native Frontend**: react-native-nativewind, react-native-unistyles, none
-**Backend**: hono, nextjs, elysia, express, fastify, convex, none
-**Runtime**: bun, nodejs, cloudflare-workers, none
-**Database**: sqlite, postgresql, mysql, mongodb, none
-**ORM**: drizzle, prisma, mongoose, none
-**Database Setup**: turso, cloudflare-d1, neon, prisma-postgresql, mongodb-atlas, supabase, docker, basic
-**Deploy**: cloudflare-workers, none
-**Auth**: better-auth, none
-**Addons**: pwa, tauri, starlight, biome, husky, ultracite, fumadocs, oxlint, turborepo
-
-2. **Build command**:
-
-```bash
-npx create-better-t-stack@latest [project-name] [mapped-flags]
+1. <Action item (e.g., configure environment variables)>
+2. <Action item>
 ```
-
-### Phase 4: Project Creation
-
-**Command**: `npx create-better-t-stack@latest [project-name] [flags]`
-**Output**: Project scaffolding with configured stack
-
-### Phase 5: Post-Setup
-
-1. **Navigate to project**: `cd [project-name]`
-2. **Install dependencies**: Check package.json for install command
-3. **Verify setup**: Run any provided health checks
-
-**Quality gate**: Project initialization
-**Command**: `npm run dev` or equivalent
-**Pass criteria**: Development server starts without errors
-**Failure action**: Review CLI output and retry with corrected flags
-
-### Phase 6: Report
-
-**Format**: Summary table
-
-```
-| Component | Technology | Status |
-|-----------|------------|--------|
-| Frontend  | [tech]     | ✅     |
-| Backend   | [tech]     | ✅     |
-| Database  | [tech]     | ✅     |
-```
-
-## Technology Keywords (Updated)
-
-**Web Frontend**: tanstack-router, react-router, tanstack-start, nextjs, nuxt, svelte, solid
-**Native Frontend**: react-native-nativewind, react-native-unistyles
-**Backend**: hono, nextjs, elysia, express, fastify, convex
-**Runtime**: bun, nodejs, cloudflare-workers
-**Database**: sqlite, postgresql, mysql, mongodb
-**ORM**: drizzle, prisma, mongoose
-**Database Setup**: turso, cloudflare-d1, neon, prisma-postgresql, mongodb-atlas, supabase, docker, basic
-**Deploy**: cloudflare-workers
-**Auth**: better-auth
-**Addons**: pwa, tauri, starlight, biome, husky, ultracite, fumadocs, oxlint, turborepo
 
 ## Examples
 
-- `codex /create-project my-app react-native-nativewind hono postgresql`
-- `codex /create-project dashboard --from-todos ./todos/todos.md`
-- `codex /create-project api-service elysia bun sqlite drizzle`
+```bash
+# Direct technology selection
+/create-project acme-dashboard react-router hono bun sqlite drizzle
 
-$ARGUMENTS
+# Infer stack from todos file
+/create-project mobile-app --from-plan ./.workspace/execplan.md
+```

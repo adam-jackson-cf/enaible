@@ -6,9 +6,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ## Variables
 
-- `REFACTOR_SCOPE` ← first positional argument; defines area or component.
-- `SCRIPT_PATH` ← resolved analyzer root (quality, architecture, performance).
-- `VERBOSE_FLAGS` ← flags passed through `$ARGUMENTS` (none currently defined).
+- `$REFACTOR_SCOPE` ← $1 required, defines area or component.
 
 ## Instructions
 
@@ -32,7 +30,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - Generate technical debt summary.
    - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
 3. Phase 2 — Migration Strategy
-   - Research industry patterns tailored to `REFACTOR_SCOPE`.
+   - Research industry patterns tailored to `$REFACTOR_SCOPE`.
    - Outline phased migration (feature flags, decomposition, deployment strategy).
    - Define rollback procedures and monitoring hooks.
    - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
@@ -40,15 +38,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - Break work into phases with timelines and checkpoints.
    - Run `quality:coverage` analyzer to inform testing strategy.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
-5. Phase 4 — Quality Validation & Task Transfer
-   - Confirm quality gates:
-     - Hotspots prioritized.
-     - Strategy aligns with proven patterns.
-     - Rollback and monitoring defined.
-     - Testing strategy in place.
-     - Success metrics measurable.
-   - **STOP:** “Implementation plan complete and validated. Transfer to todos.md? (y/n)”
-   - On approval, append structured tasks (Phase headers with checkboxes) to `todos.md`.
+5. Phase 4 — Write a summary using below output format with no additional commentary.
 
 ## Output
 
@@ -75,19 +65,19 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 - Balance of risk vs benefit
 - Resource/timeline fit
 
-## IMPLEMENTATION PLAN
+## Implementation summary
 
-- Checklist: <bullet summary of tasks>
-- Testing Strategy: <coverage plan, tooling>
-- Success Metrics: <targets>
+### High Level Checklist:
 
-## [System/Component] Refactoring Implementation
+<bullet summary of tasks>
 
-### Phase [PHASE-NUMBER]: [PHASE-TITLE]
+### Testing Strategy:
 
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
+<coverage plan, tooling>
+
+### Success Metrics:
+
+<targets>
 ```
 
 ## Examples

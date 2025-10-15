@@ -4,12 +4,9 @@ Summarize recent project activity by correlating context bundle captures with gi
 
 ## Variables
 
-- `UUID_FILTER` ← value passed to `--uuid` (optional).
-- `VERBOSE_MODE` ← boolean flag set when `--verbose` is present.
-- `SEARCH_TERM` ← value passed to `--search-term` (optional).
-- `SCRIPT_PATH` ← resolved path to `context_bundle_capture_claude.py`.
-- `SCRIPTS_ROOT` ← computed base directory for PYTHONPATH.
-- `$ARGUMENTS` ← raw argument string.
+- `$UUID_FILTER` ← use `$ARGUMENTS` value passed to `--uuid` (optional).
+- `$VERBOSE_MODE` ← use `$ARGUMENTS` boolean flag set when `--verbose` (optional).
+- `$SEARCH_TERM` ← use `$ARGUMENTS` value passed to `--search-term` (optional).
 
 ## Instructions
 

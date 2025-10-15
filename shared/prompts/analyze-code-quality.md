@@ -4,9 +4,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.`.
-- `SCRIPT_PATH` ← resolved path to the quality analyzer directory.
-- `$ARGUMENTS` ← full raw argument string.
+- `$TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 
