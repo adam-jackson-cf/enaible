@@ -15,6 +15,7 @@ VERBOSE=false
 DRY_RUN=false
 SKIP_PYTHON=false
 INSTALL_MODE=""   # fresh|merge|update|cancel (same semantics as Claude)
+EFFECTIVE_MODE="fresh"
 
 CODEX_HOME=""
 SCRIPTS_ROOT=""
@@ -43,7 +44,11 @@ OPTIONS:
   -v, --verbose     Verbose logs
   -n, --dry-run     Show actions without making changes
   --skip-python     Skip Python dependency installation
-  --mode <value>    Installation mode for existing installs: fresh|merge|update|cancel
+  --mode <value>    Installation mode when an existing install is found:
+                      fresh  – Reinstall core assets (preserves auth.json, log/, sessions/)
+                      merge  – Overlay Codex files without removing unknown files
+                      update – Overlay core assets and refresh bundled templates (e.g. ExecPlan)
+                      cancel – Abort without making changes
 
 NOTES:
   - This installer always copies ALL Codex prompts and rules.
@@ -163,6 +168,49 @@ ensure_dirs() {
   mkdir -p "$CODEX_HOME" "$SCRIPTS_ROOT"
 }
 
+preserve_fresh_artifacts() {
+  local preserve_items=("auth.json" "log" "sessions")
+  local temp_dir
+  temp_dir=$(mktemp -d "${TMPDIR:-/tmp}/codex-preserve.XXXXXX")
+  local preserved=()
+
+  for item in "${preserve_items[@]}"; do
+    local src="$CODEX_HOME/$item"
+    if [[ -f "$src" ]]; then
+      mkdir -p "$(dirname "$temp_dir/$item")"
+      cp -p "$src" "$temp_dir/$item"
+      preserved+=("$item")
+    elif [[ -d "$src" ]]; then
+      mkdir -p "$temp_dir/$item"
+      rsync -a "$src/" "$temp_dir/$item/"
+      preserved+=("$item/")
+    fi
+  done
+
+  rm -rf "$CODEX_HOME"
+  mkdir -p "$CODEX_HOME"
+
+  for item in "${preserve_items[@]}"; do
+    local staged="$temp_dir/$item"
+    local dest="$CODEX_HOME/$item"
+    if [[ -f "$staged" ]]; then
+      mkdir -p "$(dirname "$dest")"
+      cp -p "$staged" "$dest"
+    elif [[ -d "$staged" ]]; then
+      mkdir -p "$dest"
+      rsync -a "$staged/" "$dest/"
+    fi
+  done
+
+  rm -rf "$temp_dir"
+
+  if [[ ${#preserved[@]} -gt 0 ]]; then
+    log "Preserved ${preserved[*]} during fresh install"
+  else
+    log "Fresh install: no auth.json/log/sessions to preserve"
+  fi
+}
+
 backup_existing() {
   if [[ -d "$CODEX_HOME" ]]; then
     if [[ "$DRY_RUN" == true ]]; then
@@ -181,14 +229,31 @@ backup_existing() {
         echo "Non‑interactive environment: defaulting to update"
       else
         echo "Found existing $CODEX_HOME"
-        echo "  1) Fresh (replace)\n  2) Merge\n  3) Update (prompts/rules/config only)\n  4) Cancel"
+        cat <<'EOF'
+  1) Fresh – reinstall core Codex assets (auth.json, log/, sessions/ are kept)
+  2) Merge – add/update Codex files but leave any other files untouched
+  3) Update – refresh core Codex assets and bundled templates (ExecPlan, global rules)
+  4) Cancel
+EOF
         while true; do read -r -p "Enter choice [1-4] (default 3): " choice; choice=${choice:-3}; [[ $choice =~ ^[1-4]$ ]] && break; done
       fi
       case $choice in
-        1) rm -rf "$CODEX_HOME"; mkdir -p "$CODEX_HOME" ;;
-        2) : ;; # merge path handled by copy logic
-        3) : ;;
-        4) log "Cancelled by user"; exit 0 ;;
+        1)
+          EFFECTIVE_MODE="fresh"
+          if [[ "$DRY_RUN" == true ]]; then
+            log "Would perform fresh install while retaining auth.json, log/, and sessions/ (if present)"
+          else
+            preserve_fresh_artifacts
+          fi
+          ;;
+        2)
+          EFFECTIVE_MODE="merge"
+          ;;
+        3)
+          EFFECTIVE_MODE="update"
+          ;;
+        4)
+          log "Cancelled by user"; exit 0 ;;
       esac
     fi
   fi
@@ -372,89 +437,98 @@ update_agents_md() {
   local target="$CODEX_HOME/AGENTS.md"
   local header="# AI-Assisted Workflows (Codex Global Rules) v$SCRIPT_VERSION - Auto-generated, do not edit"
   local src_agents="$SCRIPT_DIR/rules/global.codex.rules.md"
-  local marker="AI-Assisted Workflows (Codex Global Rules)"
+  local start_marker="<!-- CODEx_GLOBAL_RULES_START -->"
+  local end_marker="<!-- CODEx_GLOBAL_RULES_END -->"
   [[ -f "$src_agents" ]] || { vlog "Global Codex rules not found; skipping AGENTS.md update"; return 0; }
 
   if [[ "$DRY_RUN" == true ]]; then
-    if [[ -f "$target" ]] && grep -q "$marker" "$target" 2>/dev/null; then
-      log "Would refresh Codex global rules section in $target"
-    else
-      log "Would append Codex global rules section to $target"
-    fi
+    log "Would ensure Codex global rules section is updated without duplicates in $target"
     return
   fi
 
   mkdir -p "$CODEX_HOME"
   touch "$target"
 
-  TARGET="$target" SRC_AGENTS="$src_agents" HEADER="$header" MARKER="$marker" python <<'PY'
+  TARGET="$target" SRC_AGENTS="$src_agents" HEADER="$header" START_MARKER="$start_marker" END_MARKER="$end_marker" python <<'PY'
 import os
+import re
 from pathlib import Path
 
-target = Path(os.environ["TARGET"])
+target_path = Path(os.environ["TARGET"])
 header = os.environ["HEADER"].strip()
-marker = os.environ["MARKER"]
+start_marker = os.environ["START_MARKER"]
+end_marker = os.environ["END_MARKER"]
 src_rules = Path(os.environ["SRC_AGENTS"]).read_text(encoding="utf-8").strip()
 
-existing = ""
-if target.exists():
-    existing = target.read_text(encoding="utf-8")
-
-existing_norm = existing.replace("\r\n", "\n")
-# Block markers to preserve custom sections before/after Codex rules
-start_marker = "<!-- CODEx_GLOBAL_RULES_START -->"
-end_marker = "<!-- CODEx_GLOBAL_RULES_END -->"
-block = f"{start_marker}\n{header}\n\n{src_rules}\n{end_marker}"
+if target_path.exists():
+    existing = target_path.read_text(encoding="utf-8")
+else:
+    existing = ""
 
 line_ending = "\r\n" if "\r\n" in existing else "\n"
+existing_norm = existing.replace("\r\n", "\n")
 
-def assemble(prefix: str, suffix: str) -> str:
-    parts = []
-    prefix = prefix.rstrip("\n")
-    suffix = suffix.lstrip("\n")
-    if prefix:
-        parts.append(prefix)
-    parts.append(block)
-    if suffix:
-        parts.append(suffix)
-    return "\n\n".join(parts).strip() + "\n"
+block_body = f"{header}\n\n{src_rules.strip()}\n"
+block = f"{start_marker}\n{block_body}{end_marker}"
+
+def parse_sections(text: str):
+    pattern = re.compile(r'^(#{1,6})\s+(.+?)\s*$', re.MULTILINE)
+    matches = list(pattern.finditer(text))
+    sections = []
+    for idx, match in enumerate(matches):
+        level = len(match.group(1))
+        title = match.group(2).strip()
+        start = match.start()
+        end = len(text)
+        for next_idx in range(idx + 1, len(matches)):
+            next_level = len(matches[next_idx].group(1))
+            if next_level <= level:
+                end = matches[next_idx].start()
+                break
+        sections.append((level, title, start, end))
+    return sections
 
 updated = None
 
 if start_marker in existing_norm and end_marker in existing_norm:
-    before, rest = existing_norm.split(start_marker, 1)
-    block_and_suffix = rest.split(end_marker, 1)
-    if len(block_and_suffix) == 2:
-        _, suffix = block_and_suffix
-        updated = assemble(before.rstrip(), suffix.lstrip())
-
-if updated is None and marker in existing_norm:
-    idx = existing_norm.find(header)
-    if idx == -1:
-        idx = existing_norm.find(marker)
-    if idx != -1:
-        prefix = existing_norm[:idx].rstrip()
-        remainder = existing_norm[idx + len(header):].lstrip("\n")
-        src_norm = src_rules.strip()
-        suffix = ""
-        if remainder.startswith(src_norm):
-            suffix = remainder[len(src_norm):].lstrip("\n")
+    pattern = re.compile(
+        re.escape(start_marker) + r".*?" + re.escape(end_marker),
+        re.DOTALL,
+    )
+    updated = pattern.sub(block, existing_norm)
+else:
+    sections = parse_sections(existing_norm)
+    source_sections = parse_sections(block_body)
+    source_keys = {(lvl, title) for (lvl, title, _, _) in source_sections}
+    first_start = None
+    last_end = None
+    for level, title, start, end in sections:
+        if (level, title) in source_keys:
+            if first_start is None:
+                first_start = start
+            last_end = end
+    if first_start is not None and last_end is not None:
+        before = existing_norm[:first_start].rstrip("\n")
+        after = existing_norm[last_end:].lstrip("\n")
+        parts = []
+        if before:
+            parts.append(before)
+        parts.append(block)
+        if after:
+            parts.append(after)
+        updated = "\n\n".join(parts).strip() + "\n"
+    else:
+        cleaned = existing_norm.rstrip()
+        if cleaned:
+            updated = f"{cleaned}\n\n{block}\n"
         else:
-            pos = remainder.find(src_norm)
-            if pos != -1:
-                suffix = (remainder[:pos] + remainder[pos + len(src_norm):]).lstrip("\n")
-            else:
-                # Unable to safely identify existing Codex block; leave file untouched
-                updated = existing_norm
-        if updated is None:
-            updated = assemble(prefix, suffix)
+            updated = f"{block}\n"
 
 if updated is None:
-    prefix = existing_norm.rstrip()
-    updated = assemble(prefix, "")
+    updated = f"{block}\n"
 
 final = updated.replace("\n", line_ending)
-target.write_text(final, encoding="utf-8")
+target_path.write_text(final, encoding="utf-8")
 PY
 
   log "Updated $target with AI‑Assisted Workflows section"
@@ -464,14 +538,23 @@ PY
   local dst_execplan="$CODEX_HOME/execplan.md"
   if [[ -f "$src_execplan" ]]; then
     if [[ "$DRY_RUN" == true ]]; then
-      log "Would copy ExecPlan template to $dst_execplan"
+      if [[ "$EFFECTIVE_MODE" == "update" ]]; then
+        log "Would overwrite ExecPlan template at $dst_execplan (update mode)"
+      else
+        log "Would copy ExecPlan template to $dst_execplan"
+      fi
     else
       mkdir -p "$CODEX_HOME"
-      if [[ -f "$dst_execplan" ]] && cmp -s "$src_execplan" "$dst_execplan"; then
-        vlog "ExecPlan template already up to date at $dst_execplan"
-      else
+      if [[ "$EFFECTIVE_MODE" == "update" ]]; then
         cp "$src_execplan" "$dst_execplan"
-        log "Copied ExecPlan template to $dst_execplan"
+        log "Replaced ExecPlan template at $dst_execplan (update mode)"
+      else
+        if [[ -f "$dst_execplan" ]] && cmp -s "$src_execplan" "$dst_execplan"; then
+          vlog "ExecPlan template already up to date at $dst_execplan"
+        else
+          cp "$src_execplan" "$dst_execplan"
+          log "Copied ExecPlan template to $dst_execplan"
+        fi
       fi
     fi
   else

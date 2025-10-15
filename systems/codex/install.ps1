@@ -14,6 +14,72 @@ $ErrorActionPreference = 'Stop'
 $VERSION = '1.0.0'
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $LogFile = Join-Path $env:TEMP 'codex-install.log'
+$script:EffectiveMode = 'Fresh'
+
+function Preserve-FreshArtifacts {
+  param(
+    [Parameter(Mandatory=$true)][string]$SourcePath,
+    [switch]$DryRun
+  )
+
+  $items = @('auth.json','log','sessions')
+  if ($DryRun) {
+    Write-Log "Would perform fresh install while retaining auth.json/log/sessions (if present)"
+    return
+  }
+
+  $tempDir = Join-Path ([System.IO.Path]::GetTempPath()) ("codex-preserve-{0}" -f ([guid]::NewGuid()))
+  New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+  $preserved = New-Object System.Collections.Generic.List[string]
+
+  foreach ($item in $items) {
+    $src = Join-Path $SourcePath $item
+    if (Test-Path $src) {
+      Copy-Item -Recurse -Force -Path $src -Destination $tempDir
+      if ((Get-Item $src).PSIsContainer) { $preserved.Add($item + '/') } else { $preserved.Add($item) }
+    }
+  }
+
+  if (Test-Path $SourcePath) {
+    Remove-Item -Recurse -Force -Path $SourcePath
+  }
+  New-Item -ItemType Directory -Force -Path $SourcePath | Out-Null
+
+  foreach ($item in $items) {
+    $staged = Join-Path $tempDir $item
+    if (Test-Path $staged) {
+      Copy-Item -Recurse -Force -Path $staged -Destination $SourcePath
+    }
+  }
+
+  Remove-Item -Recurse -Force -Path $tempDir
+
+  if ($preserved.Count -gt 0) {
+    Write-Log ("Preserved {0} during fresh install" -f ($preserved -join ', '))
+  } else {
+    Write-Log "Fresh install: no auth.json/log/sessions to preserve"
+  }
+}
+
+function Get-CodexMarkdownSections {
+  param([string]$Text)
+
+  $regex = [System.Text.RegularExpressions.Regex]::new('^(#{1,6})\s+(.+?)\s*$', [System.Text.RegularExpressions.RegexOptions]::Multiline)
+  $matches = $regex.Matches($Text)
+  $sections = @()
+  for ($i = 0; $i -lt $matches.Count; $i++) {
+    $level = $matches[$i].Groups[1].Value.Length
+    $title = $matches[$i].Groups[2].Value.Trim()
+    $start = $matches[$i].Index
+    $end = $Text.Length
+    for ($j = $i + 1; $j -lt $matches.Count; $j++) {
+      $nextLevel = $matches[$j].Groups[1].Value.Length
+      if ($nextLevel -le $level) { $end = $matches[$j].Index; break }
+    }
+    $sections += [pscustomobject]@{Level=$level; Title=$title; Start=$start; End=$end}
+  }
+  return $sections
+}
 
 function Write-Log([string]$Message,[string]$Level='INFO') {
   $ts = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
@@ -36,7 +102,11 @@ OPTIONS:
   -Verbose      Verbose output
   -DryRun       Show actions without making changes
   -SkipPython   Skip Python dependency installation
-  -Mode         Fresh|Merge|Update|Cancel (existing installs)
+  -Mode         Installation mode when an existing install is found:
+                  Fresh  – Reinstall core assets (auth.json, log/, sessions/ are preserved)
+                  Merge  – Overlay Codex files without deleting unknown files
+                  Update – Refresh core assets and bundled templates (ExecPlan, global rules)
+                  Cancel – Abort without changes
 "@
 }
 
@@ -132,15 +202,25 @@ if (Test-Path $CODEX_HOME) {
   if (-not $Mode) {
     if ([Console]::KeyAvailable) {
       Write-Host "Existing $CODEX_HOME found" -ForegroundColor Yellow
-      Write-Host "  1) Fresh (replace)\n  2) Merge\n  3) Update\n  4) Cancel"
+      Write-Host @'
+  1) Fresh – reinstall core Codex assets (auth.json, log/, sessions/ are kept)
+  2) Merge – add/update Codex files but leave any other files untouched
+  3) Update – refresh core Codex assets and bundled templates (ExecPlan, global rules)
+  4) Cancel
+'@
       $c = Read-Host 'Enter choice [1-4]'
       switch ($c) { '1' { $Mode='Fresh' } '2' { $Mode='Merge' } '3' { $Mode='Update' } '4' { $Mode='Cancel' } default { $Mode='Update' } }
     } else { $Mode='Update' }
   }
   switch ($Mode) {
-    'Fresh' { if (-not $DryRun) { Remove-Item -Recurse -Force -Path $CODEX_HOME; New-Item -ItemType Directory -Force -Path $CODEX_HOME | Out-Null } }
+    'Fresh' {
+      $script:EffectiveMode = 'Fresh'
+      Preserve-FreshArtifacts -SourcePath $CODEX_HOME -DryRun:$DryRun
+    }
+    'Merge' { $script:EffectiveMode = 'Merge' }
+    'Update' { $script:EffectiveMode = 'Update' }
     'Cancel' { Write-Log 'Cancelled by user'; exit 0 }
-    default { }
+    default { $script:EffectiveMode = 'Update' }
   }
 } else {
   Write-Log "No existing installation detected"
@@ -316,75 +396,57 @@ $globalRules = Join-Path $ScriptDir 'rules\global.codex.rules.md'
 if (Test-Path $globalRules) {
   $targetAgents = Join-Path $CODEX_HOME 'AGENTS.md'
   $header = "# AI-Assisted Workflows (Codex Global Rules) v$VERSION - Auto-generated, do not edit"
-  $marker = "AI-Assisted Workflows (Codex Global Rules)"
   $startMarker = "<!-- CODEx_GLOBAL_RULES_START -->"
   $endMarker = "<!-- CODEx_GLOBAL_RULES_END -->"
   if ($DryRun) {
-    if (Test-Path $targetAgents -and ((Get-Content -Raw -Path $targetAgents) -match $marker)) {
-      Write-Log "Would refresh Codex global rules section in $targetAgents"
-    } else {
-      Write-Log "Would append Codex global rules section to $targetAgents"
-    }
+    Write-Log "Would ensure Codex global rules section is updated without duplicates in $targetAgents"
   } else {
     if (-not (Test-Path $targetAgents)) { New-Item -ItemType File -Force -Path $targetAgents | Out-Null }
     $raw = [string]::Empty
     if (Test-Path $targetAgents) { $raw = Get-Content -Raw -Path $targetAgents }
     $normalized = $raw -replace "`r`n", "`n"
     $rulesBody = (Get-Content -Raw -Path $globalRules).Trim()
-    $block = "{0}`n{1}`n`n{2}`n{3}" -f $startMarker, $header, $rulesBody, $endMarker
-
-    function Join-Sections([string]$prefix, [string]$suffix) {
-      $sections = @()
-      if ($prefix.Trim()) { $sections += $prefix.TrimEnd() }
-      $sections += $block
-      if ($suffix.Trim()) { $sections += $suffix.TrimStart() }
-      $joined = ($sections -join "`n`n").TrimEnd() + "`n"
-      return $joined
-    }
+    $blockBody = "$header`n`n$rulesBody`n"
+    $block = "$startMarker`n$blockBody$endMarker"
 
     $updated = $null
 
     if ($normalized.Contains($startMarker) -and $normalized.Contains($endMarker)) {
-      $parts = $normalized.Split($startMarker, 2)
-      if ($parts.Length -eq 2) {
-        $afterStart = $parts[1].Split($endMarker, 2)
-        if ($afterStart.Length -eq 2) {
-          $prefixPart = $parts[0]
-          $suffixPart = $afterStart[1]
-          $updated = Join-Sections $prefixPart $suffixPart
+      $pattern = [System.Text.RegularExpressions.Regex]::Escape($startMarker) + '.*?' + [System.Text.RegularExpressions.Regex]::Escape($endMarker)
+      $updated = [System.Text.RegularExpressions.Regex]::Replace($normalized, $pattern, $block, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    } else {
+      $sections = Get-CodexMarkdownSections $normalized
+      $sourceSections = Get-CodexMarkdownSections $blockBody
+      $sourceKeys = New-Object 'System.Collections.Generic.HashSet[string]'
+      foreach ($sec in $sourceSections) { $null = $sourceKeys.Add('{0}|{1}' -f $sec.Level, $sec.Title) }
+      $firstStart = $null
+      $lastEnd = $null
+      foreach ($sec in $sections) {
+        $key = '{0}|{1}' -f $sec.Level, $sec.Title
+        if ($sourceKeys.Contains($key)) {
+          if ($firstStart -eq $null -or $sec.Start -lt $firstStart) { $firstStart = $sec.Start }
+          if ($lastEnd -eq $null -or $sec.End -gt $lastEnd) { $lastEnd = $sec.End }
         }
+      }
+      if ($firstStart -ne $null -and $lastEnd -ne $null) {
+        $before = ($normalized.Substring(0, $firstStart)).TrimEnd("`n")
+        $after = ($normalized.Substring($lastEnd)).TrimStart("`n")
+        $parts = @()
+        if ($before) { $parts += $before }
+        $parts += $block
+        if ($after) { $parts += $after }
+        $updated = (($parts -join "`n`n").TrimEnd()) + "`n"
+      } else {
+        $cleaned = $normalized.TrimEnd()
+        if ($cleaned) { $updated = "$cleaned`n`n$block`n" } else { $updated = "$block`n" }
       }
     }
 
-    if (-not $updated -and $normalized.Contains($marker)) {
-      $index = $normalized.IndexOf($header)
-      if ($index -lt 0) { $index = $normalized.IndexOf($marker) }
-      if ($index -ge 0) {
-        $prefixPart = $normalized.Substring(0, $index).TrimEnd()
-        $remainder = $normalized.Substring($index + $header.Length).TrimStart("`n".ToCharArray())
-        $rulesTrim = $rulesBody.Trim()
-        $suffixPart = ""
-        if ($remainder.StartsWith($rulesTrim)) {
-          $suffixPart = $remainder.Substring($rulesTrim.Length).TrimStart("`n".ToCharArray())
-        } else {
-          $pos = $remainder.IndexOf($rulesTrim)
-          if ($pos -ge 0) {
-            $suffixPart = ($remainder.Remove($pos, $rulesTrim.Length)).TrimStart("`n".ToCharArray())
-          } else {
-            $updated = $normalized
-          }
-        }
-        if (-not $updated) {
-          $updated = Join-Sections $prefixPart $suffixPart
-        }
-      }
-    }
+    if (-not $updated) { $updated = "$block`n" }
 
-    if (-not $updated) {
-      $updated = Join-Sections $normalized.TrimEnd() ""
-    }
-
-    $final = $updated -replace "`n", "`r`n"
+    $lineEnding = "`n"
+    if ($raw.Contains("`r`n")) { $lineEnding = "`r`n" }
+    $final = $updated.Replace("`n", $lineEnding)
     Set-Content -Path $targetAgents -Value $final
     Write-Log "Updated AGENTS.md with Codex global rules"
   }
@@ -395,25 +457,34 @@ $srcExecplan = Join-Path $ScriptDir 'execplan.md'
 if (Test-Path $srcExecplan) {
   $dstExecplan = Join-Path $CODEX_HOME 'execplan.md'
   if ($DryRun) {
-    Write-Log "Would copy ExecPlan template to $dstExecplan"
+    if ($script:EffectiveMode -eq 'Update') {
+      Write-Log "Would overwrite ExecPlan template at $dstExecplan (update mode)"
+    } else {
+      Write-Log "Would copy ExecPlan template to $dstExecplan"
+    }
   } else {
-    if (Test-Path $dstExecplan) {
-      try {
-        $srcHash = (Get-FileHash -Algorithm SHA256 $srcExecplan).Hash
-        $dstHash = (Get-FileHash -Algorithm SHA256 $dstExecplan).Hash
-        if ($srcHash -ne $dstHash) {
+    if ($script:EffectiveMode -eq 'Update') {
+      Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
+      Write-Log "Replaced ExecPlan template at $dstExecplan (update mode)"
+    } else {
+      if (Test-Path $dstExecplan) {
+        try {
+          $srcHash = (Get-FileHash -Algorithm SHA256 $srcExecplan).Hash
+          $dstHash = (Get-FileHash -Algorithm SHA256 $dstExecplan).Hash
+          if ($srcHash -ne $dstHash) {
+            Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
+            Write-Log "Refreshed ExecPlan template at $dstExecplan"
+          } else {
+            Write-Log "ExecPlan template already up to date at $dstExecplan"
+          }
+        } catch {
           Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
-          Write-Log "Refreshed ExecPlan template at $dstExecplan"
-        } else {
-          Write-Log "ExecPlan template already up to date at $dstExecplan"
+          Write-Log "Copied ExecPlan template to $dstExecplan"
         }
-      } catch {
+      } else {
         Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
         Write-Log "Copied ExecPlan template to $dstExecplan"
       }
-    } else {
-      Copy-Item -Force -Path $srcExecplan -Destination $dstExecplan
-      Write-Log "Copied ExecPlan template to $dstExecplan"
     }
   }
 }
