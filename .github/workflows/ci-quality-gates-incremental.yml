@@ -56,3 +56,35 @@ jobs:
       # - name: Complexity gate (xenon)
       #   run: |
       #     xenon --max-absolute B --max-modules A --max-average A shared
+
+  enaible-cli:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+
+      - name: Install uv
+        run: |
+          python -m pip install --upgrade pip
+          pip install "uv>=0.7"
+
+      - name: Sync Enaible workspace
+        run: |
+          uv sync --project tools/enaible --frozen
+
+      - name: Run Enaible CLI tests
+        run: |
+          uv run --project tools/enaible pytest tools/enaible/tests -v
+
+      - name: Verify managed prompts are synchronized
+        env:
+          UV_PROJECT: tools/enaible
+        run: |
+          uv run --project tools/enaible enaible prompts diff

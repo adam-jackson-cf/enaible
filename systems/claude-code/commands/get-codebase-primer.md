@@ -1,4 +1,8 @@
-# get-primer v0.2
+<!-- generated: enaible -->
+
+# get-codebase-primer v1.0
+
+# get-primer v0.3
 
 ## Purpose
 
@@ -6,7 +10,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 
 ## Variables
 
-- `TARGET_PATH` ← $1 (defaults to `./`).
+- `TARGET_PATH` ← $1 (defaults to `./`.
 
 ## Instructions
 
@@ -15,7 +19,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 - Summaries must be concise yet comprehensive, referencing concrete files and directories.
 - Include recent git history insights to surface active development themes.
 
-## Process
+## Workflow
 
 1. **Deep Analysis** (LLM + file-driven)
 
@@ -39,7 +43,7 @@ Analyse the following aspects of the target codebase:
 
 ## Output
 
-```markdown
+````markdown
 # Project: [Name]
 
 [Concise description of what this project is and does]
@@ -59,21 +63,23 @@ Analyse the following aspects of the target codebase:
 - **Testing**: [e.g., Jest, pytest, cargo test]
 
 ## Structure
-```
 
+```markdown
 project-root/
 ├── src/ # [Description]
 ├── tests/ # [Description]
 ├── docs/ # [Description]
 └── ... # [Other key directories]
-
+```
 ````
 
 **Key Files**:
+
 - `[file]` - [Purpose]
 - `[file]` - [Purpose]
 
 **Entry Points**:
+
 - `[file]` - [Description]
 
 ## Architecture
@@ -81,6 +87,7 @@ project-root/
 [Description of how components interact, main modules, data flow]
 
 ### Key Components:
+
 - **[Component]**: [Role and responsibility]
 - **[Component]**: [Role and responsibility]
 
@@ -105,23 +112,22 @@ project-root/
 **Framework**: [Testing framework used]
 
 **Running Tests**:
+
 ```bash
 [command to run tests]
-````
+```
 
 **Creating New Tests**:
 [Instructions on where tests go and basic test structure example]
 
 ````
 
-## Example Usage
+## Examples
 
 ```bash
-# Analyze current project and generate primer
+# Generate primer for current repo
 /get-primer
 
-# Generate primer for a specific directory
-/get-primer /path/to/project
+# Target a subdirectory
+/get-primer packages/service
 ````
-
-$ARGUMENTS

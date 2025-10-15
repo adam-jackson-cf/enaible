@@ -1,143 +1,119 @@
----
+## <!-- generated: enaible -->
+
 description: Perform a security audit of the repository and dependencies
 agent: security
+
 ---
 
-# analyze-security v0.3
+# analyze-security v1.0
 
-**Mindset**: "What could go wrong?" - Combine automated scanning with contextual threat assessment.
+# Purpose
 
-## Behavior
+Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
 
-Comprehensive security analysis using OWASP Top 10 framework with automated script integration and contextual threat assessment.
+## Variables
 
-## Workflow Process
+- `$TARGET_PATH` ← $1 (defaults to `./`).
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is provided).
 
-### Phase 1: Automated Security Assessment
+## Guardrails
 
-1. **Execute automated security scripts** - Run comprehensive OWASP Top 10 vulnerability detection
+- ALWAYS execute automated analyzers first; abort the workflow if any analyzer returns a non-zero exit code.
+- Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`) before advancing.
+- Map findings to OWASP Top 10 categories, business impact, and exploitability.
+- Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
+- In `VERBOSE_MODE`, include exhaustive vulnerability details, gap tables, and remediation notes.
 
-   **FIRST - Resolve SCRIPT_PATH:**
+## Workflow
 
-   1. **Try project-level .opencode folder**:
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Record every generated file path inside the final report.
+2. **Phase 1 — Automated Security Assessment**
 
-      ```bash
-      Glob: ".opencode/scripts/analyzers/security/*.py"
-      ```
+   - Run analyzers via Enaible:
 
-   2. **Try user-level opencode folder**:
+     ```bash
+     uv run enaible analyzers run security:semgrep --target "$TARGET_PATH" --out "$ARTIFACT_ROOT/semgrep.json"
+     uv run enaible analyzers run security:detect_secrets --target "$TARGET_PATH" --out "$ARTIFACT_ROOT/detect-secrets.json"
+     ```
 
-      ```bash
-      Bash: ls "~/.config/opencode/scripts/analyzers/security/"
-      ```
+     - Pass `--summary` to generate quick overviews when triaging large reports.
+     - Add `--verbose` when `VERBOSE_MODE` is enabled to capture analyzer-specific debugging output.
 
-   3. **Interactive fallback if not found**:
-      - List searched locations: `.opencode/scripts/analyzers/security/` and `~/.config/opencode/scripts/analyzers/security/`
-      - Ask user: "Could not locate security analysis scripts. Please provide full path to the scripts directory:"
-      - Validate provided path contains expected scripts (semgrep_analyzer.py, detect_secrets_analyzer.py)
-      - Set SCRIPT_PATH to user-provided location
+   - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
+   - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
 
-   **Pre-flight environment check (fail fast if imports not resolved):**
+3. **Phase 2 — Gap Assessment & Contextual Analysis**
+   - Compare analyzer coverage versus OWASP Top 10 and stack-specific concerns.
+   - Perform targeted manual review for auth, configuration, secrets management, supply chain, and data flow gaps.
+   - Document technology-specific validations (e.g., Django CSRF, React XSS mitigations, Express headers, Terraform security controls).
+   - Capture contextual notes in `$ARTIFACT_ROOT/gap-analysis.md`.
+   - **STOP:** “Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)”
+4. **Phase 3 — Risk Prioritization & Reporting**
+   - Merge automated findings with contextual insights.
+   - Assign impact \* likelihood scoring to derive Critical/High/Medium/Low grading.
+   - Build a remediation roadmap with milestone-based sequencing (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening tasks).
+   - Snapshot risk posture in `$ARTIFACT_ROOT/risk-summary.md`.
+   - **STOP:** “Security analysis complete and validated. Transfer findings to todos.md? (y/n)”
+5. **Phase 4 — Quality Validation & Task Transfer**
+   - Confirm the following before closure:
+     - OWASP Top 10 categories reviewed with supporting evidence.
+     - Analyzer outputs parsed and cross-referenced.
+     - Technology-specific controls inspected.
+     - Business logic risks evaluated with decision-makers.
+   - When approved, append actionable remediation tasks to `todos.md` using the roadmap structure.
+   - Note whether the transfer happened or was deferred, including owner acknowledgements and follow-up triggers.
 
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-   ```
+## Output
 
-   **THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+```md
+# RESULT
 
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer security:semgrep --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer security:detect_secrets --target . --output-format json
-   ```
+- Summary: Security analysis completed for <TARGET_PATH> on <date/time>.
+- Artifacts: `.enaible/artifacts/analyze-security/<timestamp>/`
 
-2. **Analyze script outputs** - Process automated findings against OWASP framework
+## FINDINGS
 
-   - **semgrep_analyzer.py**: Comprehensive OWASP Top 10 detection including A01 (Injection), A03 (XSS), A07 (Authentication Failures), and input validation using semantic analysis
-   - **detect_secrets_analyzer.py**: Advanced entropy-based secrets detection for hardcoded credentials and API keys (A02 - Cryptographic Failures)
+| Severity | OWASP Category           | Location / Asset                | Description                          | Evidence Source         |
+| -------- | ------------------------ | ------------------------------- | ------------------------------------ | ----------------------- |
+| CRITICAL | A01: Injection           | services/api/user.py#L120       | Unsanitized SQL string concatenation | security:semgrep        |
+| HIGH     | A02: Cryptographic Fail. | config/settings.py#L45          | Hardcoded API key                    | security:detect_secrets |
+| MEDIUM   | A05: SSRF                | infra/terraform/modules/network | Missing egress restrictions          | Gap assessment          |
 
-3. **Generate security baseline** - Compile automated results for contextual analysis
+## RISK SUMMARY
 
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Automated security analysis complete. Proceed with gap assessment? (y/n)" and WAIT for response before continuing to Phase 2. If user responds "n" or "no", stop workflow execution.
+- Scorecard: <overall risk score or narrative>
+- Blocking Issues: <list of critical/high items>
+- Recommended Timeline: <immediate / short-term / long-term>
 
-### Phase 2: Gap Assessment and Contextual Analysis
-
-1. **Perform OWASP Top 10 systematic coverage review** - Compare automated findings against actual codebase
-
-   - Identify technology-specific security patterns not covered by the script based analysis
-   - Assess framework-specific requirements (Django CSRF, React XSS protections, Express.js headers)
-
-2. **Execute autonomous security searches** - Targeted analysis for identified gaps
-   - Custom vulnerability pattern searches based on identified technology stack
-   - Configuration security validation for detected frameworks
-   - Authorization matrix validation for detected user roles and permissions
-   - Data flow security analysis between components and external interfaces
-   - Infrastructure and deployment security review
-
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)" and WAIT for response before continuing to Phase 3. If user responds "n" or "no", stop workflow execution.
-
-### Phase 3: Risk Prioritization and Reporting
-
-1. **Correlate and prioritize findings** - Combine automated and contextual analysis results
-
-   - Generate security score based on identified vulnerabilities
-   - Prioritize by business impact and exploitability
-
-2. **Create security report** - Format findings by severity level
-
-   - **CRITICAL**: Data breach, system compromise, compliance violation
-   - **HIGH**: Privilege escalation, injection, auth bypass
-   - **MEDIUM**: Information disclosure, DoS, config issues
-   - **LOW**: Hardening opportunities, defense gaps
-
-3. **Generate remediation roadmap** - Phased approach with specific locations
-   - Phase 1: Critical security issues requiring immediate attention
-   - Phase 2: High priority security concerns
-   - Phase 3: Security hardening and configuration improvements
-
-### Phase 4: Quality Validation and Task Transfer
-
-1. **Validate analysis completeness** - Ensure comprehensive OWASP Top 10 coverage
-
-   - Verify all security script outputs processed
-   - Confirm gap assessment covered technology-specific patterns
-
-2. **Quality Gates Validation**
-
-   - [ ] All OWASP Top 10 categories systematically assessed
-   - [ ] Script outputs validated against codebase architecture
-   - [ ] Technology-specific security patterns identified
-   - [ ] Business logic vulnerabilities evaluated
-   - [ ] Security findings prioritized by business impact
-
-3. **Transfer security tasks to todos.md** - Generate actionable remediation tasks
-   - Append formatted security findings with clear priorities to todos.md
-
-**⚠️ REQUIRED USER CONFIRMATION**: Ask user "Security analysis complete and validated. Transfer findings to todos.md? (y/n)" and WAIT for response before proceeding with todo transfer. If user responds "n" or "no", stop workflow execution.
-
-## Enhanced Optional Flags
-
-**--verbose**: Show detailed script outputs, gap analysis table, and comprehensive vulnerability descriptions
-
-## Task Format for todos.md Transfer
-
-```markdown
-## Security Remediation Implementation
+## REMEDIATION ROADMAP
 
 ### Phase 1: Critical Security Issues
 
-- [ ] [CRITICAL-FINDING] - [LOCATION]
-- [ ] [CRITICAL-FINDING] - [LOCATION]
+- [ ] <Task with owner and file path>
 
 ### Phase 2: High Priority Security Issues
 
-- [ ] [HIGH-FINDING] - [LOCATION]
-- [ ] [HIGH-FINDING] - [LOCATION]
+- [ ] <Task>
 
 ### Phase 3: Security Hardening
 
-- [ ] [MEDIUM-FINDING] - [LOCATION]
-- [ ] [LOW-FINDING] - [LOCATION]
+- [ ] <Task>
+
+## ATTACHMENTS
+
+- security:semgrep → `.enaible/artifacts/analyze-security/<timestamp>/semgrep.json`
+- security:detect_secrets → `.enaible/artifacts/analyze-security/<timestamp>/detect-secrets.json`
+- Gap Analysis Notes → `.enaible/artifacts/analyze-security/<timestamp>/gap-analysis.md`
 ```
 
-$ARGUMENTS
+## Examples
+
+```bash
+# Run default security assessment and emit artifacts
+/analyze-security .
+
+# Include verbose analyzer logs and summary-only JSON outputs
+/analyze-security services/web --verbose
+```

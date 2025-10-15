@@ -1,5 +1,7 @@
 # AI-Assisted Workflows installation directory
 .claude/
+.enaible/
+!.enaible/schema.json
 
 # Evaluation system test workspaces and reports
 evaluation/workspaces/

@@ -1,0 +1,8 @@
+<!-- generated: enaible -->
+{% if frontmatter %}---
+{% for key, value in frontmatter.items() %}{{ key }}: {{ value }}
+{% endfor %}---
+
+{% endif %}# {{ title }}
+
+{{ body }}

@@ -55,26 +55,30 @@
 
 ## Detailed Phase Task Steps
 
+- Keep progress updated at start and end of tasks
+
 <!--
 Guidelines:
 - a comprehensive list of every single action to be carried out from start to finish
 - File actions should include filename and starting line number like AGENTS.md:103
 
-available status:
+Phase numebrs should match high level phase plan
+-->
+
+### Status key:
+
 "@" - in progress
 "X" - complete
 " " - outstanding
 
-available types:
-- Code, code implementation action write/edit
-- Read, reviewing a flie
-- Action, a none code or read action like mcp call, bash command, or ,
-- Test, creating/editing/running any kind of test
-- Gate, quality gate actions - create/edit/run
-- Human, a manual action that requires human involvement
+### Type key:
 
-Phase numebrs should match high level phase plan
--->
+"Code" - code implementation action write/edit
+"Read" - reviewing a flie
+"Action" - a none code or read action like mcp call, bash command, or ,
+"Test" - creating/editing/running any kind of test
+"Gate" - quality gate actions - create/edit/run
+"Human" - manual action that requires human involvement
 
 | Status | Phase #                                               | Task # | Task Type | Description                                                                                                                                                                                              |
 | ------ | ----------------------------------------------------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

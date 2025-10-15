@@ -102,6 +102,28 @@ Notes
 
 ---
 
+## 🛡️ Quality Gates & Enaible CLI
+
+The `enaible` CLI standardizes analyzer execution and prompt rendering across systems. Run these guardrails before opening a PR to mirror CI:
+
+```bash
+# Sync the Enaible workspace (installs uv dependencies)
+uv sync --project tools/enaible
+
+# Run Enaible unit tests
+uv run --project tools/enaible pytest tools/enaible/tests -v
+
+# Confirm managed prompts are drift-free
+uv run --project tools/enaible enaible prompts diff
+
+# Optional diagnostics snapshot (JSON report)
+uv run --project tools/enaible enaible doctor --json
+```
+
+GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml`, so keeping these commands green locally ensures the Enaible pipeline stage remains healthy.
+
+---
+
 ## 💡 Example Use Cases
 
 > _Comprehensive workflows demonstrating AI-assisted development_
