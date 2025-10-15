@@ -122,5 +122,5 @@
 ## ExecPlan Protocol (Planning Standard)
 
 - When asked to ExecPlan, instantiate a living ExecPlan document from the template at `~/.codex/execplan.md`.
-- Keep these sections continuously updated during execution: `Progress`, `Surprises & Discoveries`, `Decision Log`, and `Outcomes & Retrospective`.
+- Ensure ExecPlan is kept up to date with progresss as its a living document
 - Acceptance tests in `Success Criteria` are the definition of done; do not mark complete until they can be executed and pass.

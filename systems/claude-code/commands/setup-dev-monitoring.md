@@ -64,7 +64,7 @@
    ```
 
 3. **Interactive fallback if not found**:
-   - List searched locations: `.claude/scripts/setup/context/` and `$HOME/.claude/scripts/setup/context/`
+   - List searched locations: `.claude/scripts/setup/monitoring/` and `$HOME/.claude/scripts/setup/monitoring/`
    - Ask user: "Could not locate context setup scripts. Please provide full path to the scripts directory:"
    - Validate provided path contains expected scripts (install_monitoring_dependencies.py)
    - Set SCRIPT_PATH to user-provided location

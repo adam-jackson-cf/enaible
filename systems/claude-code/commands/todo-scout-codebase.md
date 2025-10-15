@@ -35,7 +35,7 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 
 2. **Deep Analysis** (LLM + file-driven)
 
-Analyse the the following aspects of the target codebase in relation to how they affect or add context to the $USER_PROMPT:
+User parallel task agents to analyse the the following aspects of the target codebase in relation to how they affect or add context to the $USER_PROMPT:
 
 - Architecture & Orchestration
 - Backend Patterns & Practices
