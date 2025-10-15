@@ -1,80 +1,99 @@
----
-argument-hint: [target-path]
----
+## <!-- generated: enaible -->
 
-# analyze-architecture v0.2
+## argument-hint: [target-path]
 
-**Mindset**: "Design for scale and maintainability" - Evaluate system architecture for scalability, maintainability, and best practices.
+# analyze-architecture v1.0
 
-## Behavior
+# Purpose
 
-Comprehensive system architecture evaluation combining automated analysis with design pattern assessment for scalable, maintainable systems.
+Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
 
-### Automated Architecture Analysis
+## Variables
 
-Execute architecture analysis scripts via Bash tool for measurable design metrics:
+- `TARGET_PATH` ← $1 (defaults to `./`).
 
-**FIRST - Resolve SCRIPT_PATH:**
+## Instructions
 
-1. **Try project-level .claude folder**:
+- ALWAYS execute Enaible analyzers; skip legacy script discovery entirely.
+- Persist all analyzer outputs under `.enaible/artifacts/analyze-architecture/` for traceability.
+- Combine quantitative metrics with qualitative reasoning before drawing conclusions.
+- Tie every recommendation to concrete code references and measurable success criteria.
 
-   ```bash
-   Glob: ".claude/scripts/analyzers/architecture/*.py"
-   ```
+## Workflow
 
-2. **Try user-level .claude folder**:
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
 
-   ```bash
-   Bash: ls "$HOME/.claude/scripts/analyzers/architecture/"
-   ```
+   - Execute each Enaible command, storing the JSON output:
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.claude/scripts/analyzers/architecture/` and `$HOME/.claude/scripts/analyzers/architecture/`
-   - Ask user: "Could not locate architecture analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (pattern_evaluation.py, scalability_check.py, coupling_analysis.py, dependency_analysis.py)
-   - Set SCRIPT_PATH to user-provided location
+     ```bash
+     uv run enaible analyzers run architecture:patterns \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json"
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+     uv run enaible analyzers run architecture:scalability \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-scalability.json"
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+     uv run enaible analyzers run architecture:coupling \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+
+     uv run enaible analyzers run architecture:dependency \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-dependency.json"
+     ```
+
+   - Use `--summary` for quick reconnaissance when working with large codebases.
+
+3. **Synthesize quantitative findings**
+   - Extract metrics related to service boundaries, coupling indices, dependency depth, and scalability bottlenecks.
+   - Flag hotspots exceeding organizational thresholds (fan-in/out, layering violations, shared-state risks).
+4. **Perform qualitative assessment**
+   - Map results to architecture lenses: domain boundaries, SOLID alignment, data flow consistency, observability posture.
+   - Document gaps in diagrams, ADRs, or ownership models that compound technical risk.
+5. **Draft recommendations**
+   - Prioritize remediation steps with impact vs. effort notes and include rollout considerations.
+   - Propose quick wins, medium-term refactors, and strategic investments.
+6. **Deliver final report**
+   - Provide a structured summary with metrics, risk assessment, and next actions.
+   - Reference analyzer evidence paths from `ARTIFACT_ROOT`.
+
+## Output
+
+```md
+# RESULT
+
+- Summary: Architecture assessment completed for <TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-architecture/<timestamp>/`
+
+## FINDINGS
+
+- Service Boundaries: <observation + metric>
+- Coupling & Cohesion: <observation + metric>
+- Scalability Risks: <observation + metric>
+- Data Flow & State: <observation + metric>
+
+## RECOMMENDATIONS
+
+1. <Highest-priority improvement with rationale and expected impact>
+2. <Next action>
+
+## ATTACHMENTS
+
+- architecture:patterns → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-patterns.json`
+- architecture:scalability → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-scalability.json`
+- architecture:coupling → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-coupling.json`
+- architecture:dependency → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-dependency.json`
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:patterns --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:scalability --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:coupling --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:dependency --target . --output-format json
+# Analyze repository architecture from the current directory
+/analyze-architecture .
+
+# Target a specific service directory
+/analyze-architecture services/api
 ```
-
-### Architecture Assessment Areas
-
-- **Service Boundaries**: Microservice decomposition and responsibility definition
-- **Design Pattern Compliance**: SOLID principles, GoF patterns, architectural patterns
-- **Coupling Analysis**: Inter-service dependencies and communication patterns
-- **Scalability Bottlenecks**: Infrastructure limitations and growth constraints
-- **Data Flow Architecture**: State management and data consistency patterns
-
-## Analysis Process
-
-1. **Execute automated scripts** for quantitative architecture metrics
-2. **Evaluate design patterns** against established best practices
-3. **Assess scalability** through bottleneck identification
-4. **Analyze coupling** between components and services
-5. **Generate recommendations** for architectural improvements
-
-## Assessment Areas
-
-Coupling, Cohesion, Scalability, Maintainability, Testability, Deployment
-
-## Output Requirements
-
-- Architecture metrics report with automated analysis results
-- Design pattern compliance assessment
-- Scalability bottleneck identification with mitigation strategies
-- Architectural improvement roadmap with implementation priorities
-
-$ARGUMENTS

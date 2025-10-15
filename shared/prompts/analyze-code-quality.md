@@ -8,35 +8,44 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## Instructions
 
-- ALWAYS run the registry-driven analyzer (`quality:lizard`) instead of stand-alone tools.
-- Capture raw complexity metrics (cyclomatic complexity, function length, parameter counts) for transparency.
-- Cross-reference quantitative results with observed design patterns before making recommendations.
-- Prioritize remediation by impact and ease, citing exact files and symbols.
-- Do not proceed if analyzer scripts are missing or imports fail.
+- ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
+- Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
+- Correlate quantitative metrics with qualitative observations before recommending remediation.
+- Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
+- Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
 
 ## Workflow
 
-1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/quality/*.py || ls "$HOME/.claude/scripts/analyzers/quality/"`; if both fail, exit and request a valid path.
-   - When scripts are missing locally, prompt the user for a directory containing `complexity_lizard.py`, then set `SCRIPT_PATH`.
-2. Prepare environment
-   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-3. Execute automated analysis
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target "$TARGET_PATH" --output-format json`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:jscpd --target "$TARGET_PATH" --output-format json`.
-   - Persist the JSON outputs for later reference.
-4. Interpret metrics
-   - Identify hotspots exceeding thresholds (e.g., cyclomatic complexity > 10, function length > 80 lines).
-   - Detect duplicated code blocks and high parameter counts.
-5. Evaluate qualitative dimensions
-   - Examine documentation coverage, readability, adherence to SOLID principles, and test coverage signals.
-   - Highlight technical-debt themes (code smells, anti-patterns, refactor opportunities).
-6. Formulate improvement plan
-   - Group recommendations by category: maintainability, testing, patterns, debt reduction.
-   - Include quick wins vs. strategic refactors.
-7. Deliver report
-   - Summarize key findings, attach metric tables, and map recommendations to affected modules.
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
+   - Record the artifact path for inclusion in the final report.
+2. **Run automated analyzers via Enaible**
+
+   - Execute and persist JSON output for each analyzer:
+
+     ```bash
+     uv run enaible analyzers run quality:lizard \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json"
+
+     uv run enaible analyzers run quality:jscpd \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-jscpd.json"
+     ```
+
+   - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
+
+3. **Interpret metrics**
+   - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
+   - Cross-reference duplication findings with the impacted components.
+4. **Evaluate qualitative dimensions**
+   - Review documentation depth, readability, adherence to SOLID principles, and test coverage signals.
+   - Identify recurring code smells or anti-patterns that amplify the quantitative results.
+5. **Formulate improvement plan**
+   - Group recommendations by category (maintainability, testing, patterns, debt reduction) with impact/effort notes.
+   - Map each action to specific files or modules and call out enabling prerequisites.
+6. **Deliver the report**
+   - Summarize findings, attach metric tables, and cite evidence paths from `ARTIFACT_ROOT`.
 
 ## Output
 
@@ -44,6 +53,7 @@ Assess code quality by combining automated metrics with architectural review to 
 # RESULT
 
 - Summary: Code quality assessment completed for <TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-code-quality/<timestamp>/`
 
 ## METRICS
 
@@ -67,8 +77,8 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## ATTACHMENTS
 
-- quality:lizard report → <path>
-- quality:jscpd report → <path>
+- quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
+- quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```
 
 ## Examples

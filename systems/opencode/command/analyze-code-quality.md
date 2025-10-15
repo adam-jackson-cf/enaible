@@ -1,66 +1,98 @@
----
-description: Assess code quality and complexity, and highlight high‑value refactors
----
+## <!-- generated: enaible -->
 
-# analyze-code-quality v0.2
+## description: Assess code quality and complexity, and highlight high‑value refactors
 
-**Mindset**: "Quality first" - Systematic code quality assessment with measurable metrics and improvement recommendations.
+# analyze-code-quality v1.0
 
-## Behavior
+# Purpose
 
-Comprehensive code quality analysis combining automated metrics with architectural assessment for maintainable, readable code.
+Assess code quality by combining automated metrics with architectural review to surface maintainability and technical-debt risks.
 
-### Code Quality Assessment Areas
+## Variables
 
-- **Complexity Metrics**: Cyclomatic complexity, function length, parameter count analysis
-- **Code Patterns**: Design pattern compliance and anti-pattern identification
-- **Maintainability**: Code readability, documentation quality, and structure assessment
-- **Technical Debt**: Code smells, duplication, and refactoring opportunities
-- **SOLID Principles**: Single responsibility, open-closed, Liskov substitution compliance
-- **Testing Quality**: Test coverage, test quality, and testability assessment
+- `$TARGET_PATH` ← $1 (defaults to `./`).
 
-## Script Integration
+## Instructions
 
-Execute code quality analysis scripts via Bash tool for measurable quality metrics:
+- ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
+- Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
+- Correlate quantitative metrics with qualitative observations before recommending remediation.
+- Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
+- Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
 
-**FIRST - Resolve SCRIPT_PATH:**
+## Workflow
 
-1. **Try project-level .opencode folder**:
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
+   - Record the artifact path for inclusion in the final report.
+2. **Run automated analyzers via Enaible**
 
-   ```bash
-   Glob: ".opencode/scripts/analyzers/quality/*.py"
-   ```
+   - Execute and persist JSON output for each analyzer:
 
-2. **Try user-level opencode folder**:
+     ```bash
+     uv run enaible analyzers run quality:lizard \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json"
 
-   ```bash
-   Bash: ls "~/.config/opencode/scripts/analyzers/quality/"
-   ```
+     uv run enaible analyzers run quality:jscpd \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-jscpd.json"
+     ```
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/quality/` and `~/.config/opencode/scripts/analyzers/quality/`
-   - Ask user: "Could not locate code_quality analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (complexity_lizard.py)
-   - Set SCRIPT_PATH to user-provided location
+   - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+3. **Interpret metrics**
+   - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
+   - Cross-reference duplication findings with the impacted components.
+4. **Evaluate qualitative dimensions**
+   - Review documentation depth, readability, adherence to SOLID principles, and test coverage signals.
+   - Identify recurring code smells or anti-patterns that amplify the quantitative results.
+5. **Formulate improvement plan**
+   - Group recommendations by category (maintainability, testing, patterns, debt reduction) with impact/effort notes.
+   - Map each action to specific files or modules and call out enabling prerequisites.
+6. **Deliver the report**
+   - Summarize findings, attach metric tables, and cite evidence paths from `ARTIFACT_ROOT`.
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+## Output
+
+```md
+# RESULT
+
+- Summary: Code quality assessment completed for <TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-code-quality/<timestamp>/`
+
+## METRICS
+
+| Metric                | Threshold | Worst Offender | Value |
+| --------------------- | --------- | -------------- | ----- |
+| Cyclomatic Complexity | 10        | <file#Lline>   | <n>   |
+| Function Length       | 80 lines  | <file#Lline>   | <n>   |
+| Parameter Count       | 5         | <symbol>       | <n>   |
+
+## INSIGHTS
+
+- Maintainability: <observation>
+- Technical Debt: <observation>
+- Testing Coverage Signals: <observation>
+- SOLID & Patterns: <observation>
+
+## RECOMMENDATIONS
+
+1. <Highest priority action with target files>
+2. <Additional actions>
+
+## ATTACHMENTS
+
+- quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
+- quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
+# Run quality analysis on entire repo
+/analyze-code-quality .
+
+# Focus on a specific package
+/analyze-code-quality packages/service
 ```
-
-## Output Requirements
-
-- Code quality metrics report with complexity analysis
-- Technical debt assessment with prioritized improvement opportunities
-- Best practices compliance evaluation with specific recommendations
-- Quality improvement roadmap with implementation guidance
-
-$ARGUMENTS

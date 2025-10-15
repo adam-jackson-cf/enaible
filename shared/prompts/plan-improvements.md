@@ -11,34 +11,49 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 ## Instructions
 
 - Execute the workflow phases in order and honor each STOP confirmation.
-- Run registry-driven analyzers only; capture outputs for quality documentation.
+- Use Enaible analyzers for evidence gathering; store outputs in `.enaible/artifacts/plan-refactor/`.
 - Anchor migration strategies in proven patterns (Strangler Fig, Module Federation, blue-green, etc.).
 - Define rollback steps and monitoring at every migration phase.
 - Translate the final plan into actionable todos when approved.
 
 ## Workflow
 
-1. Resolve analyzer scripts
-   - Run `ls .claude/scripts/analyzers/quality/complexity_lizard.py || ls "$HOME/.claude/scripts/analyzers/quality/complexity_lizard.py"`; if both fail, prompt for a directory containing `quality/complexity_lizard.py`, `architecture/coupling_analysis.py`, and `performance/performance_baseline.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
-   - Once resolved, compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-2. Phase 1 — Technical Debt Assessment
-   - Execute analyzers:
-     - `quality:lizard`
-     - `architecture:coupling`
-     - `performance:baseline`
-   - Identify hotspots, architectural debt, security overlaps.
-   - Generate technical debt summary.
+1. **Phase 0 — Analyzer preparation**
+
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Run the core analyzers to establish baselines:
+
+     ```bash
+     uv run enaible analyzers run quality:lizard \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json"
+
+     uv run enaible analyzers run architecture:coupling \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+
+     uv run enaible analyzers run performance:baseline \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/performance-baseline.json"
+     ```
+
+   - Capture key hotspots, architectural risks, and performance warnings.
+
+2. **Phase 1 — Technical Debt Assessment**
+   - Summarize analyzer outputs (complexity spikes, coupling hotspots, perf regressions).
+   - Identify the debt themes affecting `$REFACTOR_SCOPE`.
    - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
-3. Phase 2 — Migration Strategy
-   - Research industry patterns tailored to `$REFACTOR_SCOPE`.
-   - Outline phased migration (feature flags, decomposition, deployment strategy).
-   - Define rollback procedures and monitoring hooks.
+3. **Phase 2 — Migration Strategy**
+   - Research suitable refactoring patterns and outline phased migration (feature flags, decomposition, deployment plan).
+   - Define rollback procedures, monitoring hooks, and stakeholder checkpoints.
    - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
-4. Phase 3 — Implementation Planning
-   - Break work into phases with timelines and checkpoints.
-   - Run `quality:coverage` analyzer to inform testing strategy.
+4. **Phase 3 — Implementation Planning**
+   - Break work into phased milestones with timelines and exit criteria.
+   - Run `uv run enaible analyzers run quality:coverage --target "$REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
-5. Phase 4 — Write a summary using below output format with no additional commentary.
+5. **Phase 4 — Finalize report**
+   - Summarize assessment, strategy, roadmap, and success metrics.
+   - Reference artifacts in `ARTIFACT_ROOT` and note follow-up tasks.
 
 ## Output
 
@@ -46,6 +61,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 # RESULT
 
 - Summary: Refactoring plan created for <REFACTOR_SCOPE>.
+- Artifacts: `.enaible/artifacts/plan-refactor/<timestamp>/`
 
 ## ASSESSMENT
 
@@ -59,13 +75,13 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 - Phases: <Phase 1, Phase 2, Phase 3 titles>
 - Rollback Plan: <overview>
 
-## Justification
+## JUSTIFICATION
 
 - Technical alignment with current system
 - Balance of risk vs benefit
 - Resource/timeline fit
 
-## Implementation summary
+## IMPLEMENTATION SUMMARY
 
 ### High Level Checklist:
 

@@ -1,3 +1,8 @@
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
+
+# analyze-architecture v1.0
+
 # Purpose
 
 Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
@@ -8,39 +13,51 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 
 ## Instructions
 
-- ALWAYS verify analyzer scripts exist and are readable before running any checks.
-- NEVER substitute per-module CLIs; use the registry-driven runner exclusively.
-- Capture each analyzer’s JSON output for reporting; do not discard raw metrics.
-- Assess architecture dimensions using both quantitative (script output) and qualitative reasoning.
-- Summaries must connect findings to concrete improvement recommendations.
+- ALWAYS execute Enaible analyzers; skip legacy script discovery entirely.
+- Persist all analyzer outputs under `.enaible/artifacts/analyze-architecture/` for traceability.
+- Combine quantitative metrics with qualitative reasoning before drawing conclusions.
+- Tie every recommendation to concrete code references and measurable success criteria.
 
 ## Workflow
 
-1. Locate analyzer scripts
-   - Run `ls .codex/scripts/analyzers/architecture/*.py || ls "$HOME/.codex/scripts/analyzers/architecture/"`; if both fail, exit and request a valid path.
-   - When scripts are missing locally, prompt the user for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then set `SCRIPT_PATH`.
-2. Prepare environment
-   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-3. Run automated analyzers
-   - Execute sequentially:
-     - `architecture:patterns`
-     - `architecture:scalability`
-     - `architecture:coupling`
-     - `architecture:dependency`
-   - Store JSON reports alongside timestamps and command invocations.
-4. Synthesize quantitative findings
-   - Extract metrics: service boundaries, coupling indices, dependency depth, scalability bottlenecks.
-   - Highlight hotspots exceeding thresholds (complexity, fan-in/out, layering).
-5. Perform qualitative assessment
-   - Map findings to architectural concerns: service boundary clarity, SOLID adherence, data flow consistency, deployment topology.
-   - Identify design-pattern compliance and anti-patterns with traceable evidence.
-6. Draft recommendations
-   - Prioritize remediation steps with impact vs. effort notes.
-   - Include architecture diagrams or hierarchy sketches when beneficial.
-7. Deliver final report
-   - Provide structured summary with metrics, risk assessment, and next actions.
-   - Attach raw analyzer outputs or inlined excerpts in an appendix section.
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
+
+     ```bash
+     uv run enaible analyzers run architecture:patterns \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json"
+
+     uv run enaible analyzers run architecture:scalability \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-scalability.json"
+
+     uv run enaible analyzers run architecture:coupling \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+
+     uv run enaible analyzers run architecture:dependency \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/architecture-dependency.json"
+     ```
+
+   - Use `--summary` for quick reconnaissance when working with large codebases.
+
+3. **Synthesize quantitative findings**
+   - Extract metrics related to service boundaries, coupling indices, dependency depth, and scalability bottlenecks.
+   - Flag hotspots exceeding organizational thresholds (fan-in/out, layering violations, shared-state risks).
+4. **Perform qualitative assessment**
+   - Map results to architecture lenses: domain boundaries, SOLID alignment, data flow consistency, observability posture.
+   - Document gaps in diagrams, ADRs, or ownership models that compound technical risk.
+5. **Draft recommendations**
+   - Prioritize remediation steps with impact vs. effort notes and include rollout considerations.
+   - Propose quick wins, medium-term refactors, and strategic investments.
+6. **Deliver final report**
+   - Provide a structured summary with metrics, risk assessment, and next actions.
+   - Reference analyzer evidence paths from `ARTIFACT_ROOT`.
 
 ## Output
 
@@ -48,6 +65,7 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 # RESULT
 
 - Summary: Architecture assessment completed for <TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-architecture/<timestamp>/`
 
 ## FINDINGS
 
@@ -63,10 +81,10 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 
 ## ATTACHMENTS
 
-- architecture:patterns → <path to JSON>
-- architecture:scalability → <path to JSON>
-- architecture:coupling → <path to JSON>
-- architecture:dependency → <path to JSON>
+- architecture:patterns → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-patterns.json`
+- architecture:scalability → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-scalability.json`
+- architecture:coupling → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-coupling.json`
+- architecture:dependency → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-dependency.json`
 ```
 
 ## Examples

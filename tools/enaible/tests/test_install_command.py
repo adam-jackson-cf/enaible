@@ -39,6 +39,7 @@ def test_install_merge_project_scope(tmp_path: Path) -> None:
             str(tmp_path),
             "--mode",
             "merge",
+            "--no-sync",
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
@@ -57,6 +58,7 @@ def test_install_dry_run_leaves_destination_clean(tmp_path: Path) -> None:
             "--mode",
             "merge",
             "--dry-run",
+            "--no-sync",
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
@@ -80,6 +82,7 @@ def test_install_skips_unmanaged_files(tmp_path: Path) -> None:
             str(tmp_path),
             "--mode",
             "merge",
+            "--no-sync",
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout

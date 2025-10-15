@@ -1,81 +1,106 @@
----
-description: Perform root cause analysis for a defect or failure
----
+## <!-- generated: enaible -->
 
-# analyze-root-cause v0.2
+## description: Perform root cause analysis for a defect or failure
 
-**Mindset**: "Find the real problem" - Systematic root cause analysis using evidence-based investigation methodology.
+# analyze-root-cause v1.0
 
-## Behavior
+# Purpose
 
-Comprehensive root cause analysis combining automated investigation tools with systematic reasoning for accurate problem identification.
+Discover the fundamental cause of an incident or defect through evidence-based investigation across code changes, execution traces, and environment factors.
 
-### Root Cause Investigation Areas
+## Variables
 
-- **Change Correlation**: Recent code changes and their impact analysis
-- **Error Pattern Analysis**: Error log analysis and pattern identification
-- **Execution Tracing**: Code execution flow and failure point identification
-- **Five Whys Analysis**: Iterative questioning to reach fundamental causes
-- **Timeline Analysis**: Sequence of events leading to the issue
-- **Environmental Factors**: System configuration and dependency analysis
+- `ISSUE_DESCRIPTION` ← $1.
+- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is present).
 
-### Enhanced Debugging (--verbose flag)
+## Instructions
 
-- **Comprehensive Logging**: Structured logging with contextual information and trace correlation
-- **Distributed Tracing**: Cross-service request tracing and performance analysis
-- **Diagnostic Instrumentation**: Metrics collection, profiling, and observability enhancement
-- **Error Context**: Detailed error information with stack traces and state capture
-- **Performance Monitoring**: Resource usage tracking and bottleneck identification
-- **Event Correlation**: Event timeline and causal relationship analysis
+- ALWAYS capture the issue description before running analyzers; stop if details are insufficient.
+- Use Enaible analyzers exclusively—do not probe for scripts or import modules manually.
+- Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
+- Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
+- In `VERBOSE_MODE`, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
 
-## Script Integration
+## Workflow
 
-Execute root cause analysis scripts via Bash tool for systematic investigation:
+1. **Validate inputs**
+   - Confirm `ISSUE_DESCRIPTION` is present. If missing, request more information or explicit approval to proceed with assumptions.
+   - Note whether `VERBOSE_MODE` is enabled.
+2. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+3. **Execute automated investigation**
 
-**FIRST - Resolve SCRIPT_PATH:**
+   - Run the Enaible analyzers sequentially, saving their outputs:
 
-1. **Try project-level .opencode folder**:
+     ```bash
+     uv run enaible analyzers run root_cause:trace_execution \
+       --target "$PWD" \
+       --out "$ARTIFACT_ROOT/root-cause-trace.json"
 
-   ```bash
-   Glob: ".opencode/scripts/analyzers/root_cause/*.py"
-   ```
+     uv run enaible analyzers run root_cause:recent_changes \
+       --target "$PWD" \
+       --out "$ARTIFACT_ROOT/root-cause-recent-changes.json"
 
-2. **Try user-level opencode folder**:
+     uv run enaible analyzers run root_cause:error_patterns \
+       --target "$PWD" \
+       --out "$ARTIFACT_ROOT/root-cause-error-patterns.json"
+     ```
 
-   ```bash
-   Bash: ls "~/.config/opencode/scripts/analyzers/root_cause/"
-   ```
+   - When `VERBOSE_MODE` is set, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/analyzers/root_cause/` and `~/.config/opencode/scripts/analyzers/root_cause/`
-   - Ask user: "Could not locate root cause analysis scripts. Please provide full path to the scripts directory:"
-   - Validate provided path contains expected scripts (trace_execution.py, recent_changes.py, error_patterns.py)
-   - Set SCRIPT_PATH to user-provided location
+4. **Analyze results**
+   - Correlate change timelines with error occurrences.
+   - Map stack traces to code locations and execution paths.
+   - Identify recurring error signatures and environment triggers.
+5. **Perform causal reasoning**
+   - Apply techniques such as Five Whys, timeline reconstruction, and hypothesis testing.
+   - Distinguish primary root causes from contributing factors or unknowns that require follow-up.
+6. **Recommend remediation**
+   - Propose fixes, regression tests, and preventive measures.
+   - Surface open questions or missing data that must be resolved before rollout.
+7. **Deliver report**
+   - Summarize evidence, findings, and next actions in a structured format.
+   - Reference analyzer outputs using the artifact paths recorded earlier.
 
-**Pre-flight environment check (fail fast if imports not resolved):**
+## Output
 
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
+```md
+# RESULT
+
+- Summary: Root cause identified for "<ISSUE_DESCRIPTION>".
+- Artifacts: `.enaible/artifacts/analyze-root-cause/<timestamp>/`
+
+## EVIDENCE
+
+- Recent Changes: <commit ids / files>
+- Error Patterns: <signature, frequency>
+- Execution Trace: <primary failure point>
+- Environment Factors: <config, dependency versions>
+
+## ROOT CAUSE
+
+1. <Primary cause with supporting evidence>
+2. <Contributing factor(s)>
+
+## REMEDIATION PLAN
+
+- Fix: <action items with owners or files>
+- Verification: <tests, monitors, checkpoints>
+- Preventive Measures: <telemetry, guardrails, process updates>
+
+## ATTACHMENTS
+
+- root_cause:trace_execution → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-trace.json`
+- root_cause:recent_changes → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-recent-changes.json`
+- root_cause:error_patterns → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-error-patterns.json`
 ```
 
-**THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+## Examples
 
 ```bash
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:trace_execution --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:recent_changes --target . --output-format json
-PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer root_cause:error_patterns --target . --output-format json
+# Investigate a crash reported in production
+/analyze-root-cause "API returns 500 when updating invoices"
+
+# Capture extended diagnostics
+/analyze-root-cause "Payment queue stuck in processing" --verbose
 ```
-
-## Optional Flags
-
---verbose: Use when you need detailed diagnostic output including comprehensive logging setup, distributed tracing configuration, and detailed error context capture for complex debugging scenarios
-
-## Output Requirements
-
-- Root cause analysis report with evidence-based findings
-- Change correlation analysis with impact assessment
-- Error pattern identification with frequency analysis
-- Investigation timeline with causal relationships
-
-$ARGUMENTS

@@ -1,127 +1,113 @@
----
-argument-hint: <refactor-scope-or-area>
----
+## <!-- generated: enaible -->
+
+## argument-hint: <refactor-scope-or-area>
+
+# plan-refactor v1.0
 
 # plan-refactor v0.3
 
-**Mindset**: "Improve without breaking" - Strategic technical debt reduction and modernization planning through automated analysis, proven patterns, and comprehensive testing frameworks.
+## Purpose
 
-## Workflow Process
+Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
 
-### Phase 1: Technical Debt Assessment
+## Variables
 
-1. **Execute automated analysis** - Run comprehensive technical debt assessment
+- `$REFACTOR_SCOPE` ← $1 required, defines area or component.
 
-   **FIRST - Resolve SCRIPT_PATH:**
+## Instructions
 
-   1. **Try project-level .claude folder**:
+- Execute the workflow phases in order and honor each STOP confirmation.
+- Use Enaible analyzers for evidence gathering; store outputs in `.enaible/artifacts/plan-refactor/`.
+- Anchor migration strategies in proven patterns (Strangler Fig, Module Federation, blue-green, etc.).
+- Define rollback steps and monitoring at every migration phase.
+- Translate the final plan into actionable todos when approved.
 
-      ```bash
-      Glob: ".claude/scripts/*.py"
-      Glob: ".claude/scripts/analyzers/**/*.py"
-      ```
+## Workflow
 
-   2. **Try user-level .claude folder**:
+1. **Phase 0 — Analyzer preparation**
 
-      ```bash
-      Bash: ls "$HOME/.claude/scripts/"
-      ```
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Run the core analyzers to establish baselines:
 
-   3. **Interactive fallback if not found**:
-      - List searched locations: `.claude/scripts/` and `$HOME/.claude/scripts/`
-      - Ask user: "Could not locate analysis scripts. Please provide full path to the scripts directory:"
-      - Validate provided path contains expected scripts (quality/complexity_lizard.py, architecture/coupling_analysis.py, performance/performance_baseline.py)
-      - Set SCRIPT_PATH to user-provided location
+     ```bash
+     uv run enaible analyzers run quality:lizard \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json"
 
-   **Pre-flight environment check (fail fast if imports not resolved):**
+     uv run enaible analyzers run architecture:coupling \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json"
 
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"
-   ```
+     uv run enaible analyzers run performance:baseline \
+       --target "$REFACTOR_SCOPE" \
+       --out "$ARTIFACT_ROOT/performance-baseline.json"
+     ```
 
-   **THEN - Execute via the registry-driven CLI (no per-module CLIs):**
+   - Capture key hotspots, architectural risks, and performance warnings.
 
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer architecture:coupling --target . --output-format json
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer performance:baseline --target . --output-format json
-   ```
+2. **Phase 1 — Technical Debt Assessment**
+   - Summarize analyzer outputs (complexity spikes, coupling hotspots, perf regressions).
+   - Identify the debt themes affecting `$REFACTOR_SCOPE`.
+   - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
+3. **Phase 2 — Migration Strategy**
+   - Research suitable refactoring patterns and outline phased migration (feature flags, decomposition, deployment plan).
+   - Define rollback procedures, monitoring hooks, and stakeholder checkpoints.
+   - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
+4. **Phase 3 — Implementation Planning**
+   - Break work into phased milestones with timelines and exit criteria.
+   - Run `uv run enaible analyzers run quality:coverage --target "$REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
+   - Establish success metrics (complexity targets, performance budgets, velocity impact).
+5. **Phase 4 — Finalize report**
+   - Summarize assessment, strategy, roadmap, and success metrics.
+   - Reference artifacts in `ARTIFACT_ROOT` and note follow-up tasks.
 
-2. **Identify refactoring priorities** - Analyze complexity hotspots and architectural debt
+## Output
 
-   - Cross-reference security vulnerabilities with refactoring scope
+```md
+# RESULT
 
-3. **Generate technical debt report** - Compile results into executive summary
-   - Define migration scope with clear boundaries and dependencies
+- Summary: Refactoring plan created for <REFACTOR_SCOPE>.
+- Artifacts: `.enaible/artifacts/plan-refactor/<timestamp>/`
 
-**STOP** → "Technical debt analysis complete. Proceed with strategy development? (y/n)"
+## ASSESSMENT
 
-### Phase 2: Migration Strategy Development
+- Hotspots: <key findings>
+- Architecture Risks: <items>
+- Performance Concerns: <items>
 
-1. **Research proven refactoring patterns** - Use web search for latest industry-proven strategies for the current scenario
+## STRATEGY
 
-   - Identify patterns: Strangler Fig, Module Federation, Blue-Green deployment
+- Pattern(s): <e.g., Strangler Fig>
+- Phases: <Phase 1, Phase 2, Phase 3 titles>
+- Rollback Plan: <overview>
 
-2. **Create phased migration plan** - Design incremental strategy with minimal risk
+## JUSTIFICATION
 
-   - Define feature flag integration for safe deployment
+- Technical alignment with current system
+- Balance of risk vs benefit
+- Resource/timeline fit
 
-3. **Define rollback procedures** - Establish automated rollback mechanisms
-   - Create safety nets and monitoring for each migration phase
+## IMPLEMENTATION SUMMARY
 
-**STOP** → "Migration strategy defined. Ready to create implementation plan? (y/n)"
+### High Level Checklist:
 
-### Phase 3: Implementation Planning
+<bullet summary of tasks>
 
-1. **Generate detailed task breakdown** - Create implementation timeline with checkpoints
+### Testing Strategy:
 
-   - Plan integration testing at each migration phase
+<coverage plan, tooling>
 
-2. **Create testing strategy** - Establish baselines and regression coverage
+### Success Metrics:
 
-   **Use previously resolved SCRIPT_PATH (registry-driven CLI):**
-
-   ```bash
-   PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:coverage --target . --output-format json
-   ```
-
-3. **Define success metrics** - Set measurable complexity and performance targets
-   - Create development velocity impact assessment framework
-
-### Phase 4: Quality Validation and Task Transfer
-
-1. **Validate plan completeness** - Verify approaches and rollback procedures
-
-   - Ensure success metrics are measurable and achievable
-
-2. **Quality Gates Validation**
-
-   - [ ] Technical debt hotspots identified and prioritized
-   - [ ] Migration strategy validated against proven patterns
-   - [ ] Implementation phases include comprehensive rollback procedures
-   - [ ] Testing strategy covers regression prevention and performance validation
-   - [ ] All refactoring targets have defined success metrics
-
-3. **Transfer tasks to todos.md** - Generate actionable implementation tasks
-   - Append formatted tasks with clear phases to todos.md
-
-**STOP** → "Implementation plan complete and validated. Transfer to todos.md? (y/n)"
-
-## Enhanced Optional Flags
-
-None currently defined.
-
-## Task Format for todos.md Transfer
-
-```markdown
-## [System/Component] Refactoring Implementation
-
-### Phase [PHASE-NUMBER]: [PHASE-TITLE]
-
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
+<targets>
 ```
 
-$ARGUMENTS
+## Examples
+
+```bash
+# Plan refactor for the payments service
+/plan-refactor "payments service"
+
+# Use verbose notes (no additional flags currently supported; reserved for future)
+/plan-refactor "frontend shell"
+```

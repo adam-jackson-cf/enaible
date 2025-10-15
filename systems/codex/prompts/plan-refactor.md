@@ -1,6 +1,5 @@
-## <!-- generated: enaible -->
-
-## description: Plan a minimal, high‑impact refactor with clear boundaries and tests
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
 
 # plan-refactor v1.0
 

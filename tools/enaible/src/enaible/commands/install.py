@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import os
 import shutil
+import subprocess
 from collections.abc import Iterable
 from dataclasses import dataclass
 from enum import Enum
+from importlib import metadata
 from pathlib import Path
 
 import typer
@@ -15,6 +18,19 @@ from ..prompts.adapters import SYSTEM_CONTEXTS, SystemRenderContext
 from ..runtime.context import load_workspace
 
 MANAGED_SENTINEL = "<!-- generated: enaible -->"
+
+SKIP_FILES = {
+    "install.sh",
+    "install.ps1",
+    "uninstall.sh",
+    ".DS_Store",
+}
+
+SYSTEM_RULES = {
+    "claude-code": ("rules/global.claude.rules.md", "claude.md"),
+    "opencode": ("rules/global.opencode.rules.md", "agents.md"),
+    "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
+}
 
 
 class InstallMode(str, Enum):
@@ -57,9 +73,14 @@ def install(  # noqa: PLR0912
         False, "--dry-run", help="Preview actions without writing files."
     ),
     backup: bool = typer.Option(
-        False,
+        True,
         "--backup/--no-backup",
         help="Create .bak backups for files that will be overwritten.",
+    ),
+    sync: bool = typer.Option(
+        True,
+        "--sync/--no-sync",
+        help="Run `uv sync --project tools/enaible` to provision Enaible dependencies before copying assets.",
     ),
 ) -> None:
     """Install rendered system assets into project or user configuration directories."""
@@ -76,7 +97,7 @@ def install(  # noqa: PLR0912
         shutil.rmtree(destination_root)
         summary.record("remove", destination_root)
 
-    files = _iter_source_files(source_root)
+    files = _iter_source_files(source_root, system)
 
     for source_file in files:
         relative = source_file.relative_to(source_root)
@@ -114,12 +135,22 @@ def install(  # noqa: PLR0912
         shutil.copy2(source_file, destination_file)
         summary.record("write", destination_file)
 
+    if sync:
+        _sync_enaible_env(context.repo_root, dry_run, summary)
+
+    _post_install(system, source_root, destination_root, dry_run, summary)
     _emit_summary(system, destination_root, mode, summary, dry_run)
 
 
-def _iter_source_files(root: Path) -> Iterable[Path]:
+def _iter_source_files(root: Path, system: str) -> Iterable[Path]:
+    skip_rel = SYSTEM_RULES.get(system, (None,))[0]
+
     for path in root.rglob("*"):
         if path.is_file():
+            if path.name in SKIP_FILES:
+                continue
+            if skip_rel and path.relative_to(root).as_posix() == skip_rel:
+                continue
             yield path
 
 
@@ -180,3 +211,99 @@ def _get_system_context(system: str) -> SystemRenderContext:
         raise typer.BadParameter(
             f"Unknown system '{system}'. Available adapters: {available}."
         ) from exc
+
+
+def _post_install(
+    system: str,
+    source_root: Path,
+    destination_root: Path,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    rules_info = SYSTEM_RULES.get(system)
+    if not rules_info:
+        return
+
+    source_rules_rel, target_name = rules_info
+    source_rules = source_root / source_rules_rel
+    if not source_rules.exists():
+        return
+
+    target_path = destination_root / target_name
+
+    if dry_run:
+        summary.record("merge", target_path)
+        return
+
+    if system == "codex":
+        _merge_codex_agents(target_path, source_rules)
+        summary.record("merge", target_path)
+        return
+
+    header = (
+        f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
+    )
+    rules_body = source_rules.read_text(encoding="utf-8").strip()
+
+    if target_path.exists():
+        existing = target_path.read_text(encoding="utf-8")
+        if "# AI-Assisted Workflows v" in existing:
+            summary.record_skip(target_path.relative_to(destination_root))
+            return
+        updated = f"{existing.rstrip()}\n\n---\n\n{header}\n\n{rules_body}\n"
+    else:
+        updated = f"{header}\n\n{rules_body}\n"
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(updated, encoding="utf-8")
+    summary.record("merge", target_path)
+
+
+def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:
+    start_marker = "<!-- CODEx_GLOBAL_RULES_START -->"
+    end_marker = "<!-- CODEx_GLOBAL_RULES_END -->"
+    header = f"# AI-Assisted Workflows (Codex Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
+    body = source_rules.read_text(encoding="utf-8").strip()
+    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+
+    existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
+
+    if start_marker in existing and end_marker in existing:
+        start = existing.index(start_marker)
+        end = existing.index(end_marker) + len(end_marker)
+        updated = existing[:start] + block + existing[end:]
+    else:
+        updated = (existing.rstrip() + "\n\n" if existing.strip() else "") + block
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
+
+
+def _enaible_version() -> str:
+    try:
+        return metadata.version("enaible")
+    except metadata.PackageNotFoundError:  # pragma: no cover - editable installs
+        return "local"
+
+
+def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -> None:
+    if dry_run:
+        summary.record("sync", repo_root / "tools" / "enaible")
+        return
+
+    if os.environ.get("ENAIBLE_INSTALL_SKIP_SYNC") == "1":
+        summary.record_skip(Path("tools/enaible (sync skipped)"))
+        return
+
+    cmd = ["uv", "sync", "--project", str(repo_root / "tools" / "enaible")]
+    try:
+        subprocess.run(cmd, check=True, capture_output=True)
+    except (
+        subprocess.CalledProcessError,
+        FileNotFoundError,
+    ) as exc:  # pragma: no cover - passthrough
+        raise typer.BadParameter(
+            "Failed to run 'uv sync --project tools/enaible'. Ensure `uv` is installed and accessible."
+        ) from exc
+
+    summary.record("sync", repo_root / "tools" / "enaible")
