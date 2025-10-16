@@ -7,7 +7,6 @@ to avoid analyzing it as application code.
 
 APPROACH:
 - File header analysis (copyright, license markers)
-- Package.json dependency matching
 - Minification pattern detection
 - Common vendor path patterns
 - Library signature detection
@@ -17,7 +16,6 @@ This helps reduce false positives by excluding code that shouldn't be analyzed
 as part of the application codebase.
 """
 
-import json
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -44,57 +42,9 @@ class VendorDetector:
             project_root: Root directory of the project to analyze
         """
         self.project_root = project_root
-        self._package_dependencies: set[str] = set()
-        self._dependency_patterns: list[re.Pattern] = []
-
-        # Load dependencies if package.json exists
-        if project_root:
-            self._load_dependencies()
 
         # Compile regex patterns for performance
         self._compile_patterns()
-
-    def _load_dependencies(self) -> None:
-        """Load dependencies from package.json files."""
-        if not self.project_root:
-            return
-
-        # Find all package.json files
-        for package_json in self.project_root.rglob("package.json"):
-            try:
-                with open(package_json, encoding="utf-8") as f:
-                    data = json.load(f)
-
-                # Extract dependencies
-                for dep_type in [
-                    "dependencies",
-                    "devDependencies",
-                    "peerDependencies",
-                    "optionalDependencies",
-                ]:
-                    deps = data.get(dep_type, {})
-                    for dep_name in deps:
-                        self._package_dependencies.add(dep_name)
-
-                        # Also add variations (e.g., @types/react -> react)
-                        if dep_name.startswith("@types/"):
-                            self._package_dependencies.add(
-                                dep_name[7:]
-                            )  # Remove @types/
-                        elif dep_name.startswith("@"):
-                            # For scoped packages like @angular/core, add both full name and base
-                            parts = dep_name.split("/")
-                            if len(parts) > 1:
-                                self._package_dependencies.add(parts[1])
-
-            except (json.JSONDecodeError, FileNotFoundError, UnicodeDecodeError):
-                continue
-
-        # Create regex patterns for dependency matching
-        self._dependency_patterns = [
-            re.compile(re.escape(dep), re.IGNORECASE)
-            for dep in self._package_dependencies
-        ]
 
     def _compile_patterns(self) -> None:
         """Compile regex patterns for vendor detection."""
@@ -242,15 +192,6 @@ class VendorDetector:
                     confidence += generated_result[1]
                     reasons.extend(generated_result[2])
 
-                # Check dependency matching
-                if self._package_dependencies:
-                    dep_result = self._check_dependency_match(file_path, header_content)
-                    if dep_result[0]:
-                        confidence += dep_result[1]
-                        reasons.extend(dep_result[2])
-                        if dep_result[3]:
-                            detected_library = dep_result[3]
-
             except (UnicodeDecodeError, PermissionError, OSError):
                 reasons.append("Could not read file content")
 
@@ -382,25 +323,6 @@ class VendorDetector:
             if pattern.search(content):
                 reasons.append("Generated file marker found")
                 return True, 0.9, reasons, None
-
-        return False, 0.0, reasons, None
-
-    def _check_dependency_match(
-        self, file_path: Path, content: str
-    ) -> tuple[bool, float, list[str], str | None]:
-        """Check if file matches a known package dependency."""
-        reasons = []
-
-        filename = file_path.name.lower()
-        path_str = str(file_path).lower()
-
-        for pattern in self._dependency_patterns:
-            dep_name = pattern.pattern.lower()
-
-            # Check if dependency name is in filename or path
-            if dep_name in filename or dep_name in path_str:
-                reasons.append(f"Matches package dependency: {dep_name}")
-                return True, 0.5, reasons, dep_name
 
         return False, 0.0, reasons, None
 

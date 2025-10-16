@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import time
+from collections.abc import Iterable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -48,6 +49,7 @@ def _create_config(
     summary_mode: bool,
     max_files: int | None,
     output_format: str,
+    exclude_globs: Iterable[str],
 ) -> Any:
     from core.base import create_analyzer_config
 
@@ -60,7 +62,40 @@ def _create_config(
 
     if max_files is not None:
         config.max_files = max_files
+    config.exclude_globs.update(exclude_globs)
     return config
+
+
+def _collect_gitignore_patterns(search_root: Path) -> list[str]:
+    """Gather gitignore patterns walking up from the search root."""
+    patterns: list[str] = []
+    seen_files: set[Path] = set()
+
+    current = search_root
+    if not current.exists():
+        current = Path.cwd()
+    elif current.is_file():
+        current = current.parent
+
+    for directory in [current, *list(current.parents)]:
+        candidate = directory / ".gitignore"
+        if candidate in seen_files or not candidate.is_file():
+            continue
+
+        try:
+            lines = candidate.read_text(encoding="utf-8").splitlines()
+        except OSError:
+            continue
+
+        for line in lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith("#"):
+                continue
+            patterns.append(stripped)
+
+        seen_files.add(candidate)
+
+    return patterns
 
 
 def _emit_json(payload: dict[str, Any], out: Path | None) -> None:
@@ -91,9 +126,10 @@ def analyzers_run(
         help="Optional file to write result JSON to.",
     ),
     min_severity: str = typer.Option(
-        "low",
+        "high",
         "--min-severity",
         help="Minimum severity to include in findings.",
+        show_default=True,
     ),
     max_files: int
     | None = typer.Option(
@@ -114,6 +150,12 @@ def analyzers_run(
         "--no-external",
         help="Disable analyzer features requiring external dependencies (sets ENAIBLE_DISABLE_EXTERNAL=1).",
     ),
+    exclude_glob: list[str] = typer.Option(
+        [],
+        "--exclude",
+        "-x",
+        help="Additional glob patterns to exclude (repeatable).",
+    ),
 ) -> None:
     """Run a registered analyzer and emit normalized results."""
     context = load_workspace()
@@ -124,13 +166,23 @@ def analyzers_run(
     if no_external:
         os.environ.setdefault("ENAIBLE_DISABLE_EXTERNAL", "1")
 
+    min_severity = min_severity.lower()
+    normalized_excludes = [
+        pattern.strip() for pattern in exclude_glob if pattern.strip()
+    ]
+
+    gitignore_patterns = _collect_gitignore_patterns(target)
+
     config = _create_config(
         target=target,
         min_severity=min_severity,
         summary_mode=summary_mode,
         max_files=max_files,
         output_format="json" if json_output else "console",
+        exclude_globs=normalized_excludes,
     )
+
+    config.gitignore_patterns = gitignore_patterns
 
     try:
         analyzer = registry.create(tool, config=config)
@@ -161,6 +213,13 @@ def analyzers_run(
         # Analyzer handles console output internally; only write JSON when requested.
         if out is not None:
             _emit_json(payload, out)
+
+    if len(response.findings) >= 200:
+        tip = (
+            "Hint: If some findings look third-party or generated, rerun with "
+            "`--exclude <glob>` to filter those directories."
+        )
+        typer.secho(tip, err=True)
 
     raise typer.Exit(code=response.exit_code)
 

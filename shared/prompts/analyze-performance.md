@@ -4,9 +4,11 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## Variables
 
-| Token          | Type                     | Description                                       |
-| -------------- | ------------------------ | ------------------------------------------------- |
-| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
+| Token/Flag       | Type                     | Description                                                                                   |
+| ---------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| `$TARGET_PATH`   | positional #1 (REQUIRED) | Path to analyze; defaults to the current project.                                             |
+| `--min-severity` | option (optional)        | Minimum severity to include. Defaults to `high`. Accepts `critical`, `high`, `medium`, `low`. |
+| `--exclude`      | option (repeatable)      | Additional glob patterns to exclude (e.g., `test_codebase/**`).                               |
 
 ## Instructions
 
@@ -42,6 +44,8 @@ Identify performance bottlenecks across backend, frontend, and data layers using
      ```
 
    - Append `--summary` when triaging large repositories; rerun full reports before publishing.
+   - Add `--exclude "<glob>"` or refine `--min-severity` to focus on relevant subsystems.
+   - If any invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
 3. **Aggregate findings**
    - Parse hotspots across layers: backend N+1 patterns, frontend re-render costs, SQL anti-patterns, lint warnings.

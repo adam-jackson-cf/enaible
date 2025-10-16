@@ -4,10 +4,12 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ## Variables
 
-| Token                | Type                      | Description                                                |
-| -------------------- | ------------------------- | ---------------------------------------------------------- |
-| `$ISSUE_DESCRIPTION` | positional #1 (REQUIRED)  | Description of the defect or incident under investigation. |
-| `$VERBOSE_MODE`      | flag --verbose (OPTIONAL) | Enable verbose diagnostics capture.                        |
+| Token/Flag           | Type                      | Description                                                                                   |
+| -------------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `$ISSUE_DESCRIPTION` | positional #1 (REQUIRED)  | Description of the defect or incident under investigation.                                    |
+| `$VERBOSE_MODE`      | flag --verbose (OPTIONAL) | Enable verbose diagnostics capture.                                                           |
+| `--min-severity`     | option (optional)         | Minimum severity to include. Defaults to `high`. Accepts `critical`, `high`, `medium`, `low`. |
+| `--exclude`          | option (repeatable)       | Additional glob patterns to exclude (e.g., `test_codebase/**`).                               |
 
 ## Instructions
 
@@ -43,6 +45,8 @@ Discover the fundamental cause of an incident or defect through evidence-based i
      ```
 
    - When `VERBOSE_MODE` is set, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
+   - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
+   - If any invocation fails, review options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
 4. **Analyze results**
    - Correlate change timelines with error occurrences.

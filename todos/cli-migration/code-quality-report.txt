@@ -1,0 +1,87 @@
+RESULT
+
+  - Summary: Code quality assessment completed for the AI-Assisted Workflows project (excluding test_codebase).
+  - Artifacts: .enaible/artifacts/analyze-code-quality/20251016T134919Z/
+
+  METRICS
+
+  | Metric                | Threshold | Worst Offender                                      | Value |
+  |-----------------------|-----------|-----------------------------------------------------|-------|
+  | Cyclomatic Complexity | 10        | shared/context/context_bundle_capture_codex.py#L197 | 44    |
+  | Function Length       | 80 lines  | shared/context/context_bundle_capture_codex.py#L197 | 168   |
+  | Parameter Count       | 5         | shared/core/utils/output_formatter.py#L39           | 9     |
+
+  INSIGHTS
+
+  Maintainability
+
+  - Critical complexity hotspots in context extraction functions across multiple capture modules (codex, opencode, claude)
+  - Function length violations indicate monolithic functions that handle multiple responsibilities
+  - Parameter count issues suggest several functions could benefit from parameter objects or configuration classes
+
+  Technical Debt
+
+  - 194 total findings with 33 high-severity issues indicate significant technical debt
+  - Duplication analysis shows 70 low-severity clone fragments, suggesting some code reuse patterns
+  - Complexity clustering in shared/context/ module suggests need for architectural refactoring
+
+  Testing Coverage Signals
+
+  - Comprehensive test structure with both unit and integration tests present
+  - Test utilities include builders and conftest for proper test setup
+  - Integration tests cover CLI interfaces and analyzer workflows
+
+  SOLID & Patterns
+
+  - Strong abstract base class pattern in BaseAnalyzer with well-documented interfaces
+  - Configuration management follows good patterns with validation
+  - Dependency injection present in analyzer architecture
+  - Single Responsibility violations in large extraction functions
+
+  RECOMMENDATIONS
+
+  1. Immediate Priority: Function Decomposition
+
+  - Target files:
+    - shared/context/context_bundle_capture_codex.py:197 (extract_jsonl_operations - 44 CC, 168 lines)
+    - shared/context/context_bundle_capture_opencode.py:246 (extract_session_operations - 39 CC, 140 lines)
+    - shared/context/context_bundle_capture_claude.py:138 (extract_session_full - 44 CC, 142 lines)
+  - Action: Break down into smaller, single-purpose functions with clear separation of concerns
+  - Impact: Reduces complexity, improves testability, and enhances maintainability
+
+  2. Parameter Refactoring
+
+  - Target functions:
+    - shared/core/utils/output_formatter.py:39 (__init__ - 9 parameters)
+    - shared/core/base/analyzer_base.py:615 (create_standard_finding - 7 parameters)
+    - tools/enaible/src/enaible/models/results.py:75 (from_analysis_result - 7 parameters)
+  - Action: Introduce parameter objects or configuration classes to group related parameters
+  - Impact: Improves API design and reduces coupling
+
+  3. Context Module Architecture Review
+
+  - Target: Entire shared/context/ module
+  - Issues: Multiple functions with similar responsibilities across different capture systems
+  - Action: Consider unified context extraction interface or strategy pattern
+  - Impact: Reduces duplication and improves consistency
+
+  4. Error Pattern Function Simplification
+
+  - Target: shared/analyzers/root_cause/error_patterns.py:57 (_load_error_pattern_bundle - 26 CC, 111 lines)
+  - Action: Extract pattern loading logic into separate classes or functions
+  - Impact: Improves modularity and testability
+
+  5. Web Scraper Function Refactoring
+
+  - Target: shared/web_scraper/crawler.py:16 (crawl_website - 31 CC, 152 lines)
+  - Action: Separate crawling logic from error handling and data processing
+  - Impact: Enhances maintainability and error isolation
+
+  ATTACHMENTS
+
+  - quality:lizard report → .enaible/artifacts/analyze-code-quality/20251016T134919Z/quality-lizard.json
+  - quality:jscpd report → .enaible/artifacts/analyze-code-quality/20251016T134919Z/quality-jscpd.json
+
+⏺ The code quality analysis has been completed successfully. The assessment revealed 33 high-severity issues primarily focused on cyclomatic complexity and function length
+  violations, with the most critical hotspots located in the context extraction modules. The project shows strong architectural patterns with comprehensive test coverage, but
+   would benefit from function decomposition and parameter refactoring to improve maintainability.

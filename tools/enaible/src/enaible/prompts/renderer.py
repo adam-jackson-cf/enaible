@@ -183,14 +183,26 @@ class PromptRenderer:
 
 
 def _argument_hint_from_variables(variables: list[VariableSpec]) -> str:
+    tokens: list[str] = []
+
     positional = [var for var in variables if var.kind == "positional"]
     positional.sort(key=lambda var: var.positional_index or 0)
 
-    if not positional:
-        return ""
+    flags = [var for var in variables if var.kind in {"flag", "named"}]
+    flags.sort(key=lambda var: (var.flag_name or var.token).lower())
 
-    def _token_to_hint(token: str) -> str:
-        label = token.lstrip("$").lower().replace("_", "-")
-        return label
+    def _format_label(var: VariableSpec, base: str) -> str:
+        label = base
+        if not var.required:
+            label = f"{label}?"
+        return f"[{label}]"
 
-    return " ".join(f"[{_token_to_hint(var.token)}]" for var in positional)
+    for var in positional:
+        label = var.token.lstrip("$").lower().replace("_", "-")
+        tokens.append(_format_label(var, label))
+
+    for var in flags:
+        base = (var.flag_name or var.token.lstrip("$")).lower()
+        tokens.append(_format_label(var, base))
+
+    return " ".join(tokens)

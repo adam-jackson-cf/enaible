@@ -85,7 +85,7 @@ class AnalysisRunner:
         self,
         target_path: str,
         summary_mode: bool = True,
-        min_severity: str = "low",
+        min_severity: str = "high",
         max_files: int = None,
     ) -> dict[str, Any]:
         """Run all analysis scripts and combine results."""

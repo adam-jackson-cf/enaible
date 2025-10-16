@@ -4,9 +4,11 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## Variables
 
-| Token          | Type                     | Description                                       |
-| -------------- | ------------------------ | ------------------------------------------------- |
-| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
+| Token/Flag       | Type                     | Description                                                                                   |
+| ---------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| `$TARGET_PATH`   | positional #1 (REQUIRED) | Path to analyze; defaults to the current project.                                             |
+| `--min-severity` | option (optional)        | Minimum severity to include. Defaults to `high`. Accepts `critical`, `high`, `medium`, `low`. |
+| `--exclude`      | option (repeatable)      | Additional glob patterns to exclude (e.g., `test_codebase/**`).                               |
 
 ## Instructions
 
@@ -36,6 +38,8 @@ Assess code quality by combining automated metrics with architectural review to 
      ```
 
    - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
+   - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
+   - If either invocation fails, review available flags with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
 3. **Interpret metrics**
    - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).

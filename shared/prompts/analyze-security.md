@@ -4,10 +4,12 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 ## Variables
 
-| Token           | Type                      | Description                                       |
-| --------------- | ------------------------- | ------------------------------------------------- |
-| `$TARGET_PATH`  | positional #1 (REQUIRED)  | Path to analyze; defaults to the current project. |
-| `$VERBOSE_MODE` | flag --verbose (OPTIONAL) | Enable verbose analyzer logging.                  |
+| Token/Flag       | Type                      | Description                                                                                   |
+| ---------------- | ------------------------- | --------------------------------------------------------------------------------------------- |
+| `$TARGET_PATH`   | positional #1 (REQUIRED)  | Path to analyze; defaults to the current project.                                             |
+| `$VERBOSE_MODE`  | flag --verbose (OPTIONAL) | Enable verbose analyzer logging.                                                              |
+| `--min-severity` | option (optional)         | Minimum severity to include. Defaults to `high`. Accepts `critical`, `high`, `medium`, `low`. |
+| `--exclude`      | option (repeatable)       | Additional glob patterns to exclude (e.g., `terraform/.generated/**`).                        |
 
 ## Guardrails
 
@@ -33,6 +35,8 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
      - Pass `--summary` to generate quick overviews when triaging large reports.
      - Add `--verbose` when `$VERBOSE_MODE` is enabled to capture analyzer-specific debugging output.
+     - Add `--exclude "<glob>"` or tune `--min-severity` when focusing on specific systems or risk levels.
+     - If an invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
    - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”

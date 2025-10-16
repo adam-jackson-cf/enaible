@@ -4,9 +4,11 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 
 ## Variables
 
-| Token          | Type                     | Description                                       |
-| -------------- | ------------------------ | ------------------------------------------------- |
-| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
+| Token/Flag       | Type                     | Description                                                                                   |
+| ---------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| `$TARGET_PATH`   | positional #1 (REQUIRED) | Path to analyze; defaults to the current project.                                             |
+| `--min-severity` | option (optional)        | Minimum severity to include. Defaults to `high`. Accepts `critical`, `high`, `medium`, `low`. |
+| `--exclude`      | option (repeatable)      | Additional glob patterns to exclude (e.g., `test_codebase/**`).                               |
 
 ## Instructions
 
@@ -42,6 +44,8 @@ Evaluate project architecture for scalability, maintainability, and design-patte
      ```
 
    - Use `--summary` for quick reconnaissance when working with large codebases.
+   - Add `--exclude "<glob>"` or adjust `--min-severity` when the analysis needs tighter focus.
+   - If any invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
 3. **Synthesize quantitative findings**
    - Extract metrics related to service boundaries, coupling indices, dependency depth, and scalability bottlenecks.

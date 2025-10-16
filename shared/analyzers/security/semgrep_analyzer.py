@@ -444,8 +444,40 @@ class SemgrepAnalyzer(BaseAnalyzer):
                 "--optimizations",
                 "all",  # Enable all optimizations
                 "--oss-only",  # Use only OSS rules for speed
-                directory_path,  # Pass directory, not individual files
             ]
+
+            ignore_patterns: set[str] = set()
+
+            for pattern in getattr(self.config, "exclude_globs", set()):
+                trimmed = pattern.strip()
+                if trimmed:
+                    ignore_patterns.add(trimmed)
+
+            for skip in self.config.skip_patterns:
+                sanitized = skip.strip("/")
+                if not sanitized:
+                    continue
+                ignore_patterns.add(sanitized)
+                ignore_patterns.add(f"**/{sanitized}")
+                ignore_patterns.add(f"{sanitized}/**")
+
+                if sanitized.endswith("*") and not sanitized.startswith("**/"):
+                    ignore_patterns.add(f"**/{sanitized}")
+
+            for pattern in getattr(self.config, "gitignore_patterns", []):
+                trimmed = pattern.strip()
+                if not trimmed or trimmed.startswith("#") or trimmed.startswith("!"):
+                    continue
+                ignore_patterns.add(trimmed)
+                if trimmed.endswith("/"):
+                    base = trimmed.rstrip("/")
+                    ignore_patterns.add(f"{trimmed}**")
+                    ignore_patterns.add(f"**/{base}/**")
+
+            for pattern in sorted(p for p in ignore_patterns if p):
+                cmd.extend(["--exclude", pattern])
+
+            cmd.append(directory_path)  # Pass directory, not individual files
 
             self.logger.info(f"Running Semgrep on directory: {directory_path}")
 
