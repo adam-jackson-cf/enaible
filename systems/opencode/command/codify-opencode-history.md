@@ -9,8 +9,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 ## Environment checks
 
 - !`python --version` — Exit if Python unavailable.
-- !`test -f shared/context/context_bundle_capture_opencode.py` — Exit if capture script missing.
-- !`PYTHONPATH=shared uv run --project tools/enaible python -c "import context.context_bundle_capture_opencode; print('env OK')"` — Exit if import fails.
+- !`uv run --project tools/enaible enaible context_capture --platform opencode --help >/dev/null` — Verify the Enaible command is available.
 
 ## Variables
 
@@ -25,7 +24,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 ## Instructions
 
-- Use the capture script; restrict reads to `$HOME/.local/share/opencode/**`.
+- Use the `enaible context_capture --platform opencode` command; restrict reads to `$HOME/.local/share/opencode/**`.
 - Honor redaction; never print secrets.
 - Enforce budgets: do not exceed `MAX_CHARS` total or `CHUNK_SIZE` per subagent.
 - Sample head+tail when truncating; keep chronological order.
@@ -40,12 +39,12 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 2. Capture:
 
    ```bash
-   PYTHONPATH=shared \
-     uv run --project tools/enaible python shared/context/context_bundle_capture_opencode.py \
-       --days ${DAYS:-7} \
-       ${UUID:+--uuid "$UUID"} \
-       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-       --output-format json
+   uv run --project tools/enaible enaible context_capture \
+     --platform opencode \
+     --days ${DAYS:-7} \
+     ${UUID:+--uuid "$UUID"} \
+     ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+     --output-format json
    ```
 
    - Prefer `sessions[].user_messages[]` as primary signal for ways‑of‑working.

@@ -22,15 +22,15 @@ This command performs a comprehensive review of recent activity by:
   uv sync --project tools/enaible
   ```
 
-- Capture recent Codex sessions directly from the repo:
+- Capture recent Codex sessions via the Enaible CLI:
 
   ```bash
-  PYTHONPATH=shared \
-    uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
-      --days 2 \
-      ${UUID:+--uuid "$UUID"} \
-      ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-      --output-format json
+  uv run --project tools/enaible enaible context_capture \
+    --platform codex \
+    --days 2 \
+    ${UUID:+--uuid "$UUID"} \
+    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+    --output-format json
   ```
 
 - Add `--include-all-projects` when you need cross-repo visibility.
@@ -95,20 +95,20 @@ else
     SEMANTIC_VARIATIONS=""
 fi
 
-PYTHONPATH=shared \
-  uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
-    --days 2 \
-    ${UUID:+--uuid "$UUID"} \
-    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-    ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
-    --output-format json
+uv run --project tools/enaible enaible context_capture \
+  --platform codex \
+  --days 2 \
+  ${UUID:+--uuid "$UUID"} \
+  ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+  ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
+  --output-format json
 
 # To include all projects (ignore project scoping)
-PYTHONPATH=shared \
-  uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
-    --days 2 \
-    --include-all-projects \
-    --output-format json
+uv run --project tools/enaible enaible context_capture \
+  --platform codex \
+  --days 2 \
+  --include-all-projects \
+  --output-format json
 
 # From the JSON, present a compact view:
 # - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)

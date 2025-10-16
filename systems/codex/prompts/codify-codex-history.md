@@ -15,7 +15,7 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 
 ## Instructions
 
-- Use the capture script; restrict reads to `~/.codex/sessions/**`.
+- Use the `enaible context_capture --platform codex` command; restrict reads to `~/.codex/sessions/**`.
 - Honor redaction; never print secrets.
 - Enforce budgets: do not exceed `MAX_CHARS` total or `CHUNK_SIZE` per subagent.
 - Sample head+tail when truncating; keep chronological order.
@@ -30,12 +30,12 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 2. Capture:
 
    ```bash
-   PYTHONPATH=shared \
-     uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
-       --days ${DAYS:-7} \
-       ${UUID:+--uuid "$UUID"} \
-       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-       --output-format json
+   uv run --project tools/enaible enaible context_capture \
+     --platform codex \
+     --days ${DAYS:-7} \
+     ${UUID:+--uuid "$UUID"} \
+     ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+     --output-format json
    ```
 
    - Prefer `sessions[].user_messages[]` as primary signal for ways‑of‑working.

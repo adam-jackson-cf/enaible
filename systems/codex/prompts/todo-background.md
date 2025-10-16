@@ -19,8 +19,8 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 ## Workflow
 
 0. Auth preflight
-   - Run `shared/tests/integration/fixtures/check-ai-cli-auth.sh <CLI> --report <REPORT_FILE>` using the parsed CLI from `MODEL_SELECTOR`.
-   - If the script exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
+   - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from `$MODEL_SELECTOR`.
+   - If the command exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
 1. Prepare reporting directory
    - Run `mkdir -p ./.workspace/agents/background && test -w ./.workspace/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
 2. Parse inputs

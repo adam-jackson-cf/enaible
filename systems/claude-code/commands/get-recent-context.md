@@ -26,18 +26,18 @@ This command performs a comprehensive review of recent activity by:
   uv sync --project tools/enaible
   ```
 
-- Run the capture script via Enaible’s Python environment (works from the repo root):
+- Capture recent activity with the Enaible CLI:
 
   ```bash
-  PYTHONPATH=shared \
-    uv run --project tools/enaible python shared/context/context_bundle_capture_claude.py \
-      --days 2 \
-      ${UUID:+--uuid "$UUID"} \
-      ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-      --output-format json
+  uv run --project tools/enaible enaible context_capture \
+    --platform claude \
+    --days 2 \
+    ${UUID:+--uuid "$UUID"} \
+    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+    --output-format json
   ```
 
-- To include all linked projects (cross-repo review), add `--include-all-projects` to the same command.
+- Add `--include-all-projects` when you need cross-repo visibility.
 
 1. **Context Bundle Analysis**
 
@@ -99,20 +99,20 @@ else
     SEMANTIC_VARIATIONS=""
 fi
 
-PYTHONPATH=shared \
-  uv run --project tools/enaible python shared/context/context_bundle_capture_claude.py \
-    --days 2 \
-    ${UUID:+--uuid "$UUID"} \
-    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-    ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
-    --output-format json
+uv run --project tools/enaible enaible context_capture \
+  --platform claude \
+  --days 2 \
+  ${UUID:+--uuid "$UUID"} \
+  ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+  ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
+  --output-format json
 
 # Include all projects when cross-repo context is required
-PYTHONPATH=shared \
-  uv run --project tools/enaible python shared/context/context_bundle_capture_claude.py \
-    --days 2 \
-    --include-all-projects \
-    --output-format json
+uv run --project tools/enaible enaible context_capture \
+  --platform claude \
+  --days 2 \
+  --include-all-projects \
+  --output-format json
 
 # From the JSON, present a compact view:
 # - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)

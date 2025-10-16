@@ -22,7 +22,7 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 
 ## Instructions
 
-- Use the capture script `shared/context/context_bundle_capture_claude.py`.
+- Use the Enaible `context_capture` command (Claude platform) to gather raw history.
 - Prefer `sessions[].user_messages` (and `assistant_messages` when present) as the primary signal; treat `operations` as secondary context.
 - Focus on standards, preferences, ways_of_working, approaches; ignore tool errors unless they imply a rule.
 - Propose user-level changes only; do not edit project files here.
@@ -36,12 +36,12 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 2. Capture (7-day default)
 
    - ```
-     PYTHONPATH=shared \
-       uv run --project tools/enaible python shared/context/context_bundle_capture_claude.py \
-         --days ${DAYS:-7} \
-         ${UUID:+--uuid "$UUID"} \
-         ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-         --output-format json
+     uv run --project tools/enaible enaible context_capture \
+       --platform claude \
+       --days ${DAYS:-7} \
+       ${UUID:+--uuid "$UUID"} \
+       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       --output-format json
      ```
    - Input fields: `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, `operations[]` (for file footprints)
 
