@@ -4,7 +4,9 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## Variables
 
-- `$TARGET_PATH` ← $1 (defaults to `./`).
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
 
 ## Instructions
 

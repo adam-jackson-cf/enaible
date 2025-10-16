@@ -1,16 +1,21 @@
 ## <!-- generated: enaible -->
 
-## description: Identify performance bottlenecks and propose minimal, high‑impact optimizations
+description: Identify performance bottlenecks and propose minimal, high‑impact optimizations
+argument-hint: [target-path]
+
+---
 
 # analyze-performance v1.0
+
+## Variables
+
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
 
 # Purpose
 
 Identify performance bottlenecks across backend, frontend, and data layers using automated analyzers coupled with contextual investigation.
-
-## Variables
-
-- `$TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 

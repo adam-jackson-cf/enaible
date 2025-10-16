@@ -4,15 +4,17 @@
 
 # plan-refactor v1.0
 
+## Variables
+
+| Token             | Type                     | Description                    |
+| ----------------- | ------------------------ | ------------------------------ |
+| `$REFACTOR_SCOPE` | positional #1 (REQUIRED) | Area or component to refactor. |
+
 # plan-refactor v0.3
 
 ## Purpose
 
 Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
-
-## Variables
-
-- `$REFACTOR_SCOPE` ← $1 required, defines area or component.
 
 ## Instructions
 

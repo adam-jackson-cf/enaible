@@ -3,13 +3,16 @@
 
 # plan-solution v1.0
 
+## Variables
+
+| Token          | Type                       | Description                                             |
+| -------------- | -------------------------- | ------------------------------------------------------- |
+| `$USER_PROMPT` | positional #1 (REQUIRED)   | Description of the technical problem to solve.          |
+| `$CRITIQUE`    | flag --critique (OPTIONAL) | Request validator critique after drafting the solution. |
+
 # Purpose
 
 Develop and compare solution approaches for a `$USER_PROMPT` using targeted context gathering, research, and structured recommendations.
-
-## Variables
-
-- `$USER_PROMPT` ← first positional argument or prompt input describing the technical problem.
 
 ## Instructions
 
@@ -17,7 +20,7 @@ Develop and compare solution approaches for a `$USER_PROMPT` using targeted cont
 - If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
 - Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
 - Support recommendations with research citations or code insights.
-- When `--critique` is used, invoke `@agent-solution-validator` after drafting the recommendation.
+- When `$CRITIQUE` is provided, invoke `@agent-solution-validator` after drafting the recommendation.
 - Wait for approval before appending tasks to `todos.md`.
 
 ## Workflow

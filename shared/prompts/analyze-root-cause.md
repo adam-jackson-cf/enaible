@@ -4,8 +4,10 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ## Variables
 
-- `ISSUE_DESCRIPTION` ← $1.
-- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is present).
+| Token                | Type                      | Description                                                |
+| -------------------- | ------------------------- | ---------------------------------------------------------- |
+| `$ISSUE_DESCRIPTION` | positional #1 (REQUIRED)  | Description of the defect or incident under investigation. |
+| `$VERBOSE_MODE`      | flag --verbose (OPTIONAL) | Enable verbose diagnostics capture.                        |
 
 ## Instructions
 
@@ -13,13 +15,13 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Use Enaible analyzers exclusively—do not probe for scripts or import modules manually.
 - Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
-- In `VERBOSE_MODE`, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
+- When `$VERBOSE_MODE` is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
 
 ## Workflow
 
 1. **Validate inputs**
-   - Confirm `ISSUE_DESCRIPTION` is present. If missing, request more information or explicit approval to proceed with assumptions.
-   - Note whether `VERBOSE_MODE` is enabled.
+   - Confirm `$ISSUE_DESCRIPTION` is present. If missing, request more information or explicit approval to proceed with assumptions.
+   - Note whether `$VERBOSE_MODE` is enabled.
 2. **Establish artifacts directory**
    - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 3. **Execute automated investigation**

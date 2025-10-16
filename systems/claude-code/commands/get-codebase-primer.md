@@ -8,8 +8,6 @@
 
 Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
 
-## Variables
-
 - `TARGET_PATH` ← $1 (defaults to `./`.
 
 ## Instructions

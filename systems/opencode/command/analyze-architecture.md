@@ -1,16 +1,21 @@
 ## <!-- generated: enaible -->
 
-## description: Evaluate system architecture for scalability, maintainability, and best practices
+description: Evaluate system architecture for scalability, maintainability, and best practices
+argument-hint: [target-path]
+
+---
 
 # analyze-architecture v1.0
+
+## Variables
+
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
 
 # Purpose
 
 Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
-
-## Variables
-
-- `TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 

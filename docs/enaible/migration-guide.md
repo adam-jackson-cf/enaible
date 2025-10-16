@@ -29,6 +29,25 @@ This playbook explains how to onboard teams to the Enaible CLI, replacing legacy
    uv run --project tools/enaible enaible doctor --json
    ```
 
+## Shared Prompt Variables
+
+All shared prompts define their inputs via a standardized markdown table:
+
+```md
+## Variables
+
+| Token          | Type                      | Description                                       |
+| -------------- | ------------------------- | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED)  | Path to analyze; defaults to the current project. |
+| `$VERBOSE`     | flag --verbose (OPTIONAL) | Enable verbose logging.                           |
+```
+
+- **Token** – Always `$UPPER_SNAKE_CASE`, matching the placeholder used inside the prompt body.
+- **Type** – One of `positional #<n>`, `flag --name`, `named --name`, or `config`, optionally suffixed with `(REQUIRED)` / `(OPTIONAL)`.
+- **Description** – Human-readable guidance that may restate required/optional semantics.
+
+The Enaible renderer parses this table, removes it from the shared body, and re-renders a system-specific `## Variables` section while wiring positional arguments into Claude frontmatter (`argument-hint`) and Codex/OpenCode bindings. Always update the table when adding or changing prompt inputs.
+
 ## Installation Modes
 
 Use `enaible install <system>` to materialize system assets (`claude-code`, `opencode`, or `codex`). Available modes:

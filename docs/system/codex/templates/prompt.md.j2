@@ -2,4 +2,11 @@
 {% if metadata.comment %}<!-- {{ metadata.comment }} -->
 {% endif %}# {{ title }}
 
-{{ body }}
+{% if variables %}## Variables
+| Token | Type | Description |
+| ----- | ---- | ----------- |
+{% for var in variables -%}
+| `{{ var.token }}` | {{ var.type_text }} | {{ var.description }} |
+{% endfor %}
+
+{% endif %}{{ body }}

@@ -12,6 +12,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from ..runtime.context import WorkspaceContext
 from .adapters import SYSTEM_CONTEXTS, SystemRenderContext
 from .catalog import CATALOG, PromptDefinition, SystemPromptConfig
+from .utils import VariableSpec, extract_variables
 
 
 @dataclass(frozen=True)
@@ -70,8 +71,15 @@ class PromptRenderer:
                 except ValueError:
                     continue
                 system_context = self._get_system_context(system)
-                body = self._render_body(definition, system_context, config)
-                content = self._render_wrapper(definition, system_context, config, body)
+                rendered_body = self._render_body(definition, system_context, config)
+                variables, stripped_body = extract_variables(rendered_body)
+                content = self._render_wrapper(
+                    definition,
+                    system_context,
+                    config,
+                    stripped_body,
+                    variables,
+                )
                 output_path = self._resolve_output_path(config, system, output_override)
                 results.append(
                     RenderResult(
@@ -133,6 +141,7 @@ class PromptRenderer:
         system: SystemRenderContext,
         config: SystemPromptConfig,
         body: str,
+        variables: list[VariableSpec],
     ) -> str:
         template_path = (
             (self.context.repo_root / Path(config.template))
@@ -141,13 +150,18 @@ class PromptRenderer:
             .as_posix()
         )
         template = self.env.get_template(template_path)
+        argument_hint = _argument_hint_from_variables(variables)
+        frontmatter = dict(config.frontmatter)
+        if argument_hint:
+            frontmatter.setdefault("argument-hint", argument_hint)
         return template.render(
             title=definition.title,
             body=body.strip() + "\n",
             prompt=definition,
             system=system,
-            frontmatter=config.frontmatter,
+            frontmatter=frontmatter,
             metadata=config.metadata,
+            variables=variables,
         )
 
     def _resolve_output_path(
@@ -166,3 +180,17 @@ class PromptRenderer:
     @staticmethod
     def _ensure_trailing_newline(value: str) -> str:
         return value if value.endswith("\n") else f"{value}\n"
+
+
+def _argument_hint_from_variables(variables: list[VariableSpec]) -> str:
+    positional = [var for var in variables if var.kind == "positional"]
+    positional.sort(key=lambda var: var.positional_index or 0)
+
+    if not positional:
+        return ""
+
+    def _token_to_hint(token: str) -> str:
+        label = token.lstrip("$").lower().replace("_", "-")
+        return label
+
+    return " ".join(f"[{_token_to_hint(var.token)}]" for var in positional)

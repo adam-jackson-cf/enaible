@@ -3,14 +3,16 @@
 
 # analyze-security v1.0
 
+## Variables
+
+| Token           | Type                      | Description                                       |
+| --------------- | ------------------------- | ------------------------------------------------- |
+| `$TARGET_PATH`  | positional #1 (REQUIRED)  | Path to analyze; defaults to the current project. |
+| `$VERBOSE_MODE` | flag --verbose (OPTIONAL) | Enable verbose analyzer logging.                  |
+
 # Purpose
 
 Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
-
-## Variables
-
-- `$TARGET_PATH` ← $1 (defaults to `./`).
-- `VERBOSE_MODE` ← $2 (boolean flag set when `--verbose` is provided).
 
 ## Guardrails
 
@@ -18,7 +20,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`) before advancing.
 - Map findings to OWASP Top 10 categories, business impact, and exploitability.
 - Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
-- In `VERBOSE_MODE`, include exhaustive vulnerability details, gap tables, and remediation notes.
+- When `$VERBOSE_MODE` is provided, include exhaustive vulnerability details, gap tables, and remediation notes.
 
 ## Workflow
 
@@ -35,7 +37,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
      ```
 
      - Pass `--summary` to generate quick overviews when triaging large reports.
-     - Add `--verbose` when `VERBOSE_MODE` is enabled to capture analyzer-specific debugging output.
+     - Add `--verbose` when `$VERBOSE_MODE` is enabled to capture analyzer-specific debugging output.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
    - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”

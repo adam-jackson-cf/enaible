@@ -4,13 +4,15 @@
 
 # analyze-code-quality v1.0
 
+## Variables
+
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
+
 # Purpose
 
 Assess code quality by combining automated metrics with architectural review to surface maintainability and technical-debt risks.
-
-## Variables
-
-- `$TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 

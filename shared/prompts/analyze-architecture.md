@@ -4,7 +4,9 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 
 ## Variables
 
-- `TARGET_PATH` ← $1 (defaults to `./`).
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
 
 ## Instructions
 

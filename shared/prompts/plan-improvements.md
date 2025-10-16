@@ -6,7 +6,9 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ## Variables
 
-- `$REFACTOR_SCOPE` ← $1 required, defines area or component.
+| Token             | Type                     | Description                    |
+| ----------------- | ------------------------ | ------------------------------ |
+| `$REFACTOR_SCOPE` | positional #1 (REQUIRED) | Area or component to refactor. |
 
 ## Instructions
 

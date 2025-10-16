@@ -4,13 +4,15 @@
 
 # analyze-performance v1.0
 
+## Variables
+
+| Token          | Type                     | Description                                       |
+| -------------- | ------------------------ | ------------------------------------------------- |
+| `$TARGET_PATH` | positional #1 (REQUIRED) | Path to analyze; defaults to the current project. |
+
 # Purpose
 
 Identify performance bottlenecks across backend, frontend, and data layers using automated analyzers coupled with contextual investigation.
-
-## Variables
-
-- `$TARGET_PATH` ← $1 (defaults to `./`).
 
 ## Instructions
 
