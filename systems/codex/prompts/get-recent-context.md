@@ -14,32 +14,26 @@ Analyze recent Codex activity from session logs and git history to understand cu
 
 This command performs a comprehensive review of recent activity by:
 
-**FIRST - Resolve SCRIPT_PATH:**
+**Context bundle capture (Enaible-managed environment):**
 
-1. **Try project-level .codex folder**:
+- Sync dependencies once per checkout:
 
-   ```bash
-   Glob: ".codex/scripts/context/context_bundle_capture_codex.py"
-   ```
+  ```bash
+  uv sync --project tools/enaible
+  ```
 
-2. **Try user-level .codex folder**:
+- Capture recent Codex sessions directly from the repo:
 
-   ```bash
-   Bash: ls "~/.codex/scripts/context/context_bundle_capture_codex.py"
-   ```
+  ```bash
+  PYTHONPATH=shared \
+    uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
+      --days 2 \
+      ${UUID:+--uuid "$UUID"} \
+      ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+      --output-format json
+  ```
 
-3. **Interactive fallback if not found**:
-   - List searched locations: `.codex/scripts/context/` and `~/.codex/scripts/context/`
-   - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
-   - Validate provided path contains the script
-   - Set SCRIPT_PATH to user-provided location
-
-**Pre-flight environment check (fail fast if imports not resolved):**
-
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_codex; print('env OK')"
-```
+- Add `--include-all-projects` when you need cross-repo visibility.
 
 1. **Session Log Analysis (Codex)**
 
@@ -83,7 +77,7 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_code
 ### 1. Session Discovery
 
 ```bash
-# Extract context data using the resolved script
+# Extract context data using the Enaible-managed command
 # Generate semantic variations when search term is provided
 if [ -n "$SEARCH_TERM" ]; then
     # Generate semantic variations based on search term
@@ -101,10 +95,20 @@ else
     SEMANTIC_VARIATIONS=""
 fi
 
-PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} --output-format json
+PYTHONPATH=shared \
+  uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
+    --days 2 \
+    ${UUID:+--uuid "$UUID"} \
+    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+    ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
+    --output-format json
 
 # To include all projects (ignore project scoping)
-PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
+PYTHONPATH=shared \
+  uv run --project tools/enaible python shared/context/context_bundle_capture_codex.py \
+    --days 2 \
+    --include-all-projects \
+    --output-format json
 
 # From the JSON, present a compact view:
 # - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)

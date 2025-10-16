@@ -16,42 +16,30 @@ Analyze recent activity from context bundles and git history to understand curre
 
 This command performs a comprehensive review of recent activity by:
 
-**FIRST - Resolve SCRIPT_PATH:**
+**Context bundle capture (Enaible-managed environment):**
 
-1. **Try project-level .opencode folder**:
+- Sync dependencies once per checkout:
 
-   ```bash
-   Glob: ".opencode/scripts/context/context_bundle_capture_opencode.py"
-   ```
+  ```bash
+  uv sync --project tools/enaible
+  ```
 
-2. **Try user-level .opencode folder**:
+- Use Enaible’s Python environment to run the shared capture script:
 
-   ```bash
-   Bash: ls "~/.config/opencode/scripts/context/context_bundle_capture_opencode.py"
-   ```
+  ```bash
+  PYTHONPATH=shared \
+    uv run --project tools/enaible python shared/context/context_bundle_capture_opencode.py \
+      --days 2 \
+      ${UUID:+--uuid "$UUID"} \
+      ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+      --output-format json
+  ```
 
-3. **Try shared/ fallback**:
-
-   ```bash
-   Glob: "shared/context/context_bundle_capture_opencode.py"
-   ```
-
-4. **Interactive fallback if not found**:
-   - List searched locations: `.opencode/scripts/context/`, `~/.config/opencode/scripts/context/`, and `shared/context/`
-   - Ask user: "Could not locate context bundle capture script. Please provide full path to the script:"
-   - Validate provided path contains the script
-   - Set SCRIPT_PATH to user-provided location
-
-**Pre-flight environment check (fail fast if imports not resolved):**
-
-```bash
-SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"
-PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_opencode; print('env OK')"
-```
+- Add `--include-all-projects` when you need cross-repo aggregation.
 
 1. **Context Bundle Analysis**
 
-   - Extract context data using the resolved script path
+   - Extract context data using the Enaible command above
    - Filter to specific UUID if `--uuid` provided
    - Search for semantic matches if `--search-term` provided
    - Parse returned operations for file access patterns and user objectives
@@ -89,7 +77,7 @@ PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_open
 ### 1. Context Bundle Discovery
 
 ```bash
-# Extract context data using the resolved script
+# Extract context data using the Enaible-managed command
 # Generate semantic variations when search term is provided
 if [ -n "$SEARCH_TERM" ]; then
     # Generate semantic variations based on search term
@@ -107,10 +95,20 @@ else
     SEMANTIC_VARIATIONS=""
 fi
 
-PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} --output-format json
+PYTHONPATH=shared \
+  uv run --project tools/enaible python shared/context/context_bundle_capture_opencode.py \
+    --days 2 \
+    ${UUID:+--uuid "$UUID"} \
+    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+    ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
+    --output-format json
 
 # Cross-project aggregation
-PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days 2 --include-all-projects --output-format json
+PYTHONPATH=shared \
+  uv run --project tools/enaible python shared/context/context_bundle_capture_opencode.py \
+    --days 2 \
+    --include-all-projects \
+    --output-format json
 
 # From the JSON, present a compact view when available:
 # - Sessions: group `sessions[].user_messages` by session, newest first (limit 3 per session)

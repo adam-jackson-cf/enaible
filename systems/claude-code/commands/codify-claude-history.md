@@ -29,38 +29,40 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 
 ## Workflow
 
-1. Resolve script path
+1. Prepare Enaible environment
 
-   - Project-level: `.claude/scripts/context/context_bundle_capture_claude.py`
-   - User-level: `$HOME/.claude/scripts/context/context_bundle_capture_claude.py`
+   - !`uv sync --project tools/enaible`
 
-2. Environment check
+2. Capture (7-day default)
 
-   - !`SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)" && PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_claude; print('env OK')"`
-
-3. Capture (7-day default)
-
-   - `PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days ${DAYS:-7} ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} --output-format json`
+   - ```
+     PYTHONPATH=shared \
+       uv run --project tools/enaible python shared/context/context_bundle_capture_claude.py \
+         --days ${DAYS:-7} \
+         ${UUID:+--uuid "$UUID"} \
+         ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+         --output-format json
+     ```
    - Input fields: `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, `operations[]` (for file footprints)
 
-4. Build corpus
+3. Build corpus
 
    - For each session: place `user_messages` first (chronological), then 0–2 `assistant_messages` (trimmed), then a short list of file paths from `operations` (file tool ops only).
    - Chunk to ~12k per segment, total ≤ ~200k.
 
-5. Summarize (subagent)
+4. Summarize (subagent)
 
    - Invoke a focused summarizer via Task tool:
      - Return YAML with keys: `standards`, `preferences`, `ways_of_working`, `approaches`, `notes` (lists of short items).
      - No prose or code blocks.
 
-6. Consolidate & propose
+5. Consolidate & propose
 
    - Merge YAML across chunks; sort by frequency and clarity.
    - Produce a merge-ready block for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
    - STOP → "Apply to ~/.claude/CLAUDE.md? (y/n)"
 
-7. Cleanup
+6. Cleanup
    - !`rm -rf .workspace/codify-history || true`
 
 ## Output
