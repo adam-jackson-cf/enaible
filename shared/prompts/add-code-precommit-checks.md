@@ -2,6 +2,11 @@
 
 Establish pre-commit hooks so git rejects commits that violate the project's language and tooling standards.
 
+## Variables
+
+| Token/Flag | Type | Description |
+| ---------- | ---- | ----------- |
+
 ## Instructions
 
 - NEVER overwrite an existing `.pre-commit-config.yaml`; exit immediately if one is detected.

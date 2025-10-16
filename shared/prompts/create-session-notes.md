@@ -4,7 +4,9 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ## Variables
 
-- `SESSION_FILE` ← $1 (defaults to `./session-notes.md` - create if missing).
+| Token/Flag      | Type                     | Description                                                    |
+| --------------- | ------------------------ | -------------------------------------------------------------- |
+| `$SESSION_FILE` | positional #1 (optional) | Path to the session notes file (default `./session-notes.md`). |
 
 ## Instructions
 

@@ -6,7 +6,9 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 
 ## Variables
 
-- `TARGET_PATH` ← $1 (defaults to `./`.
+| Token/Flag     | Type                     | Description                               |
+| -------------- | ------------------------ | ----------------------------------------- |
+| `$TARGET_PATH` | positional #1 (optional) | Path to analyze; defaults to the project. |
 
 ## Instructions
 

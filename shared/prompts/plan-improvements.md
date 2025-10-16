@@ -6,7 +6,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ## Variables
 
-| Token             | Type                     | Description                    |
+| Token/Flag        | Type                     | Description                    |
 | ----------------- | ------------------------ | ------------------------------ |
 | `$REFACTOR_SCOPE` | positional #1 (REQUIRED) | Area or component to refactor. |
 

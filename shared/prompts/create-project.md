@@ -4,9 +4,11 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 ## Variables
 
-- `PROJECT_NAME` ← $1 required.
-- `PLAN_FILE` ← $2 (optional derived from `--from-plan`).
-- `TECH_ARGUMENTS[]` ← Remaining items from $ARGUMENTS.
+| Token/Flag         | Type                     | Description                                                       |
+| ------------------ | ------------------------ | ----------------------------------------------------------------- |
+| `$PROJECT_NAME`    | positional #1 (REQUIRED) | Name of the project to scaffold.                                  |
+| `$PLAN_FILE`       | positional #2 (optional) | Path to a todos/plan file when using `--from-plan`.               |
+| `TECH_ARGUMENTS[]` | config (optional)        | Additional technology selections parsed from the remaining input. |
 
 ## Instructions
 

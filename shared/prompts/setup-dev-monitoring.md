@@ -6,12 +6,12 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 ## Variables
 
-- `$TARGET_PATH` ← repository root (default `.`)
-- `$SCRIPT_PATH` ← resolved monitoring script directory (dependency installer only)
-- `$SCRIPTS_ROOT` ← base path for PYTHONPATH (dependency installer only)
-- `$COMPONENTS_JSON` ← JSON array of services: `[{ name, label, cwd, start_command, port|null }]`
-- `$WATCH_GLOBS` ← optional CSV for non‑native watch patterns
-- `$LOG_FILE` ← unified log path (default `./dev.log`)
+| Token/Flag         | Type                     | Description                                                                   |
+| ------------------ | ------------------------ | ----------------------------------------------------------------------------- | ---------- |
+| `$TARGET_PATH`     | positional #1 (optional) | Repository root for discovery; defaults to `.`.                               |
+| `$COMPONENTS_JSON` | config                   | JSON array describing services (`[{ name, label, cwd, start_command, port     | null }]`). |
+| `$WATCH_GLOBS`     | config (optional)        | CSV of custom glob patterns for components lacking native hot-reload support. |
+| `$LOG_FILE`        | config (optional)        | Unified log destination for orchestrated services (default `./dev.log`).      |
 
 ## Instructions
 
@@ -25,15 +25,15 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 ## Workflow
 
-1. Verify prerequisites (dependency installer only)
-   - Check for dependency installer: `ls .claude/scripts/setup/monitoring/*.py || ls "$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py"`.
-   - If not found, prompt for a directory that includes `install_monitoring_dependencies.py`; exit if unavailable.
-   - Verify Python is present: `python3 --version || python --version` (abort if missing).
-2. Environment preparation (dependency installer only)
-   - Resolve `$SCRIPT_PATH` (project‑level → user‑level → prompt for path).
-   - Compute `$SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
-   - Dry‑run dependency check: `python "$SCRIPT_PATH"/install_monitoring_dependencies.py --dry-run`.
-   - If tools missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, run full install.
+1. Dependency check (Enaible-managed)
+   - !`uv sync --project tools/enaible`
+   - Dry-run tooling verification:
+     ```bash
+     PYTHONPATH=shared \
+       uv run --project tools/enaible python shared/setup/monitoring/install_monitoring_dependencies.py --dry-run
+     ```
+   - If prerequisites are missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
+2. Project component discovery
 3. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.

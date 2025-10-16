@@ -4,10 +4,11 @@ Develop and compare solution approaches for a `$USER_PROMPT` using targeted cont
 
 ## Variables
 
-| Token          | Type                       | Description                                             |
-| -------------- | -------------------------- | ------------------------------------------------------- |
-| `$USER_PROMPT` | positional #1 (REQUIRED)   | Description of the technical problem to solve.          |
-| `$CRITIQUE`    | flag --critique (OPTIONAL) | Request validator critique after drafting the solution. |
+| Token/Flag     | Type                       | Description                                                                              |
+| -------------- | -------------------------- | ---------------------------------------------------------------------------------------- |
+| `$USER_PROMPT` | positional #1 (REQUIRED)   | Description of the technical problem to solve.                                           |
+| `$TARGET_PATH` | config (optional)          | Repository path to analyze when the solution targets an existing codebase (default `.`). |
+| `$CRITIQUE`    | flag --critique (OPTIONAL) | Request validator critique after drafting the solution.                                  |
 
 ## Instructions
 
@@ -25,15 +26,31 @@ Develop and compare solution approaches for a `$USER_PROMPT` using targeted cont
      1. Defintion of problem to solve or feature to create
      2. Any technical constraints or predetermined tech stack choices
      3. Development approach preferences
+   - When the solution targets an existing repository, record the working directory as `TARGET_PATH` (default `.`).
    - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
 2. **Conditional** system analysis (only when working against an existing codebase)
-   - Locate analyzer scripts: Run `ls .claude/scripts/analyzers/architecture/pattern_evaluation.py || ls "$HOME/.claude/scripts/analyzers/architecture/pattern_evaluation.py"`; if both fail, prompt for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
-   - Prepare environment: Compute `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-   - Run:
-     - `architecture:patterns`
-     - `architecture:scalability`
-     - `architecture:coupling`
-   - Record findings: patterns, scalability constraints, integration points, technical debt.
+
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
+   - Run the architecture analyzers through Enaible for the relevant target (default `.` unless discovery identifies a subpath):
+
+     ```bash
+     uv sync --project tools/enaible
+
+     uv run --project tools/enaible enaible analyzers run architecture:patterns \
+       --target "${TARGET_PATH:-.}" \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json"
+
+     uv run --project tools/enaible enaible analyzers run architecture:scalability \
+       --target "${TARGET_PATH:-.}" \
+       --out "$ARTIFACT_ROOT/architecture-scalability.json"
+
+     uv run --project tools/enaible enaible analyzers run architecture:coupling \
+       --target "${TARGET_PATH:-.}" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+     ```
+
+   - Record findings: patterns, scalability constraints, integration points, and technical debt hotspots.
+
 3. Research & option development
    - Perform targeted web/documentation research as needed.
    - Draft three solution options:

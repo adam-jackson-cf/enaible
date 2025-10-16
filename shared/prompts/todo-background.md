@@ -4,9 +4,11 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 
 ## Variables
 
-- `USER_PROMPT` ← $1 required.
-- `MODEL_SELECTOR` ← $2 (`claude:model`, `codex:codex-medium`, `opencode:provider/model`, `qwen`, `gemini`); default `claude:sonnet`.
-- `REPORT_FILE` ← $3 defaults to `./.workspace/agents/background/background-report-<TIMESTAMP>.md`.
+| Token/Flag        | Type                     | Description                                                                                                          |
+| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| `$USER_PROMPT`    | positional #1 (REQUIRED) | Background task brief forwarded to the selected CLI.                                                                 |
+| `$MODEL_SELECTOR` | positional #2 (optional) | CLI/model selector (`claude:model`, `codex:codex-medium`, `opencode:provider/model`, etc.); default `claude:sonnet`. |
+| `$REPORT_FILE`    | positional #3 (optional) | Destination report file; defaults to `./.workspace/agents/background/background-report-<TIMESTAMP>.md`.              |
 
 ## Instructions
 

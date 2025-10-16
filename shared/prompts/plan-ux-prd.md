@@ -6,7 +6,9 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 ## Variables
 
-- `$USER_PROMPT` ← $ARGUEMENTS
+| Token/Flag     | Type                     | Description                                    |
+| -------------- | ------------------------ | ---------------------------------------------- |
+| `$USER_PROMPT` | positional #1 (REQUIRED) | UX-focused product brief provided by the user. |
 
 ## Instructions
 

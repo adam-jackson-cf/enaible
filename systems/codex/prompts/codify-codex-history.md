@@ -2,13 +2,6 @@
 
 Codify recurring errors, fixes, and user preferences from recent Codex sessions, then propose AGENTS.md updates for approval.
 
-## Environment checks
-
-- !`python --version` — Exit if Python unavailable.
-- !`test -f shared/context/context_bundle_capture_codex.py` — Exit if capture script missing.
-- !`PYTHONPATH=shared uv run --project tools/enaible python -c "import context.context_bundle_capture_codex; print('env OK')"` — Exit if import fails.
-- !`test -d "~/.codex/sessions"` — Exit if no Codex sessions directory.
-
 ## Variables
 
 - `DAYS` (default 7) — Lookback window.

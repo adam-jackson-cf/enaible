@@ -4,7 +4,9 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 ## Variables
 
-- `RULESET_NAME` ← $1 required.
+| Token/Flag      | Type                     | Description                                   |
+| --------------- | ------------------------ | --------------------------------------------- |
+| `$RULESET_NAME` | positional #1 (REQUIRED) | Name of the rule set to apply to the session. |
 
 ## Instructions
 
