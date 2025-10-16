@@ -26,15 +26,15 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - Run the core analyzers to establish baselines:
 
      ```bash
-     uv run enaible analyzers run quality:lizard \
+     uv run --project tools/enaible enaible analyzers run quality:lizard \
        --target "$REFACTOR_SCOPE" \
        --out "$ARTIFACT_ROOT/quality-lizard.json"
 
-     uv run enaible analyzers run architecture:coupling \
+     uv run --project tools/enaible enaible analyzers run architecture:coupling \
        --target "$REFACTOR_SCOPE" \
        --out "$ARTIFACT_ROOT/architecture-coupling.json"
 
-     uv run enaible analyzers run performance:baseline \
+     uv run --project tools/enaible enaible analyzers run performance:baseline \
        --target "$REFACTOR_SCOPE" \
        --out "$ARTIFACT_ROOT/performance-baseline.json"
      ```
@@ -51,7 +51,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
 4. **Phase 3 — Implementation Planning**
    - Break work into phased milestones with timelines and exit criteria.
-   - Run `uv run enaible analyzers run quality:coverage --target "$REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
+   - Run `uv run --project tools/enaible enaible analyzers run quality:coverage --target "$REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
 5. **Phase 4 — Finalize report**
    - Summarize assessment, strategy, roadmap, and success metrics.

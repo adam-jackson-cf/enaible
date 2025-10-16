@@ -29,19 +29,19 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Execute the analyzer suite, persisting JSON outputs:
 
      ```bash
-     uv run enaible analyzers run performance:ruff \
+     uv run --project tools/enaible enaible analyzers run performance:ruff \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/performance-ruff.json"
 
-     uv run enaible analyzers run performance:frontend \
+     uv run --project tools/enaible enaible analyzers run performance:frontend \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/performance-frontend.json"
 
-     uv run enaible analyzers run performance:sqlglot \
+     uv run --project tools/enaible enaible analyzers run performance:sqlglot \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/performance-sqlglot.json"
 
-     uv run enaible analyzers run performance:semgrep \
+     uv run --project tools/enaible enaible analyzers run performance:semgrep \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/performance-semgrep.json"
      ```

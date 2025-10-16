@@ -31,11 +31,11 @@ Assess code quality by combining automated metrics with architectural review to 
    - Execute and persist JSON output for each analyzer:
 
      ```bash
-     uv run enaible analyzers run quality:lizard \
+     uv run --project tools/enaible enaible analyzers run quality:lizard \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/quality-lizard.json"
 
-     uv run enaible analyzers run quality:jscpd \
+     uv run --project tools/enaible enaible analyzers run quality:jscpd \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/quality-jscpd.json"
      ```

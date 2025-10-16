@@ -35,15 +35,15 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Run the Enaible analyzers sequentially, saving their outputs:
 
      ```bash
-     uv run enaible analyzers run root_cause:trace_execution \
+     uv run --project tools/enaible enaible analyzers run root_cause:trace_execution \
        --target "$PWD" \
        --out "$ARTIFACT_ROOT/root-cause-trace.json"
 
-     uv run enaible analyzers run root_cause:recent_changes \
+     uv run --project tools/enaible enaible analyzers run root_cause:recent_changes \
        --target "$PWD" \
        --out "$ARTIFACT_ROOT/root-cause-recent-changes.json"
 
-     uv run enaible analyzers run root_cause:error_patterns \
+     uv run --project tools/enaible enaible analyzers run root_cause:error_patterns \
        --target "$PWD" \
        --out "$ARTIFACT_ROOT/root-cause-error-patterns.json"
      ```

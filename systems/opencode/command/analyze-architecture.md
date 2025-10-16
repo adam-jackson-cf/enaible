@@ -33,19 +33,19 @@ Evaluate project architecture for scalability, maintainability, and design-patte
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run enaible analyzers run architecture:patterns \
+     uv run --project tools/enaible enaible analyzers run architecture:patterns \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/architecture-patterns.json"
 
-     uv run enaible analyzers run architecture:scalability \
+     uv run --project tools/enaible enaible analyzers run architecture:scalability \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/architecture-scalability.json"
 
-     uv run enaible analyzers run architecture:coupling \
+     uv run --project tools/enaible enaible analyzers run architecture:coupling \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/architecture-coupling.json"
 
-     uv run enaible analyzers run architecture:dependency \
+     uv run --project tools/enaible enaible analyzers run architecture:dependency \
        --target "$TARGET_PATH" \
        --out "$ARTIFACT_ROOT/architecture-dependency.json"
      ```
