@@ -2,13 +2,21 @@
 
 ## Purpose
 
-Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria based on `$USER_PROMPT`.
+Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria based on @USER_PROMPT.
 
 ## Variables
 
-| Token/Flag     | Type                     | Description                                    |
-| -------------- | ------------------------ | ---------------------------------------------- |
-| `$USER_PROMPT` | positional #1 (REQUIRED) | UX-focused product brief provided by the user. |
+### Required
+
+- @USER_PROMPT = $1 — UX-focused product brief provided by the user
+
+### Optional (derived from $ARGUMENTS)
+
+- (none)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -21,7 +29,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 ## Workflow
 
 1. Information gathering
-   - Review `$USER_PROMPT` and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
+   - Review @USER_PROMPT and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
    - Conduct targeted question sequence covering:
      - Product foundation
      - User & market

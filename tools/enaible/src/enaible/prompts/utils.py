@@ -1,4 +1,21 @@
-"""Utilities for parsing shared prompt metadata."""
+"""Utilities for parsing shared prompt metadata.
+
+Supports the unified bullet-style Variables section using @TOKENS.
+
+Format:
+
+## Variables
+
+### Required
+- @TARGET_PATH = $1 — description
+
+### Optional (derived from $ARGUMENTS)
+- @MIN_SEVERITY = --min-severity
+- @EXCLUDE = --exclude [repeatable]
+
+### Derived (internal)
+- @MAX_CHARS = 150000
+"""
 
 from __future__ import annotations
 
@@ -16,40 +33,54 @@ class VariableSpec:
     required: bool
     flag_name: str | None = None
     positional_index: int | None = None
+    repeatable: bool = False
 
 
 _VARIABLE_HEADER_PATTERN = re.compile(
-    r"^\|\s*Token\s*\|\s*Type\s*\|\s*Description\s*\|$", re.IGNORECASE
+    r"^\|\s*Token(?:/Flag)?\s*\|\s*Type\s*\|\s*Description\s*\|$",
+    re.IGNORECASE,
 )
+
+_H2_HEADING = re.compile(r"^##\s+variables\s*$", re.IGNORECASE)
+_H3_REQUIRED = re.compile(r"^###\s+required\s*$", re.IGNORECASE)
+_H3_OPTIONAL = re.compile(r"^###\s+optional(\s*\(.*\))?\s*$", re.IGNORECASE)
+_H3_DERIVED = re.compile(r"^###\s+derived(\s*\(.*\))?\s*$", re.IGNORECASE)
+_BULLET = re.compile(r"^[-*]\s+(.+?)\s*$")
+_TOKEN_RE = re.compile(r"@([A-Z][A-Z0-9_]*)$")
+_MAPPING_SPLIT = re.compile(r"\s*=\s*")
+_POS_VALUE = re.compile(r"^\$(\d+)\s*(?:\[.*?\])?$")
+_FLAG_VALUE = re.compile(r"^(--[a-z0-9][a-z0-9-]*)\s*(?:\[.*?\])?$", re.IGNORECASE)
 
 
 def extract_variables(markdown: str) -> tuple[list[VariableSpec], str]:
     """Extract variable definitions from a markdown prompt body.
 
     Returns a tuple of (variables, body_without_variables_section).
+    Prefers the bullet-style parser; tables are only supported when they use @TOKENS.
     """
     lines = markdown.splitlines()
     variables: list[VariableSpec] = []
     new_lines: list[str] = []
+
     i = 0
     while i < len(lines):
-        if lines[i].strip().lower() == "## variables":
+        if _H2_HEADING.match(lines[i]):
+            # Collect the entire Variables block until the next H2 or EOF
             i += 1
-            # skip blank lines after heading
-            while i < len(lines) and not lines[i].strip():
+            block: list[str] = []
+            while i < len(lines) and not lines[i].startswith("## "):
+                block.append(lines[i])
                 i += 1
 
-            table_lines: list[str] = []
-            while i < len(lines) and lines[i].strip().startswith("|"):
-                table_lines.append(lines[i])
-                i += 1
-
-            if table_lines:
-                variables = _parse_variables_table(table_lines)
-
-            # skip trailing blank lines after table
-            while i < len(lines) and not lines[i].strip():
-                i += 1
+            parsed = _parse_variables_bullets(block)
+            if parsed:
+                variables = parsed
+            else:
+                # fall back to table parsing but require @ tokens
+                table_lines = [ln for ln in block if ln.strip().startswith("|")]
+                if table_lines:
+                    variables = _parse_variables_table(table_lines)
+            # Exclude the Variables block from body
             continue
 
         new_lines.append(lines[i])
@@ -60,7 +91,10 @@ def extract_variables(markdown: str) -> tuple[list[VariableSpec], str]:
 
 
 def _parse_variables_table(table_lines: Iterable[str]) -> list[VariableSpec]:
-    """Parse markdown table lines into VariableSpec entries."""
+    """Parse legacy markdown table lines into VariableSpec entries.
+
+    Only @TOKENS are allowed. $-prefixed tokens are rejected by design.
+    """
     rows = [row.strip() for row in table_lines if row.strip()]
     if not rows:
         return []
@@ -91,8 +125,10 @@ def _parse_variables_table(table_lines: Iterable[str]) -> list[VariableSpec]:
         token_text = token_cell.strip()
         if token_text.startswith("`") and token_text.endswith("`"):
             token_text = token_text[1:-1].strip()
-        if not token_text.startswith("$"):
-            raise ValueError(f"Variable token must start with '$': {token_text}")
+        if not token_text.startswith("@"):
+            raise ValueError(
+                f"Variable token must start with '@' in tables: {token_text}"
+            )
 
         kind, required, positional_index, flag_name = _interpret_type_cell(
             type_text, positional_counter
@@ -112,6 +148,7 @@ def _parse_variables_table(table_lines: Iterable[str]) -> list[VariableSpec]:
                 required=required,
                 flag_name=flag_name,
                 positional_index=positional_index,
+                repeatable="repeatable" in type_text.lower(),
             )
         )
 
@@ -157,3 +194,93 @@ def _interpret_type_cell(
         kind = "config"
 
     return kind, required, positional_index, flag_name
+
+
+def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
+    section = None  # 'required' | 'optional' | 'derived'
+    variables: list[VariableSpec] = []
+    positional_seen: set[int] = set()
+
+    for raw in block_lines:
+        line = raw.strip()
+        if not line:
+            continue
+        if _H3_REQUIRED.match(line):
+            section = "required"
+            continue
+        if _H3_OPTIONAL.match(line):
+            section = "optional"
+            continue
+        if _H3_DERIVED.match(line):
+            section = "derived"
+            continue
+
+        m = _BULLET.match(line)
+        if not m or section is None:
+            continue
+        content = m.group(1)
+
+        # Split description if provided using em dash or hyphen dash separation
+        desc_split = re.split(r"\s+—\s+|\s+-\s+", content, maxsplit=1)
+        mapping_part = desc_split[0].strip()
+        description = desc_split[1].strip() if len(desc_split) > 1 else ""
+
+        parts = _MAPPING_SPLIT.split(mapping_part)
+        if len(parts) != 2:
+            continue
+        token_part, value_part = parts[0].strip(), parts[1].strip()
+
+        tok_match = _TOKEN_RE.match(token_part)
+        if not tok_match:
+            raise ValueError(
+                f"Invalid token '{token_part}'. Tokens must be @UPPER_SNAKE_CASE."
+            )
+        token = f"@{tok_match.group(1)}"
+
+        repeatable = "[repeatable]" in value_part.lower()
+
+        kind = "derived"
+        required = section == "required"
+        positional_index: int | None = None
+        flag_name: str | None = None
+        type_text: str
+
+        if section == "required":
+            pos_m = _POS_VALUE.match(value_part)
+            if not pos_m:
+                raise ValueError(
+                    f"Required variable '{token}' must map to $N (e.g., $1)."
+                )
+            positional_index = int(pos_m.group(1))
+            if positional_index in positional_seen:
+                raise ValueError(
+                    f"Duplicate positional index ${positional_index} for {token}."
+                )
+            positional_seen.add(positional_index)
+            kind = "positional"
+            type_text = f"positional ${positional_index} (REQUIRED)"
+        elif section == "optional":
+            flag_m = _FLAG_VALUE.match(value_part)
+            if not flag_m:
+                raise ValueError(f"Optional variable '{token}' must map to a --flag.")
+            flag_name = flag_m.group(1)
+            kind = "flag"
+            type_text = f"derived from $ARGUMENTS ({flag_name}) (optional{' , repeatable' if repeatable else ''})"
+        else:  # derived internal
+            kind = "derived"
+            type_text = "derived (internal)"
+
+        variables.append(
+            VariableSpec(
+                token=token,
+                type_text=type_text,
+                description=description,
+                kind=kind,
+                required=required,
+                flag_name=flag_name,
+                positional_index=positional_index,
+                repeatable=repeatable,
+            )
+        )
+
+    return variables

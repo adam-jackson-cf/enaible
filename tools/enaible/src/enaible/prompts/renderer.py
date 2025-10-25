@@ -198,11 +198,12 @@ def _argument_hint_from_variables(variables: list[VariableSpec]) -> str:
         return f"[{label}]"
 
     for var in positional:
-        label = var.token.lstrip("$").lower().replace("_", "-")
+        label = var.token.lstrip("$").lstrip("@").lower().replace("_", "-")
         tokens.append(_format_label(var, label))
 
     for var in flags:
-        base = (var.flag_name or var.token.lstrip("$")).lower()
+        base = var.flag_name or var.token.lstrip("$").lstrip("@")
+        base = base.lower()
         tokens.append(_format_label(var, base))
 
     return " ".join(tokens)

@@ -4,8 +4,17 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 
 ## Variables
 
-| Token/Flag | Type | Description |
-| ---------- | ---- | ----------- |
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- (none)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 

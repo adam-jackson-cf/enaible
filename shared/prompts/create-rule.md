@@ -4,9 +4,17 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 ## Variables
 
-| Token/Flag        | Type                     | Description                                             |
-| ----------------- | ------------------------ | ------------------------------------------------------- |
-| `$RULE_FILE_PATH` | positional #1 (REQUIRED) | Destination path for the generated implementation rule. |
+### Required
+
+- @RULE_FILE_PATH = $1 — destination path for the generated implementation rule
+
+### Optional (derived from $ARGUMENTS)
+
+- (none)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 

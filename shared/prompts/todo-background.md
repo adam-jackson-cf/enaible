@@ -4,11 +4,18 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 
 ## Variables
 
-| Token/Flag        | Type                     | Description                                                                                                          |
-| ----------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------- |
-| `$USER_PROMPT`    | positional #1 (REQUIRED) | Background task brief forwarded to the selected CLI.                                                                 |
-| `$MODEL_SELECTOR` | positional #2 (optional) | CLI/model selector (`claude:model`, `codex:codex-medium`, `opencode:provider/model`, etc.); default `claude:sonnet`. |
-| `$REPORT_FILE`    | positional #3 (optional) | Destination report file; defaults to `./.workspace/agents/background/background-report-<TIMESTAMP>.md`.              |
+### Required
+
+- @USER_PROMPT = $1 — background task brief forwarded to the selected CLI
+
+### Optional (derived from $ARGUMENTS)
+
+- @MODEL_SELECTOR = --model — CLI/model selector (e.g., claude:model, codex:codex-medium); default claude:sonnet
+- @REPORT_FILE = --report-file — destination report file (default ./.workspace/agents/background/background-report-<TIMESTAMP>.md)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -21,7 +28,7 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 ## Workflow
 
 0. Auth preflight
-   - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from `$MODEL_SELECTOR`.
+   - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from @MODEL_SELECTOR.
    - If the command exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
 1. Prepare reporting directory
    - Run `mkdir -p ./.workspace/agents/background && test -w ./.workspace/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.

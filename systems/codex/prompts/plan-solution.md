@@ -1,6 +1,7 @@
-# Purpose
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
 
-Develop and compare solution approaches for a @USER_PROMPT using targeted context gathering, research, and structured recommendations.
+# plan-solution v1.0
 
 ## Variables
 
@@ -11,11 +12,12 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 ### Optional (derived from $ARGUMENTS)
 
 - @CRITIQUE = --critique — request validator critique after drafting the solution
+
 - @TARGET_PATH = --target-path — repository path when targeting an existing codebase (default .)
 
-### Derived (internal)
+# Purpose
 
-- (none)
+Develop and compare solution approaches for a @USER_PROMPT using targeted context gathering, research, and structured recommendations.
 
 ## Instructions
 

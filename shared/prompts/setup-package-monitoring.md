@@ -4,13 +4,20 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 
 ## Variables
 
-| Token/Flag             | Type                | Description                                                         |
-| ---------------------- | ------------------- | ------------------------------------------------------------------- |
-| `--audit-level`        | option (optional)   | Severity threshold for package audits; defaults to `critical`.      |
-| `--package-file`       | option (optional)   | Restrict monitoring to the specified manifest file.                 |
-| `--exclude`            | option (repeatable) | Paths excluded from Dependabot and audit workflows.                 |
-| `--branch-protection`  | option (optional)   | Enable branch-protection scaffolding when set to `true`.            |
-| `$DETECTED_ECOSYSTEMS` | derived             | Package ecosystems identified during setup (npm, pip, cargo, etc.). |
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUDIT_LEVEL = --audit-level — severity threshold (default critical)
+- @PACKAGE_FILE = --package-file — restrict monitoring to a specific manifest
+- @EXCLUDE = --exclude [repeatable] — paths to exclude from monitoring
+- @BRANCH_PROTECTION = --branch-protection — enable branch-protection scaffolding when true
+
+### Derived (internal)
+
+- @DETECTED_ECOSYSTEMS = <derived> — ecosystems identified during setup (npm, pip, cargo, etc.)
 
 ## Instructions
 

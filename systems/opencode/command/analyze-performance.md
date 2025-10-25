@@ -1,6 +1,11 @@
-# Purpose
+## <!-- generated: enaible -->
 
-Identify performance bottlenecks across backend, frontend, and data layers using automated analyzers coupled with contextual investigation.
+description: Identify performance bottlenecks and propose minimal, high‑impact optimizations
+argument-hint: [target-path] [--exclude?] [--min-severity?]
+
+---
+
+# analyze-performance v1.0
 
 ## Variables
 
@@ -11,11 +16,12 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ### Optional (derived from $ARGUMENTS)
 
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 
-### Derived (internal)
+# Purpose
 
-- (none)
+Identify performance bottlenecks across backend, frontend, and data layers using automated analyzers coupled with contextual investigation.
 
 ## Instructions
 

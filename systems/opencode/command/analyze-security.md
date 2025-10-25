@@ -1,6 +1,12 @@
-# Purpose
+## <!-- generated: enaible -->
 
-Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
+description: Perform a security audit of the repository and dependencies
+agent: security
+argument-hint: [target-path] [--exclude?] [--min-severity?] [--verbose?]
+
+---
+
+# analyze-security v1.0
 
 ## Variables
 
@@ -11,12 +17,18 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 ### Optional (derived from $ARGUMENTS)
 
 - @VERBOSE = --verbose — enable verbose analyzer logging
+
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., terraform/.generated/\*\*)
 
 ### Derived (internal)
 
-- @ARTIFACT_ROOT = <derived> — artifacts directory used in workflow examples
+- @ARTIFACT_ROOT = — artifacts directory used in workflow examples
+
+# Purpose
+
+Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
 
 ## Guardrails
 

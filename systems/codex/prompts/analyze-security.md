@@ -1,6 +1,7 @@
-# Purpose
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
 
-Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
+# analyze-security v1.0
 
 ## Variables
 
@@ -11,12 +12,18 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 ### Optional (derived from $ARGUMENTS)
 
 - @VERBOSE = --verbose — enable verbose analyzer logging
+
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., terraform/.generated/\*\*)
 
 ### Derived (internal)
 
-- @ARTIFACT_ROOT = <derived> — artifacts directory used in workflow examples
+- @ARTIFACT_ROOT = — artifacts directory used in workflow examples
+
+# Purpose
+
+Execute a comprehensive security assessment that blends automated OWASP-aligned scanning with contextual gap analysis, risk prioritization, and actionable remediation tasks.
 
 ## Guardrails
 

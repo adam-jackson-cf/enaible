@@ -4,9 +4,17 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ## Variables
 
-| Token/Flag      | Type                     | Description                                                    |
-| --------------- | ------------------------ | -------------------------------------------------------------- |
-| `$SESSION_FILE` | positional #1 (optional) | Path to the session notes file (default `./session-notes.md`). |
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @SESSION_FILE = --session-file — destination file (default ./session-notes.md)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -25,7 +33,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 3. Prepare note entry
    - Capture `TIMESTAMP`.
    - Derive bullet lists for Actions Taken, Files Referenced, Outstanding Tasks, etc.
-   - If `$ARGUMENTS` supplied, incorporate into Discussion Overview.
+   - If additional context text is supplied, incorporate into Discussion Overview.
 4. Ensure file availability
    - `touch session-notes.md` if the file does not exist.
 5. Append entry

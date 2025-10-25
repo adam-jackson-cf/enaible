@@ -4,11 +4,17 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 ## Variables
 
-| Token/Flag         | Type                     | Description                                                       |
-| ------------------ | ------------------------ | ----------------------------------------------------------------- |
-| `$PROJECT_NAME`    | positional #1 (REQUIRED) | Name of the project to scaffold.                                  |
-| `$PLAN_FILE`       | positional #2 (optional) | Path to a todos/plan file when using `--from-plan`.               |
-| `TECH_ARGUMENTS[]` | config (optional)        | Additional technology selections parsed from the remaining input. |
+### Required
+
+- @PROJECT_NAME = $1 — name of the project to scaffold
+
+### Optional (derived from $ARGUMENTS)
+
+- @PLAN_FILE = --from-plan — path to a todos/plan file when using plan mode
+
+### Derived (internal)
+
+- @TECH_ARGUMENTS = <config> — additional technology selections parsed from remaining input
 
 ## Instructions
 
@@ -30,7 +36,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
      - Identify technology keywords (React Native, Expo, Zustand, OAuth, WebSocket, etc.).
      - Map findings to Better-T-Stack options.
    - Else `MODE="direct"`:
-     - Interpret each tech choice from `$ARGUMENTS` as a technology or flag; validate against supported sets.
+     - Interpret each tech choice from remaining arguments as a technology or flag; validate against supported sets.
 3. Validate environment
    - Ensure Node/NPM/Bun availability as required by the selected stack.
    - Confirm target directory (`./<PROJECT_NAME>`) does not already exist.

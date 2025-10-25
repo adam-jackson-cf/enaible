@@ -1,6 +1,11 @@
-# Purpose
+## <!-- generated: enaible -->
 
-Discover the fundamental cause of an incident or defect through evidence-based investigation across code changes, execution traces, and environment factors.
+description: Perform root cause analysis for a defect or failure
+argument-hint: [issue-description] [--exclude?] [--min-severity?] [--verbose?]
+
+---
+
+# analyze-root-cause v1.0
 
 ## Variables
 
@@ -11,12 +16,14 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 ### Optional (derived from $ARGUMENTS)
 
 - @VERBOSE = --verbose — enable verbose diagnostics capture
+
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., test_codebase/\*\*)
 
-### Derived (internal)
+# Purpose
 
-- (none)
+Discover the fundamental cause of an incident or defect through evidence-based investigation across code changes, execution traces, and environment factors.
 
 ## Instructions
 

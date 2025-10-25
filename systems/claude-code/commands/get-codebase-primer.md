@@ -1,22 +1,20 @@
-# get-primer v0.3
+## <!-- generated: enaible -->
 
-## Purpose
+## argument-hint: [--target-path?]
 
-Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
+# get-codebase-primer v1.0
 
 ## Variables
-
-### Required
-
-- (none)
 
 ### Optional (derived from $ARGUMENTS)
 
 - @TARGET_PATH = --target-path — path to analyze; defaults to the project
 
-### Derived (internal)
+# get-primer v0.3
 
-- (none)
+## Purpose
+
+Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
 
 ## Instructions
 

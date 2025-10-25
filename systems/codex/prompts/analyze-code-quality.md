@@ -1,6 +1,7 @@
-# Purpose
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
 
-Assess code quality by combining automated metrics with architectural review to surface maintainability and technical-debt risks.
+# analyze-code-quality v1.0
 
 ## Variables
 
@@ -11,11 +12,12 @@ Assess code quality by combining automated metrics with architectural review to 
 ### Optional (derived from $ARGUMENTS)
 
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 
-### Derived (internal)
+# Purpose
 
-- (none)
+Assess code quality by combining automated metrics with architectural review to surface maintainability and technical-debt risks.
 
 ## Instructions
 

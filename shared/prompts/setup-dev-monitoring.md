@@ -6,12 +6,19 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 ## Variables
 
-| Token/Flag         | Type                     | Description                                                                   |
-| ------------------ | ------------------------ | ----------------------------------------------------------------------------- | ---------- |
-| `$TARGET_PATH`     | positional #1 (optional) | Repository root for discovery; defaults to `.`.                               |
-| `$COMPONENTS_JSON` | config                   | JSON array describing services (`[{ name, label, cwd, start_command, port     | null }]`). |
-| `$WATCH_GLOBS`     | config (optional)        | CSV of custom glob patterns for components lacking native hot-reload support. |
-| `$LOG_FILE`        | config (optional)        | Unified log destination for orchestrated services (default `./dev.log`).      |
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @TARGET_PATH = --target-path — repository root for discovery (default .)
+
+### Derived (internal)
+
+- @COMPONENTS_JSON = <config> — JSON array describing services ({ name, label, cwd, start_command, port|null })
+- @WATCH_GLOBS = <config> — CSV of custom globs for components lacking native hot reload
+- @LOG_FILE = <config> — unified log destination for orchestrated services (default ./dev.log)
 
 ## Instructions
 
@@ -20,7 +27,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 - Write Makefile, Procfile, and documentation directly as specified below.
 - Exclude overlapping orchestrators when granular per‑component commands are preferable.
 - Confirm before excluding components, installing dependencies, or overwriting files.
-- Always log to `$LOG_FILE` (default `./dev.log`), never `/dev.log`.
+- Always log to @LOG_FILE (default `./dev.log`), never `/dev.log`.
 - Validate generated files (syntax, logging pipeline, ports) before success.
 
 ## Workflow

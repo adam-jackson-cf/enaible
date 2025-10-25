@@ -9,6 +9,7 @@ import typer
 
 from ..app import app
 from ..prompts.catalog import PromptDefinition
+from ..prompts.lint import lint_files
 from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
 
@@ -165,3 +166,26 @@ def prompts_validate(
         if exc.exit_code != 0:
             typer.echo("Prompt drift detected. Run `enaible prompts render` to update.")
         raise
+
+
+@_prompts_app.command("lint")
+def prompts_lint(
+    prompts: str = typer.Option("all", "--prompt"),
+) -> None:
+    """Lint prompt sources for @TOKEN usage and variable mapping rules."""
+    context = load_workspace()
+    renderer = PromptRenderer(context)
+    catalog = {
+        definition.prompt_id: definition for definition in renderer.list_prompts()
+    }
+
+    selected_prompts = _resolve_prompt_ids(catalog, _split_csv(prompts))
+    # Collect unique source files for selected prompts
+    files = {catalog[p].source_path.resolve() for p in selected_prompts}
+    issues = lint_files(files)
+    if not issues:
+        typer.echo("prompts: lint passed")
+        return
+    for issue in issues:
+        typer.echo(f"{issue.path}:{issue.line}: {issue.message}")
+    raise typer.Exit(code=1)

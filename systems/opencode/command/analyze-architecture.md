@@ -1,6 +1,11 @@
-# Purpose
+## <!-- generated: enaible -->
 
-Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
+description: Evaluate system architecture for scalability, maintainability, and best practices
+argument-hint: [target-path] [--exclude?] [--min-severity?]
+
+---
+
+# analyze-architecture v1.0
 
 ## Variables
 
@@ -11,11 +16,12 @@ Evaluate project architecture for scalability, maintainability, and design-patte
 ### Optional (derived from $ARGUMENTS)
 
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 
-### Derived (internal)
+# Purpose
 
-- (none)
+Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
 
 ## Instructions
 

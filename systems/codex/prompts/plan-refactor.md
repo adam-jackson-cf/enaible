@@ -1,8 +1,7 @@
-# plan-refactor v0.3
+<!-- generated: enaible -->
+<!-- codex prompt (frontmatter-free) -->
 
-## Purpose
-
-Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
+# plan-refactor v1.0
 
 ## Variables
 
@@ -10,13 +9,11 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 - @REFACTOR_SCOPE = $1 — area or component to refactor
 
-### Optional (derived from $ARGUMENTS)
+# plan-refactor v0.3
 
-- (none)
+## Purpose
 
-### Derived (internal)
-
-- (none)
+Design a staged refactoring plan that reduces technical debt, mitigates risk, and delivers measurable quality improvements.
 
 ## Instructions
 
