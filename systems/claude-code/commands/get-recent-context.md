@@ -4,180 +4,112 @@ argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
 description: Summarize recent context from git history and edited files
 ---
 
-# Recent Context Review
+# get-recent-context v0.1
+
+## Purpose
 
 Analyze recent activity from context bundles and git history to understand current work and provide quick orientation for continuing development.
 
-## Arguments
+## Variables
 
 - `--uuid UUID` - Filter analysis to a specific session UUID
 - `--verbose` - Expand truncated content from linked conversation files (when available)
 - `--search-term TERM` - Search for sessions containing semantically matching content
 
-## Behavior
-
-This command performs a comprehensive review of recent activity by:
-
-**Context bundle capture (Enaible-managed environment):**
-
-- Ensure dependencies are synced once per checkout:
-
-  ```bash
-  uv sync --project tools/enaible
-  ```
-
-- Capture recent activity with the Enaible CLI:
-
-  ```bash
-  uv run --project tools/enaible enaible context_capture \
-    --platform claude \
-    --days 2 \
-    ${UUID:+--uuid "$UUID"} \
-    ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-    --output-format json
-  ```
-
-- Add `--include-all-projects` when you need cross-repo visibility.
+## Workflow
 
 1. **Context Bundle Analysis**
 
-   - Extract context data using the Enaible command above
-   - Filter to specific UUID if `--uuid` provided
-   - Search for semantic matches if `--search-term` provided
-   - Parse returned operations for file access patterns and session activity
-   - Enrich with recent prompts:
-     - Use `sessions[].user_messages` and `sessions[].assistant_messages` (when present) to surface a compact “what was asked / what was said” view.
-     - Show newest 1–3 prompts per session (truncate as needed); prefer user messages for objectives.
-   - In `--verbose` mode: expand truncated content
+   - Sync dependencies once per checkout to keep the Enaible tooling aligned with the repo:
+
+     ```bash
+     uv sync --project tools/enaible
+     ```
+
+   - Capture Claude activity with the Enaible CLI while honoring optional UUID and search-term filters:
+
+     ```bash
+     uv run --project tools/enaible enaible context_capture \
+       --platform claude \
+       --days 2 \
+       ${UUID:+--uuid "$UUID"} \
+       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       --output-format json
+     ```
+
+   - Gather cross-repo history when needed:
+
+     ```bash
+     uv run --project tools/enaible enaible context_capture \
+       --platform claude \
+       --days 2 \
+       --include-all-projects \
+       --output-format json
+     ```
+
+   - Expand semantic coverage whenever `--search-term` is present:
+
+     ```bash
+     if [ -n "$SEARCH_TERM" ]; then
+         SEMANTIC_VARIATIONS=$(cat <<EOF
+        {
+            "$(echo "$SEARCH_TERM" | cut -d' ' -f1)": [
+                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)s",
+                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ing",
+                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ed"
+            ]
+        }
+        EOF
+        )
+     else
+         SEMANTIC_VARIATIONS=""
+     fi
+     ```
+
+   - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In `--verbose` mode expand truncated content and include high-signal assistant replies.
 
 2. **Git Status Review**
 
-   - Review actively worked on files `git status`
-   - Analyze changed files and modification patterns
-   - Identify areas of active development and recent focus
+   - Inspect uncommitted work and note change types before correlating with context bundles:
+
+     ```bash
+     git status --short
+     ```
+
+   - Highlight files aligning with recent sessions and capture emerging hot spots.
 
 3. **Git History Review**
 
-   - Build a recent timeline: `git log --stat --date=iso --max-count 8`
-   - For high-activity files (from context bundles or `git status`), trace evolution with `git log --follow --oneline -20 -- <file>`
-   - When specific code chunks matter, run `git blame -w -C -C -C -- <file>` to surface origins while ignoring whitespace/moves
-   - Mine commit intent: `git log --grep "\bfix\b" --since="30 days ago"` and other targeted keywords (refactor, perf, security)
-   - Surface first/last occurrence of patterns via `git log -S"<pattern>" --oneline`
-   - Record architectural turning points, renames, and rationale pulled from these commands
+   - Build a timeline of recent work, track file evolution, and mine intent keywords:
+
+     ```bash
+     git log --stat --date=iso --max-count 8
+     git log --follow --oneline -20 -- <file>
+     git blame -w -C -C -C -- <file>
+     git log --grep "\bfix\b" --since="30 days ago"
+     git log -S"<pattern>" --oneline
+     ```
+
+   - Record architectural shifts, renames, regressions, and follow-up TODOs uncovered by these commands.
 
 4. **Contributor & Pattern Mapping**
 
-   - Identify key contributors with `git shortlog -sn --since="90 days ago"`
-   - Cross-reference contributors with the files they touch most (use `git log --stat --author="<name>" --since="90 days ago"` when necessary)
-   - Note recurring problem themes, follow-up fixes, and outstanding risks
+   - Map ownership and recurring issues:
+
+     ```bash
+     git shortlog -sn --since="90 days ago"
+     git log --stat --author="<name>" --since="90 days ago"
+     ```
+
+   - Connect contributor focus areas with session objectives to identify partners, blockers, and repeated failure modes.
 
 5. **Generate Consolidated Summary**
-   - Combine findings from context bundles, status, and history into a cohesive narrative
-   - Highlight active development areas, contributors, and historical risk patterns
-   - Provide clear orientation for resuming work or onboarding teammates
+   - Merge findings from context bundles, git status, and history into a cohesive narrative.
+   - Extract file access frequencies, semantic search matches, command usage patterns, and outstanding risks to guide next actions.
+   - Recommend follow-up checks (tests, stakeholders) and spotlight the most active files for hand-offs or onboarding.
+   - When `--search-term` is provided, expand the analysis with domain-aware variations (synonyms, verb forms, related technologies) to broaden recall while maintaining chronological order.
 
-## Process
-
-### 1. Context Bundle Discovery
-
-```bash
-# Extract context data using the Enaible-managed command
-# Generate semantic variations when search term is provided
-if [ -n "$SEARCH_TERM" ]; then
-    # Generate semantic variations based on search term
-    SEMANTIC_VARIATIONS=$(cat <<EOF
-{
-    "$(echo "$SEARCH_TERM" | cut -d' ' -f1)": [
-        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)s",
-        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ing",
-        "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ed"
-    ]
-}
-EOF
-)
-else
-    SEMANTIC_VARIATIONS=""
-fi
-
-uv run --project tools/enaible enaible context_capture \
-  --platform claude \
-  --days 2 \
-  ${UUID:+--uuid "$UUID"} \
-  ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-  ${SEMANTIC_VARIATIONS:+--semantic-variations "$SEMANTIC_VARIATIONS"} \
-  --output-format json
-
-# Include all projects when cross-repo context is required
-uv run --project tools/enaible enaible context_capture \
-  --platform claude \
-  --days 2 \
-  --include-all-projects \
-  --output-format json
-
-# From the JSON, present a compact view:
-# - Recent User Prompts: group `sessions[].user_messages` by session, newest first (limit 3 per session)
-# - Recent Assistant Replies: include `sessions[].assistant_messages` (limit 1–2 per session)
-# - High-activity files: list top `file_path` values from `operations` (file tool ops)
-# - Optional: a short timeline from `turn.*` or other milestones
-```
-
-### 2. Git Status Analysis
-
-```bash
-# Show any modified but yet to be commit files
-git status --short
-```
-
-### 3. Git History Analysis
-
-```bash
-# Recent timeline overview
-git log --stat --date=iso --max-count 8
-
-# Contributor map
-git shortlog -sn --since="90 days ago"
-
-# Pattern searches (swap keyword/pattern as needed)
-git log --grep="fix" --since="30 days ago"
-git log -S"TODO" --oneline
-
-# File-focused archaeology (run for top N files)
-git log --follow --oneline -20 -- path/to/file
-git blame -w -C -C -C -- path/to/file
-```
-
-### 4. Data Analysis and Summary
-
-- Parse returned JSON data for operation patterns
-- Handle data with semantic search results and UUID filtering
-- In `--verbose` mode: expand truncated content from detailed operations
-- Extract file access frequencies and modification types (accounting for deduplication)
-- Identify command usage patterns and user objectives
-- Correlate with git history for comprehensive view
-
-**Semantic Variations Generation**:
-
-When `--search-term` is provided, generate semantic variations dynamically:
-
-```bash
-# For single-word search terms
-{
-    "auth": ["auths", "authing", "authed"]
-}
-
-# For multi-word search terms, use first word
-{
-    "authentication": ["authentications", "authenticating", "authenticated"]
-}
-```
-
-The LLM should enhance this with context-aware variations based on the search domain:
-
-- Technical terms: related concepts, implementations, patterns
-- Actions: verb forms, synonyms, related activities
-- Domains: associated technologies, frameworks, tools
-
-## Output Format
+## Output
 
 ```markdown
 # Recent Activity Summary

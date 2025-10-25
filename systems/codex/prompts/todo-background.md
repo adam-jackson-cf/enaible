@@ -5,8 +5,11 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 ## Variables
 
 - `USER_PROMPT` ← $1 required.
-- `MODEL_SELECTOR` ← $2 (`claude:model`, `codex:codex-medium`, `opencode:provider/model`, `qwen`, `gemini`); default `claude:sonnet`.
-- `REPORT_FILE` ← $3 defaults to `./.workspace/agents/background/background-report-<TIMESTAMP>.md`.
+
+### Optional derived from $ARGUMENTS:
+
+- `MODEL_SELECTOR` = `--model` ← (`claude:model`, `codex:codex-medium`, `opencode:provider/model`, `qwen`, `gemini`); default `claude:sonnet`.
+- `REPORT_FILE` ← `--report` ← defaults to `./.enaible/agents/background/background-report-<TIMESTAMP>.md`.
 
 ## Instructions
 
@@ -18,59 +21,89 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 
 ## Workflow
 
-0. Auth preflight
-   - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from `$MODEL_SELECTOR`.
-   - If the command exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
-1. Prepare reporting directory
-   - Run `mkdir -p ./.workspace/agents/background && test -w ./.workspace/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
-2. Parse inputs
-   - Require `USER_PROMPT`; if missing, prompt the user and stop.
-   - Split `MODEL_SELECTOR` on `:` to derive `CLI` (`claude`, `codex`, `opencode`, `qwen`, `gemini`) and model name.
-3. Prepare reporting path
-   - Compute `TIMESTAMP` and default `REPORT_FILE` path if not provided.
-   - Create parent directories and initialize markdown header:
+1. **Auth Preflight**
+
+   - Verify credentials without triggering interactive prompts:
+
+     ```bash
+     uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>
      ```
+
+   - If the command exits non-zero, log the message to the report and stop.
+
+2. **Prepare Reporting Directory**
+
+   - Ensure the background reports directory exists and is writable:
+
+     ```bash
+     mkdir -p ./.workspace/agents/background && test -w ./.enaible/agents/background
+     ```
+
+   - Abort if the directory cannot be created or written to.
+
+3. **Parse Inputs**
+
+   - Require `USER_PROMPT`; prompt the user and abort when missing.
+   - Split `MODEL_SELECTOR` on `:` to derive the CLI (`claude`, `codex`, `opencode`, `qwen`, `gemini`) and model name.
+
+4. **Prepare Reporting Path**
+
+   - Compute `TIMESTAMP`, derive default `REPORT_FILE` when not provided, create parent folders, and initialize the markdown header:
+
+     ```markdown
      # Background Task Report - <human-readable date>
+
      ## Task: <USER_PROMPT>
+
      ## Started: <date time>
      ```
-4. Launch background process
-   - Build command per CLI:
-     - Claude:
-       ```
+
+5. **Launch Background Process**
+
+   - Assemble the command per CLI and ensure updates are routed to `<REPORT_FILE>`:
+
+     - **Claude**
+
+       ```bash
        claude --model <model> \
          --output-format text \
          --dangerously-skip-permissions \
          --append-system-prompt "Report all progress and results to: <REPORT_FILE>. Use Write tool to append updates." \
          --print "<USER_PROMPT>"
        ```
-     - Codex:
-     - Use the `cdx-exec` helper. Default the model to `codex-medium` (override via `MODEL_SELECTOR`, e.g., `codex:codex-large`).
-       For Codex, prepend reporting instructions to the prompt (no append-system-prompt flag):
-       ```
+
+     - **Codex** (use `cdx-exec`; prepend reporting instructions instead of append-system prompt)
+
+       ```bash
        CDX_MODEL="${MODEL_NAME:-codex-medium}"
        ENHANCED_PROMPT="<USER_PROMPT> IMPORTANT: Report all progress and results to: <REPORT_FILE>. Use the Write tool to append updates."
-       cdx-exec --model "$CDX_MODEL" "$ENHANCED_PROMPT"
+       cdx-exec --model `CDX_MODEL` `ENHANCED_PROMPT`
        ```
-     - OpenCode:
-     - Use `opencode run` for headless execution. Default the model to `github-copilot/gpt-5-mini` (override via `MODEL_SELECTOR`, e.g., `opencode:github-copilot/gpt-5-codex`).
-       OpenCode does not support append-system-prompt, so prepend reporting instructions to the prompt:
-       ```
+
+     - **OpenCode** (headless execution with reporting instructions prepended)
+
+       ```bash
        OC_MODEL="${MODEL_NAME:-github-copilot/gpt-5-mini}"
        ENHANCED_PROMPT="<USER_PROMPT> IMPORTANT: Report all progress and results to: <REPORT_FILE>. Use the Write tool to append updates."
-       opencode run --model "$OC_MODEL" \
+       opencode run --model `OC_MODEL` \
          --print-logs \
          --log-level INFO \
-         "$ENHANCED_PROMPT"
+         `ENHANCED_PROMPT`
        ```
-     - Qwen / Gemini: prepend reporting instructions to prompt and use `--yolo`.
-   - Execute via Bash tool with `run_in_background=true`.
-5. Configure monitoring
-   - Capture process ID and background job handle.
-   - Note how progress will be appended to `REPORT_FILE`.
-6. Report launch status
-   - Summarize CLI selected, model, background PID, and report path.
-   - Provide instructions for checking progress (tail the report, inspect process).
+
+     - **Qwen / Gemini**
+       - Prepend reporting instructions and run with `--yolo` as required by the CLI.
+
+   - Execute the chosen command via the Bash tool with `run_in_background=true`.
+
+6. **Configure Monitoring**
+
+   - Capture the background process ID and job handle.
+   - Note how progress will be appended to `<REPORT_FILE>` for downstream monitoring.
+
+7. **Report Launch Status**
+   - Summarize the selected CLI/model, background PID, and report path.
+   - Provide quick monitoring guidance (e.g., `tail -f <REPORT_FILE>` or inspect process commands).
 
 ## Output
 
@@ -102,8 +135,8 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 /todo-background "Analyze the codebase for performance issues"
 
 # Run with Claude Opus and custom report location
-/todo-background "Refactor the authentication module" claude:opus ./reports/auth-refactor.md
+/todo-background "Refactor the authentication module" --model claude:opus --report ./reports/auth-refactor.md
 
 # Launch Qwen with default report
-/todo-background "Run security audit and create remediation plan" qwen
+/todo-background "Run security audit and create remediation plan" --model qwen
 ```

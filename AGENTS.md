@@ -121,6 +121,17 @@ Execution: `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyze
 
 - Generate coverage report: `PYTHONPATH=shared pytest shared/tests/unit --cov=shared --cov-report=html`
 
+## Provenance Governance Workflow
+
+Use the local Provenance stack (in `../provenance`) when you want to evaluate pull requests with provenance-aware risk analysis:
+
+1. From the `provenance` repo, run `make docker-start`. This authenticates with GitHub via `gh`, retrieves a runner registration token, and brings up Docker services for Redis, the Provenance API on port 8000, and the self-hosted GitHub Actions runner.
+2. Ensure the `adam-versed/ai-assisted-workflows` repository secrets are set:
+   - `PROVENANCE_API_URL` → `http://provenance:8000`
+   - `PROVENANCE_API_TOKEN` → bearer token issued by the local Provenance API.
+3. Create (once) and apply the GitHub label `provenance` to any pull request you want analysed. The workflow `.github/workflows/provenance-selfhosted.yml` runs on the self-hosted runner (`self-hosted`, `provenance`, `docker`), executes the packaged Provenance client, and uploads SARIF findings.
+4. Remove the label or run `make docker-stop` in the `provenance` repo when you are done testing to tear down the stack and deregister the runner.
+
 ## Analyzer Registration & Imports
 
 To avoid duplicate analyzer registrations during imports (especially in tests), follow these rules:

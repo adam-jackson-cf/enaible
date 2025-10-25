@@ -4,21 +4,17 @@ argument-hint: [--uuid UUID] [--search-term TERM] [--days N]
 allowed-tools: ["Task", "Read", "Write", "Bash", "Grep", "Glob", "LS"]
 ---
 
-# Codify Claude History — Lessons & Habits
+# codify-claude-history v0.1
 
-Derive standards, preferences, ways of working, and approaches from recent Claude session prompts, then propose user-level updates to `~/.claude/CLAUDE.md`.
+## Purpose
 
-## Usage
-
-```bash
-/codify-claude-history [--days 7] [--uuid <ID>] [--search-term <TEXT>]
-```
+Derive standards, preferences, ways of working, and approaches from recent Claude session prompts, then propose user-level updates to CLAUDE.md.
 
 ## Variables
 
-- `DAYS` (default 7): Lookback window for sessions
-- `UUID`: Optional session id filter
-- `SEARCH_TERM`: Optional semantic filter
+- `$DAYS` (default 7): Lookback window for sessions
+- `$UUID`: Optional session id filter
+- `$SEARCH_TERM`: Optional semantic filter
 
 ## Instructions
 
@@ -29,13 +25,11 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 
 ## Workflow
 
-1. Prepare Enaible environment
+1. **Capture (7-day default)**
 
-   - !`uv sync --project tools/enaible`
+   - Collect Claude session history with Enaible and honor optional UUID or search filters:
 
-2. Capture (7-day default)
-
-   - ```
+     ```bash
      uv run --project tools/enaible enaible context_capture \
        --platform claude \
        --days ${DAYS:-7} \
@@ -43,27 +37,30 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
        ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
        --output-format json
      ```
-   - Input fields: `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, `operations[]` (for file footprints)
 
-3. Build corpus
+   - Focus on `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, and `operations[]` for downstream analysis.
 
-   - For each session: place `user_messages` first (chronological), then 0–2 `assistant_messages` (trimmed), then a short list of file paths from `operations` (file tool ops only).
-   - Chunk to ~12k per segment, total ≤ ~200k.
+2. **Build Corpus**
 
-4. Summarize (subagent)
+   - For each session, order `user_messages` chronologically, append up to two trimmed `assistant_messages`, and record high-signal file paths from `operations`.
+   - Chunk content to ~12k tokens per segment while keeping the total corpus ≤ ~200k tokens.
 
-   - Invoke a focused summarizer via Task tool:
-     - Return YAML with keys: `standards`, `preferences`, `ways_of_working`, `approaches`, `notes` (lists of short items).
-     - No prose or code blocks.
+3. **Summarize (Subagent)**
 
-5. Consolidate & propose
+   - Use the Task tool to summarize each chunk into YAML containing `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes` (lists only, no prose or code blocks).
 
-   - Merge YAML across chunks; sort by frequency and clarity.
-   - Produce a merge-ready block for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
+4. **Consolidate & Propose**
+
+   - Merge YAML outputs, rank items by frequency and clarity, and craft a merge-ready proposal for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
    - STOP → "Apply to ~/.claude/CLAUDE.md? (y/n)"
 
-6. Cleanup
-   - !`rm -rf .workspace/codify-history || true`
+5. **Cleanup**
+
+   - Remove temporary artifacts:
+
+     ```bash
+     rm -rf .workspace/codify-history || true
+     ```
 
 ## Output
 

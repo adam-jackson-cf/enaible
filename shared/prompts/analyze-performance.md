@@ -21,9 +21,9 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 1. **Establish artifacts directory**
    - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-2. **Run Enaible performance analyzers**
+2. **Run automated analyzers**
 
-   - Execute the analyzer suite, persisting JSON outputs:
+   - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run performance:ruff \

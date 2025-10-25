@@ -2,15 +2,18 @@
 
 ## Purpose
 
-Explore the entire project and generate a comprehensive codebase analysis that supports the `$USER_PROMPT`.
+Explore the entire project and generate a comprehensive codebase analysis that supports the `USER_PROMPT`.
 
 ## Variables
 
-- `$USER_PROMPT` ← first positional argument (required)
-- `$TARGET_PATH` ← second positional argument (default `.`)
-- `$OUT` ← `--out` (required) — write the final Markdown to this path and also print the same Markdown to stdout (no preface, no fences)
-- `$DAYS` ← `--days` (default `20`)
-- `$EXCLUDE_GLOBS` ← `--exclude` CSV (optional; e.g., `node_modules,dist`)
+- `USER_PROMPT` = $1 (required)
+
+### Optional derived from $ARGUMENTS:
+
+- `TARGET_PATH` = `--target` (default `.`)
+- `OUT` = `--out` (default `.`) write the final Markdown to this path and also print the same Markdown to stdout (no preface, no fences)
+- `DAYS` = `--days` (default `20`)
+- `EXCLUDE_GLOBS` = `--exclude` CSV (optional; e.g., `node_modules,dist`)
 
 ## Instructions
 
@@ -19,41 +22,43 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 - Avoid dumping raw command syntax unless you are showing an illustrative example.
 - Format every section for quick scanning: short paragraphs, bullet lists, and tables. Keep guidance concise and documentation-focused.
 - When secrets are encountered, note file and nature only—never print the secret.
-- Default to the repository root when `$TARGET_PATH` is not supplied; respect `$EXCLUDE_GLOBS` for all searches.
+- Default to the repository root when `TARGET_PATH` is not supplied; respect `EXCLUDE_GLOBS` for all searches.
 
 ## Workflow
 
 1. **Scope & Setup**
 
-   - Resolve `$TARGET_PATH`; record working directory.
-   - Review `.gitignore` (and `.git/info/exclude` if present) to collect default ignore globs; merge these with `$EXCLUDE_GLOBS` to build `${EXCLUDE_ARG}` (`--glob '!{glob1,glob2,...}'`).
+   - Resolve `TARGET_PATH`, record the working directory, and respect `EXCLUDE_GLOBS` by deriving `EXCLUDE_ARG` from `.gitignore` (and `.git/info/exclude` when present).
+   - Confirm the command operates read-only except for writing the final report to `OUT`.
 
-2. **Deep Analysis** (LLM + file-driven)
+2. **Deep Analysis (LLM + file-driven)**x
 
-Analyse the the following aspects of the target codebase in relation to how they affect or add context to the $USER_PROMPT:
+   - Dispatch parallel task agents to review how the project supports `USER_PROMPT` across:
+     - Architecture & Orchestration
+     - Backend Patterns & Practices
+     - Frontend Patterns & Practices
+     - Data & State
+     - Performance & Security
+     - Observability
+     - Quality gates and Testing Practices
+     - Entry points, services, CLIs, routing surfaces, configurations, manifests, and framework signals
+   - Capture supporting facts with repository commands (`ls`, `rg`, `git`, `sed`, etc.) and convert them into concise documentation-ready notes.
 
-- Architecture & Orchestration
-- Backend Patterns & Practices
-- Frontend Patterns & Practices
-- Data & State
-- Performance & Security
-- Observability
-- Quality gates and Testing Practices
-- Identify entry points, apps/services, CLIs, servers, and routing surfaces.
-- Inspect key configurations, manifests and framework signals
+3. **Git History & Pattern Recognition (last `DAYS` days)**
 
-3. **Git History & Pattern Recognition** (last `$DAYS` days)
+   - Run history commands to surface recent themes, key contributors, and churn hotspots:
 
-   - `git status`, `git log --since`, `git shortlog`, churn analysis.
-   - Summarize recent work: new features, notable fixes, issues resolved.
-   - Detect recurring patterns or smells to highlight.
+     ```bash
+     git status
+     git log --since="${DAYS:-20} days ago"
+     git shortlog -sn --since="${DAYS:-20} days ago"
+     ```
+
+   - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
 
 4. **Synthesis**
-   - Compose the Markdown report exactly in the template below.
-   - This document should build create context that should support the activities required by the `$USER_PROMPT`
-   - Deliver concise, documentation-style guidance with structured bullets, tables, and brief paragraphs, dont duplicate information or file paths.
-   - Write the final Markdown to `$OUT` and also print the same Markdown to stdout.
-   - Do not emit prefaces, patch fences, tool logs, or JSON.
+   - Populate the provided report template with structured bullets, tables, and short paragraphs tailored to `USER_PROMPT`.
+   - Keep guidance action-oriented, avoid duplicating file paths, and write the final Markdown to `OUT` while echoing the same content to stdout (no prefaces, fences, or tool logs).
 
 ## Output
 

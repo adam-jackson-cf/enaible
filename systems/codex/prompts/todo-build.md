@@ -6,67 +6,64 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 
 ## Variables
 
-- `$PLAN_PATH` ← first positional argument (required)
-- `$TARGET_PATH` ← second positional (default `.`)
-- `$REMOTE` ← `--remote` (default `origin`)
-- `$WORKTREES` ← `--worktrees` (default `.worktrees`)
-- `$BASE` ← `--base` (optional; else derive from plan metadata or default `main`)
-- `$TITLE` ← `--title` (optional; default from plan title)
-- `$LABELS` ← `--labels` CSV (optional; e.g., `codex-review,ready-for-qa`)
+- `PLAN_PATH` = $1 ← path to implementation plan (required)
+
+### Optional derived from $ARGUMENTS:
+
+- `REMOTE` = `--remote` (default `origin`)
+- `WORKTREES` = `--worktrees` (default `.worktrees`)
+- `BASE` = `--base` (optional; else derive from plan metadata or default `main`)
+- `TITLE` = `--title` (optional; default from plan title)
+- `LABELS` = `--labels` CSV (optional; e.g., `codex-review,ready-for-qa`)
 
 ## Instructions
 
 - Autonomous; no interactive prompts. Fail fast on INIT critical failures.
 - Always use git worktrees; do not modify the primary working directory. If CWD is already a git worktree, reuse it and skip creating a new one.
-- Treat `$PLAN_PATH` as the single source of truth; update status, tasks, logs, gates, and test entries in that file.
+- Treat `PLAN_PATH` as the single source of truth; update status, tasks, logs, gates, and test entries in that file.
 - Commit code and plan updates together (atomic commits).
 - Enforce gates/tests exactly; do not advance on failures or relax thresholds.
 - Never commit secrets; if detected, halt and record locations in the plan.
 
 ## Workflow
 
-1. INIT
+1. **INIT**
 
-   - Resolve variables: `$PLAN_PATH`, `$TARGET_PATH`, `$REMOTE`, `$WORKTREES`, `$BASE`, `$TITLE`, `$LABELS`.
-   - Verify tools: `git` (worktree), `gh` (authenticated), and all commands referenced by the plan’s gates/tests.
-   - Validate plan contents: title/objective, repository/base branch, actionable tasks, gate commands/thresholds, test commands, completion criteria.
-   - Derive identifiers from the plan title: `$SLUG`, `$TS`, `$BRANCH`.
+   - Resolve core variables (`PLAN_PATH`, `REMOTE`, `WORKTREES`, `BASE`, `TITLE`, `LABELS`).
+   - Verify required tooling (`git` for worktrees, authenticated `gh`, and every gate/test command referenced in the plan).
+   - Validate the plan: title/objective, repository/base branch, actionable tasks, gate thresholds, test commands, completion criteria.
+   - Derive working identifiers from the plan title (`SLUG`, `TS`, `BRANCH`).
 
-2. PREPARE
+2. **PREPARE**
 
-   - Ensure `$WORKTREES` exists (create if missing) and is gitignored.
-   - If current directory is a git worktree, reuse it; otherwise reuse or create the branch/worktree:
-     - If `$BRANCH` exists: attach a worktree to it if needed; else reuse the existing worktree path.
-     - Else: `git worktree add -b "$BRANCH" "$WORKTREES/$TS-$SLUG" "${BASE:-main}"`.
-   - If the plan tracks metadata (status/branch/timestamps), set Status=In Progress, set branch name, and update timestamps.
+   - Ensure `WORKTREES` exists (create and gitignore if needed).
+   - Reuse the current worktree when possible; otherwise attach or create the branch/worktree:
+     - If `BRANCH` exists, attach a worktree or reuse the existing path.
+     - Otherwise run `git worktree add -b "BRANCH" "WORKTREES/TS-SLUG" "${BASE:-main}"`.
+   - Update plan metadata (Status=In Progress, branch name, timestamps) when applicable.
 
-3. EXECUTE_LOOP (per task in plan order)
+3. **EXECUTE_LOOP (per task order)**
 
-   - Implement minimal diffs (keep function complexity ≤ 10).
-   - If tests are implied, add/modify tests and update the plan’s test entries.
-   - Stage and commit code + plan changes atomically.
-   - Run pre‑commit on the staged files; if hooks modify files (e.g., ExecPlan formatting), re‑stage and commit once.
-   - Mark the step complete in the plan and add a timestamped progress/log entry.
+   - Implement minimal diffs (keep function complexity ≤ 10) and update or create tests as implied by each task.
+   - Stage and commit code plus plan updates atomically; rerun pre-commit hooks and restage if they modify files.
+   - Mark plan steps complete with timestamped log entries.
+   - **GATES_LOOP (blocking):**
+     - Run each gate command exactly as specified, capture metrics, and record pass/fail.
+     - Execute required tests, logging outcomes in the plan; all must pass before proceeding.
+     - After three failed attempts on the same step, set Status=Blocked and stop.
 
-   - GATES_LOOP (blocking):
-     - Run each gate exactly as written; compare to thresholds; record pass/fail and key metrics in the plan.
-     - Run the plan’s test commands; record results in the plan. All required tests must pass.
-     - On failure: do not proceed; record details; apply fixes; re-run. After 3 failed attempts on the same step, set Status=Blocked and stop.
+4. **PR_OPEN**
 
-4. PR_OPEN
+   - Push the branch to `REMOTE`, create the PR with `gh` (title from plan or `TITLE`, apply `LABELS`), and log the PR URL in the plan.
 
-   - Push branch to `$REMOTE`. Create PR with `gh`; title from the plan (or `$TITLE`); apply `$LABELS`.
-   - Record PR URL in the plan’s progress/log.
+5. **REVIEW_LOOP (final quality gate)**
 
-5. REVIEW_LOOP (final quality gate)
+   - Poll PR reviews, comments, and checks (`gh pr view --json reviews,reviewDecision,comments,checks`).
+   - Apply requested changes by updating plan tasks, implementing code adjustments, rerunning gates/tests, and committing atomically.
+   - Repeat until the PR is approved and all checks pass; then mark the plan Status=Complete with timestamps.
 
-   - Poll the PR for new reviews/comments and CI updates (e.g., `gh pr view --json reviews,reviewDecision,comments,checks`).
-   - Apply requested changes: add/modify tasks directly in the plan, implement code changes, update tests/gates, and commit atomically.
-   - Repeat until APPROVED and all checks pass. If the plan tracks metadata, set Status=Complete and update timestamps.
-
-6. FINALIZE
-   - Leave the worktree intact for verification.
-   - Do not emit separate summary/PR files; ExecPlan remains the single source of truth (Progress; PR & Review; Results).
+6. **FINALIZE**
+   - Leave the worktree intact for verification and refrain from generating additional summary files—the ExecPlan remains the single source of truth (Progress, PR & Review, Results).
 
 ## Output
 

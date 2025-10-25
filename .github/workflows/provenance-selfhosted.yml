@@ -1,0 +1,76 @@
+name: Provenance (Self-Hosted)
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - labeled
+
+jobs:
+  provenance:
+    if: >-
+      ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'provenance') }}
+    runs-on: [self-hosted, provenance, docker]
+    permissions:
+      contents: read
+      pull-requests: read
+    env:
+      PROVENANCE_API_URL: ${{ secrets.PROVENANCE_API_URL }}
+      PROVENANCE_API_TOKEN: ${{ secrets.PROVENANCE_API_TOKEN }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install workflow utilities
+        run: |
+          set -euo pipefail
+          apt-get update
+          apt-get install -y jq curl
+
+      - name: Checkout Provenance tooling
+        uses: actions/checkout@v4
+        with:
+          repository: evalops/provenance
+          path: _provenance
+          ref: main
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+
+      - name: Run Provenance analysis
+        env:
+          PROVENANCE_WRITE_RESPONSE_PATH: ${{ github.workspace }}/provenance.json
+        run: |
+          set -euo pipefail
+          cd _provenance
+          uv run -- python clients/github-action/run.py \
+            --api-url "$PROVENANCE_API_URL" \
+            --api-token "$PROVENANCE_API_TOKEN" \
+            --repo "${{ github.repository }}" \
+            --pr "${{ github.event.pull_request.number }}" \
+            --head-sha "${{ github.sha }}" \
+            --base-sha "${{ github.event.pull_request.base.sha }}" \
+            --workdir "$GITHUB_WORKSPACE"
+
+      - name: Upload SARIF findings
+        if: success() || failure()
+        run: |
+          set -euo pipefail
+          ANALYSIS_ID=$(jq -r '.analysis_id' provenance.json)
+          curl -sSf -H "Authorization: Bearer $PROVENANCE_API_TOKEN" \
+            "$PROVENANCE_API_URL/v1/analysis/$ANALYSIS_ID/sarif" \
+            -o provenance.sarif
+        env:
+          PROVENANCE_API_TOKEN: ${{ secrets.PROVENANCE_API_TOKEN }}
+          PROVENANCE_API_URL: ${{ secrets.PROVENANCE_API_URL }}
+
+      - name: Upload SARIF to GitHub
+        if: success() || failure()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: provenance.sarif

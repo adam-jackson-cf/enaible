@@ -21,11 +21,10 @@ Assess code quality by combining automated metrics with architectural review to 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
-   - Record the artifact path for inclusion in the final report.
-2. **Run automated analyzers via Enaible**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
 
-   - Execute and persist JSON output for each analyzer:
+   - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run quality:lizard \

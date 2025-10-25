@@ -2,13 +2,16 @@
 
 **Purpose**
 
-- Produce a complete execution plan for `$USER_PROMPT`, using supplied artifacts (spec, inspect report) and targeted research.
+- Produce a complete execution plan for `USER_PROMPT`, using supplied artifacts (spec, inspect report) and targeted research.
 
 ## Variables
 
-- `$USER_PROMPT` ← $1 (required)
-- `--artifact` PATH_OR_URL (optional, epeatable, deduce from $ARGUMENTS) ← context files or URLs (e.g., spec, inspect report)
-- `--out PATH` (required, deduce from $ARGUMENTS, defaults to `./`) ← write the final ExecPlan this path
+- `USER_PROMPT` ← $1 (required)
+
+### Optional derived from $ARGUMENTS:
+
+- `ARTIFACT` = `--artifact` ← context files or URLs (e.g., spec, inspect report)
+- `PATH` = `--out` ← (defaults to `./`) write the final ExecPlan this path
 
 ## Instructions
 
@@ -20,25 +23,37 @@
 
 ## Workflow
 
-1. **Collect Inputs** – Load all artifacts; summarize salient information (objectives, constraints, target files, success criteria).
-2. **Define Problem Space** - What problem are you solving that may guide your solution choices:
+1. **Collect Inputs**
 
-- The specific problem, feature, or system requirement you need to address
-- Include any current pain points or limitations
+   - Load every artifact (spec first, then inspect reports) and capture objectives, constraints, target files, and success criteria summaries.
 
-3. **Define Technical Constraints** - What technical constraints must you adhere to:
+2. **Define Problem Space**
 
-- Existing technology stack, platforms, or infrastructure requirements
-- Legacy system integration requirements
-- Compliance, security, or regulatory constraints
-- Team skill sets and technology preferences 4.**Development Approach** - whats the preference for build approach:
-- Leveraging established libraries/frameworks vs custom development? If unknown always default to established libraries
-- Priority: speed to market, cost optimization, technical control, or long-term maintainability? If unknown always default to a balance of speed and long-term maintainability
-- What are the enforced or overridden global and project coding and behaviour rules we should always apply
+   - Clarify the feature, fix, or system requirement driving the work.
+   - Document known pain points, limitations, and motivating context.
 
-5. **Verify Knowledge Recency** – Run web search for strategy options and validate your information is up to date and correct
-6. **Recommendation** - Select recommended approach based on all the gathered context and devise plan
-7. **Emit Plan** – Write file to `--out` using below output format and print filepath to user with no additional commentary.
+3. **Define Technical Constraints**
+
+   - Capture mandated stacks, platforms, infrastructure, and integration requirements.
+   - Note compliance, security, or regulatory obligations.
+   - Record relevant team skill sets or technology preferences.
+
+4. **Development Approach**
+
+   - Default to established libraries/frameworks unless evidence suggests bespoke implementation.
+   - Balance speed to market with long-term maintainability when priorities are unclear.
+   - Apply global/project coding and behavior rules explicitly referenced in the artifacts.
+
+5. **Verify Knowledge Recency**
+
+   - Run targeted web searches to validate strategy choices and ensure guidance reflects current best practices (cite official documentation).
+
+6. **Recommendation**
+
+   - Select the preferred implementation approach based on gathered context and outline supporting rationale.
+
+7. **Emit Plan**
+   - Render the ExecPlan using the provided template, write it to `PATH`, and echo the same Markdown to stdout without preamble.
 
 ## Output
 

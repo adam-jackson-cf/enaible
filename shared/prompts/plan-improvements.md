@@ -20,10 +20,11 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ## Workflow
 
-1. **Phase 0 — Analyzer preparation**
-
+1. **Establish artifacts directory**
    - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-   - Run the core analyzers to establish baselines:
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run quality:lizard \
@@ -41,19 +42,19 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
    - Capture key hotspots, architectural risks, and performance warnings.
 
-2. **Phase 1 — Technical Debt Assessment**
+3. **Phase 1 — Technical Debt Assessment**
    - Summarize analyzer outputs (complexity spikes, coupling hotspots, perf regressions).
    - Identify the debt themes affecting `$REFACTOR_SCOPE`.
    - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
-3. **Phase 2 — Migration Strategy**
+4. **Phase 2 — Migration Strategy**
    - Research suitable refactoring patterns and outline phased migration (feature flags, decomposition, deployment plan).
    - Define rollback procedures, monitoring hooks, and stakeholder checkpoints.
    - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
-4. **Phase 3 — Implementation Planning**
+5. **Phase 3 — Implementation Planning**
    - Break work into phased milestones with timelines and exit criteria.
    - Run `uv run --project tools/enaible enaible analyzers run quality:coverage --target "$REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
-5. **Phase 4 — Finalize report**
+6. **Phase 4 — Finalize report**
    - Summarize assessment, strategy, roadmap, and success metrics.
    - Reference artifacts in `ARTIFACT_ROOT` and note follow-up tasks.
 

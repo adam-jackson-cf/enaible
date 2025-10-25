@@ -29,7 +29,6 @@
 
 - **Preferred Scaffold**: Reach for [Better-T-Stack](https://better-t-stack.dev/docs) first. `bun create better-t-stack@latest --frontend tanstack-router --backend hono --runtime bun --database sqlite --orm drizzle --api trpc --auth none --addons none --examples none --db-setup none --web-deploy none --server-deploy none --git --package-manager bun --install` yields our baseline. Immediately run `bun run dev` (or `bunx @tanstack/router-plugin generate`) to emit `routeTree.gen.ts`, then `bun run check-types` and `bun run build` before committing the scaffold.
 - **Alternative Starter**: [React TanStarter](https://github.com/dotnize/react-tanstarter) when we need a TanStack Start layout with Netlify deploy defaults, Better Auth, and Postgres/Drizzle. Run via pnpm or map scripts to Bun; ensure lint/type/build succeed before customization.
-- **Deferred Templates**: Avoid `tanstack-start-dashboard` until its `@tanstack/react-start/config` export issue is resolved. Re-evaluate after upstream fixes land.
 
 ### Python
 
@@ -45,10 +44,11 @@
 - **ALWAYS** commit to git after the logical conclusion of task steps, use a frequent, atomic commit pattern to establish safe check points of known good implementation that can be reverted to if need.
 - **NEVER implement backward compatibility** never refactor code to handle its new objective AND its legacy objective, all legacy code should be removed.
 - **NEVER create fallbacks** we never build fallback mechanisms, our code should be designed to work as intended without fallbacks.
-- **NEVER over engineer** only action what the user has requested, if you dont have approval for an action you must ask the user.
+- **ALWAY KISS - Keep it simple stupid** only action what the user has requested and no more, never over engineer, if you dont have approval for expanding the scope of a task you must ask the user first.
 - **ALWAYS minimise complexity** keep code Cyclomatic Complexity under 10
 - **ALWAYS prefer established libraries over bespoke code** only produce bespoke code if no established library
 - **ALWAYS use appropriate symbol naming when refactoring code**: When refactoring do not add prefixes/suffixes like "Refactored", "Updated", "New", or "V2" to symbol names to indicate changes.
+- **ALWAYS Align UI style changes to shadcn/Tailwind/Radix patterns and Lucide assets**: For your UI stack implementation avoid bespoke classes and direct style hardcoding to objects.
 
 ### SOLID Principles - Architectural Shaping (with Examples)
 
@@ -89,7 +89,7 @@
 - **ALWAYS** reconcile parallel knowledge sources so there’s a single source of truth — Example: migrate duplicated validation rules from both `signup_form.validate()` and `user_service.create_user()` into a central `UserValidator`, then delete the scattered checks.
 - **NEVER** let configuration or constants drift across files — Example: pull repeated "30-minute session timeout" literals into `SESSION_TIMEOUT_MINUTES` inside `settings.py` and reference it everywhere.
 
-## **CRITICAL** Must follow Behaviour Rules - how you must carry out actions
+## **CRITICAL** Must follow Behaviour Rules - how you carry out actions
 
 ### Research Approach
 
@@ -101,7 +101,7 @@
 - **NEVER**: commit secrets, API keys, or credentials to version control
 - **NEVER**: expose sensitive information like api keys, secrets or credentials in any log or database entries
 
-### Prohibited Reward Hacking
+### Prohibit Reward Hacking
 
 - **NEVER** use placeholders, mocking, hardcoded values, or stub implementations outside test contexts
 - **NEVER** suppress, bypass, handle with defaults, or work around quality gate failures, errors, or test failures
@@ -112,15 +112,16 @@
 - **NEVER** implement fallback modes or temporary strategys to meet task requirements
 - **NEVER** bypass quality gates by using `--skip` or `--no-verify`
 
+### Long-Running Task Execution & Defence
+
+- Launch intentional long-running services (Next.js dev server, workers, landing, etc.) inside named tmux sessions so hotswap reloads keep running while the CLI stays responsive.
+  - Start: `tmux new-session -d -s frontend 'make frontend'`
+  - Reattach: `tmux attach -t frontend`
+  - Inspect logs without attaching: `tmux capture-pane -p -S -200 -t frontend`
+  - Stop/cleanup: `tmux kill-session -t frontend`
+- When asked to run an uncertain or potentially long-running command (e.g. large test suites, migrations), prefer wrapping it in tmux to prevent blocking and to make it easy to terminate if it misbehaves.
+- Treat background-process requests the same way: run them in tmux, confirm the session is listed via `tmux list-sessions`, and share the session name with the user so they can monitor or stop it later.
+- Before starting duplicate services, check for existing sessions to avoid port collisions: `tmux list-sessions | grep frontend`.
+- If a command unexpectedly hangs, move it into tmux (`tmux new-session -t rescue`) and gather diagnostics from outside the session while it continues running.
+
 ---
-
-## Personal Workflow Habits
-
-- Planning loop: Research → propose options → wait for approval → implement → document decisions in `session-notes.md` (timestamped).
-- UI stack: Align style changes to shadcn/Tailwind/Radix patterns and Lucide assets; avoid bespoke classes and direct style hardcoding to objects.
-
-## ExecPlan Protocol (Planning Standard)
-
-- When asked to ExecPlan, instantiate a living ExecPlan document from the template at `~/.codex/execplan.md`.
-- Ensure ExecPlan is kept up to date with progresss as its a living document
-- Acceptance tests in `Success Criteria` are the definition of done; do not mark complete until they can be executed and pass.

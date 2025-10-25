@@ -10,6 +10,7 @@ Configure the Serena MCP server with the IDE-assistant context, update project g
 
 ## Instructions
 
+- Verify CLI availability upfront: run `uvx --version` and `claude --version`; halt and surface errors if either command fails.
 - ALWAYS remove any existing `serena` MCP entry before re-adding to avoid duplicate registrations.
 - Use the IDE-assistant context and current project path for optimal Claude Code integration.
 - Document the MCP tools available in `AGENTS.md`; emphasize that Serena search tools are mandatory.
@@ -18,16 +19,21 @@ Configure the Serena MCP server with the IDE-assistant context, update project g
 
 ## Workflow
 
-1. Check prerequisites
-   - Run `uvx --version`; exit immediately if `uvx` is unavailable because it is required to launch the Serena MCP server.
-   - Run `claude --version`; exit immediately if the Claude CLI cannot be reached because configuration steps will fail.
-   - Capture current working directory as `PROJECT_ROOT`.
-2. Register MCP server
-   - Remove existing entry (ignore errors):
+1. **Establish Project Context**
+
+   - Capture the current working directory as `PROJECT_ROOT=$(pwd)` and keep the IDE-assistant context ready for registration.
+   - Reference `SERENA_CONFIG=~/.serena/serena_config.yml` for optional dashboard tweaks later in the workflow.
+
+2. **Register MCP Server**
+
+   - Remove any existing Serena registration before re-adding:
+
      ```bash
      claude mcp remove serena || true
      ```
-   - Add Serena using IDE-assistant context:
+
+   - Add Serena with the IDE-assistant context bound to `PROJECT_ROOT`:
+
      ```bash
      claude mcp add serena -- \
        uvx --from git+https://github.com/oraios/serena \
@@ -35,19 +41,32 @@ Configure the Serena MCP server with the IDE-assistant context, update project g
        --context ide-assistant \
        --project "$PROJECT_ROOT"
      ```
-3. Update project documentation
-   - Append the required instruction block to the project-level `AGENTS.md`, describing mandatory Serena tool usage (`find_symbol`, `find_referencing_symbols`, `get_symbols_overview`, `search_for_pattern`).
-4. Optional dashboard configuration
-   - If requested, edit `~/.serena/serena_config.yml` to set:
+
+3. **Update Project Documentation**
+
+   - Append the mandatory Serena tooling block to `AGENTS.md`, covering `find_symbol`, `find_referencing_symbols`, `get_symbols_overview`, and `search_for_pattern`.
+
+4. **Optional Dashboard Configuration**
+
+   - When disabling auto-open is desired, edit `SERENA_CONFIG`:
+
      ```yaml
      web_dashboard: false
      web_dashboard_open_on_launch: false
      ```
-   - Mention manual dashboard URL: `http://localhost:24282/dashboard/index.html`.
-5. Verify connectivity
-   - Run `claude mcp list` and confirm Serena appears as `connected`.
-6. Report completion
-   - Summarize registered command, documentation update, optional config, and connection status.
+
+   - Note the manual dashboard URL for reference: `http://localhost:24282/dashboard/index.html`.
+
+5. **Verify Connectivity**
+
+   - Confirm Serena appears as `connected`:
+
+     ```bash
+     claude mcp list
+     ```
+
+6. **Report Completion**
+   - Summarize the registration command used, documentation updates, optional dashboard changes, and the connectivity status for the user.
 
 ## Output
 

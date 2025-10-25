@@ -89,3 +89,35 @@
 ### Context
 
 - Findings originated from the CLI migration artifacts in `todos/cli-migration/code-quality-run-1.txt` and follow-up discussions on prompt duplication.
+
+## 2025-10-16T15:44:21Z
+
+### Overview
+
+- Standardized workflow formatting across Codex, Claude, and OpenCode prompts to mirror the analyze-security pattern while retaining existing steps.
+
+### Actions
+
+- Replaced legacy behavior/process sections with unified workflow blocks highlighting commands, semantic search handling, and summary guidance.
+- Removed Step 1 environment checks in favor of prerequisites/instructions and aligned optional dashboard guidance.
+- Synced variable-specific instructions (report generation, exec plan emission) to the new format without altering command semantics.
+
+### Files
+
+- systems/claude-code/commands/\*.md
+- systems/opencode/command/\*.md
+- systems/codex/prompts/\*.md
+
+### Decisions
+
+- Treat analyze-security workflow as the canonical template for prompt verbosity/structure going forward.
+- Keep dependency sync and auth preflights outside numbered steps to avoid Step 1 environment checks.
+
+### Next Steps
+
+- Monitor upcoming prompt additions to ensure they follow the standardized workflow layout before rendering system outputs.
+- resume 0199ed9f-3721-7f81-a61b-68ed6f54dada
+
+### Context
+
+- Aligns with user directive to equalize verbosity and command placement across all CLI prompt files.

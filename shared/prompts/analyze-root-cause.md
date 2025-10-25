@@ -26,9 +26,9 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Note whether `$VERBOSE_MODE` is enabled.
 2. **Establish artifacts directory**
    - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-3. **Execute automated investigation**
+3. **Run automated analyzers**
 
-   - Run the Enaible analyzers sequentially, saving their outputs:
+   - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run root_cause:trace_execution \

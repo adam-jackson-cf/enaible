@@ -4,20 +4,20 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 
 ## Variables
 
-- `DAYS` (default 7) — Lookback window.
-- `UUID` — Optional session filter.
-- `SEARCH_TERM` — Optional semantic filter.
-- `MAX_CHARS` (default 150000) — Total history budget.
-- `CHUNK_SIZE` (default 15000) — Per‑subagent input budget.
-- `SESSIONS_MAX` (default 24) — Max sessions sampled.
-- `MERGE_TARGET` — `project` | `user-codex`.
-- `$ARGUMENTS` — Raw argument string.
+- `MAX_CHARS` = 150000
+- `CHUNK_SIZE` = 15000
+
+### Optional derived from $ARGUMENTS:
+
+- `DAYS` = `--days`
+- `UUID` = `--uuid`
+- `SEARCH_TERM` = `--search-term`
 
 ## Instructions
 
 - Use the `enaible context_capture --platform codex` command; restrict reads to `~/.codex/sessions/**`.
 - Honor redaction; never print secrets.
-- Enforce budgets: do not exceed `MAX_CHARS` total or `CHUNK_SIZE` per subagent.
+- Enforce budgets: do not exceed `MAX_CHARS` total or `CHUNK_SIZE`.
 - Sample head+tail when truncating; keep chronological order.
 - Summarize into: standards, preferences, ways_of_working, approaches, notes.
 - Compare against project and user rules; flag duplicates, gaps, contradictions.
@@ -25,28 +25,50 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 
 ## Workflow
 
-0. Sync (once per checkout): !`uv sync --project tools/enaible`
-1. Read rules: `./AGENTS.md`, `~/.codex/AGENTS.md`.
-2. Capture:
+§. **Read Rules**
 
-   ```bash
-   uv run --project tools/enaible enaible context_capture \
-     --platform codex \
-     --days ${DAYS:-7} \
-     ${UUID:+--uuid "$UUID"} \
-     ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-     --output-format json
-   ```
+- Load both project and user guidance to prevent duplicates:
+  - `./AGENTS.md`
+  - `~/.codex/AGENTS.md`
 
-   - Prefer `sessions[].user_messages[]` as primary signal for ways‑of‑working.
-   - Keep `operations` as secondary context (assistant_message, tool_output, bash, file_change, turn.\*).
+2. **Capture Session History**
 
-3. Build corpus: per‑session, place `user_messages` first (chronological), then append high‑signal operation headers (commands) and trimmed outputs; chunk to `CHUNK_SIZE` until `MAX_CHARS` reached.
-4. Summarize: for each chunk, run `codex exec` subagent; emit YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, `notes`; store temporaries in `.workspace/codify-history/`.
-5. Consolidate: merge YAML; normalize text; rank by frequency; classify as Always Reinforce, Prevent, Duplicate, One‑off.
-6. Compare: diff against rules; note overlaps and contradictions.
-7. Propose: provide rule text, one‑line rationale, evidence (session id + timestamp), and recommended target (project or user). Await approval to apply.
-8. Cleanup: !`rm -rf .workspace/codify-history || true`.
+   - Gather Codex sessions within the lookback window, honoring optional filters:
+
+     ```bash
+     uv run --project tools/enaible enaible context_capture \
+       --platform codex \
+       --days ${DAYS:+-7 "DAYS"} \
+       ${UUID:+--uuid "UUID"} \
+       ${SEARCH_TERM:+--search-term "SEARCH_TERM"} \
+       --output-format json
+     ```
+
+   - Treat `sessions[].user_messages[]` as primary signal and retain `operations` (tool_output, bash, file_change, turn.\*) for secondary context.
+
+3. **Build Corpus**
+
+   - For each session, order `user_messages` chronologically, append high-signal entries (assistant messages, operations), and chunk to `CHUNK_SIZE` until `MAX_CHARS` is reached while preserving chronology.
+
+4. **Summarize (Subagent)**
+
+   - Transform each chunk into YAML capturing `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store intermediates under `.enaible/codify-history/`.
+
+5. **Consolidate Findings**
+
+   - Merge YAML outputs, normalize phrasing, rank items by frequency/clarity, and classify them as Always Reinforce, Prevent, Duplicate, or One-off.
+
+6. **Compare Against Existing Rules**
+
+   - Diff the consolidated list with `./AGENTS.md` and `~/.codex/AGENTS.md` to surface overlaps or contradictions.
+
+7. **Cleanup**
+
+   - Remove working artifacts:
+
+     ```bash
+     rm -rf .enaible/codify-history || true
+     ```
 
 ## Output
 
@@ -76,6 +98,6 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 
 ```bash
 /codify-codex-history
-/codify-codex-history --uuid 2025-10-10T21-33-01Z --max-chars 80000 --chunk-size 8000
+/codify-codex-history --uuid 2025-10-10T21-33-01Z
 /codify-codex-history --search-term "drizzle migration" --days 14
 ```

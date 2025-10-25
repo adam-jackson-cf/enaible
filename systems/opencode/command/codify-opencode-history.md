@@ -6,11 +6,6 @@ description: Codify recurring errors, fixes, and preferences from recent OpenCod
 
 Codify recurring errors, fixes, and user preferences from recent OpenCode sessions, then propose AGENTS.md updates for approval.
 
-## Environment checks
-
-- !`python --version` — Exit if Python unavailable.
-- !`uv run --project tools/enaible enaible context_capture --platform opencode --help >/dev/null` — Verify the Enaible command is available.
-
 ## Variables
 
 - `DAYS` (default 7) — Lookback window.
@@ -20,10 +15,10 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 - `CHUNK_SIZE` (default 15000) — Per‑subagent input budget.
 - `SESSIONS_MAX` (default 24) — Max sessions sampled.
 - `MERGE_TARGET` — `project` | `user-opencode`.
-- `$ARGUMENTS` — Raw argument string.
 
 ## Instructions
 
+- Verify tooling upfront: `python --version` and `uv run --project tools/enaible enaible context_capture --platform opencode --help >/dev/null` must succeed before running the workflow.
 - Use the `enaible context_capture --platform opencode` command; restrict reads to `$HOME/.local/share/opencode/**`.
 - Honor redaction; never print secrets.
 - Enforce budgets: do not exceed `MAX_CHARS` total or `CHUNK_SIZE` per subagent.
@@ -34,28 +29,62 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 ## Workflow
 
-0. Sync (once per checkout): !`uv sync --project tools/enaible`
-1. Read rules: `./AGENTS.md`, `~/.config/opencode/AGENTS.md`.
-2. Capture:
+1. **Sync Enaible Tooling (once per checkout)**
 
-   ```bash
-   uv run --project tools/enaible enaible context_capture \
-     --platform opencode \
-     --days ${DAYS:-7} \
-     ${UUID:+--uuid "$UUID"} \
-     ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
-     --output-format json
-   ```
+   - Keep dependencies current before capturing history:
 
-   - Prefer `sessions[].user_messages[]` as primary signal for ways‑of‑working.
-   - Keep `operations` as secondary context (assistant_message, bash, file_change/read/write).
+     ```bash
+     uv sync --project tools/enaible
+     ```
 
-3. Build corpus: per‑session, place `user_messages` first (chronological), then append high‑signal operation headers (commands) and trimmed outputs; chunk to `CHUNK_SIZE` until `MAX_CHARS` reached.
-4. Summarize: for each chunk, run `opencode exec` subagent; emit YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, `notes`; store temporaries in `.workspace/codify-history/`.
-5. Consolidate: merge YAML; normalize text; rank by frequency; classify as Always Reinforce, Prevent, Duplicate, One‑off.
-6. Compare: diff against rules; note overlaps and contradictions.
-7. Propose: provide rule text, one‑line rationale, evidence (session id + timestamp), and recommended target (project or user). Await approval to apply.
-8. Cleanup: !`rm -rf .workspace/codify-history || true`.
+2. **Read Rules**
+
+   - Load both project and user-level guidance to avoid duplicating existing standards:
+     - `./AGENTS.md`
+     - `~/.config/opencode/AGENTS.md`
+
+3. **Capture Session History**
+
+   - Gather OpenCode sessions within the lookback window, respecting optional filters:
+
+     ```bash
+     uv run --project tools/enaible enaible context_capture \
+       --platform opencode \
+       --days ${DAYS:-7} \
+       ${UUID:+--uuid "$UUID"} \
+       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       --output-format json
+     ```
+
+   - Treat `sessions[].user_messages[]` as primary signal and keep `operations` data for supplementary context.
+
+4. **Build Corpus**
+
+   - For each session, order `user_messages` chronologically, append high-signal `assistant_messages`, and list notable `operations` (commands, file changes) before chunking to `CHUNK_SIZE` until `MAX_CHARS` is reached.
+
+5. **Summarize (Subagent)**
+
+   - Use `opencode exec` to turn each chunk into YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store temporaries under `.workspace/codify-history/`.
+
+6. **Consolidate Findings**
+
+   - Merge YAML outputs, normalize phrasing, rank by frequency/clarity, and classify items as Always Reinforce, Prevent, Duplicate, or One-off.
+
+7. **Compare Against Existing Rules**
+
+   - Diff the consolidated list with `./AGENTS.md` and `~/.config/opencode/AGENTS.md` to flag overlaps or contradictions.
+
+8. **Propose Updates**
+
+   - Prepare merge-ready rule blocks with rationale, evidence (session id + timestamp), and recommended target (`project` or `user-opencode`).
+
+9. **Cleanup**
+
+   - Remove working artifacts:
+
+     ```bash
+     rm -rf .workspace/codify-history || true
+     ```
 
 ## Output
 
