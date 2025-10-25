@@ -8,13 +8,18 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 ## Variables
 
-- `DAYS` (default 7) — Lookback window.
-- `UUID` — Optional session filter.
-- `SEARCH_TERM` — Optional semantic filter.
-- `MAX_CHARS` (default 150000) — Total history budget.
-- `CHUNK_SIZE` (default 15000) — Per‑subagent input budget.
-- `SESSIONS_MAX` (default 24) — Max sessions sampled.
-- `MERGE_TARGET` — `project` | `user-opencode`.
+### Optional (derived from $ARGUMENTS)
+
+- @DAYS = --days — lookback window (default 7)
+- @UUID = --uuid — filter to a specific session
+- @SEARCH_TERM = --search-term — keyword/phrase filter
+- @SESSIONS_MAX = --sessions-max — limit sessions sampled (default 24)
+- @MERGE_TARGET = --merge-target — project | user-opencode
+
+### Derived (internal)
+
+- @MAX_CHARS = 150000 — total character budget
+- @CHUNK_SIZE = 15000 — per-subagent input budget
 
 ## Instructions
 
@@ -50,9 +55,9 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
      ```bash
      uv run --project tools/enaible enaible context_capture \
        --platform opencode \
-       --days ${DAYS:-7} \
-       ${UUID:+--uuid "$UUID"} \
-       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       ${DAYS:+--days "@DAYS"} \
+       ${UUID:+--uuid "@UUID"} \
+       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
        --output-format json
      ```
 
@@ -91,7 +96,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 ```md
 # RESULT
 
-- Summary: Proposed codified rules from OpenCode history (last ${DAYS:-7} days), compared to AGENTS.md; ready for review.
+- Summary: Proposed codified rules from OpenCode history (last @DAYS days, default 7), compared to AGENTS.md; ready for review.
 
 ## DETAILS
 

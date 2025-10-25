@@ -4,9 +4,10 @@ Configure the Serena MCP server with the IDE-assistant context, update project g
 
 ## Variables
 
-- `PROJECT_ROOT` ← output of `pwd`.
-- `SERENA_CONFIG` ← `~/.serena/serena_config.yml`.
-- `$ARGUMENTS` ← raw argument string (no additional flags supported).
+### Derived (internal)
+
+- @PROJECT_ROOT = <derived> — current working directory (pwd)
+- @SERENA_CONFIG = <derived> — ~/.serena/serena_config.yml
 
 ## Instructions
 
@@ -22,7 +23,7 @@ Configure the Serena MCP server with the IDE-assistant context, update project g
 1. **Establish Project Context**
 
    - Capture the current working directory as `PROJECT_ROOT=$(pwd)` and keep the IDE-assistant context ready for registration.
-   - Reference `SERENA_CONFIG=~/.serena/serena_config.yml` for optional dashboard tweaks later in the workflow.
+   - Reference @SERENA_CONFIG for optional dashboard tweaks later in the workflow.
 
 2. **Register MCP Server**
 

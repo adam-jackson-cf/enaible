@@ -12,9 +12,11 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 
 ## Variables
 
-- `$DAYS` (default 7): Lookback window for sessions
-- `$UUID`: Optional session id filter
-- `$SEARCH_TERM`: Optional semantic filter
+### Optional (derived from $ARGUMENTS)
+
+- @DAYS = --days — lookback window (default 7)
+- @UUID = --uuid — filter to a specific session
+- @SEARCH_TERM = --search-term — keyword/phrase filter
 
 ## Instructions
 

@@ -12,9 +12,11 @@ Analyze recent activity from context bundles and git history to understand curre
 
 ## Variables
 
-- `--uuid UUID` - Filter analysis to a specific session UUID
-- `--verbose` - Expand truncated content from linked conversation files (when available)
-- `--search-term TERM` - Search for sessions containing semantically matching content
+### Optional (derived from $ARGUMENTS)
+
+- @UUID = --uuid — filter analysis to a specific session UUID
+- @VERBOSE = --verbose — expand truncated content where available
+- @SEARCH_TERM = --search-term — search for semantically matching sessions
 
 ## Workflow
 

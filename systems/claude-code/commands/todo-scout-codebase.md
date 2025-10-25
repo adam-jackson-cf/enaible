@@ -3,19 +3,24 @@ argument-hint: [--user-prompt USER_PROMPT] [--out $OUT] [--exclue $EXCLUDE_GLOBS
 description: Analyse a codebase in relation to a specific user request to create a supporting context
 ---
 
-# todo-scout-codebase v0.3
+# todo-scout-codebase v0.4
 
 ## Purpose
 
-Explore the entire project and generate a comprehensive codebase analysis that supports the `$USER_PROMPT`.
+Explore the entire project and generate a comprehensive codebase analysis that supports @USER_PROMPT.
 
 ## Variables
 
-- `$USER_PROMPT` ← first positional argument (required)
-- `$TARGET_PATH` ← second positional argument (default `.`)
-- `$OUT` ← `--out` (required) — write the final Markdown to this path and also print the same Markdown to stdout (no preface, no fences)
-- `$DAYS` ← `--days` (default `20`)
-- `$EXCLUDE_GLOBS` ← `--exclude` CSV (optional; e.g., `node_modules,dist`)
+### Required
+
+- @USER_PROMPT = $1 — task brief to guide the analysis
+
+### Optional (derived from $ARGUMENTS)
+
+- @TARGET_PATH = --target-path — root to analyze (default .)
+- @OUT = --out — write the final Markdown to this path (also print to stdout)
+- @DAYS = --days — window for history insights (default 20)
+- @EXCLUDE_GLOBS = --exclude [repeatable] — CSV or repeated flags (e.g., node_modules,dist)
 
 ## Instructions
 
@@ -24,18 +29,18 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 - Avoid dumping raw command syntax unless you are showing an illustrative example.
 - Format every section for quick scanning: short paragraphs, bullet lists, and tables. Keep guidance concise and documentation-focused.
 - When secrets are encountered, note file and nature only—never print the secret.
-- Default to the repository root when `$TARGET_PATH` is not supplied; respect `$EXCLUDE_GLOBS` for all searches.
+- Default to the repository root when @TARGET_PATH is not supplied; respect @EXCLUDE_GLOBS for all searches.
 
 ## Workflow
 
 1. **Scope & Setup**
 
-   - Resolve `$TARGET_PATH`, record the working directory, and respect `$EXCLUDE_GLOBS` by deriving `${EXCLUDE_ARG}` from `.gitignore` (and `.git/info/exclude` when present).
-   - Confirm the command operates read-only except for writing the final report to `$OUT`.
+   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving `${EXCLUDE_ARG}` from `.gitignore` (and `.git/info/exclude` when present).
+   - Confirm the command operates read-only except for writing the final report to @OUT.
 
 2. **Deep Analysis (LLM + file-driven)**
 
-   - Dispatch parallel task agents to review how the project supports `$USER_PROMPT` across:
+   - Dispatch parallel task agents to review how the project supports @USER_PROMPT across:
      - Architecture & Orchestration
      - Backend Patterns & Practices
      - Frontend Patterns & Practices
@@ -46,7 +51,7 @@ Explore the entire project and generate a comprehensive codebase analysis that s
      - Entry points, services, CLIs, routing surfaces, configurations, manifests, and framework signals
    - Capture supporting facts with repository commands (`ls`, `rg`, `git`, `sed`, etc.) and convert them into concise documentation-ready notes.
 
-3. **Git History & Pattern Recognition (last `$DAYS` days)**
+3. **Git History & Pattern Recognition (last @DAYS days)**
 
    - Run history commands to surface recent themes, key contributors, and churn hotspots:
 
@@ -59,8 +64,8 @@ Explore the entire project and generate a comprehensive codebase analysis that s
    - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
 
 4. **Synthesis**
-   - Populate the provided report template with structured bullets, tables, and short paragraphs tailored to `$USER_PROMPT`.
-   - Keep guidance action-oriented, avoid duplicating file paths, and write the final Markdown to `$OUT` while echoing the same content to stdout (no prefaces, fences, or tool logs).
+   - Populate the provided report template with structured bullets, tables, and short paragraphs tailored to @USER_PROMPT.
+   - Keep guidance action-oriented, avoid duplicating file paths, and write the final Markdown to @OUT while echoing the same content to stdout (no prefaces, fences, or tool logs).
 
 ## Output
 

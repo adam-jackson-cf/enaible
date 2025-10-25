@@ -2,9 +2,26 @@
 description: Summarize recent context from git history and edited files
 ---
 
-# Recent Context Review
+---
+
+argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
+description: Summarize recent context from git history and edited files
+
+---
+
+# get-recent-context v0.2
+
+## Purpose
 
 Analyze recent activity from context bundles and git history to understand current work and provide quick orientation for continuing development.
+
+## Variables
+
+### Optional (derived from $ARGUMENTS)
+
+- @UUID = --uuid — filter analysis to a specific session UUID
+- @VERBOSE = --verbose — expand truncated content where available
+- @SEARCH_TERM = --search-term — search for semantically matching sessions
 
 ## Arguments
 
