@@ -2,16 +2,18 @@
 
 **Purpose**
 
-- Produce a complete execution plan for `USER_PROMPT`, using supplied artifacts (spec, inspect report) and targeted research.
+- Produce a complete execution plan for @USER_PROMPT, using supplied artifacts (spec, inspect report) and targeted research.
 
 ## Variables
 
-- `USER_PROMPT` ← $1 (required)
+### Required
 
-### Optional derived from $ARGUMENTS:
+- @USER_PROMPT = $1 — execution brief
 
-- `ARTIFACT` = `--artifact` ← context files or URLs (e.g., spec, inspect report)
-- `PATH` = `--out` ← (defaults to `./`) write the final ExecPlan this path
+### Optional (derived from $ARGUMENTS)
+
+- @ARTIFACT = --artifact [repeatable] — context files or URLs (e.g., spec, inspect report)
+- @OUT = --out — write the final ExecPlan to this path (default ./)
 
 ## Instructions
 
@@ -19,7 +21,7 @@
 - Incorporate global rules (coding standards, quality gates, design principles).
 - Use online research for additional analysis; cite official documentation.
 - Form a recommended solution and devise plan.
-- Output only the final ExecPlan—no preamble—using the template. Write to `--out` and echo the same Markdown to stdout.
+- Output only the final ExecPlan—no preamble—using the template. Write to @OUT and echo the same Markdown to stdout.
 
 ## Workflow
 
@@ -53,7 +55,7 @@
    - Select the preferred implementation approach based on gathered context and outline supporting rationale.
 
 7. **Emit Plan**
-   - Render the ExecPlan using the provided template, write it to `PATH`, and echo the same Markdown to stdout without preamble.
+   - Render the ExecPlan using the provided template, write it to @OUT, and echo the same Markdown to stdout without preamble.
 
 ## Output
 

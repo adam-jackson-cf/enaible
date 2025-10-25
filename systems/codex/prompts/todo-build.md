@@ -6,21 +6,29 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 
 ## Variables
 
-- `PLAN_PATH` = $1 ← path to implementation plan (required)
+### Required
 
-### Optional derived from $ARGUMENTS:
+- @PLAN_PATH = $1 — path to implementation plan
 
-- `REMOTE` = `--remote` (default `origin`)
-- `WORKTREES` = `--worktrees` (default `.worktrees`)
-- `BASE` = `--base` (optional; else derive from plan metadata or default `main`)
-- `TITLE` = `--title` (optional; default from plan title)
-- `LABELS` = `--labels` CSV (optional; e.g., `codex-review,ready-for-qa`)
+### Optional (derived from $ARGUMENTS)
+
+- @REMOTE = --remote — remote name (default origin)
+- @WORKTREES = --worktrees — worktrees directory (default .worktrees)
+- @BASE = --base — base branch (optional; else derive from plan metadata or default main)
+- @TITLE = --title — PR title override (optional)
+- @LABELS = --labels — CSV labels (optional; e.g., codex-review,ready-for-qa)
+
+### Derived (internal)
+
+- @SLUG = <derived>
+- @TS = <derived>
+- @BRANCH = <derived>
 
 ## Instructions
 
 - Autonomous; no interactive prompts. Fail fast on INIT critical failures.
 - Always use git worktrees; do not modify the primary working directory. If CWD is already a git worktree, reuse it and skip creating a new one.
-- Treat `PLAN_PATH` as the single source of truth; update status, tasks, logs, gates, and test entries in that file.
+- Treat @PLAN_PATH as the single source of truth; update status, tasks, logs, gates, and test entries in that file.
 - Commit code and plan updates together (atomic commits).
 - Enforce gates/tests exactly; do not advance on failures or relax thresholds.
 - Never commit secrets; if detected, halt and record locations in the plan.
@@ -29,17 +37,17 @@ Execute a provided plan end-to-end: implement changes, enforce the plan’s gate
 
 1. **INIT**
 
-   - Resolve core variables (`PLAN_PATH`, `REMOTE`, `WORKTREES`, `BASE`, `TITLE`, `LABELS`).
+   - Resolve core variables (@PLAN_PATH, @REMOTE, @WORKTREES, @BASE, @TITLE, @LABELS).
    - Verify required tooling (`git` for worktrees, authenticated `gh`, and every gate/test command referenced in the plan).
    - Validate the plan: title/objective, repository/base branch, actionable tasks, gate thresholds, test commands, completion criteria.
-   - Derive working identifiers from the plan title (`SLUG`, `TS`, `BRANCH`).
+   - Derive working identifiers from the plan title (@SLUG, @TS, @BRANCH).
 
 2. **PREPARE**
 
-   - Ensure `WORKTREES` exists (create and gitignore if needed).
+   - Ensure @WORKTREES exists (create and gitignore if needed).
    - Reuse the current worktree when possible; otherwise attach or create the branch/worktree:
-     - If `BRANCH` exists, attach a worktree or reuse the existing path.
-     - Otherwise run `git worktree add -b "BRANCH" "WORKTREES/TS-SLUG" "${BASE:-main}"`.
+     - If @BRANCH exists, attach a worktree or reuse the existing path.
+     - Otherwise run `git worktree add -b "@BRANCH" "@WORKTREES/@TS-@SLUG" "${BASE:-main}"`.
    - Update plan metadata (Status=In Progress, branch name, timestamps) when applicable.
 
 3. **EXECUTE_LOOP (per task order)**

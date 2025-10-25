@@ -23,12 +23,6 @@ Analyze recent activity from context bundles and git history to understand curre
 - @VERBOSE = --verbose — expand truncated content where available
 - @SEARCH_TERM = --search-term — search for semantically matching sessions
 
-## Arguments
-
-- `--uuid UUID` - Filter analysis to a specific session UUID
-- `--verbose` - Expand truncated content from linked conversation files (when available)
-- `--search-term TERM` - Search for sessions containing semantically matching content
-
 ## Workflow
 
 1.  **Context Bundle Analysis**
@@ -45,8 +39,8 @@ Analyze recent activity from context bundles and git history to understand curre
       uv run --project tools/enaible enaible context_capture \
         --platform opencode \
         --days 2 \
-        ${UUID:+--uuid "$UUID"} \
-        ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+        ${UUID:+--uuid "@UUID"} \
+        ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
         --output-format json
       ```
 
@@ -60,7 +54,7 @@ Analyze recent activity from context bundles and git history to understand curre
         --output-format json
       ```
 
-    - Generate semantic variations whenever `--search-term` is provided to widen search coverage:
+    - Generate semantic variations whenever `@SEARCH_TERM` is provided to widen search coverage:
 
            ```bash
            if [ -n "$SEARCH_TERM" ]; then
@@ -83,7 +77,7 @@ Analyze recent activity from context bundles and git history to understand curre
 
       ```
 
-    - Parse returned JSON to filter by UUID, surface semantic matches, and summarize sessions (user prompts, assistant replies when present, operations). In `--verbose` mode expand truncated content and spotlight high-signal operations.
+    - Parse returned JSON to filter by UUID, surface semantic matches, and summarize sessions (user prompts, assistant replies when present, operations). In `@VERBOSE` mode expand truncated content and spotlight high-signal operations.
 
 2.  **Git Status Review**
 

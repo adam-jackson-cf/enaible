@@ -34,21 +34,13 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 ## Workflow
 
-1. **Sync Enaible Tooling (once per checkout)**
-
-   - Keep dependencies current before capturing history:
-
-     ```bash
-     uv sync --project tools/enaible
-     ```
-
-2. **Read Rules**
+1. **Read Rules**
 
    - Load both project and user-level guidance to avoid duplicating existing standards:
      - `./AGENTS.md`
      - `~/.config/opencode/AGENTS.md`
 
-3. **Capture Session History**
+2. **Capture Session History**
 
    - Gather OpenCode sessions within the lookback window, respecting optional filters:
 
@@ -63,33 +55,33 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
    - Treat `sessions[].user_messages[]` as primary signal and keep `operations` data for supplementary context.
 
-4. **Build Corpus**
+3. **Build Corpus**
 
    - For each session, order `user_messages` chronologically, append high-signal `assistant_messages`, and list notable `operations` (commands, file changes) before chunking to `CHUNK_SIZE` until `MAX_CHARS` is reached.
 
-5. **Summarize (Subagent)**
+4. **Summarize (Subagent)**
 
    - Use `opencode exec` to turn each chunk into YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store temporaries under `.workspace/codify-history/`.
 
-6. **Consolidate Findings**
+5. **Consolidate Findings**
 
    - Merge YAML outputs, normalize phrasing, rank by frequency/clarity, and classify items as Always Reinforce, Prevent, Duplicate, or One-off.
 
-7. **Compare Against Existing Rules**
+6. **Compare Against Existing Rules**
 
    - Diff the consolidated list with `./AGENTS.md` and `~/.config/opencode/AGENTS.md` to flag overlaps or contradictions.
 
-8. **Propose Updates**
+7. **Propose Updates**
 
    - Prepare merge-ready rule blocks with rationale, evidence (session id + timestamp), and recommended target (`project` or `user-opencode`).
 
-9. **Cleanup**
+8å. **Cleanup**
 
-   - Remove working artifacts:
+- Remove working artifacts:
 
-     ```bash
-     rm -rf .workspace/codify-history || true
-     ```
+  ```bash
+  rm -rf .workspace/codify-history || true
+  ```
 
 ## Output
 
@@ -111,7 +103,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
   - Proposal: printed for copy/paste into AGENTS.md
 
 - How to verify
-  - Re‑run with different `DAYS`/`UUID` to spot‑check.
+  - Re‑run with different `@DAYS`/`@UUID` to spot‑check.
   - Confirm no duplication with existing rules; approve merge targets.
 ```
 

@@ -69,7 +69,7 @@ Run these from the project root to verify activation (project‑agnostic):
 
 ```bash
 test -d .serena && echo ".serena present" || echo ".serena missing"
-rg -n --fixed-strings `CURRENT_WORKING_DIR` ~/.serena/serena_config.yml || echo "project not yet in serena_config.yml"
+rg -n --fixed-strings "@PROJECT_ROOT" ~/.serena/serena_config.yml || echo "project not yet in serena_config.yml"
 ```
 
 ## Optional
@@ -83,7 +83,7 @@ rg -n --fixed-strings `CURRENT_WORKING_DIR` ~/.serena/serena_config.yml || echo 
   - You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
 - Run Codex in tmux for long‑running indexing:
   ```bash
-  tmux new-session -d -s project-codex -c `CURRENT_WORKING_DIR` 'codex'
+  tmux new-session -d -s project-codex -c "@PROJECT_ROOT" 'codex'
   # then in that session:  Activate serena for current project
   ```
 - For troubleshooting, review `~/.codex/log/codex-tui.log`.
@@ -94,3 +94,15 @@ rg -n --fixed-strings `CURRENT_WORKING_DIR` ~/.serena/serena_config.yml || echo 
 - After editing `~/.codex/config.toml`, restart Codex to pick up changes.
 
 $ARGUMENTS
+
+# Setup Serena MCP (Codex)
+
+#
+
+# Activate and validate the Serena MCP server in Codex using the global configuration approach.
+
+## Variables
+
+### Derived (internal)
+
+- @PROJECT_ROOT = <derived> — current working directory (pwd)

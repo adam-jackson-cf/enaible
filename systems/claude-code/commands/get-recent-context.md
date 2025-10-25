@@ -34,8 +34,8 @@ Analyze recent activity from context bundles and git history to understand curre
      uv run --project tools/enaible enaible context_capture \
        --platform claude \
        --days 2 \
-       ${UUID:+--uuid "$UUID"} \
-       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       ${UUID:+--uuid "&UUID"} \
+       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
        --output-format json
      ```
 
@@ -49,7 +49,7 @@ Analyze recent activity from context bundles and git history to understand curre
        --output-format json
      ```
 
-   - Expand semantic coverage whenever `--search-term` is present:
+   - Expand semantic coverage whenever `@SEARCH_TERM` is present:
 
      ```bash
      if [ -n "$SEARCH_TERM" ]; then
@@ -68,7 +68,7 @@ Analyze recent activity from context bundles and git history to understand curre
      fi
      ```
 
-   - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In `--verbose` mode expand truncated content and include high-signal assistant replies.
+   - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In `@VERBOSE` mode expand truncated content and include high-signal assistant replies.
 
 2. **Git Status Review**
 
@@ -109,7 +109,7 @@ Analyze recent activity from context bundles and git history to understand curre
    - Merge findings from context bundles, git status, and history into a cohesive narrative.
    - Extract file access frequencies, semantic search matches, command usage patterns, and outstanding risks to guide next actions.
    - Recommend follow-up checks (tests, stakeholders) and spotlight the most active files for hand-offs or onboarding.
-   - When `--search-term` is provided, expand the analysis with domain-aware variations (synonyms, verb forms, related technologies) to broaden recall while maintaining chronological order.
+   - When `@SEARCH_TERM` is provided, expand the analysis with domain-aware variations (synonyms, verb forms, related technologies) to broaden recall while maintaining chronological order.
 
 ## Output
 

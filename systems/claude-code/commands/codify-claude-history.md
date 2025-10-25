@@ -35,8 +35,8 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
      uv run --project tools/enaible enaible context_capture \
        --platform claude \
        --days ${DAYS:-7} \
-       ${UUID:+--uuid "$UUID"} \
-       ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} \
+       ${UUID:+--uuid "@UUID"} \
+       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
        --output-format json
      ```
 

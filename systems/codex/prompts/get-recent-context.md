@@ -6,11 +6,11 @@ Analyze recent Codex activity from session logs and git history to understand cu
 
 ## Variables
 
-### Optional derived from $ARGUMENTS:
+### Optional (derived from $ARGUMENTS)
 
-- `UUID` = `--uuid` Filter analysis to a specific session UUID
-- `VERBOSE` = `--verbose` Expand truncated content from linked conversation files (when available)
-- `SEARCH_TERM` = `--search-term` Search for sessions containing semantically matching content
+- @UUID = --uuid — filter analysis to a specific session UUID
+- @VERBOSE = --verbose — expand truncated content where available
+- @SEARCH_TERM = --search-term — search for sessions containing semantically matching content
 
 ## Workflow
 
@@ -24,8 +24,8 @@ Analyze recent Codex activity from session logs and git history to understand cu
       uv run --project tools/enaible enaible context_capture \
         --platform codex \
         --days 2 \
-        ${UUID:+--uuid "UUID"} \
-        ${SEARCH_TERM:+--search-term "SEARCH_TERM"} \
+        ${UUID:+--uuid "@UUID"} \
+        ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
         --output-format json
       ```
 
@@ -39,17 +39,17 @@ Analyze recent Codex activity from session logs and git history to understand cu
         --output-format json
       ```
 
-    - Generate semantic variations when `SEARCH_TERM` is supplied:
+    - Generate semantic variations when @SEARCH_TERM is supplied:
 
            ```bash
-           if [ -n "SEARCH_TERM" ]; then
+           if [ -n "@SEARCH_TERM" ]; then
                SEMANTIC_VARIATIONS=$(cat <<EOF
 
       {
-      "$(echo "$SEARCH_TERM" | cut -d' ' -f1)": [
-      "$(echo "SEARCH_TERM" | cut -d' ' -f1)s",
-      "$(echo "SEARCH_TERM" | cut -d' ' -f1)ing",
-      "$(echo "SEARCH_TERM" | cut -d' ' -f1)ed"
+      "$(echo "@SEARCH_TERM" | cut -d' ' -f1)": [
+      "$(echo "@SEARCH_TERM" | cut -d' ' -f1)s",
+      "$(echo "@SEARCH_TERM" | cut -d' ' -f1)ing",
+      "$(echo "@SEARCH_TERM" | cut -d' ' -f1)ed"
       ]
       }
       EOF
@@ -62,7 +62,7 @@ Analyze recent Codex activity from session logs and git history to understand cu
 
       ```
 
-    - Parse returned JSON and local session logs (`~/.codex/sessions/**`, `~/.codex/history.jsonl`) to surface prompts, operations, and tooling usage. In `VERBOSE` mode expand truncated content and spotlight high-signal entries.
+    - Parse returned JSON and local session logs (`~/.codex/sessions/**`, `~/.codex/history.jsonl`) to surface prompts, operations, and tooling usage. In @VERBOSE mode expand truncated content and spotlight high-signal entries.
 
 2.  **Git Status Review**
 
@@ -103,7 +103,7 @@ Analyze recent Codex activity from session logs and git history to understand cu
     - Merge Codex session data, git status, and history into a cohesive narrative.
     - Extract file access frequencies, semantic matches, tool usage patterns, and outstanding risks to guide next actions.
     - Recommend follow-up checks (tests, stakeholders) and spotlight the most active files for onboarding or hand-offs.
-    - When `SEARCH_TERM` is provided, expand the analysis with domain-aware variations to broaden recall while maintaining chronological order.
+    - When @SEARCH_TERM is provided, expand the analysis with domain-aware variations to broaden recall while maintaining chronological order.
 
 ## Output Format
 

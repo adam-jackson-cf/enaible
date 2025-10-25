@@ -57,8 +57,8 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 
      ```bash
      git status
-     git log --since="${DAYS:-20} days ago"
-     git shortlog -sn --since="${DAYS:-20} days ago"
+     git log --since="${@DAYS:-20} days ago"
+     git shortlog -sn --since="${@DAYS:-20} days ago"
      ```
 
    - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
