@@ -61,7 +61,7 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
    - Remove temporary artifacts:
 
      ```bash
-     rm -rf .workspace/codify-history || true
+     rm -rf .enaible/codify-history || true
      ```
 
 ## Output

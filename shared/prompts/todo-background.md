@@ -11,7 +11,7 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 ### Optional (derived from $ARGUMENTS)
 
 - @MODEL_SELECTOR = --model — CLI/model selector (e.g., claude:model, codex:codex-medium); default claude:sonnet
-- @REPORT_FILE = --report-file — destination report file (default ./.workspace/agents/background/background-report-<TIMESTAMP>.md)
+- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md)
 
 ### Derived (internal)
 
@@ -31,7 +31,7 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
    - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from @MODEL_SELECTOR.
    - If the command exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
 1. Prepare reporting directory
-   - Run `mkdir -p ./.workspace/agents/background && test -w ./.workspace/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
+   - Run `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
 2. Parse inputs
    - Require `USER_PROMPT`; if missing, prompt the user and stop.
    - Split `MODEL_SELECTOR` on `:` to derive `CLI` (`claude`, `codex`, `opencode`, `qwen`, `gemini`) and model name.

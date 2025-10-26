@@ -61,7 +61,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 
 4. **Summarize (Subagent)**
 
-   - Use `opencode exec` to turn each chunk into YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store temporaries under `.workspace/codify-history/`.
+   - Use `opencode exec` to turn each chunk into YAML with `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store temporaries under `.enaible/codify-history/`.
 
 5. **Consolidate Findings**
 
@@ -80,7 +80,7 @@ Codify recurring errors, fixes, and user preferences from recent OpenCode sessio
 - Remove working artifacts:
 
   ```bash
-  rm -rf .workspace/codify-history || true
+  rm -rf .enaible/codify-history || true
   ```
 
 ## Output

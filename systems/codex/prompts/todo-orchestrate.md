@@ -45,7 +45,7 @@
      - @TS = timestamp YYYYmmddHHMM
      - @BRANCH = feature/@SLUG-@TS
      - @WORKTREE_PATH = @WORKTREES/@SLUG-@TS
-     - @WSDIR = @WORKTREE_PATH/.workspace/orchestrate/@SLUG-@TS
+     - @WSDIR = @WORKTREE_PATH/.enaible/orchestrate/@SLUG-@TS
      - If the repository already has commits:
        - BASE=${BASE:-$(git symbolic-ref -q --short HEAD || echo main)}
        - REMOTE=${REMOTE:-$(git remote 2>/dev/null | head -n1 || echo origin)}
@@ -72,7 +72,7 @@
 
      ```bash
      codex exec --sandbox workspace-write -C "@WORKTREE_PATH" --model gpt-5-codex-medium \
-       "/todo-inspect-codebase @TASK_INPUT . --days @DAYS${EXCLUDE_GLOBS:+ --exclude @EXCLUDE_GLOBS} --out .workspace/@SLUG_TS/inspect/report.md"
+       "/todo-inspect-codebase @TASK_INPUT . --days @DAYS${EXCLUDE_GLOBS:+ --exclude @EXCLUDE_GLOBS} --out .enaible/@SLUG_TS/inspect/report.md"
      ```
 
    - Pass only the full inspection report to downstream phases. If `NEW_REPO=true`, record a blocked note referencing missing code and stop.
@@ -85,7 +85,7 @@
      codex exec --sandbox workspace-write -C "@WORKTREE_PATH" --model gpt-5-high \
        -c 'tools.web_search=true' \
        -c 'sandbox_workspace_write.network_access=true' \
-       "/create-execplan @TASK_INPUT --artifact .workspace/@SLUG_TS/spec/spec.md --artifact .workspace/@SLUG_TS/inspect/report.md --out .workspace/@SLUG_TS/plan/execplan.md"
+       "/create-execplan @TASK_INPUT --artifact .enaible/@SLUG_TS/spec/spec.md --artifact .enaible/@SLUG_TS/inspect/report.md --out .enaible/@SLUG_TS/plan/execplan.md"
      ```
 
    - When sub-prompts request clarification, respond using `spec/spec.md`, the inspection report, and project/user AGENTS.md rules.
@@ -96,7 +96,7 @@
 
      ```bash
      codex exec --sandbox workspace-write -C "@WORKTREE_PATH" --model gpt-5-codex-medium \
-       "/todo-build .workspace/@SLUG_TS/plan/execplan.md @WORKTREE_PATH --remote @REMOTE${BASE:+ --base @BASE} --worktrees @WORKTREES"
+       "/todo-build .enaible/@SLUG_TS/plan/execplan.md @WORKTREE_PATH --remote @REMOTE${BASE:+ --base @BASE} --worktrees @WORKTREES"
      ```
 
    - The build process updates the ExecPlan (Progress, PR & Review, Results). No extra PR or summary files are generated.
@@ -106,9 +106,9 @@
 - Final orchestration summary:
   - Task: @TASK_INPUT (type: Linear/file/text)
   - Artifacts:
-    - Spec: .workspace/@SLUG_TS/spec/spec.md
-    - Inspect: .workspace/@SLUG_TS/inspect/report.md
-    - ExecPlan (single source of truth): .workspace/@SLUG_TS/plan/execplan.md
+    - Spec: .enaible/@SLUG_TS/spec/spec.md
+    - Inspect: .enaible/@SLUG_TS/inspect/report.md
+    - ExecPlan (single source of truth): .enaible/@SLUG_TS/plan/execplan.md
   - PR: captured in ExecPlan (PR & Review section) or blocker + reason
   - Timing: start/end, per‑phase durations
 

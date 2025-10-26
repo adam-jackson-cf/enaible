@@ -232,4 +232,4 @@ Phase numebrs should match high level phase plan
 
 ## Examples
 
-- `/create-execplan "Add MFA to admin console" --artifact .workspace/2025-10-13-add-mfa/spec/spec.md --artifact .workspace/2025-10-13-add-mfa/inspect/report.md --out .workspace/2025-10-13-add-mfa/plan/execplan.md`
+- `/create-execplan "Add MFA to admin console" --artifact .enaible/2025-10-13-add-mfa/spec/spec.md --artifact .enaible/2025-10-13-add-mfa/inspect/report.md --out .enaible/2025-10-13-add-mfa/plan/execplan.md`

@@ -93,5 +93,5 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 /create-project acme-dashboard react-router hono bun sqlite drizzle
 
 # Infer stack from todos file
-/create-project mobile-app --from-plan ./.workspace/execplan.md
+/create-project mobile-app --from-plan ./.enaible/execplan.md
 ```
