@@ -4,7 +4,7 @@ description: Summarize recent context from git history and edited files
 
 ---
 
-argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
+argument-hint: [--uuid] [--verbose] [--search-term]
 description: Summarize recent context from git history and edited files
 
 ---
@@ -213,5 +213,3 @@ _Change Patterns_
     "performance": ["speed", "fast", "slow", "optimize", "efficiency", "latency"]
 }
 ```
-
-$ARGUMENTS

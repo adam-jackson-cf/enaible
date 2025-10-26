@@ -200,5 +200,3 @@ _Change Patterns_
     "performance": ["speed", "fast", "slow", "optimize", "efficiency", "latency"]
 }
 ```
-
-$ARGUMENTS
