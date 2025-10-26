@@ -143,7 +143,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 ```md
 # RESULT
 
-- Summary: UX PRD generated for "<PRODUCT_BRIEF>".
+- Summary: UX PRD generated for "<@USER_PROMPT>".
 - Personas: <count>
 - Features: <count> (Must: <n>, Should: <n>, Could: <n>, Won't: <n>)
 

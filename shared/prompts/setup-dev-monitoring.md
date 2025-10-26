@@ -41,24 +41,23 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      ```
    - If prerequisites are missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
 2. Project component discovery
-3. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.
    - Assign log labels (FRONTEND, BACKEND, WORKER, etc.) and capture port information.
    - Verify each component has a runnable command; halt if any remain unresolved.
-4. Component overlap analysis
+3. Component overlap analysis
    - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
    - Identify port conflicts.
    - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
-5. Watch pattern analysis
+4. Watch pattern analysis
    - Decide which technologies rely on native hot reload vs. external watchers.
    - Build `WATCH_PATTERNS[]` only for components lacking native watching.
    - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
-6. Existing file handling
+5. Existing file handling
    - Detect existing `Makefile` or `Procfile`.
    - **STOP:** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
    - Respect choice and create timestamped backups when requested.
-7. Write Makefile (direct content)
+6. Write Makefile (direct content)
 
    - Write a Makefile that defines a timestamped log pipeline, core targets, and one run‑<LABEL> target per component.
    - Content to write (template; expand per component from `$COMPONENTS_JSON`):
@@ -103,7 +102,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      - For each component: `LABEL` is UPPER_SNAKE; `cwd` = component.cwd; `start_command` = component.start_command.
      - If Next.js dev and `port` present: prefix `PORT=<port>` and append `-- --port <port>`.
 
-8. Write Procfile (direct content)
+7. Write Procfile (direct content)
    - Add one line per component that cds into `cwd`, runs the start command, and applies a timestamped log pipeline to `$LOG_FILE`.
    - Content to write (expand per component):
      ```Procfile
@@ -111,7 +110,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      BACKEND: cd packages/api && bun run dev 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [BACKEND] $$line"; done | tee -a ./dev.log
      ```
    - Always use `./dev.log` for writeability; never `/dev.log`.
-9. Update AGENTS.md or CLAUDE.md (direct content)
+8. Update AGENTS.md or CLAUDE.md (direct content)
 
    - Prefer `AGENTS.md` if present; otherwise update/create `CLAUDE.md`.
    - Insert or upsert this Development section:
@@ -129,7 +128,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      Services log to `./dev.log` with timestamps. Each service can be run individually via `make run-<LABEL>`.
      ```
 
-10. Validation
+9. Validation
 
 - Ensure every component has a corresponding `run-<LABEL>` target and a Procfile process line.
 - Verify logging pipeline targets `$LOG_FILE` (`./dev.log`) in both files.

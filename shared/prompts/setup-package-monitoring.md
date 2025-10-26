@@ -36,6 +36,13 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
    - Capture `--audit-level`, `--package-file`, all `--exclude` values, and the optional `--branch-protection` flag.
    - Store results in `AUDIT_LEVEL`, `PACKAGE_FILE`, `EXCLUDE_PATHS[]`, and `SETUP_BRANCH_PROTECTION` (default `AUDIT_LEVEL=critical`).
 3. Execute setup script
+   - Build exclusion flags only when values are provided:
+     ```bash
+     EXCLUDE_ARGS=""
+     for path in "${EXCLUDE_PATHS[@]}"; do
+       EXCLUDE_ARGS+=" --exclude \"$path\""
+     done
+     ```
    - Run the shared setup module via the Enaible environment:
      ```bash
      PYTHONPATH=shared \
@@ -43,7 +50,7 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
          --audit-level "${AUDIT_LEVEL:-critical}" \
          --branch-protection "${SETUP_BRANCH_PROTECTION:-false}" \
          ${PACKAGE_FILE:+--package-file "$PACKAGE_FILE"} \
-         $(printf ' --exclude %q' "${EXCLUDE_PATHS[@]}")
+         ${EXCLUDE_ARGS}
      ```
    - Capture stdout to extract detected ecosystems and generated files.
 4. Review generated artifacts

@@ -10,17 +10,19 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ### Optional (derived from $ARGUMENTS)
 
+- @TARGET_PATH = --target-path — path to analyze; defaults to repo root
 - @VERBOSE = --verbose — enable verbose diagnostics capture
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., test_codebase/\*\*)
 
 ### Derived (internal)
 
-- (none)
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts path used for evidence capture
 
 ## Instructions
 
 - ALWAYS capture the issue description before running analyzers; stop if details are insufficient.
+- Validate @TARGET_PATH (default `.`) exists and is readable before executing analyzers.
 - Use Enaible analyzers exclusively—do not probe for scripts or import modules manually.
 - Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
@@ -30,28 +32,29 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 1. **Validate inputs**
    - Confirm @ISSUE_DESCRIPTION is present. If missing, request more information or explicit approval to proceed with assumptions.
+   - Resolve @TARGET_PATH (default `.`) and ensure it is readable.
    - Note whether @VERBOSE is enabled.
 2. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 3. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run root_cause:trace_execution \
-       --target "$PWD" \
-       --out "$ARTIFACT_ROOT/root-cause-trace.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-trace.json"
 
      uv run --project tools/enaible enaible analyzers run root_cause:recent_changes \
-       --target "$PWD" \
-       --out "$ARTIFACT_ROOT/root-cause-recent-changes.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-recent-changes.json"
 
      uv run --project tools/enaible enaible analyzers run root_cause:error_patterns \
-       --target "$PWD" \
-       --out "$ARTIFACT_ROOT/root-cause-error-patterns.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-error-patterns.json"
      ```
 
-   - When `VERBOSE_MODE` is set, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
+   - When @VERBOSE is provided, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
    - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
    - If any invocation fails, review options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 

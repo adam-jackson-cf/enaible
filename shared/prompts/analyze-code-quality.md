@@ -15,7 +15,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ### Derived (internal)
 
-- (none)
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory used for analyzer outputs
 
 ## Instructions
 
@@ -28,7 +28,7 @@ Assess code quality by combining automated metrics with architectural review to 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
@@ -36,11 +36,11 @@ Assess code quality by combining automated metrics with architectural review to 
      ```bash
      uv run --project tools/enaible enaible analyzers run quality:lizard \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/quality-lizard.json"
+       --out "@ARTIFACT_ROOT/quality-lizard.json"
 
      uv run --project tools/enaible enaible analyzers run quality:jscpd \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/quality-jscpd.json"
+       --out "@ARTIFACT_ROOT/quality-jscpd.json"
      ```
 
    - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
@@ -57,7 +57,7 @@ Assess code quality by combining automated metrics with architectural review to 
    - Group recommendations by category (maintainability, testing, patterns, debt reduction) with impact/effort notes.
    - Map each action to specific files or modules and call out enabling prerequisites.
 6. **Deliver the report**
-   - Summarize findings, attach metric tables, and cite evidence paths from `ARTIFACT_ROOT`.
+   - Summarize findings, attach metric tables, and cite evidence paths from `@ARTIFACT_ROOT`.
 
 ## Output
 

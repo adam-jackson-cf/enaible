@@ -42,10 +42,15 @@ Analyse the following aspects of the target codebase:
 - Locate key configurations and framework signals
 - Documentation, Global rules files and configs
 
-2. **Generate Project Primer**
+2. **Git history review**
 
-   - Compile findings into standardized markdown format
-   - Present comprehensive project overview
+   - Run `git status`, `git log --since="30 days ago"`, and `git shortlog -sn --since="30 days ago"` (adjust window when @TARGET_PATH differs).
+   - Capture recent themes, active contributors, and churn hotspots for inclusion in the primer.
+
+3. **Generate Project Primer**
+
+   - Compile findings into standardized markdown format.
+   - Present comprehensive project overview.
 
 ## Output
 

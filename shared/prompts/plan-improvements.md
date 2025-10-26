@@ -12,16 +12,17 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ### Optional (derived from $ARGUMENTS)
 
-- (none)
+- @TARGET_PATH = --target-path — filesystem path to analyze (default .)
 
 ### Derived (internal)
 
-- (none)
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory for plan-refactor evidence
 
 ## Instructions
 
 - Execute the workflow phases in order and honor each STOP confirmation.
 - Use Enaible analyzers for evidence gathering; store outputs in `.enaible/artifacts/plan-refactor/`.
+- Confirm @TARGET_PATH exists (default `.`) before invoking analyzers; use descriptive @REFACTOR_SCOPE text in the narrative.
 - Anchor migration strategies in proven patterns (Strangler Fig, Module Federation, blue-green, etc.).
 - Define rollback steps and monitoring at every migration phase.
 - Translate the final plan into actionable todos when approved.
@@ -29,23 +30,23 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
      uv run --project tools/enaible enaible analyzers run quality:lizard \
-       --target "@REFACTOR_SCOPE" \
-       --out "$ARTIFACT_ROOT/quality-lizard.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/quality-lizard.json"
 
      uv run --project tools/enaible enaible analyzers run architecture:coupling \
-       --target "@REFACTOR_SCOPE" \
-       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-coupling.json"
 
      uv run --project tools/enaible enaible analyzers run performance:baseline \
-       --target "@REFACTOR_SCOPE" \
-       --out "$ARTIFACT_ROOT/performance-baseline.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-baseline.json"
      ```
 
    - Capture key hotspots, architectural risks, and performance warnings.
@@ -60,7 +61,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
 5. **Phase 3 — Implementation Planning**
    - Break work into phased milestones with timelines and exit criteria.
-   - Run `uv run --project tools/enaible enaible analyzers run quality:coverage --target "@REFACTOR_SCOPE" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
+   - Run `uv run --project tools/enaible enaible analyzers run quality:coverage --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
 6. **Phase 4 — Finalize report**
    - Summarize assessment, strategy, roadmap, and success metrics.

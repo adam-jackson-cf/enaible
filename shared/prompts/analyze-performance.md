@@ -15,7 +15,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ### Derived (internal)
 
-- (none)
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory used for analyzer outputs
 
 ## Instructions
 
@@ -27,7 +27,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
@@ -35,19 +35,19 @@ Identify performance bottlenecks across backend, frontend, and data layers using
      ```bash
      uv run --project tools/enaible enaible analyzers run performance:ruff \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/performance-ruff.json"
+       --out "@ARTIFACT_ROOT/performance-ruff.json"
 
      uv run --project tools/enaible enaible analyzers run performance:frontend \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/performance-frontend.json"
+       --out "@ARTIFACT_ROOT/performance-frontend.json"
 
      uv run --project tools/enaible enaible analyzers run performance:sqlglot \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/performance-sqlglot.json"
+       --out "@ARTIFACT_ROOT/performance-sqlglot.json"
 
      uv run --project tools/enaible enaible analyzers run performance:semgrep \
        --target "@TARGET_PATH" \
-       --out "$ARTIFACT_ROOT/performance-semgrep.json"
+       --out "@ARTIFACT_ROOT/performance-semgrep.json"
      ```
 
    - Append `--summary` when triaging large repositories; rerun full reports before publishing.

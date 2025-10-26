@@ -1,6 +1,6 @@
 ---
 description: "Codify lessons from recent Claude sessions (user/assistant prompts) into personal workflow guidance"
-argument-hint: [--uuid UUID] [--search-term TERM] [--days N]
+argument-hint: [--uuid] [--search-term] [--days]
 allowed-tools: ["Task", "Read", "Write", "Bash", "Grep", "Glob", "LS"]
 ---
 

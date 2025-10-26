@@ -11,6 +11,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 ### Optional (derived from $ARGUMENTS)
 
 - @SESSION_FILE = --session-file — destination file (default ./session-notes.md)
+- @DISCUSSION_HINT = --overview — optional sentence appended to Discussion Overview
 
 ### Derived (internal)
 
@@ -25,23 +26,21 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ## Workflow
 
-1. Prepare workspace
-   - Run `mkdir -p . && test -w .`; exit immediately if the working directory is not writable because session notes must be persisted.
-2. Collect session context
+1. Collect session context
    - Review recent conversation history, executed commands, file edits, and outcomes.
    - Extract key themes, actions, and blockers.
-3. Prepare note entry
+2. Prepare note entry
    - Capture `TIMESTAMP`.
    - Derive bullet lists for Actions Taken, Files Referenced, Outstanding Tasks, etc.
-   - If additional context text is supplied, incorporate into Discussion Overview.
-4. Ensure file availability
+   - If @DISCUSSION_HINT is supplied, incorporate it into Discussion Overview.
+3. Ensure file availability
    - `touch session-notes.md` if the file does not exist.
-5. Append entry
+4. Append entry
    - Use the template below, filling each section with session-specific content.
    - Separate entries with `---`.
-6. Confirm write
+5. Confirm write
    - Optionally display the appended section for verification.
-7. Report completion
+6. Report completion
    - Provide file path and summary of captured highlights.
 
 ## Output
@@ -61,5 +60,5 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 /create-session-notes
 
 # Add contextual hint for discussion overview
-/create-session-notes "Focus: API error triage"
+/create-session-notes --overview "Focus: API error triage"
 ```

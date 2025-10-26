@@ -1,6 +1,6 @@
 ---
 allowed-tools: Bash(git:*), Bash(gh:*), Bash(ls:*), Read, Glob
-argument-hint: [--uuid UUID] [--verbose] [--search-term TERM]
+argument-hint: [--uuid] [--verbose] [--search-term]
 description: Summarize recent context from git history and edited files
 ---
 
@@ -204,5 +204,3 @@ _Change Patterns_
     "performance": ["speed", "fast", "slow", "optimize", "efficiency", "latency"]
 }
 ```
-
-$ARGUMENTS

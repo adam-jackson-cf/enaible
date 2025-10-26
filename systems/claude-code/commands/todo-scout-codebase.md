@@ -1,5 +1,5 @@
 ---
-argument-hint: [--user-prompt USER_PROMPT] [--out $OUT] [--exclude $EXCLUDE_GLOBS]
+argument-hint: [--user-prompt] [--out] [--exclude]
 description: Analyse a codebase in relation to a specific user request to create a supporting context
 ---
 
@@ -35,7 +35,7 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 
 1. **Scope & Setup**
 
-   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving `${EXCLUDE_ARG}` from `.gitignore` (and `.git/info/exclude` when present).
+   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving `EXCLUDE_ARG` from `.gitignore` (and `.git/info/exclude` when present).
    - Confirm the command operates read-only except for writing the final report to @OUT.
 
 2. **Deep Analysis (LLM + file-driven)**
@@ -53,12 +53,12 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 
 3. **Git History & Pattern Recognition (last @DAYS days)**
 
-   - Run history commands to surface recent themes, key contributors, and churn hotspots:
+   - Run history commands to surface recent themes, key contributors, and churn hotspots (default to 20 days when @DAYS is omitted):
 
      ```bash
      git status
-     git log --since="${@DAYS:-20} days ago"
-     git shortlog -sn --since="${@DAYS:-20} days ago"
+     git log --since="<@DAYS> days ago"
+     git shortlog -sn --since="<@DAYS> days ago"
      ```
 
    - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
@@ -176,15 +176,14 @@ project-root/
 
 ## Testing Practices
 
-| Test type                        | File path                                                    | Command                                                                                  |
-| -------------------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| Unit tests                       | `shared/tests/unit/`                                         | `PYTHONPATH=shared pytest shared/tests/unit -v`                                          |
-| Integration tests                | `shared/tests/integration/`                                  | `PYTHONPATH=shared pytest shared/tests/integration -v`                                   |
-| Full integration (all analyzers) | `shared/tests/integration/test_integration_all_analyzers.py` | `PYTHONPATH=shared pytest shared/tests/integration/test_integration_all_analyzers.py -v` |
-| Coverage                         | `shared/tests/unit/`                                         | `PYTHONPATH=shared pytest shared/tests/unit --cov=shared --cov-report=html`              |
-| E2E / System (controlled apps)   | `test_codebase/`                                             | `PYTHONPATH=shared pytest shared/tests/integration -k e2e -v`                            |
+| Test type          | File path / location | Command     |
+| ------------------ | -------------------- | ----------- |
+| Unit tests         | `<path>`             | `<command>` |
+| Integration tests  | `<path>`             | `<command>` |
+| System / E2E tests | `<path>`             | `<command>` |
+| Coverage           | `<path>`             | `<command>` |
 
-## Git History Insights (<DAYS> days)
+## Git History Insights (<@DAYS> days)
 
 - Theme or initiative • supporting evidence
 - Notable fix/feature • reference
@@ -221,7 +220,7 @@ project-root/
 
 ## Examples
 
-- `/todo-inspect-codebase "Map data flow for refunds"`
-- `/todo-inspect-codebase "Identify auth risks in API" . --exclude node_modules,dist`
-- `/todo-inspect-codebase "Assess React route performance" web/`
+- `/todo-scout-codebase "Map data flow for refunds"`
+- `/todo-scout-codebase "Identify auth risks in API" . --exclude node_modules,dist`
+- `/todo-scout-codebase "Assess React route performance" web/`
 ```

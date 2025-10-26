@@ -43,7 +43,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 4. Present proposed configuration
    - Build the command:
      ```
-     npx create-better-t-stack@latest <PROJECT_NAME> <mapped-flags>
+     bun create better-t-stack@latest <PROJECT_NAME> <mapped-flags>
      ```
    - Display a table of components (Frontend, Backend, Runtime, Database, ORM, Auth, Addons) with their mapped values.
    - **STOP:** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
@@ -66,16 +66,16 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 ## STACK
 
-| Component | Selection | Source  |
-| --------- | --------- | ------- | ------ |
-| Frontend  | <value>   | <direct | todos> |
-| Backend   | <value>   | <direct | todos> |
-| Runtime   | <value>   | <direct | todos> |
-| Database  | <value>   | <direct | todos> |
+| Component | Selection | Source            |
+| --------- | --------- | ----------------- |
+| Frontend  | <value>   | <direct or todos> |
+| Backend   | <value>   | <direct or todos> |
+| Runtime   | <value>   | <direct or todos> |
+| Database  | <value>   | <direct or todos> |
 
 ## COMMANDS RUN
 
-- `npx create-better-t-stack@latest ...` → <pass|fail>
+- `bun create better-t-stack@latest ...` → <pass|fail>
 - `<install command>` → <pass|fail>
 - `<dev command>` → <pass|fail>
 - `<type/build checks>` → <pass|fail>

@@ -29,14 +29,14 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run security:semgrep --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/semgrep.json"
-     uv run --project tools/enaible enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/detect-secrets.json"
+     uv run --project tools/enaible enaible analyzers run security:semgrep --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/semgrep.json"
+     uv run --project tools/enaible enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/detect-secrets.json"
      ```
 
      - Pass `--summary` to generate quick overviews when triaging large reports.

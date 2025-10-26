@@ -15,7 +15,7 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 
 ### Derived (internal)
 
-- (none)
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory for plan-solution evidence
 
 ## Instructions
 
@@ -23,7 +23,7 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
 - Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
 - Support recommendations with research citations or code insights.
-- When @CRITIQUE is provided, invoke `@agent-solution-validator` after drafting the recommendation.
+- When @CRITIQUE is provided, invoke `@agent-solution-validator` (see `systems/claude-code/agents/solution-validator.md`) after drafting the recommendation.
 - Wait for approval before appending tasks to `todos.md`.
 
 ## Workflow
@@ -37,23 +37,23 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
    - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
 2. **Conditional** system analysis (only when working against an existing codebase)
 
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
    - Run the architecture analyzers through Enaible for the relevant target (default `.` unless discovery identifies a subpath):
 
      ```bash
      uv sync --project tools/enaible
 
      uv run --project tools/enaible enaible analyzers run architecture:patterns \
-       --target "${TARGET_PATH:-.}" \
-       --out "$ARTIFACT_ROOT/architecture-patterns.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-patterns.json"
 
      uv run --project tools/enaible enaible analyzers run architecture:scalability \
-       --target "${TARGET_PATH:-.}" \
-       --out "$ARTIFACT_ROOT/architecture-scalability.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-scalability.json"
 
      uv run --project tools/enaible enaible analyzers run architecture:coupling \
-       --target "${TARGET_PATH:-.}" \
-       --out "$ARTIFACT_ROOT/architecture-coupling.json"
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-coupling.json"
      ```
 
    - Record findings: patterns, scalability constraints, integration points, and technical debt hotspots.
@@ -77,7 +77,7 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 ```md
 # RESULT
 
-- Summary: Solution plan generated for "<CHALLENGE>."
+- Summary: Solution plan generated for "<@USER_PROMPT>."
 
 ## SOLUTION OPTIONS
 
@@ -116,10 +116,6 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - Phase 2: <milestones>
 - Phase 3: <milestones>
 - Success Criteria: <metrics/tests>
-
-## TODOS TRANSFERRED
-
-- <yes/no> (list added items if applicable)
 ```
 
 ## Examples

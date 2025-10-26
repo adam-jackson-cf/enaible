@@ -6,15 +6,15 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 ### Required
 
-- @RULE_FILE_PATH = $1 — destination path for the generated implementation rule
+- @TECHNOLOGY = $1 — technology or framework to document
 
 ### Optional (derived from $ARGUMENTS)
 
-- (none)
+- @RULE_FILE_PATH = --out — destination path for the generated implementation rule (defaults to `rules/<slug>.md`)
 
 ### Derived (internal)
 
-- (none)
+- @RULE_SLUG = <derived> — slugified @TECHNOLOGY used for default filenames
 
 ## Instructions
 
@@ -36,7 +36,8 @@ Produce an implementation-focused rule file for a specified technology so automa
    - Provide code blocks demonstrating required patterns and forbidden examples.
    - Use imperative language (“Always”, “Never”, “Must”).
 3. Write rule file
-   - Save markdown content to `RULE_FILE_PATH`.
+   - Determine the destination: use @RULE_FILE_PATH when provided, otherwise `rules/@RULE_SLUG.md`.
+   - Save the markdown content to the resolved path.
 4. Quality review
    - Re-read file for completeness, accuracy, and clarity.
    - Confirm examples align with current best practices and are consistent with earlier sections.
@@ -48,11 +49,11 @@ Produce an implementation-focused rule file for a specified technology so automa
 ```md
 # RESULT
 
-- Summary: Implementation rules for <TECHNOLOGY_NAME> created.
+- Summary: Implementation rules for <@TECHNOLOGY> created.
 
 ## FILE
 
-- Path: <somefilepath>/rules/<slug>.md
+- Path: <resolved path or default>
 - Sections: <suitable-related-sections> e.g. Core, Security, Performance, Error Handling, Anti-Patterns
 - Examples Included: <yes/no>
 
