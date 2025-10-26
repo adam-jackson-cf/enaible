@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from pathlib import Path
+from pathlib import Path, Path as _Path
 
 import typer
 
@@ -182,6 +182,27 @@ def prompts_lint(
     selected_prompts = _resolve_prompt_ids(catalog, _split_csv(prompts))
     # Collect unique source files for selected prompts
     files = {catalog[p].source_path.resolve() for p in selected_prompts}
+
+    # Also lint unmanaged, hand-authored system prompts in systems/*
+    GENERATED_SENTINEL = "<!-- generated: enaible -->"
+    system_dirs = [
+        context.repo_root / _Path("systems/claude-code/commands"),
+        context.repo_root / _Path("systems/opencode/command"),
+        context.repo_root / _Path("systems/codex/prompts"),
+    ]
+    for d in system_dirs:
+        if not d.exists():
+            continue
+        for p in d.glob("*.md"):
+            try:
+                head = p.read_text().splitlines()[:3]
+            except Exception:
+                continue
+            if any(GENERATED_SENTINEL in line for line in head):
+                # Managed, rendered file — skip
+                continue
+            files.add(p.resolve())
+
     issues = lint_files(files)
     if not issues:
         typer.echo("prompts: lint passed")
