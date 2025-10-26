@@ -1,105 +1,6 @@
-# Setup Serena MCP (Codex)
+# Purpose
 
-Activate and validate the Serena MCP server in Codex using the global configuration approach.
-
-## Overview
-
-Serena runs as an MCP server that Codex connects to via stdio. Configure Serena globally in `~/.codex/config.toml`, then activate it per‑project from within a Codex session.
-
-## Prerequisites
-
-- `uvx` available (from the `uv` Python toolchain). Check with `uvx --version`.
-- Global Codex config contains a Serena entry:
-
-```toml
-[mcp_servers.serena]
-command = "uvx"
-args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex"]
-```
-
-If this block is missing, add it to `~/.codex/config.toml`, then restart Codex.
-
-## Steps
-
-1. Verify global config
-
-```bash
-rg -n "^\[mcp_servers\.serena\]" ~/.codex/config.toml || echo "Serena block missing in ~/.codex/config.toml"
-```
-
-2. Check server availability
-
-```bash
-codex mcp list
-# Expect to see: serena (enabled or connected)
-```
-
-3. Activate Serena for the current project (inside Codex)
-
-- In an interactive Codex session opened at your project root, type exactly:
-
-  Activate serena for current project
-
-- On success, Serena creates a `.serena/` folder in the project and registers the path in `~/.serena/serena_config.yml`.
-
-4. Perform Serena onboarding (required)
-
-- In the same Codex session, ask Serena to perform onboarding. For example:
-
-  Perform Serena onboarding
-
-- This initializes the symbol index and may populate `.serena/memories/`.
-
-5. Recommend project policy (AGENTS.md)
-
-Add the following to your project’s `AGENTS.md` to prefer Serena tools for codebase queries:
-
-```markdown
-- **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back to those on serena mcp failure, available serena mcp tools:
-
-  - find_symbol: global/local search for symbols by name/substring (optional type filters).
-  - find_referencing_symbols: find all symbols that reference a given symbol.
-  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
-  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
-```
-
-## Validation
-
-Run these from the project root to verify activation (project‑agnostic):
-
-```bash
-test -d .serena && echo ".serena present" || echo ".serena missing"
-rg -n --fixed-strings "@PROJECT_ROOT" ~/.serena/serena_config.yml || echo "project not yet in serena_config.yml"
-```
-
-## Optional
-
-- Disable Serena web dashboard auto‑open (recommended):
-  - Edit `~/.serena/serena_config.yml` and set:
-    ```yaml
-    web_dashboard: false
-    web_dashboard_open_on_launch: false
-    ```
-  - You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
-- Run Codex in tmux for long‑running indexing:
-  ```bash
-  tmux new-session -d -s project-codex -c "@PROJECT_ROOT" 'codex'
-  # then in that session:  Activate serena for current project
-  ```
-- For troubleshooting, review `~/.codex/log/codex-tui.log`.
-
-## Troubleshooting
-
-- Ensure `uvx` is on PATH. If not, install `uv` and restart your shell.
-- After editing `~/.codex/config.toml`, restart Codex to pick up changes.
-
-$ARGUMENTS
-
-# Setup Serena MCP (Codex)
-
-#
-
-# Activate and validate the Serena MCP server in Codex using the global configuration approach.
+Activate and validate the Serena MCP server in Codex using the global configuration approach so every project can rely on the same Serena tooling.
 
 ## Variables
 
@@ -107,103 +8,121 @@ $ARGUMENTS
 
 - @PROJECT_ROOT = <derived> — current working directory (pwd)
 
-# Setup Serena MCP (Codex)
+## Instructions
 
-Activate and validate the Serena MCP server in Codex using the global configuration approach.
+- Ensure `uvx` is installed (`uvx --version`) before attempting any Serena actions.
+- Maintain the Serena entry in `~/.codex/config.toml`; restart Codex after editing that file.
+- Run all activation and onboarding phrases inside an interactive Codex session opened at @PROJECT_ROOT.
+- Document the required Serena tools in `AGENTS.md` so the team understands the enforced search workflow.
+- Use the validation commands to confirm `.serena/` assets exist and the project path is registered.
 
-## Variables
+## Workflow
 
-### Derived (internal)
+1. **Verify global config**
 
-- @PROJECT_ROOT = <derived> — current working directory (pwd)
+   - Confirm the Serena block exists in the Codex config:
 
-## Overview
+     ```bash
+     rg -n "^\[mcp_servers\.serena\]" ~/.codex/config.toml || echo "Serena block missing in ~/.codex/config.toml"
+     ```
 
-Serena runs as an MCP server that Codex connects to via stdio. Configure Serena globally in `~/.codex/config.toml`, then activate it per‑project from within a Codex session.
+   - If missing, append:
 
-## Prerequisites
+     ```toml
+     [mcp_servers.serena]
+     command = "uvx"
+     args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex"]
+     ```
 
-- `uvx` available (from the `uv` Python toolchain). Check with `uvx --version`.
-- Global Codex config contains a Serena entry:
+     Restart Codex after editing the file.
 
-```toml
-[mcp_servers.serena]
-command = "uvx"
-args = ["--from", "git+https://github.com/oraios/serena", "serena", "start-mcp-server", "--context", "codex"]
-```
+2. **Check server availability**
 
-If this block is missing, add it to `~/.codex/config.toml`, then restart Codex.
+   - Make sure Codex sees Serena:
 
-## Steps
+     ```bash
+     codex mcp list
+     # Expect: serena (enabled or connected)
+     ```
 
-1. Verify global config
+3. **Activate Serena for @PROJECT_ROOT**
 
-```bash
-rg -n "^\[mcp_servers\.serena\]" ~/.codex/config.toml || echo "Serena block missing in ~/.codex/config.toml"
-```
+   - Inside Codex (with the workspace set to @PROJECT_ROOT) type exactly:
 
-2. Check server availability
+     Activate serena for current project
 
-```bash
-codex mcp list
-# Expect to see: serena (enabled or connected)
-```
+   - Serena should create `.serena/` in the repo and register the path in `~/.serena/serena_config.yml`.
 
-3. Activate Serena for the current project (inside Codex)
+4. **Perform Serena onboarding**
 
-- In an interactive Codex session opened at your project root, type exactly:
+   - Still inside Codex, run:
 
-  Activate serena for current project
+     Perform Serena onboarding
 
-- On success, Serena creates a `.serena/` folder in the project and registers the path in `~/.serena/serena_config.yml`.
+   - This builds the symbol index and may populate `.serena/memories/`.
 
-4. Perform Serena onboarding (required)
+5. **Recommend project policy (AGENTS.md)**
 
-- In the same Codex session, ask Serena to perform onboarding. For example:
+   - Add the mandatory rule block:
 
-  Perform Serena onboarding
+     ```markdown
+     - **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back when Serena fails. Available tools:
+       - find_symbol — global/local search by name/substring (optional type filters).
+       - find_referencing_symbols — list symbols referencing a given symbol.
+       - get_symbols_overview — enumerate top-level symbols in a file/dir.
+       - search_for_pattern — regex search when symbol tools are insufficient.
+     ```
 
-- This initializes the symbol index and may populate `.serena/memories/`.
+6. **Optional dashboard & automation**
 
-5. Recommend project policy (AGENTS.md)
+   - Disable auto-open for the Serena dashboard (recommended):
 
-Add the following to your project’s `AGENTS.md` to prefer Serena tools for codebase queries:
+     ```yaml
+     # ~/.serena/serena_config.yml
+     web_dashboard: false
+     web_dashboard_open_on_launch: false
+     ```
 
-```markdown
-- **CRITICAL** Must use serena mcp tools for codebase searches over other available tools, but fall back to those on serena mcp failure, available serena mcp tools:
+   - Run Codex in tmux for long-lived indexing sessions:
 
-  - find_symbol: global/local search for symbols by name/substring (optional type filters).
-  - find_referencing_symbols: find all symbols that reference a given symbol.
-  - get_symbols_overview: list top‑level symbols in a file/dir (useful to scope follow‑up queries).
-  - search_for_pattern: regex search when you need textual matches, (but use the symbol tools first).
-```
+     ```bash
+     tmux new-session -d -s project-codex -c "@PROJECT_ROOT" 'codex'
+     # inside that session: Activate serena for current project
+     ```
+
+   - Troubleshoot via `~/.codex/log/codex-tui.log` when activation fails.
 
 ## Validation
 
-Run these from the project root to verify activation (project‑agnostic):
+Run from @PROJECT_ROOT to verify setup:
 
 ```bash
 test -d .serena && echo ".serena present" || echo ".serena missing"
 rg -n --fixed-strings "@PROJECT_ROOT" ~/.serena/serena_config.yml || echo "project not yet in serena_config.yml"
 ```
 
-## Optional
-
-- Disable Serena web dashboard auto‑open (recommended):
-  - Edit `~/.serena/serena_config.yml` and set:
-    ```yaml
-    web_dashboard: false
-    web_dashboard_open_on_launch: false
-    ```
-  - You can still open the dashboard manually at http://localhost:24282/dashboard/index.html.
-- Run Codex in tmux for long‑running indexing:
-  ```bash
-  tmux new-session -d -s project-codex -c "@PROJECT_ROOT" 'codex'
-  # then in that session:  Activate serena for current project
-  ```
-- For troubleshooting, review `~/.codex/log/codex-tui.log`.
-
 ## Troubleshooting
 
-- Ensure `uvx` is on PATH. If not, install `uv` and restart your shell.
-- After editing `~/.codex/config.toml`, restart Codex to pick up changes.
+- Ensure `uvx` is on PATH; install `uv` if necessary and restart the shell.
+- Restart Codex whenever `~/.codex/config.toml` changes to reload MPC entries.
+
+## Output
+
+```md
+# RESULT
+
+- Summary: Serena MCP configured for Codex.
+
+## DETAILS
+
+- Project Path: <@PROJECT_ROOT>
+- AGENTS.md Updated: <yes/no>
+- Dashboard Auto-Open: <disabled|unchanged>
+- MCP Status: <enabled|error> (from `codex mcp list`)
+
+## NEXT STEPS
+
+1. Keep `.serena/` committed or documented per repo policy.
+2. Use Serena tools (find_symbol, find_referencing_symbols, etc.) for code navigation.
+3. Visit http://localhost:24282/dashboard/index.html if manual access is required.
+```
