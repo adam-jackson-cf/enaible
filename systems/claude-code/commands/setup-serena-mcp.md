@@ -1,4 +1,6 @@
-# Purpose
+# setup-serena-mcp v0.1
+
+## Purpose
 
 Configure the Serena MCP server with the IDE-assistant context, update project guidance, and verify Claude Code connectivity.
 

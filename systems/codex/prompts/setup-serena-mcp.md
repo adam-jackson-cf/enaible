@@ -1,4 +1,6 @@
-# Purpose
+# setup-serena-mcp v0.1
+
+## Purpose
 
 Activate and validate the Serena MCP server in Codex using the global configuration approach so every project can rely on the same Serena tooling.
 
@@ -125,4 +127,11 @@ rg -n --fixed-strings "@PROJECT_ROOT" ~/.serena/serena_config.yml || echo "proje
 1. Keep `.serena/` committed or documented per repo policy.
 2. Use Serena tools (find_symbol, find_referencing_symbols, etc.) for code navigation.
 3. Visit http://localhost:24282/dashboard/index.html if manual access is required.
+```
+
+## Examples
+
+```bash
+# Configure Serena MCP for the current project
+/setup-serena-mcp
 ```
