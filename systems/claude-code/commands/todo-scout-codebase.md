@@ -1,5 +1,5 @@
 ---
-argument-hint: [--user-prompt USER_PROMPT] [--out $OUT] [--exclue $EXCLUDE_GLOBS]
+argument-hint: [--user-prompt USER_PROMPT] [--out $OUT] [--exclude $EXCLUDE_GLOBS]
 description: Analyse a codebase in relation to a specific user request to create a supporting context
 ---
 
