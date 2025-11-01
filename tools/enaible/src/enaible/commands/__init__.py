@@ -5,14 +5,13 @@ from __future__ import annotations
 import importlib
 from collections.abc import Iterable
 
-from ..app import app
-
 # Explicit command modules to import for side effects.
 _COMMAND_MODULES: Iterable[str] = (
     "enaible.commands.root",
     "enaible.commands.analyzers",
     "enaible.commands.prompts",
     "enaible.commands.install",
+    "enaible.commands.ci",
 )
 
 

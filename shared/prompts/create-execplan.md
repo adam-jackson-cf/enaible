@@ -1,8 +1,8 @@
-# create-execplan v0.1
+# create-execplan v0.2
 
 **Purpose**
 
-- Produce a complete execution plan for @USER_PROMPT, using supplied artifacts (spec, inspect report) and asking clarifying questions where there is missing information, contradictions or unclear information. You do not carry out additional research - you work with what you are supplied and what you ask the user.
+- Produce a complete execution plan for @USER_PROMPT, using supplied artifacts (spec, inspect report) and asking clarifying questions where there is missing information, contradictions or unclear information. You do not carry out additional research—you work with what you are supplied and what you ask the user.
 
 ## Variables
 
@@ -19,9 +19,9 @@
 
 - Read artifacts first (spec, then inspect); extract objectives, constraints, stack details, file references.
 - Incorporate global rules (coding standards, quality gates, design principles).
-- Use online research for additional analysis; cite official documentation.
-- Form a recommended solution and devise plan.
-- Output only the final ExecPlan—no preamble—using the template. Write to @OUT and echo the same Markdown to stdout.
+- Do not browse the web. If information is missing or unclear, ask the user for clarification and proceed only with user-provided artifacts and answers.
+- Form a recommended solution and devise the plan.
+- Output only the final ExecPlan—no preamble—using the canonical template. Write to @OUT and echo the same Markdown to stdout.
 
 ## Workflow
 
@@ -46,7 +46,7 @@
    - Document tech stack, implementation patterns and solution design
 
 5. **Emit Plan**
-   - Render the ExecPlan using the provided template, write it to @OUT, and echo the same Markdown to stdout without preamble.
+   - Render the ExecPlan using the canonical deterministic template (see Output), write it to @OUT, and echo the same Markdown to stdout without preamble.
 
 ## Output
 
@@ -106,9 +106,10 @@
 ## Detailed Phase Task Steps
 
 - Keep progress updated at the start and end of every task entry.
-- Build a task table with columns such as `Status | Phase # | Task # | Task Type | Description` and populate it with project-specific actions.
+- Build a task table with columns `Status | Phase # | Task # | Task Type | Description` and populate it with project-specific actions.
 - Document your Status and Task Type keys adjacent to the table (e.g., `@ = in progress`, `X = complete`, `Code`, `Read`, `Action`, `Test`, `Gate`, `Human`).
 - Ensure file references include filenames plus starting line numbers (e.g., `AGENTS.md:103`) and align phase numbering with the High Level Phase Plan.
+- Progress tracking policy: the task table is the primary progress tracker; use the "Progress Per Session" section for brief journal entries; do not add other progress sections.
 
 ## Progress Per Session (Running Summary Log)
 
@@ -161,6 +162,14 @@
 | Tests       | `<cmd>` | 100% passing            |
 | Duplication | `<cmd>` | ≤ 3%                    |
 | Complexity  | `<cmd>` | Max CC ≤ 10             |
+
+## Idempotence & Recovery
+
+- Describe which steps can be safely re-run and provide rollback/retry instructions for any destructive operations. Note any environment clean-up.
+
+## Artifacts & Notes
+
+- Include concise transcripts, diffs, or logs that prove acceptance. Keep examples minimal and reproducible.
 
 ## PR & Review
 

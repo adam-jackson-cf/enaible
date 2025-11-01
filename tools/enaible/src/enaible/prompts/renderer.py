@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import difflib
+import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
+from ..constants import MANAGED_SENTINEL
 from ..runtime.context import WorkspaceContext
 from .adapters import SYSTEM_CONTEXTS, SystemRenderContext
 from .catalog import CATALOG, PromptDefinition, SystemPromptConfig
@@ -143,6 +145,8 @@ class PromptRenderer:
         body: str,
         variables: list[VariableSpec],
     ) -> str:
+        body_cleaned, _ = self._strip_legacy_title(body)
+
         template_path = (
             (self.context.repo_root / Path(config.template))
             .resolve()
@@ -156,12 +160,13 @@ class PromptRenderer:
             frontmatter.setdefault("argument-hint", argument_hint)
         return template.render(
             title=definition.title,
-            body=body.strip() + "\n",
+            body=body_cleaned.strip() + "\n" if body_cleaned.strip() else "",
             prompt=definition,
             system=system,
             frontmatter=frontmatter,
             metadata=config.metadata,
             variables=variables,
+            managed_sentinel=MANAGED_SENTINEL,
         )
 
     def _resolve_output_path(
@@ -175,7 +180,40 @@ class PromptRenderer:
             base = overrides.get(system)
         if base is None:
             return self.context.repo_root / config.output_path
-        return base / config.output_path.name
+        relative = self._system_relative_output_path(config.output_path, system)
+        return base / relative
+
+    @staticmethod
+    def _system_relative_output_path(path: Path, system: str) -> Path:
+        system_root = Path("systems") / system
+        try:
+            return path.relative_to(system_root)
+        except ValueError:
+            try:
+                return path.relative_to(Path("systems"))
+            except ValueError:
+                return Path(path.name)
+
+    _LEGACY_TITLE_RE = re.compile(r"^#\s+.+?\bv\d+(?:\.\d+)*\s*$", re.IGNORECASE)
+
+    @classmethod
+    def _strip_legacy_title(cls, body: str) -> tuple[str, bool]:
+        lines = body.splitlines()
+        idx = 0
+        while idx < len(lines) and not lines[idx].strip():
+            idx += 1
+
+        removed = False
+        if idx < len(lines) and cls._LEGACY_TITLE_RE.match(lines[idx].strip()):
+            lines.pop(idx)
+            removed = True
+            while idx < len(lines) and not lines[idx].strip():
+                lines.pop(idx)
+
+        cleaned = "\n".join(lines).strip("\n")
+        if cleaned:
+            cleaned += "\n"
+        return cleaned, removed
 
     @staticmethod
     def _ensure_trailing_newline(value: str) -> str:

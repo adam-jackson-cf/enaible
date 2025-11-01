@@ -31,7 +31,6 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 
 1. Environment preparation
    - Run `git rev-parse --is-inside-work-tree`; exit immediately if not in a git repository because generated workflows rely on repository structure.
-   - !`uv sync --project tools/enaible`
 2. Parse arguments
    - Capture `--audit-level`, `--package-file`, all `--exclude` values, and the optional `--branch-protection` flag.
    - Store results in `AUDIT_LEVEL`, `PACKAGE_FILE`, `EXCLUDE_PATHS[]`, and `SETUP_BRANCH_PROTECTION` (default `AUDIT_LEVEL=critical`).

@@ -10,7 +10,6 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 
 ### Optional (derived from $ARGUMENTS)
 
-- @CRITIQUE = --critique — request validator critique after drafting the solution
 - @TARGET_PATH = --target-path — repository path when targeting an existing codebase (default .)
 
 ### Derived (internal)
@@ -23,7 +22,6 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
 - Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
 - Support recommendations with research citations or code insights.
-- When @CRITIQUE is provided, invoke `@agent-solution-validator` (see `systems/claude-code/agents/solution-validator.md`) after drafting the recommendation.
 - Wait for approval before appending tasks to `todos.md`.
 
 ## Workflow
@@ -123,7 +121,4 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 ```bash
 # Explore solutions to a scalability challenge
 /plan-solution "Scale real-time collaboration engine"
-
-# Generate plan and trigger validator critique
-/plan-solution "Modernize authentication architecture" --critique
 ```

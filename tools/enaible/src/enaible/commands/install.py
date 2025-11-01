@@ -14,10 +14,10 @@ from pathlib import Path
 import typer
 
 from ..app import app
+from ..constants import MANAGED_SENTINEL
 from ..prompts.adapters import SYSTEM_CONTEXTS, SystemRenderContext
+from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
-
-MANAGED_SENTINEL = "<!-- generated: enaible -->"
 
 SKIP_FILES = {
     "install.sh",
@@ -135,6 +135,8 @@ def install(  # noqa: PLR0912
         shutil.copy2(source_file, destination_file)
         summary.record("write", destination_file)
 
+    _render_managed_prompts(context, system, destination_root, dry_run, summary)
+
     if sync:
         _sync_enaible_env(context.repo_root, dry_run, summary)
 
@@ -169,15 +171,9 @@ def _has_managed_sentinel(path: Path) -> bool:
         return False
     try:
         with path.open("r", encoding="utf-8") as handle:
-            for _ in range(5):
-                line = handle.readline()
-                if not line:
-                    break
-                if MANAGED_SENTINEL in line:
-                    return True
+            return MANAGED_SENTINEL in handle.read()
     except UnicodeDecodeError:  # pragma: no cover - binary safety
         return False
-    return False
 
 
 def _emit_summary(
@@ -257,6 +253,47 @@ def _post_install(
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(updated, encoding="utf-8")
     summary.record("merge", target_path)
+
+
+def _render_managed_prompts(
+    context,
+    system: str,
+    destination_root: Path,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    renderer = PromptRenderer(context)
+    definitions = [
+        definition.prompt_id
+        for definition in renderer.list_prompts()
+        if system in definition.systems
+    ]
+    if not definitions:
+        return
+
+    overrides: dict[str, Path] = {system: destination_root}
+    results = renderer.render(definitions, [system], overrides)
+
+    destination_root.mkdir(parents=True, exist_ok=True)
+
+    for result in results:
+        output_path = result.output_path
+        try:
+            relative = output_path.relative_to(destination_root)
+        except ValueError:
+            relative = output_path
+
+        if dry_run:
+            summary.record("render", output_path)
+            continue
+
+        if output_path.exists() and not _has_managed_sentinel(output_path):
+            summary.record_skip(relative)
+            continue
+
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(result.content, encoding="utf-8")
+        summary.record("render", output_path)
 
 
 def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:

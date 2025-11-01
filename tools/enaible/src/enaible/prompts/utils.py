@@ -65,22 +65,28 @@ def extract_variables(markdown: str) -> tuple[list[VariableSpec], str]:
     i = 0
     while i < len(lines):
         if _H2_HEADING.match(lines[i]):
-            # Collect the entire Variables block until the next H2 or EOF
-            i += 1
             block: list[str] = []
-            while i < len(lines) and not lines[i].startswith("## "):
+            while i < len(lines):
                 block.append(lines[i])
                 i += 1
+                if i < len(lines) and lines[i].startswith("## "):
+                    break
 
-            parsed = _parse_variables_bullets(block)
+            formatted_block: list[str] | None = None
+            parsed = _parse_variables_bullets(block[1:])
             if parsed:
                 variables = parsed
+                formatted_block = _format_variables_block(parsed)
             else:
-                # fall back to table parsing but require @ tokens
                 table_lines = [ln for ln in block if ln.strip().startswith("|")]
                 if table_lines:
                     variables = _parse_variables_table(table_lines)
-            # Exclude the Variables block from body
+                    formatted_block = _format_variables_block(variables)
+
+            if formatted_block:
+                new_lines.extend(formatted_block)
+            else:
+                new_lines.extend(block)
             continue
 
         new_lines.append(lines[i])
@@ -88,6 +94,42 @@ def extract_variables(markdown: str) -> tuple[list[VariableSpec], str]:
 
     body = "\n".join(new_lines).strip("\n")
     return variables, body + "\n" if body else ""
+
+
+def _format_variables_block(variables: list[VariableSpec]) -> list[str]:
+    required = [var for var in variables if var.kind == "positional"]
+    optional = [var for var in variables if var.kind in {"flag", "named"}]
+    derived = [var for var in variables if var.kind == "derived"]
+
+    lines: list[str] = ["## Variables", ""]
+
+    if required:
+        lines.append("### Required")
+        lines.append("")
+        for var in required:
+            desc = f" — {var.description}" if var.description else ""
+            lines.append(f"- {var.token} = ${var.positional_index}{desc}")
+        lines.append("")
+
+    if optional:
+        lines.append("### Optional (derived from @ARGUMENTS)")
+        lines.append("")
+        for var in optional:
+            repeatable = " [repeatable]" if var.repeatable else ""
+            desc = f" — {var.description}" if var.description else ""
+            lines.append(f"- {var.token} = {var.flag_name}{repeatable}{desc}")
+        lines.append("")
+
+    if derived:
+        lines.append("### Derived (internal)")
+        lines.append("")
+        for var in derived:
+            detail = var.description or var.type_text.strip()
+            suffix = f" — {detail}" if detail else ""
+            lines.append(f"- {var.token}{suffix}")
+        lines.append("")
+
+    return lines
 
 
 def _parse_variables_table(table_lines: Iterable[str]) -> list[VariableSpec]:
@@ -265,7 +307,10 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
                 raise ValueError(f"Optional variable '{token}' must map to a --flag.")
             flag_name = flag_m.group(1)
             kind = "flag"
-            type_text = f"derived from $ARGUMENTS ({flag_name}) (optional{' , repeatable' if repeatable else ''})"
+            repeatable_text = ", repeatable" if repeatable else ""
+            type_text = (
+                f"derived from @ARGUMENTS ({flag_name}) (optional{repeatable_text})"
+            )
         else:  # derived internal
             kind = "derived"
             type_text = "derived (internal)"

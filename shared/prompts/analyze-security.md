@@ -18,7 +18,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 - @ARTIFACT_ROOT = <derived> — artifacts directory used in workflow examples
 
-## Guardrails
+## Instructions
 
 - ALWAYS execute automated analyzers first; abort the workflow if any analyzer returns a non-zero exit code.
 - Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`) before advancing.

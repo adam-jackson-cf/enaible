@@ -1,17 +1,17 @@
 # Purpose
 
-Launch an autonomous Claude Code (or alternative CLI) session in the background, routing progress updates to a timestamped report file.
+Run a single Codex CLI workflow inside a named tmux session so it can keep working in the background while progress is logged to a timestamped report file.
 
 ## Variables
 
 ### Required
 
-- @USER_PROMPT = $1 — background task brief forwarded to the selected CLI
+- @USER_PROMPT — first CLI argument; background task brief forwarded to Codex.
 
-### Optional (derived from $ARGUMENTS)
+### Optional (derived from @ARGUMENTS)
 
-- @MODEL_SELECTOR = --model — CLI/model selector (e.g., claude:model, codex:codex-medium); default claude:sonnet
-- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md)
+- @MODEL_SELECTOR = --model — Codex model identifier (default codex-medium).
+- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
 
 ### Derived (internal)
 
@@ -19,100 +19,90 @@ Launch an autonomous Claude Code (or alternative CLI) session in the background,
 
 ## Instructions
 
-- Capture the timestamp before creating files or launching processes to keep naming consistent.
-- Initialize the report file (directory + header) prior to starting the background agent.
-- Pass the `USER_PROMPT` exactly as supplied; do not modify unless prepending reporting instructions for CLIs lacking `--append-system-prompt`.
-- Use `run_in_background=true` with the Bash tool when spawning the process.
-- Record process ID, report path, and monitoring guidance in the final summary.
+- Capture a timestamp before creating directories or files so report names, tmux sessions, and logs stay aligned.
+- Create the report directory and header before launching Codex to guarantee every background run has a writable log.
+- Pass @USER_PROMPT verbatim to Codex after prepending the reporting instructions (Codex lacks an append-system-prompt flag).
+- Always launch Codex inside a dedicated tmux session.
+- Record the tmux session name, Codex model, PID, and report path so operators can monitor or terminate the run later.
 
 ## Workflow
 
 0. Auth preflight
-   - Run `uv run --project tools/enaible enaible auth_check --cli <CLI> --report <REPORT_FILE>` using the parsed CLI from @MODEL_SELECTOR.
-   - If the command exits non‑zero, write the message to the report and stop; do not prompt for login interactively inside the background task.
+
+   - Run `uv run --project tools/enaible enaible auth_check --cli codex --report @REPORT_FILE` using the parsed report path. If it fails, write the message to the report and exit without launching Codex.
+
 1. Prepare reporting directory
-   - Run `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`; exit immediately if the directory cannot be created or written because progress logs rely on it.
+
+   - Execute `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`. Abort immediately if the directory cannot be created or is not writable.
+
 2. Parse inputs
-   - Require `USER_PROMPT`; if missing, prompt the user and stop.
-   - Split `MODEL_SELECTOR` on `:` to derive `CLI` (`claude`, `codex`, `opencode`, `qwen`, `gemini`) and model name.
+
+   - Require @USER_PROMPT; if missing, prompt the operator and stop.
+   - Split @MODEL_SELECTOR on `:` to derive @MODEL_NAME. Default to `codex-medium` when the selector is absent.
+
 3. Prepare reporting path
-   - Compute `TIMESTAMP` and default `REPORT_FILE` path if not provided.
-   - Create parent directories and initialize markdown header:
+
+   - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided.
+   - Create parent directories and initialize the markdown header:
      ```
      # Background Task Report - <human-readable date>
-     ## Task: <USER_PROMPT>
+     ## Task: @USER_PROMPT
      ## Started: <date time>
      ```
-4. Launch background process
-   - Build command per CLI:
-     - Claude:
-       ```
-       claude --model <model> \
-         --output-format text \
-         --dangerously-skip-permissions \
-         --append-system-prompt "Report all progress and results to: <REPORT_FILE>. Use Write tool to append updates." \
-         --print "<USER_PROMPT>"
-       ```
-     - Codex:
-     - Use the `cdx-exec` helper. Default the model to `codex-medium` (override via `MODEL_SELECTOR`, e.g., `codex:codex-large`).
-       For Codex, prepend reporting instructions to the prompt (no append-system-prompt flag):
-       ```
-       CDX_MODEL="${MODEL_NAME:-codex-medium}"
-       ENHANCED_PROMPT="<USER_PROMPT> IMPORTANT: Report all progress and results to: <REPORT_FILE>. Use the Write tool to append updates."
-       cdx-exec --model "$CDX_MODEL" "$ENHANCED_PROMPT"
-       ```
-     - OpenCode:
-     - Use `opencode run` for headless execution. Default the model to `github-copilot/gpt-5-mini` (override via `MODEL_SELECTOR`, e.g., `opencode:github-copilot/gpt-5-codex`).
-       OpenCode does not support append-system-prompt, so prepend reporting instructions to the prompt:
-       ```
-       OC_MODEL="${MODEL_NAME:-github-copilot/gpt-5-mini}"
-       ENHANCED_PROMPT="<USER_PROMPT> IMPORTANT: Report all progress and results to: <REPORT_FILE>. Use the Write tool to append updates."
-       opencode run --model "$OC_MODEL" \
-         --print-logs \
-         --log-level INFO \
-         "$ENHANCED_PROMPT"
-       ```
-     - Qwen / Gemini: prepend reporting instructions to prompt and use `--yolo`.
-   - Execute via Bash tool with `run_in_background=true`.
+
+4. Launch tmux session
+
+   - Set @SESSION_NAME to `codex-bg-@TIMESTAMP` (or another unique identifier).
+   - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
+   - Launch Codex inside tmux:
+     ```bash
+     tmux new-session -d -s @SESSION_NAME \
+       "cdx-exec --model @MODEL_NAME \\
+         \"@ENHANCED_PROMPT\""
+     ```
+   - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
+
 5. Configure monitoring
-   - Capture process ID and background job handle.
-   - Note how progress will be appended to `REPORT_FILE`.
+
+   - Document how to attach to the session (`tmux attach -t @SESSION_NAME`), capture recent output (`tmux capture-pane -p -S -200 -t @SESSION_NAME`), and stop it (`tmux kill-session -t @SESSION_NAME`).
+   - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
+
 6. Report launch status
-   - Summarize CLI selected, model, background PID, and report path.
-   - Provide instructions for checking progress (tail the report, inspect process).
+   - Summarize Codex model, tmux session, PID, and report path.
+   - Provide explicit monitoring and termination guidance so operators can manage the background task without guessing.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Background task launched with <CLI> (<model>).
+- Summary: Codex background task launched (@MODEL_NAME) inside tmux session @SESSION_NAME.
 
 ## PROCESS
 
-- PID: <pid>
-- Command: <full CLI invocation>
+- tmux session: @SESSION_NAME
+- PID: @PROCESS_ID
+- Command: tmux new-session -d -s @SESSION_NAME 'cdx-exec --model @MODEL_NAME "@ENHANCED_PROMPT"'
 
 ## REPORT
 
-- File: <REPORT_FILE>
-- Monitoring: `tail -f <REPORT_FILE>`
+- File: @REPORT_FILE
+- Monitoring:
+  - `tmux attach -t @SESSION_NAME`
+  - `tail -f @REPORT_FILE`
 
 ## NEXT STEPS
 
-1. Review report for periodic updates.
-2. Terminate background process when work is complete (`kill <pid>` if needed).
+1. Review the report for periodic updates.
+2. Terminate the tmux session when work completes (`tmux kill-session -t @SESSION_NAME`).
 ```
 
 ## Examples
 
 ```bash
-# Default Claude Sonnet background task
+# Default Codex background task
 /todo-background "Analyze the codebase for performance issues"
 
-# Run with Claude Opus and custom report location
-/todo-background "Refactor the authentication module" claude:opus ./reports/auth-refactor.md
-
-# Launch Qwen with default report
-/todo-background "Run security audit and create remediation plan" qwen
+# Custom Codex model with explicit report path
+/todo-background "Refactor the authentication module" codex:codex-large ./.enaible/agents/background/auth-refactor.md
 ```

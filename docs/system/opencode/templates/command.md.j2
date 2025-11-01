@@ -1,36 +1,10 @@
-<!-- generated: enaible -->
 {% if frontmatter %}---
 {% for key, value in frontmatter.items() %}{{ key }}: {{ value }}
 {% endfor %}---
 
-{% endif %}# {{ title }}
-
-{% set required = variables | selectattr('kind', 'equalto', 'positional') | list %}
-{% set optional = variables | selectattr('kind', 'equalto', 'flag') | list %}
-{% set derived = variables | selectattr('kind', 'equalto', 'derived') | list %}
-{% if required or optional or derived %}
-## Variables
-{% if required %}
-### Required
-{% for var in required %}
-- {{ var.token }} = ${{ var.positional_index }}{% if var.description %} — {{ var.description }}{% endif %}{{ "\n" }}
-{% endfor %}
-
 {% endif %}
-{% if optional %}
-### Optional (derived from $ARGUMENTS)
-{% for var in optional %}
-- {{ var.token }} = {{ var.flag_name }}{% if var.repeatable %} [repeatable]{% endif %}{% if var.description %} — {{ var.description }}{% endif %}{{ "\n" }}
-{% endfor %}
-
-{% endif %}
-{% if derived %}
-### Derived (internal)
-{% for var in derived %}
-- {{ var.token }} = {{ var.type_text | replace('derived (internal)', '') | trim }}{% if var.description %} — {{ var.description }}{% endif %}{{ "\n" }}
-{% endfor %}
-
-{% endif %}
-{% endif %}
+# {{ title }}
 
 {{ body }}
+
+{{ managed_sentinel }}
