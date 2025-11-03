@@ -1,0 +1,34 @@
+# OpenCode Prompt E2E Automation Plan
+
+## Context
+
+We now have a working tmux-based harness that drives the OpenCode prompts end-to-end using the new `--auto` flag. The next step is to expand coverage so every shared prompt can be executed non-interactively against lightweight fixtures, ensuring prompt drift is caught automatically.
+
+## Tasks
+
+- [x] Prototype harness: run `/analyze-security … --auto` through tmux and capture logs
+- [x] Add `--auto` handling to:
+  - [x] `analyze-security`
+  - [x] `plan-refactor`
+  - [x] `plan-solution`
+- [x] Extend `--auto` handling to remaining prompts
+  - [x] `analyze-architecture`
+  - [x] `analyze-code-quality`
+  - [x] `analyze-performance`
+  - [x] `analyze-root-cause`
+- [x] `plan-ux-prd`
+  - _Completed 2025-11-03 with consistent STOP bypass pattern._
+  - [x] `create-project`
+  - [x] `setup-dev-monitoring`
+  - [x] `setup-package-monitoring`
+  - [x] `todo-scout-codebase`
+  - [x] others (review `shared/prompts/*.md` for STOP checkpoints)
+- [x] Create minimal fixtures per prompt under `shared/tests/integration/fixtures/prompt-e2e/`
+  - Added richer sample repo signals (Next.js frontend, FastAPI backend, manifests) plus plan/rules/report targets.
+- [x] Update `systems/opencode/prompt-manifest.json`
+  - [x] Add each prompt entry with fixture arguments (including `--auto`)
+  - [x] Record stable success markers per prompt
+- [ ] Enhance success validation if needed (e.g., strip ANSI codes, ignore permission prompts)
+- [ ] Run `ENABLE_OPENCODE_E2E=1 PROMPT_E2E_FORCE=1 PYTHONPATH=shared pytest shared/tests/integration/test_opencode_prompts.py -q`
+- [ ] Update `.enaible/prompt-e2e/opencode.json` cache once all prompts pass
+- [ ] Document the full workflow in `docs/testing.md`

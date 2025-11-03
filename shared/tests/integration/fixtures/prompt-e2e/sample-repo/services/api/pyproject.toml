@@ -1,0 +1,10 @@
+[project]
+name = "sample-api"
+version = "0.1.0"
+dependencies = [
+  "fastapi==0.103.0",
+  "uvicorn==0.23.2"
+]
+
+[tool.sample]
+start_command = "uvicorn app:app --reload --port 8001"
