@@ -13,6 +13,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 ### Optional (derived from $ARGUMENTS)
 
 - @TARGET_PATH = --target-path — repository root for discovery (default .)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 
 ### Derived (internal)
 
@@ -29,6 +30,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 - Confirm before excluding components, installing dependencies, or overwriting files.
 - Always log to @LOG_FILE (default `./dev.log`), never `/dev.log`.
 - Validate generated files (syntax, logging pipeline, ports) before success.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
@@ -39,7 +41,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      PYTHONPATH=shared \
        uv run --project tools/enaible python shared/setup/monitoring/install_monitoring_dependencies.py --dry-run
      ```
-   - If prerequisites are missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
+   - If prerequisites are missing, **STOP (skip when @AUTO):** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run` and, when @AUTO is present, record internally that the confirmation was auto-applied.
 2. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.
@@ -48,14 +50,16 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 3. Component overlap analysis
    - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
    - Identify port conflicts.
-   - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
+   - **STOP (skip when @AUTO):** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input and record internally when auto-applied.
 4. Watch pattern analysis
    - Decide which technologies rely on native hot reload vs. external watchers.
    - Build `WATCH_PATTERNS[]` only for components lacking native watching.
-   - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
+   - **STOP (skip when @AUTO):** “Component analysis complete. Proceed with setup? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 5. Existing file handling
    - Detect existing `Makefile` or `Procfile`.
-   - **STOP:** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
+   - **STOP (skip when @AUTO):** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
+     - When @AUTO is present, follow the documented default (overwrite unless the prompt specifies otherwise) and record internally that the confirmation was auto-applied.
    - Respect choice and create timestamped backups when requested.
 6. Write Makefile (direct content)
 
