@@ -17,7 +17,7 @@
   <!-- Platform & Language Support -->
 
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
-![Python](https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat-square&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/typescript-supported-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
@@ -96,9 +96,10 @@ Install for your preferred AI dev runtime. Details in docs/installation.md
 
 Notes
 
-- Programmatic prompts (analysis, security, performance) require Python 3.11+.
-- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. Helpers available in `systems/codex/codex-init-helpers.md`.
+- Programmatic prompts (analysis, security, performance) require Python 3.12.
+- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. See the [Installation Guide](docs/installation.md) for helper snippets.
 - For OpenCode, prefer using the command-executor primary agent for best adherence to shell prompts.
+- The installers copy full system payloads (commands, agents, rules, settings) into your local scope; rerun them after pulling updates to keep managed content in sync.
 
 ---
 

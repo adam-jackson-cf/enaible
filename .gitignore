@@ -2,6 +2,8 @@
 .claude/
 .enaible/
 !.enaible/schema.json
+!.enaible/prompt-e2e/
+!.enaible/prompt-e2e/**
 
 # Evaluation system test workspaces and reports
 evaluation/workspaces/

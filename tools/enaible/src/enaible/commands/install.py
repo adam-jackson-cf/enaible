@@ -32,6 +32,12 @@ SYSTEM_RULES = {
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
 }
 
+ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
+    "claude-code": ("commands/", "agents/", "rules/"),
+    "opencode": ("command/", "agents/", "rules/"),
+    "codex": ("prompts/", "rules/"),
+}
+
 
 class InstallMode(str, Enum):
     MERGE = "merge"
@@ -99,15 +105,22 @@ def install(  # noqa: PLR0912
 
     files = _iter_source_files(source_root, system)
 
+    always_managed_prefixes = ALWAYS_MANAGED_PREFIXES.get(system, ())
+
     for source_file in files:
         relative = source_file.relative_to(source_root)
         destination_file = destination_root / relative
 
-        managed = _has_managed_sentinel(source_file)
+        relative_posix = relative.as_posix()
+        managed = _has_managed_sentinel(source_file) or any(
+            relative_posix.startswith(prefix) for prefix in always_managed_prefixes
+        )
         dest_exists = destination_file.exists()
         dest_managed = (
             _has_managed_sentinel(destination_file) if dest_exists else managed
         )
+        if any(relative_posix.startswith(prefix) for prefix in always_managed_prefixes):
+            dest_managed = True
 
         if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
             summary.record_skip(relative)
@@ -145,13 +158,9 @@ def install(  # noqa: PLR0912
 
 
 def _iter_source_files(root: Path, system: str) -> Iterable[Path]:
-    skip_rel = SYSTEM_RULES.get(system, (None,))[0]
-
     for path in root.rglob("*"):
         if path.is_file():
             if path.name in SKIP_FILES:
-                continue
-            if skip_rel and path.relative_to(root).as_posix() == skip_rel:
                 continue
             yield path
 
@@ -274,7 +283,8 @@ def _render_managed_prompts(
     overrides: dict[str, Path] = {system: destination_root}
     results = renderer.render(definitions, [system], overrides)
 
-    destination_root.mkdir(parents=True, exist_ok=True)
+    if not dry_run:
+        destination_root.mkdir(parents=True, exist_ok=True)
 
     for result in results:
         output_path = result.output_path

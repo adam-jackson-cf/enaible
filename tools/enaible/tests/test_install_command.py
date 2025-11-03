@@ -47,6 +47,28 @@ def test_install_merge_project_scope(tmp_path: Path) -> None:
     assert destination.exists()
 
 
+def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    agent = tmp_path / ".claude" / "agents" / "user-researcher.md"
+    rules = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
+    assert agent.exists()
+    assert rules.exists()
+    assert agent.read_text(encoding="utf-8").startswith("---")
+    assert "Tooling preferences" in rules.read_text(encoding="utf-8")
+
+
 def test_install_dry_run_leaves_destination_clean(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
@@ -88,3 +110,39 @@ def test_install_skips_unmanaged_files(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.stderr or result.stdout
     assert target_file.read_text(encoding="utf-8") == "custom content"
     assert "Skipped" in result.stdout
+
+
+def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
+    # First install to seed files
+    base_result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert base_result.exit_code == 0, base_result.stderr or base_result.stdout
+    rules_path = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
+    original = rules_path.read_text(encoding="utf-8")
+    # Mutate destination to simulate stale content
+    rules_path.write_text("outdated", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    assert rules_path.read_text(encoding="utf-8") == original

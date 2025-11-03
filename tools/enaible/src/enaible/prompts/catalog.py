@@ -47,7 +47,8 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={
                     "description": "Perform a security audit of the repository and dependencies",
-                    "agent": "security",
+                    "agent": "command-executor",
+                    "argument-hint": "[target-path] [--exclude?] [--min-severity?] [--verbose?]",
                 },
             ),
             "codex": SystemPromptConfig(
