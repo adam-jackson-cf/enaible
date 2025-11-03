@@ -11,6 +11,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 ### Optional (derived from $ARGUMENTS)
 
 - @PLAN_FILE = --from-plan — path to a todos/plan file when using plan mode
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 
 ### Derived (internal)
 
@@ -22,6 +23,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 - NEVER guess technology mappings; derive them from explicit arguments or todos analysis.
 - When analyzing todos, document the detection logic and resulting stack choices.
 - Present a full configuration summary and obtain user confirmation prior to execution.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat the checkpoints as approved without altering other behavior.
 - After generation, run the project’s health checks and report outcomes.
 
 ## Workflow
@@ -46,7 +48,8 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
      bun create better-t-stack@latest <PROJECT_NAME> <mapped-flags>
      ```
    - Display a table of components (Frontend, Backend, Runtime, Database, ORM, Auth, Addons) with their mapped values.
-   - **STOP:** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
+   - **STOP (skip when @AUTO):** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 5. Execute scaffold
    - Run the composed CLI command.
    - Capture stdout/stderr for reporting.
