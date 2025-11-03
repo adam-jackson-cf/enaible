@@ -12,7 +12,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 ### Optional (derived from $ARGUMENTS)
 
-- (none)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 
 ### Derived (internal)
 
@@ -22,13 +22,14 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 - Lead with detailed discovery; gather product foundation, user insights, UX requirements, screen architecture, and onboarding details.
 - Assign stable IDs (F-001, S-001, FL-001) for features, screens, and flows; reuse consistently across sections.
-- Respect STOP confirmations before generating the PRD and before concluding quality validation.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat the checkpoints as approved without altering other behavior.
 - Ensure MoSCoW scope ties directly to screen architecture and flows.
 - Document design principles, accessibility requirements (WCAG), interaction patterns, and content tone explicitly.
 
 ## Workflow
 
 1. Information gathering
+
    - Review @USER_PROMPT and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
    - Conduct targeted question sequence covering:
      - Product foundation
@@ -38,7 +39,9 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - Design standards
      - Onboarding experience
    - Summarize understanding and confirm key requirements with user.
-   - **STOP:** “Ready to generate the PRD? (y/n)”
+   - **STOP (skip when @AUTO):** “Ready to generate the PRD? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+
 2. PRD generation
 
    - Generate the complete PRD using the Output Contract below. Populate all required sections using the Phase 1 answers. Use stable IDs for cross‑references.
@@ -136,7 +139,8 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - Screen architecture reflects user journeys.
      - UX specifications actionable for design.
      - Acceptance criteria cover each feature.
-   - **STOP:** “PRD generated with quality validation complete.”
+   - **STOP (skip when @AUTO):** “PRD generated with quality validation complete.”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
 ## Output
 
