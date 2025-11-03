@@ -10,6 +10,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 
@@ -24,6 +25,7 @@ Assess code quality by combining automated metrics with architectural review to 
 - Correlate quantitative metrics with qualitative observations before recommending remediation.
 - Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
 - Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

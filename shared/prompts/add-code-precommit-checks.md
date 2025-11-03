@@ -10,7 +10,7 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 
 ### Optional (derived from $ARGUMENTS)
 
-- (none)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 
 ### Derived (internal)
 
@@ -23,6 +23,7 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 - Detect the active language stack; do NOT assume JavaScript or Python by default.
 - Match hook selections to the detected stack; only include tools that exist in the project.
 - Record the installation approach used (`pip`, `pipx`, `brew`, etc.) in the final summary.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

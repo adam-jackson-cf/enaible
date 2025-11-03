@@ -10,6 +10,7 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 - @VERBOSE = --verbose — emit extended analyzer metadata and reasoning notes
@@ -25,6 +26,7 @@ Evaluate system architecture quality by combining automated structural analyzers
 - Tie structural findings to concrete files, modules, or layers before recommending action.
 - Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
 - When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

@@ -22,7 +22,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 - Lead with detailed discovery; gather product foundation, user insights, UX requirements, screen architecture, and onboarding details.
 - Assign stable IDs (F-001, S-001, FL-001) for features, screens, and flows; reuse consistently across sections.
-- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat the checkpoints as approved without altering other behavior.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - Ensure MoSCoW scope ties directly to screen architecture and flows.
 - Document design principles, accessibility requirements (WCAG), interaction patterns, and content tone explicitly.
 

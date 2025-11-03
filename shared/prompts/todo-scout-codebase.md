@@ -12,6 +12,7 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = --target — root to analyze (default .)
 - @OUT = --out — write the final Markdown to this path (also print to stdout)
 - @DAYS = --days — history window for insights (default 20)
@@ -25,6 +26,7 @@ Explore the entire project and generate a comprehensive codebase analysis that s
 - Format every section for quick scanning: short paragraphs, bullet lists, and tables. Keep guidance concise and documentation-focused.
 - When secrets are encountered, note file and nature only—never print the secret.
 - Default to the repository root when @TARGET_PATH is not supplied; respect @EXCLUDE_GLOBS for all searches.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

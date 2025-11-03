@@ -23,7 +23,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 - NEVER guess technology mappings; derive them from explicit arguments or todos analysis.
 - When analyzing todos, document the detection logic and resulting stack choices.
 - Present a full configuration summary and obtain user confirmation prior to execution.
-- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat the checkpoints as approved without altering other behavior.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - After generation, run the project’s health checks and report outcomes.
 
 ## Workflow

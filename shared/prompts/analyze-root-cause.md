@@ -10,6 +10,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = --target-path — path to analyze; defaults to repo root
 - @VERBOSE = --verbose — enable verbose diagnostics capture
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
@@ -27,6 +28,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
 - When @VERBOSE is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

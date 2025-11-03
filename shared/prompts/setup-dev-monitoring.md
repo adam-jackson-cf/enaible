@@ -41,7 +41,8 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      PYTHONPATH=shared \
        uv run --project tools/enaible python shared/setup/monitoring/install_monitoring_dependencies.py --dry-run
      ```
-   - If prerequisites are missing, **STOP (skip when @AUTO):** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run` and, when @AUTO is present, record internally that the confirmation was auto-applied.
+   - If prerequisites are missing, **STOP (skip when @AUTO):** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
+     - When @AUTO is present, continue immediately, record internally that the confirmation was auto-applied, and rerun the command without `--dry-run`.
 2. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.
@@ -50,7 +51,8 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 3. Component overlap analysis
    - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
    - Identify port conflicts.
-   - **STOP (skip when @AUTO):** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input and record internally when auto-applied.
+   - **STOP (skip when @AUTO):** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 4. Watch pattern analysis
    - Decide which technologies rely on native hot reload vs. external watchers.
    - Build `WATCH_PATTERNS[]` only for components lacking native watching.

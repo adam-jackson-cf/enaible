@@ -10,6 +10,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
 
@@ -23,6 +24,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 - Persist analyzer results under `.enaible/artifacts/analyze-performance/` and cite them in the final report.
 - Investigate bottlenecks holistically (compute, IO, frontend rendering, data access, configuration).
 - Tie each recommendation to measurable outcomes and validation steps.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

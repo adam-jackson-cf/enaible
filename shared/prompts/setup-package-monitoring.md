@@ -10,6 +10,7 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @AUDIT_LEVEL = --audit-level — severity threshold (default critical)
 - @PACKAGE_FILE = --package-file — restrict monitoring to a specific manifest
 - @EXCLUDE = --exclude [repeatable] — paths to exclude from monitoring
@@ -26,6 +27,7 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 - Document detection heuristics, excluded paths, and resulting configurations.
 - Generate Dependabot and GitHub Actions workflows with path-based triggers.
 - Update security policy documentation to reflect the monitoring approach.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

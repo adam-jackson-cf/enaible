@@ -10,6 +10,7 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @RULE_FILE_PATH = --out — destination path for the generated implementation rule (defaults to `rules/<slug>.md`)
 
 ### Derived (internal)
@@ -23,6 +24,7 @@ Produce an implementation-focused rule file for a specified technology so automa
 - Include actionable code examples for every rule section; ensure examples compile or are syntactically correct.
 - Highlight anti-patterns with ❌ and provide preferred alternatives with ✅.
 - After writing, verify the file matches the required structure and is free of placeholders.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

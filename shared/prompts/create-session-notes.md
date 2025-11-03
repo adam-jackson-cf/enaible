@@ -10,6 +10,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @SESSION_FILE = --session-file — destination file (default ./session-notes.md)
 - @DISCUSSION_HINT = --overview — optional sentence appended to Discussion Overview
 
@@ -23,6 +24,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 - Append—never overwrite—`session-notes.md`; maintain chronological order.
 - Summaries must be factual, concise, and actionable; highlight key decisions and pending items.
 - Use the provided markdown structure exactly; omit sections only when truly empty.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 

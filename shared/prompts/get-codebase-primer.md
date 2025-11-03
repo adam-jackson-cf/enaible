@@ -12,6 +12,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = --target-path — path to analyze; defaults to the project
 
 ### Derived (internal)
@@ -24,6 +25,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 - Capture findings for purpose, features, tech stack, architecture, commands, and testing.
 - Summaries must be concise yet comprehensive, referencing concrete files and directories.
 - Include recent git history insights to surface active development themes.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
@@ -48,7 +50,6 @@ Analyse the following aspects of the target codebase:
    - Capture recent themes, active contributors, and churn hotspots for inclusion in the primer.
 
 3. **Generate Project Primer**
-
    - Compile findings into standardized markdown format.
    - Present comprehensive project overview.
 

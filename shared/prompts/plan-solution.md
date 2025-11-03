@@ -10,6 +10,7 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = --target-path — repository path when targeting an existing codebase (default .)
 
 ### Derived (internal)
@@ -22,7 +23,8 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
 - Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
 - Support recommendations with research citations or code insights.
-- Wait for approval before appending tasks to `todos.md`.
+- Wait for approval before appending tasks to `todos.md` unless @AUTO is provided (log follow-up actions instead).
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
@@ -32,7 +34,8 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
      2. Any technical constraints or predetermined tech stack choices
      3. Development approach preferences
    - When the solution targets an existing repository, record the working directory as @TARGET_PATH (default `.`).
-   - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
+   - **STOP (skip when @AUTO):** Wait until the user provides answers or grants permission to proceed with assumptions.
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 2. **Conditional** system analysis (only when working against an existing codebase)
 
    - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.

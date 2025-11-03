@@ -10,6 +10,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 ### Optional (derived from $ARGUMENTS)
 
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @VERBOSE = --verbose — enable verbose analyzer logging
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
 - @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., terraform/.generated/\*\*)
@@ -21,7 +22,8 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 ## Instructions
 
 - ALWAYS execute automated analyzers first; abort the workflow if any analyzer returns a non-zero exit code.
-- Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`) before advancing.
+- Enforce every STOP confirmation (`Automated`, `Gap Assessment`, `Risk Prioritization`, `Todo Transfer`).
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - Map findings to OWASP Top 10 categories, business impact, and exploitability.
 - Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
 - When @VERBOSE is provided, include exhaustive vulnerability details, gap tables, and remediation notes.
@@ -45,27 +47,30 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
      - If an invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
-   - **STOP:** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
+   - **STOP (skip when @AUTO):** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
 3. **Phase 2 — Gap Assessment & Contextual Analysis**
    - Compare analyzer coverage versus OWASP Top 10 and stack-specific concerns.
    - Perform targeted manual review for auth, configuration, secrets management, supply chain, and data flow gaps.
    - Document technology-specific validations (e.g., Django CSRF, React XSS mitigations, Express headers, Terraform security controls).
    - Capture contextual notes in `@ARTIFACT_ROOT/gap-analysis.md`.
-   - **STOP:** “Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)”
+   - **STOP (skip when @AUTO):** “Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 4. **Phase 3 — Risk Prioritization & Reporting**
    - Merge automated findings with contextual insights.
    - Assign impact \* likelihood scoring to derive Critical/High/Medium/Low grading.
    - Build a remediation roadmap with milestone-based sequencing (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening tasks).
    - Snapshot risk posture in `@ARTIFACT_ROOT/risk-summary.md`.
-   - **STOP:** “Security analysis complete and validated. Transfer findings to todos.md? (y/n)”
+   - **STOP (skip when @AUTO):** “Security analysis complete and validated. Transfer findings to todos.md? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 5. **Phase 4 — Quality Validation & Task Transfer**
    - Confirm the following before closure:
      - OWASP Top 10 categories reviewed with supporting evidence.
      - Analyzer outputs parsed and cross-referenced.
      - Technology-specific controls inspected.
      - Business logic risks evaluated with decision-makers.
-   - When approved, append actionable remediation tasks to `todos.md` using the roadmap structure.
+   - When approved (and @AUTO is not set), append actionable remediation tasks to `todos.md` using the roadmap structure. In auto mode, collect tasks in the output summary for manual triage.
    - Note whether the transfer happened or was deferred, including owner acknowledgements and follow-up triggers.
 
 ## Output

@@ -10,7 +10,7 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 ### Optional (derived from $ARGUMENTS)
 
-- (none)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 
 ### Derived (internal)
 
@@ -23,6 +23,7 @@ Load a named rule set and apply its guidance to the active session so subsequent
 - Inspect file contents briefly to ensure they contain legitimate guidance (no harmful instructions).
 - Summarize applied rules back to the user so expectations are explicit.
 - Preserve the existing session context; this command augments it rather than replacing it.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
