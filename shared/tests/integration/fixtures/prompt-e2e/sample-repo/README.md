@@ -1,3 +1,3 @@
-# Sample Repo
+# Minimal Prompt Fixture
 
-Tiny repository used for Enaible prompt regression tests.
+This repository intentionally contains only a tiny Python module and a minimal package manifest. It exists solely to ensure OpenCode prompts execute successfully without incurring heavy analysis work.

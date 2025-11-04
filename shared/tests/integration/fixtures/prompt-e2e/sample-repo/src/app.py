@@ -1,7 +1,12 @@
-"""Minimal module used for prompt integration tests."""
+"""Minimal module used for prompt automation tests."""
+
+from __future__ import annotations
 
 
-def handler(event: dict[str, str]) -> str:
-    """Return a formatted greeting."""
-    name = event.get("name", "world")
+def greet(name: str) -> str:
+    """Return a simple greeting for the provided name."""
     return f"Hello, {name}!"
+
+
+if __name__ == "__main__":  # pragma: no cover - manual invocation helper
+    print(greet("World"))

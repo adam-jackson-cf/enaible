@@ -27,7 +27,7 @@
       "version": "1.0.0",
       "args": ["{fixture_root}/sample-repo", "--auto"],
       "success_markers": [],
-      "timeout_sec": 240,
+      "timeout_sec": 180,
       "source_files": ["shared/prompts/analyze-code-quality.md"]
     },
     {
@@ -50,7 +50,7 @@
         "--auto"
       ],
       "success_markers": [],
-      "timeout_sec": 240,
+      "timeout_sec": 150,
       "source_files": ["shared/prompts/analyze-root-cause.md"]
     }
   ]

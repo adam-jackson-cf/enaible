@@ -31,6 +31,8 @@ We now have a working tmux-based harness that drives the OpenCode prompts end-to
 - [x] Prototype tmux-driven parallel orchestrator
   - Script: `shared/tests/integration/tools/opencode_prompt_orchestrator.py`
   - Handles per-prompt tmux sessions up to configurable concurrency and performs marker validation.
+- [x] Replace heavy fixture with minimal target repo for fast runs
+  - New contents under `shared/tests/integration/fixtures/prompt-e2e/sample-repo/` keep the workload to a single Python module.
 - [x] Validate orchestrator by running analysis prompts (max parallel 5) and reviewing summary output
   - 2025-11-03: `python shared/tests/integration/tools/opencode_prompt_orchestrator.py --max-parallel 3`
 - [ ] Update `.enaible/prompt-e2e/opencode.json` cache once orchestrator run succeeds

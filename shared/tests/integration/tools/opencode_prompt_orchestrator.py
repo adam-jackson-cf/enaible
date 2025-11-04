@@ -16,6 +16,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Iterable, Sequence
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -46,6 +47,7 @@ class PromptResult:
     duration_sec: float
     log_path: Path
     missing_markers: Sequence[str]
+    detail: str | None = None
 
 
 def parse_args() -> argparse.Namespace:
@@ -82,6 +84,11 @@ def parse_args() -> argparse.Namespace:
         type=float,
         default=2.0,
         help="Polling interval (seconds) for tmux session completion.",
+    )
+    parser.add_argument(
+        "--keep-logs",
+        action="store_true",
+        help="Retain per-prompt log files instead of deleting them after the run.",
     )
     return parser.parse_args()
 
@@ -218,25 +225,47 @@ def strip_ansi(text: str) -> str:
     return _ANSI_PATTERN.sub("", text)
 
 
-def evaluate_prompt(prompt: PromptJob, log_path: Path, duration: float) -> PromptResult:
+def evaluate_prompt(
+    prompt: PromptJob,
+    log_path: Path,
+    duration: float,
+    *,
+    timed_out: bool = False,
+) -> PromptResult:
     content = strip_ansi(read_log(log_path))
     exit_match = _EXIT_PATTERN.search(content)
     missing = [marker for marker in prompt.success_markers if marker not in content]
-    if exit_match is None:
+    detail: str | None = None
+    if timed_out:
+        status = "timeout"
+        detail = f"timed out after {duration:.1f}s"
+    elif exit_match is None:
         status = "failed"
+        detail = "missing exit code"
     else:
         exit_code = int(exit_match.group(1))
-        status = "passed" if exit_code == 0 and not missing else "failed"
-    return PromptResult(prompt.prompt_id, status, duration, log_path, tuple(missing))
+        if exit_code == 0 and not missing:
+            status = "passed"
+        else:
+            status = "failed"
+            if exit_code != 0:
+                detail = f"exit {exit_code}"
+    return PromptResult(
+        prompt.prompt_id, status, duration, log_path, tuple(missing), detail
+    )
 
 
-def summarize(results: Iterable[PromptResult]) -> None:
+def summarize(results: Iterable[PromptResult], keep_logs: bool) -> None:
     passed = [r for r in results if r.status == "passed"]
     failed = [r for r in results if r.status != "passed"]
     print("\n=== OpenCode Prompt Results ===")
     for res in results:
+        status_label = res.status.upper()
+        if res.detail:
+            status_label += f" ({res.detail})"
+        log_note = f"log: {res.log_path}" if keep_logs else "log removed"
         print(
-            f"- {res.prompt_id}: {res.status.upper()} in {res.duration_sec:.1f}s (log: {res.log_path})"
+            f"- {res.prompt_id}: {status_label} in {res.duration_sec:.1f}s ({log_note})"
         )
         if res.missing_markers:
             print(f"  Missing markers: {', '.join(res.missing_markers)}")
@@ -271,10 +300,19 @@ def main() -> None:
                 running[session_info.session] = session_info
 
             finished_sessions: list[str] = []
+            current_time = time.time()
             for session, info in running.items():
-                if not tmux_session_exists(session):
-                    duration = time.time() - info.start_ts
-                    result = evaluate_prompt(info.prompt, info.log_path, duration)
+                elapsed = current_time - info.start_ts
+                timed_out = elapsed > info.prompt.timeout_sec
+                if timed_out:
+                    kill_tmux_session(session)
+                if timed_out or not tmux_session_exists(session):
+                    result = evaluate_prompt(
+                        info.prompt,
+                        info.log_path,
+                        elapsed,
+                        timed_out=timed_out,
+                    )
                     results.append(result)
                     finished_sessions.append(session)
             for session in finished_sessions:
@@ -289,7 +327,12 @@ def main() -> None:
         for session in list(running):
             kill_tmux_session(session)
 
-    summarize(results)
+    summarize(results, args.keep_logs)
+
+    if not args.keep_logs:
+        for res in results:
+            with suppress(FileNotFoundError):
+                res.log_path.unlink()
 
 
 if __name__ == "__main__":
