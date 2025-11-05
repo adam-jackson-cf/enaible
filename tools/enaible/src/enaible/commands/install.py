@@ -7,6 +7,7 @@ import shutil
 import subprocess
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
 from importlib import metadata
 from pathlib import Path
@@ -30,12 +31,14 @@ SYSTEM_RULES = {
     "claude-code": ("rules/global.claude.rules.md", "claude.md"),
     "opencode": ("rules/global.opencode.rules.md", "agents.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
+    "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "claude-code": ("commands/", "agents/", "rules/"),
     "opencode": ("command/", "agents/", "rules/"),
     "codex": ("prompts/", "rules/"),
+    "copilot": ("prompts/",),
 }
 
 
@@ -61,7 +64,7 @@ class InstallSummary:
 @app.command("install")
 def install(  # noqa: PLR0912
     system: str = typer.Argument(
-        ..., help="System adapter to install (claude-code|opencode|codex)."
+        ..., help="System adapter to install (claude-code|opencode|codex|copilot)."
     ),
     target: Path = typer.Option(
         Path("."), "--target", "-t", help="Destination root for installation."
@@ -99,9 +102,10 @@ def install(  # noqa: PLR0912
     destination_root = _resolve_destination(system_ctx, target, scope)
     summary = InstallSummary(actions=[], skipped=[])
 
-    if mode is InstallMode.FRESH and not dry_run and destination_root.exists():
-        shutil.rmtree(destination_root)
-        summary.record("remove", destination_root)
+    if mode is InstallMode.FRESH:
+        _prepare_destination_for_fresh_install(
+            destination_root, backup, dry_run, summary
+        )
 
     files = _iter_source_files(source_root, system)
 
@@ -112,6 +116,12 @@ def install(  # noqa: PLR0912
         destination_file = destination_root / relative
 
         relative_posix = relative.as_posix()
+
+        # Skip rules directory for copilot (only used as source for AGENTS.md)
+        if system == "copilot" and relative_posix.startswith("rules/"):
+            summary.record_skip(relative)
+            continue
+
         managed = _has_managed_sentinel(source_file) or any(
             relative_posix.startswith(prefix) for prefix in always_managed_prefixes
         )
@@ -245,6 +255,11 @@ def _post_install(
         summary.record("merge", target_path)
         return
 
+    if system == "copilot":
+        _merge_copilot_agents(target_path, source_rules)
+        summary.record("merge", target_path)
+        return
+
     header = (
         f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
     )
@@ -326,6 +341,26 @@ def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
 
 
+def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
+    start_marker = "<!-- COPILOT_GLOBAL_RULES_START -->"
+    end_marker = "<!-- COPILOT_GLOBAL_RULES_END -->"
+    header = f"# AI-Assisted Workflows (Copilot Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
+    body = source_rules.read_text(encoding="utf-8").strip()
+    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+
+    existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
+
+    if start_marker in existing and end_marker in existing:
+        start = existing.index(start_marker)
+        end = existing.index(end_marker) + len(end_marker)
+        updated = existing[:start] + block + existing[end:]
+    else:
+        updated = (existing.rstrip() + "\n\n" if existing.strip() else "") + block
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
+
+
 def _enaible_version() -> str:
     try:
         return metadata.version("enaible")
@@ -354,3 +389,54 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
         ) from exc
 
     summary.record("sync", repo_root / "tools" / "enaible")
+
+
+def _prepare_destination_for_fresh_install(
+    destination_root: Path,
+    backup: bool,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    if not destination_root.exists():
+        return
+
+    if backup:
+        backup_path = _next_stash_path(destination_root, ".bak")
+        if dry_run:
+            summary.record("backup", backup_path)
+            return
+
+        destination_root.rename(backup_path)
+        summary.record("backup", backup_path)
+        return
+
+    if dry_run:
+        summary.record("remove", destination_root)
+        return
+
+    temp_path = _next_stash_path(destination_root, ".tmp")
+    destination_root.rename(temp_path)
+    if temp_path.is_dir():
+        shutil.rmtree(temp_path)
+    else:
+        temp_path.unlink()
+    summary.record("remove", destination_root)
+
+
+def _next_stash_path(path: Path, suffix: str) -> Path:
+    base_name = path.name
+    candidate = path.with_name(f"{base_name}{suffix}")
+    if not candidate.exists():
+        return candidate
+
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")
+    candidate = path.with_name(f"{base_name}{suffix}-{timestamp}")
+    if not candidate.exists():
+        return candidate
+
+    counter = 1
+    while True:
+        candidate = path.with_name(f"{base_name}{suffix}-{timestamp}-{counter}")
+        if not candidate.exists():
+            return candidate
+        counter += 1

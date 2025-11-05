@@ -58,6 +58,17 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "analyze-security.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Perform a comprehensive security audit of the repository and dependencies",
+                    "mode": "agent",
+                    "tools": ["edit", "githubRepo", "search/codebase", "terminal"],
+                },
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -87,6 +98,17 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "codex", "prompts", "analyze-architecture.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "analyze-architecture.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Evaluate system architecture for scalability, maintainability, and best practices",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
             ),
         },
     ),
@@ -118,6 +140,17 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "analyze-code-quality.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Assess code quality and complexity, and highlight high-value refactors",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
         },
     ),
     "analyze-performance": PromptDefinition(
@@ -147,6 +180,17 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "codex", "prompts", "analyze-performance.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "analyze-performance.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
             ),
         },
     ),
@@ -178,6 +222,17 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "analyze-root-cause.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Perform root cause analysis for a defect or failure",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
         },
     ),
     "plan-refactor": PromptDefinition(
@@ -207,6 +262,17 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "codex", "prompts", "plan-refactor.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "plan-refactor.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Plan a minimal, high-impact refactor with clear boundaries and tests",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
             ),
         },
     ),
@@ -238,6 +304,17 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "plan-solution.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Develop a solution plan for a technical challenge with constraints and milestones",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
         },
     ),
     "get-codebase-primer": PromptDefinition(
@@ -257,6 +334,17 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "codex", "prompts", "get-codebase-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "get-codebase-primer.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Generate a comprehensive primer for understanding the codebase",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
             ),
         },
     ),

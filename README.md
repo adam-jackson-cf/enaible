@@ -27,6 +27,7 @@
 ![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
 ![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
 ![Codex Prompts](https://img.shields.io/badge/Codex-21_Prompts-FF69B4?style=flat-square)
+![Copilot Prompts](https://img.shields.io/badge/Copilot-8_Prompts-0080FF?style=flat-square)
 ![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
 ![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-22_Specialists-ff6b35?style=flat-square>)
 
@@ -92,6 +93,10 @@ Install for your preferred AI dev runtime. Details in docs/installation.md
 # OpenCode
 ./systems/opencode/install.sh                # project-local (creates ./.opencode/)
 ./systems/opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
+
+# Copilot (GitHub Copilot)
+# Prompts are rendered to systems/copilot/prompts/*.prompt.md
+# Copy files to .github/prompts/ in your project to use with GitHub Copilot
 ```
 
 Notes

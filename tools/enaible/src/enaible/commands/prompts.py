@@ -189,6 +189,7 @@ def prompts_lint(
         context.repo_root / _Path("systems/claude-code/commands"),
         context.repo_root / _Path("systems/opencode/command"),
         context.repo_root / _Path("systems/codex/prompts"),
+        context.repo_root / _Path("systems/copilot/prompts"),
     ]
     for d in system_dirs:
         if not d.exists():

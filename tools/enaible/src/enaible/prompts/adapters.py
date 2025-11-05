@@ -33,4 +33,10 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.codex",
         description="Codex CLI",
     ),
+    "copilot": SystemRenderContext(
+        name="copilot",
+        project_scope_dir=".github",
+        user_scope_dir="~/.github",
+        description="GitHub Copilot",
+    ),
 }

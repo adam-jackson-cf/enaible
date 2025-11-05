@@ -112,7 +112,7 @@ def _format_variables_block(variables: list[VariableSpec]) -> list[str]:
         lines.append("")
 
     if optional:
-        lines.append("### Optional (derived from @ARGUMENTS)")
+        lines.append("### Optional (derived from $ARGUMENTS)")
         lines.append("")
         for var in optional:
             repeatable = " [repeatable]" if var.repeatable else ""
