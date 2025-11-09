@@ -6,7 +6,7 @@ This document is for maintainers of the Enaible toolchain inside the `ai-assiste
 
 - You are updating prompt source files, analyzer implementations, or system installers.
 - You run all quality gates (`ruff`, `mypy`, `pytest`, `enaible prompts diff`) before merging.
-- You keep managed assets in `.codex/`, `.claude/`, `.opencode/` synchronized via `enaible install`.
+- You keep managed assets in `.codex/`, `.claude/`, `.opencode/`, `.github/` synchronized via `enaible install`.
 
 ## Toolchain Requirements
 
