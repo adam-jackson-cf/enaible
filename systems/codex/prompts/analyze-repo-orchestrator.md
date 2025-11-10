@@ -2,7 +2,7 @@
 
 # Purpose
 
-Run a parallel, tmux-based repository analysis that reuses existing deterministic workflows (architecture, code quality, security) and adds quality-gates, tests, and history. Produce a single 0–10 score per section with attached evidence. Use the Output section as the scoring and formatting guide.
+Run a parallel, tmux-based repository analysis that reuses existing deterministic workflows (architecture, code quality, security) and adds quality-gates, tests, and history. The analysis should enable to go from 0 to 1 in the understanding of the tech stack, approach, patterns, strenths and failings of a target codebase. Produce a single 0–10 score per section with attached evidence using the KPI scoring guide. Use the Output section as the final report formatting guide.
 
 ## Variables
 
@@ -165,7 +165,7 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 - Poll until `@TIMEOUT_SEC`: a session is considered complete when `tmux has-session -t <name>` fails **and** a matching line exists in `@STATUS_LOG`.
 - On timeout or missing entry: append `<name>,failed,<timestamp>` to `@STATUS_LOG`, surface any partial artifacts, and call out the timeout in the final report.
 
-6. KPI Scoring (readable format)
+6. Baesd on the produced analysis, produce KPI Scoring using the below formulae
 
 Scoring Primer (once)
 
@@ -211,14 +211,6 @@ Agentic Readiness
 - Signals (w): consistency `0.30`; parallelizability `0.30`; guidelines `0.15`; guardrails `0.15`; docs_freshness `0.10`
 - Thresholds (bad ≥): dup `20%`; coupling `2.0`; concentration `0.5`; docs_age `180d`
 - Normalization: invert vs bad thresholds; lower than bad scales up toward `1`
-
-Recent Activity (supporting; not scored)
-
-- Indicator: concentration over `30/90/120` days (good `≤0.1`, bad `≥0.5`)
-
-Diagram caps (for Mermaid visualizations)
-
-- `top_nodes=12`; `edge_limit=24` (visual limits only)
 
 7. Using the KPI scoring, analysis and context gathered across the whole process output the findings to `@ORCH_ROOT/report.md` using the markdown ## Output template format specified below.
 
