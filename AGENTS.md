@@ -60,6 +60,16 @@ The installer treats everything under `commands/`, `agents/`, and `rules/` as ma
 uv run --project tools/enaible enaible prompts lint
 ```
 
+## Prompt Token Conventions
+
+- Use `@TOKEN` placeholders for all non-argument variables inside prompts, including inside code fences. Avoid `$VAR`, `${...}`, and `$(...)` in prompt bodies to prevent accidental argument parsing.
+- Reserve `$`-prefixed tokens only in the `## Variables` section to denote positional/user arguments (e.g., `$1`, `$2`, `$ARGUMENTS`). `$` must not appear elsewhere in a prompt.
+- Examples:
+  - ✅ `- @ARTIFACT_ROOT = .enaible/artifacts/analyze-code-quality/@TIMESTAMP`
+  - ✅ `uv run ... --out "@ARTIFACT_ROOT/quality-lizard.json"`
+  - ❌ `ARTIFACT_ROOT=".enaible/.../$(date -u +%Y%m%dT%H%M%SZ)"`
+  - ❌ `--out "$ARTIFACT_ROOT/quality-lizard.json"`
+
 ## Analyzer Development Workflow
 
 - Import analyzers through the `analyzers.*` namespace only. The registry bootstrap lives in `shared/core/base/registry_bootstrap.py`.

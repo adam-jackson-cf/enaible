@@ -104,7 +104,7 @@ def install(  # noqa: PLR0912
 
     if mode is InstallMode.FRESH:
         _prepare_destination_for_fresh_install(
-            destination_root, backup, dry_run, summary
+            system, destination_root, backup, dry_run, summary
         )
 
     files = _iter_source_files(source_root, system)
@@ -392,6 +392,7 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
 
 def _prepare_destination_for_fresh_install(
+    system: str,
     destination_root: Path,
     backup: bool,
     dry_run: bool,
@@ -404,8 +405,26 @@ def _prepare_destination_for_fresh_install(
         backup_path = _next_stash_path(destination_root, ".bak")
         if dry_run:
             summary.record("backup", backup_path)
+            # In fresh+backup mode, for 'codex' we retain existing dir (no removal)
             return
 
+        # For codex, keep the existing directory in place to retain unmanaged files.
+        # Take a recursive snapshot using copytree so that operators have a full backup
+        # while the install overlays managed assets.
+        if system == "codex":
+            if destination_root.is_dir():
+                shutil.copytree(
+                    destination_root,
+                    backup_path,
+                    dirs_exist_ok=False,
+                    copy_function=shutil.copy2,
+                )
+            else:
+                shutil.copy2(destination_root, backup_path)
+            summary.record("backup", backup_path)
+            return
+
+        # Other systems: preserve previous behavior (move the directory out of the way)
         destination_root.rename(backup_path)
         summary.record("backup", backup_path)
         return

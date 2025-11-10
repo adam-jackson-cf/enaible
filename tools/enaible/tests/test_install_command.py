@@ -146,3 +146,46 @@ def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.stderr or result.stdout
     assert rules_path.read_text(encoding="utf-8") == original
+
+
+def test_codex_fresh_backup_preserves_existing_unmanaged(tmp_path: Path) -> None:
+    target = tmp_path
+    codex_dir = target / ".codex"
+    (codex_dir / "sessions").mkdir(parents=True, exist_ok=True)
+    (codex_dir / "auth.json").write_text("keepme", encoding="utf-8")
+    (codex_dir / "sessions" / "history.jsonl").write_text("events", encoding="utf-8")
+
+    # Run fresh install with backup enabled (default)
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "codex",
+            "--target",
+            str(target),
+            "--mode",
+            "fresh",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # Original unmanaged files must remain
+    assert (codex_dir / "auth.json").read_text(encoding="utf-8") == "keepme"
+    assert (codex_dir / "sessions" / "history.jsonl").read_text(
+        encoding="utf-8"
+    ) == "events"
+
+    # Managed assets should exist after install
+    assert (codex_dir / "prompts").exists()
+    assert (codex_dir / "rules").exists()
+
+    # A backup snapshot should have been created via copy (not move), path may be timestamped
+    backups = list(target.glob(".codex.bak*"))
+    assert backups, "Expected a backup copy of .codex to be created"
+    # Backup should contain the original unmanaged files
+    backup_root = backups[0]
+    assert (backup_root / "auth.json").read_text(encoding="utf-8") == "keepme"
+    assert (backup_root / "sessions" / "history.jsonl").read_text(
+        encoding="utf-8"
+    ) == "events"
