@@ -165,22 +165,60 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 - Poll until `@TIMEOUT_SEC`: a session is considered complete when `tmux has-session -t <name>` fails **and** a matching line exists in `@STATUS_LOG`.
 - On timeout or missing entry: append `<name>,failed,<timestamp>` to `@STATUS_LOG`, surface any partial artifacts, and call out the timeout in the final report.
 
-6. Calculate the report KPIs based on this scoring guidance table
+6. KPI Scoring (readable format)
 
-| KPI / Feature                | Anchor Scale (A) (10/8/5/2/0)                          | Objective Signals & Weights (Σ=1)                                                               | Raw Metrics (Lower=Better unless noted)                                                             | Normalization (each signal → 0–1)                       | Bad Thresholds (≥ means 0)                                                     | Good / Ideal (≤ means 1)                                             | Notes / Special Cases                                                                          |
-| ---------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Formula (all)                | Excellent/Strong/Adequate/Weak/Critical                | O = weighted avg(normalized signals)                                                            | —                                                                                                   | score = round(0.7*O + 0.3*A,1)                          | uses “\_bad”                                                                   | uses “\_good”                                                        | Anchors picked by reviewer evidence                                                            |
-| Maintainability              | Reviewer anchor                                        | duplication 0.4; long_functions 0.2; param_p95 0.2; cc_outliers 0.2                             | Dup %; # funcs > 50 LOC; 95th pct params; cyclomatic outlier count                                  | value_bad → 0; value_good →1 linear clamp               | dup_pct_bad=20; long_fn_bad=20; param_p95_bad=8; cc_outliers_bad=10            | dup_pct_good=5; long_fn_good=0; param_p95_good=3; cc_outliers_good=0 | Long fn & outliers ideal = 0                                                                   |
-| Robustness                   | Reviewer anchor                                        | scalability 0.35; tests_enforced 0.35; cycles 0.30                                              | Scalability finding count; tests_enforced (1/0); dependency cycles                                  | counts map bad→0; good→1                                | scalability_bad=50; cycles_bad=10                                              | scalability_good=0; cycles_good=0                                    | tests_enforced already normalized (1 or 0)                                                     |
-| Security                     | Reviewer anchor                                        | critical 1.0; high 0.6; medium 0.3                                                              | # critical/high/medium findings                                                                     | count / bad_threshold then inverted clamp               | crit_bad=10; high_bad=25; med_bad=50                                           | 0 findings => 1                                                      | Severity labels must match analyzer conventions (critical/high/medium/low only); ignore `info` |
-| Performance                  | Reviewer anchor                                        | sync_io 0.4; global_state 0.3; n_plus_one 0.3                                                   | Sync I/O hotspots; global mutable state sites; N+1 queries                                          | count / bad_threshold inverted                          | sync_io_bad=20; global_state_bad=20; n1_bad=20                                 | 0 findings => 1                                                      | All signals penalty-only                                                                       |
-| Velocity                     | Reviewer anchor                                        | gates_strict 0.35; hooks 0.25; format_enforced 0.25; one_command 0.15                           | Presence / density of CI gates, git hooks, formatter enforcement, single setup command              | binary signals (present=1 absent=0); density normalized | rule_density_bad=0.2                                                           | rule_density_good=0.8                                                | One-command (e.g. make dev) binary                                                             |
-| Agentic Readiness            | Reviewer anchor                                        | consistency 0.30; parallelizability 0.30; guidelines 0.15; guardrails 0.15; docs_freshness 0.10 | Dup %, coupling, concentration, guidelines/docs, guardrails (CI/hooks), docs age                    | invert against bad thresholds                           | dup_pct_bad=20; coupling_bad=2.0; concentration_bad=0.5; docs_age_bad_days=180 | Lower than bad → scaled up toward 1                                  | Consistency uses duplication; parallelizability uses coupling + concentration                  |
-| Recent Activity (supporting) | — (informational)                                      | concentration (implicit)                                                                        | Commit/file concentration last 30/90/120 days                                                       | concentration_good→1; concentration_bad→0               | concentration_bad=0.5                                                          | concentration_good=0.1                                               | Windowed trend; not scored into KPIs directly                                                  |
-| Mermaid Diagram Limits       | —                                                      | top_nodes                                                                                       | key architectural nodes count                                                                       | capped                                                  | edge_limit=24                                                                  | top_nodes=12                                                         | Used for feature-flow visualization; hot edges colored by evidence                             |
-| Anchor Selection Guide       | 10 Excellent; 8 Strong; 5 Adequate; 2 Weak; 0 Critical | —                                                                                               | Evidence examples: patterns adherence, low risk density, strong gates                               | Reviewer judgment mapped to discrete anchor             | —                                                                              | —                                                                    | Apply consistently per section before final S                                                  |
-| Evidence Inputs (O)          | —                                                      | —                                                                                               | cycles, boundary violations, complexity, duplication, type/lint errors, secrets, scalability, churn | Each signal normalized 0–1 then weighted                | —                                                                              | —                                                                    | Only artifact-derived (objective)                                                              |
-| Final Score S                | —                                                      | —                                                                                               | S = round(0.7*O + 0.3*A, 1)                                                                         | —                                                       | —                                                                              | —                                                                    | Report badges: 🟢 7–10, 🟠 4–6, 🔴 0–3                                                         |
+Scoring Primer (once)
+
+- Formula: `S = round(0.7*O + 0.3*A, 1)`
+- Anchor A (single definition): `10/8/5/2/0 = Excellent/Strong/Adequate/Weak/Critical`
+- Normalization: each signal → `[0,1]` by clamping between good (=1) and bad (=0)
+- Lower‑is‑better signals: `norm = clamp((bad − x)/(bad − good))`; higher‑is‑better flips
+- Objective score: `O = Σ w_i * norm_i` (weights per KPI sum to `1`)
+- Use artifact‑derived signals only; anchors are reviewer judgment applied once per KPI
+
+Maintainability
+
+- Signals (w): duplication `0.4`; long_functions `0.2`; param_p95 `0.2`; cc_outliers `0.2`
+- Thresholds (good/bad): dup `5/20`; long_fn `0/20`; p95 `3/8`; cc_outliers `0/10`
+- Normalization: lower is better for all; long functions & outliers ideal `0`
+
+Robustness
+
+- Signals (w): scalability `0.35`; tests_enforced `0.35`; cycles `0.30`
+- Thresholds (good/bad): scalability `0/50`; cycles `0/10`; tests_enforced is binary
+- Normalization: counts map to `[0,1]`; tests_enforced already `0/1`
+
+Security
+
+- Signals (w): critical `1.0`; high `0.6`; medium `0.3` (ignore `info`)
+- Thresholds (bad ≥): crit `10`; high `25`; medium `50`; good = `0` for all
+- Normalization: invert counts vs bad thresholds; `0` findings → `1`
+
+Performance
+
+- Signals (w): sync_io `0.4`; global_state `0.3`; n_plus_one `0.3`
+- Thresholds (bad ≥): `20` each; good = `0`; penalty‑only signals
+- Normalization: invert counts vs bad thresholds; `0` findings → `1`
+
+Velocity
+
+- Signals (w): gates_strict `0.35`; hooks `0.25`; format_enforced `0.25`; one_command `0.15`
+- Thresholds: booleans map to `0/1`; optional rule_density good `≥0.8`, bad `≤0.2`
+- Normalization: binary or density to `[0,1]`; `one_command` is binary (e.g., `make dev`)
+
+Agentic Readiness
+
+- Signals (w): consistency `0.30`; parallelizability `0.30`; guidelines `0.15`; guardrails `0.15`; docs_freshness `0.10`
+- Thresholds (bad ≥): dup `20%`; coupling `2.0`; concentration `0.5`; docs_age `180d`
+- Normalization: invert vs bad thresholds; lower than bad scales up toward `1`
+
+Recent Activity (supporting; not scored)
+
+- Indicator: concentration over `30/90/120` days (good `≤0.1`, bad `≥0.5`)
+
+Diagram caps (for Mermaid visualizations)
+
+- `top_nodes=12`; `edge_limit=24` (visual limits only)
 
 7. Using the KPI scoring, analysis and context gathered across the whole process output the findings to `@ORCH_ROOT/report.md` using the markdown ## Output template format specified below.
 
@@ -191,7 +229,8 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 ````md
 # Executive Summary
 
-- Purpose & key features: <2–3 bullets>
+- Application Purpose
+
 - KPIs:
   <m> <badge> Maintainability
   <r> <badge> Robustness
