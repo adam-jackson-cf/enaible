@@ -21,7 +21,6 @@ class ContextPlatform(str, Enum):
 
     CLAUDE = "claude"
     CODEX = "codex"
-    OPENCODE = "opencode"
 
 
 class OutputFormat(str, Enum):
@@ -80,7 +79,7 @@ def context_capture(
         OutputFormat.JSON, "--output-format", case_sensitive=False
     ),
 ) -> None:
-    """Capture session context for Claude, Codex, or OpenCode."""
+    """Capture session context for Claude or Codex."""
     workspace = load_workspace()
     script_map = {
         ContextPlatform.CLAUDE: workspace.repo_root
@@ -91,10 +90,6 @@ def context_capture(
         / "shared"
         / "context"
         / "context_bundle_capture_codex.py",
-        ContextPlatform.OPENCODE: workspace.repo_root
-        / "shared"
-        / "context"
-        / "context_bundle_capture_opencode.py",
     }
 
     script_path = script_map[platform]

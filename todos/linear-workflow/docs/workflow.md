@@ -30,8 +30,8 @@ Input: /plan-linear "Add user authentication with MFA" --project "Auth Q4 2025" 
 - Validates all flags (`--project`, `--estimate-style`, etc.)
 - Resolves configuration from:
   1. `--config` flag (if provided)
-  2. `.opencode/linear-plan.config.json` (project-level)
-  3. `$HOME/.config/opencode/linear-plan.config.json` (user-level)
+  2. `.claude/linear-plan.config.json` (project-level)
+  3. `$HOME/.claude/linear-plan.config.json` (user-level)
 - Computes `config_fingerprint` for change detection
 - **Failure**: Exit code 1 with JSON error envelope
 
@@ -513,7 +513,7 @@ fi
     "message": "Required configuration keys are missing",
     "details": {
       "missing": ["label_rules", "thresholds"],
-      "path": "/home/user/.config/opencode/linear-plan.config.json"
+      "path": "/home/user/.claude/linear-plan.config.json"
     }
   }
 }
@@ -567,7 +567,7 @@ fi
 # Generate template config
 /plan-linear --list-subagents  # Shows required config structure
 # Copy template to user location
-cp template-config.json ~/.config/opencode/linear-plan.config.json
+cp template-config.json ~/.claude/linear-plan.config.json
 # Edit with actual values
 ```
 
@@ -673,7 +673,7 @@ jobs:
 
       - name: Setup AI Assistant
         run: |
-          curl -sSL https://install.opencode.ai | sh
+          # Install your preferred AI assistant CLI
 
       - name: Validate PRD Changes
         run: |

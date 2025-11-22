@@ -40,17 +40,6 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"argument-hint": "[target-path] [--verbose]"},
             ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "analyze-security.md"
-                ),
-                frontmatter={
-                    "description": "Perform a security audit of the repository and dependencies",
-                    "agent": "command-executor",
-                    "argument-hint": "[target-path] [--exclude?] [--min-severity?] [--verbose?]",
-                },
-            ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
@@ -82,15 +71,6 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "claude-code", "commands", "analyze-architecture.md"
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
-            ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "analyze-architecture.md"
-                ),
-                frontmatter={
-                    "description": "Evaluate system architecture for scalability, maintainability, and best practices"
-                },
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
@@ -124,15 +104,6 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
             ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "analyze-code-quality.md"
-                ),
-                frontmatter={
-                    "description": "Assess code quality and complexity, and highlight high‑value refactors"
-                },
-            ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
@@ -164,15 +135,6 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "claude-code", "commands", "analyze-performance.md"
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
-            ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "analyze-performance.md"
-                ),
-                frontmatter={
-                    "description": "Identify performance bottlenecks and propose minimal, high‑impact optimizations"
-                },
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
@@ -206,15 +168,6 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"argument-hint": "[issue-description]"},
             ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "analyze-root-cause.md"
-                ),
-                frontmatter={
-                    "description": "Perform root cause analysis for a defect or failure"
-                },
-            ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
@@ -247,15 +200,6 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"argument-hint": "<refactor-scope-or-area>"},
             ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "plan-refactor.md"
-                ),
-                frontmatter={
-                    "description": "Plan a minimal, high‑impact refactor with clear boundaries and tests"
-                },
-            ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
@@ -287,15 +231,6 @@ CATALOG: dict[str, PromptDefinition] = {
                     "systems", "claude-code", "commands", "plan-solution.md"
                 ),
                 frontmatter={"argument-hint": "<technical-challenge> [--critique]"},
-            ),
-            "opencode": SystemPromptConfig(
-                template="docs/system/opencode/templates/command.md.j2",
-                output_path=_repo_path(
-                    "systems", "opencode", "command", "plan-solution.md"
-                ),
-                frontmatter={
-                    "description": "Develop a solution plan for a technical challenge with constraints and milestones"
-                },
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",

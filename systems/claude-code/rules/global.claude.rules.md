@@ -4,31 +4,14 @@
 
 ### TypeScript / JavaScript
 
-#### Prototype (local-first)
-
-- **Packager & Runtime**: [Bun](https://bun.sh/docs) ≥1.2 — `bun install`, `bun run dev`, `bun run test`
-- **Linter & Formatter**: [Ultracite](https://www.ultracite.ai/introduction) preset — `bunx ultracite check src`, `bunx ultracite fix src`
-- **Type Checker**: [TypeScript](https://www.typescriptlang.org/docs/) strict mode — `bunx tsc --noEmit`
-- **Frameworks & UI**: [React 18](https://react.dev/) + [React Router](https://reactrouter.com/) with [shadcn/ui](https://ui.shadcn.com/) layered on [Radix Primitives](https://www.radix-ui.com/primitives); styling via [Tailwind CSS](https://tailwindcss.com/docs)
-- **State & Data**: [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) for client stores, [TanStack Query](https://tanstack.com/query/latest) for async data, mocked locally as needed
-- **Database & ORM**: Embedded [SQLite](https://www.sqlite.org/docs.html) via [better-sqlite3](https://github.com/WiseLibs/better-sqlite3) with [Drizzle ORM](https://orm.drizzle.team/docs/overview); migrations through `bunx drizzle-kit generate`/`migrate`
-- **Analytics & Observability**: Stub `posthog-js` initialization; defer capture until consent is persisted in local storage
-
-#### Production (managed)
-
 - **Packager & Runtime**: Bun remains the primary runtime — `bun run typecheck`, `bun run build`; deploy via container or edge platforms
 - **Linter & Formatter**: Ultracite jobs run in CI; enforce `bunx ultracite check src` prior to release
 - **Type Checker**: Strict TypeScript in CI/CD; block merges on `bunx tsc --noEmit`
-- **Frameworks & UI**: Continue React + React Router with shadcn/ui; treat Tailwind tokens as locked design contracts and run Radix accessibility audits
-- **State & Data**: Rely on TanStack Query for revalidation strategies and hydrate Zustand stores from server snapshots
+- **Frameworks & UI**: [React 18](https://react.dev/) + [React Router](https://reactrouter.com/) with [shadcn/ui](https://ui.shadcn.com/) layered on [Radix Primitives](https://www.radix-ui.com/primitives); styling via [Tailwind CSS](https://tailwindcss.com/docs)
+- **State & Data**: [Zustand](https://docs.pmnd.rs/zustand/getting-started/introduction) for client stores, [TanStack Query](https://tanstack.com/query/latest) for async data, mocked locally as needed
 - **Database & ORM**: Combine managed SQLite/Postgres (Drizzle migrations) with [Convex](https://docs.convex.dev/) for realtime collaboration needs
 - **Analytics & Observability**: Enable [PostHog](https://posthog.com/docs) (`posthog-js`, `posthog-node`) post-consent; track experiments, feature flags, and privacy-safe cohorts
 - **Identity & Payments**: Default to managed providers (e.g. Clerk, Stripe/Braintree wrappers) to minimise bespoke security work
-
-#### Bootstrapping
-
-- **Preferred Scaffold**: Reach for [Better-T-Stack](https://better-t-stack.dev/docs) first. `bun create better-t-stack@latest --frontend tanstack-router --backend hono --runtime bun --database sqlite --orm drizzle --api trpc --auth none --addons none --examples none --db-setup none --web-deploy none --server-deploy none --git --package-manager bun --install` yields our baseline. Immediately run `bun run dev` (or `bunx @tanstack/router-plugin generate`) to emit `routeTree.gen.ts`, then `bun run check-types` and `bun run build` before committing the scaffold.
-- **Alternative Starter**: [React TanStarter](https://github.com/dotnize/react-tanstarter) when we need a TanStack Start layout with Netlify deploy defaults, Better Auth, and Postgres/Drizzle. Run via pnpm or map scripts to Bun; ensure lint/type/build succeed before customization.
 
 ### Python
 

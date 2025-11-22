@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Auth preflight for AI CLIs used by todo-background
 # Usage: shared/tests/integration/fixtures/check-ai-cli-auth.sh <claude|codex|qwen|gemini> [--report <path>]
+# Note: opencode support was removed
 
 REPORT=""
 
@@ -38,20 +39,6 @@ case "$CLI" in
   codex)
     if ! exists codex && ! exists cdx-exec; then append_report "[AUTH] Codex CLI not found (commands 'codex'/'cdx-exec' missing)."; exit 1; fi
     if [[ -n "${OPENAI_API_KEY:-}" ]]; then append_report "[AUTH] Codex: OK (OPENAI_API_KEY present)."; exit 0; else append_report "[AUTH] Codex: missing OPENAI_API_KEY. Export it before continuing."; exit 1; fi
-    ;;
-  opencode)
-    if ! exists opencode; then append_report "[AUTH] OpenCode CLI not found (command 'opencode' missing)."; exit 1; fi
-    # Default provider is GitHub Copilot; accept either an OAuth entry or GITHUB_TOKEN.
-    if opencode models 2>/dev/null | grep -q '^github-copilot/gpt-5-mini$'; then :; else
-      append_report "[AUTH] OpenCode: expected model 'github-copilot/gpt-5-mini' not found in 'opencode models'."; exit 1
-    fi
-    if opencode auth list 2>/dev/null | grep -q 'GitHub Copilot'; then
-      append_report "[AUTH] OpenCode: OK (GitHub Copilot credential present)."; exit 0
-    elif [[ -n "${GITHUB_TOKEN:-}" ]]; then
-      append_report "[AUTH] OpenCode: OK (GITHUB_TOKEN present)."; exit 0
-    else
-      append_report "[AUTH] OpenCode: missing GitHub Copilot auth. Run 'opencode auth login' or set GITHUB_TOKEN."; exit 1
-    fi
     ;;
   qwen)
     if ! exists qwen; then append_report "[AUTH] Qwen CLI not found (command 'qwen' missing)."; exit 1; fi

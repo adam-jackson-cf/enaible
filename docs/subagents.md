@@ -6,21 +6,21 @@ Enaible packages managed prompts and rulebooks that surface as commands or agent
 
 - **Source of truth**: Prompt definitions live in `shared/prompts/*.md` and reference reusable templates in `docs/system/**/templates/`.
 - **Renderer**: `uv run --project tools/enaible enaible prompts render` processes the catalog and emits managed Markdown containing the sentinel `<!-- generated: enaible -->`.
-- **Installation**: `enaible install <system>` copies rendered prompts, helper docs, and rulebooks into `.codex/`, `.claude/`, or `.opencode/` depending on scope.
+- **Installation**: `enaible install <system>` copies rendered prompts, helper docs, and rulebooks into `.codex/` or `.claude/` depending on scope.
 - **Runtime**: When a developer triggers a managed command (e.g., `/analyze-security` inside Claude Code), the prompt instructs the CLI to call Enaible analyzers and store artifacts under `.enaible/`.
 
 ## Prompt catalog
 
-| Prompt                 | Purpose                                                                                             | Systems                      |
-| ---------------------- | --------------------------------------------------------------------------------------------------- | ---------------------------- |
-| `analyze-security`     | Runs Semgrep and Detect Secrets, performs gap analysis, and builds a remediation roadmap.           | Codex, Claude Code, OpenCode |
-| `analyze-architecture` | Evaluates patterns, coupling, dependencies, and scalability to surface structural risks.            | Codex, Claude Code, OpenCode |
-| `analyze-code-quality` | Combines complexity and duplication metrics to highlight maintainability hotspots.                  | Codex, Claude Code, OpenCode |
-| `analyze-performance`  | Reviews backend, frontend, and SQL performance signals with actionable remediation steps.           | Codex, Claude Code, OpenCode |
-| `analyze-root-cause`   | Guides incident investigations by correlating recent changes, error patterns, and execution traces. | Codex, Claude Code, OpenCode |
-| `plan-refactor`        | Produces a phased refactor plan with rollback, metrics, and analyzer evidence.                      | Codex, Claude Code, OpenCode |
-| `plan-solution`        | Generates conservative, balanced, and innovative solution options with comparative analysis.        | Codex, Claude Code, OpenCode |
-| `get-codebase-primer`  | Creates onboarding primers covering architecture, commands, testing, and recent git history.        | Codex, Claude Code           |
+| Prompt                 | Purpose                                                                                             | Systems            |
+| ---------------------- | --------------------------------------------------------------------------------------------------- | ------------------ |
+| `analyze-security`     | Runs Semgrep and Detect Secrets, performs gap analysis, and builds a remediation roadmap.           | Codex, Claude Code |
+| `analyze-architecture` | Evaluates patterns, coupling, dependencies, and scalability to surface structural risks.            | Codex, Claude Code |
+| `analyze-code-quality` | Combines complexity and duplication metrics to highlight maintainability hotspots.                  | Codex, Claude Code |
+| `analyze-performance`  | Reviews backend, frontend, and SQL performance signals with actionable remediation steps.           | Codex, Claude Code |
+| `analyze-root-cause`   | Guides incident investigations by correlating recent changes, error patterns, and execution traces. | Codex, Claude Code |
+| `plan-refactor`        | Produces a phased refactor plan with rollback, metrics, and analyzer evidence.                      | Codex, Claude Code |
+| `plan-solution`        | Generates conservative, balanced, and innovative solution options with comparative analysis.        | Codex, Claude Code |
+| `get-codebase-primer`  | Creates onboarding primers covering architecture, commands, testing, and recent git history.        | Codex, Claude Code |
 
 Managed prompts embed workflow instructions that call the Enaible CLI directly (e.g., `uv run --project tools/enaible enaible analyzers run ...`).
 
@@ -30,7 +30,6 @@ Each system ships with a global rulebook merged into the developer’s environme
 
 - Codex → `systems/codex/rules/global.codex.rules.md`
 - Claude Code → `systems/claude-code/rules/global.claude.rules.md`
-- OpenCode → `systems/opencode/rules/global.opencode.rules.md`
 
 These files codify stack preferences (Bun, Ultracite, strict TypeScript), design principles (KISS, no fallbacks, SOLID adherence), and operational rules (tmux usage, no quality gate bypassing).
 

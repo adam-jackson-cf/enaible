@@ -6,7 +6,7 @@ This document is for maintainers of the Enaible toolchain inside the `ai-assiste
 
 - You are updating prompt source files, analyzer implementations, or system installers.
 - You run all quality gates (`ruff`, `mypy`, `pytest`, `enaible prompts diff`) before merging.
-- You keep managed assets in `.codex/`, `.claude/`, `.opencode/`, `.github/` synchronized via `enaible install`.
+- You keep managed assets in `.codex/`, `.claude/`, `.github/` synchronized via `enaible install`.
 
 ## Toolchain Requirements
 
@@ -25,8 +25,7 @@ ai-assisted-workflows/
 │   └── prompts/            # Source prompt catalog rendered into CLI commands
 ├── systems/
 │   ├── codex/
-│   ├── claude-code/
-│   └── opencode/           # Managed outputs (prompts/rules) consumed by respective CLIs
+│   └── claude-code/        # Managed outputs (prompts/rules) consumed by respective CLIs
 ├── tools/enaible/          # uv-packaged Typer CLI providing render/install/run commands
 ├── docs/                   # Maintainer guidance (installation, analysis, monitoring, agents, roadmap)
 └── todos/                  # Planning notes and exec plans
@@ -51,7 +50,6 @@ Both commands must exit `0`. Managed files include `<!-- generated: enaible -->`
  ```bash
  uv run --project tools/enaible enaible install codex --mode sync --scope project --target .
  uv run --project tools/enaible enaible install claude-code --mode sync --scope project --target .
- uv run --project tools/enaible enaible install opencode --mode sync --scope project --target .
 ````
 
 The installer treats everything under `commands/`, `agents/`, and `rules/` as managed assets even when a sentinel is absent so subsequent installs will overwrite manual edits—apply custom changes to upstream sources instead. 5. **Lint** prompt sources and unmanaged Markdown using:

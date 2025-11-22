@@ -29,14 +29,12 @@ SKIP_FILES = {
 
 SYSTEM_RULES = {
     "claude-code": ("rules/global.claude.rules.md", "claude.md"),
-    "opencode": ("rules/global.opencode.rules.md", "agents.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "claude-code": ("commands/", "agents/", "rules/"),
-    "opencode": ("command/", "agents/", "rules/"),
     "codex": ("prompts/", "rules/"),
     "copilot": ("prompts/",),
 }
@@ -64,7 +62,7 @@ class InstallSummary:
 @app.command("install")
 def install(  # noqa: PLR0912
     system: str = typer.Argument(
-        ..., help="System adapter to install (claude-code|opencode|codex|copilot)."
+        ..., help="System adapter to install (claude-code|codex|copilot)."
     ),
     target: Path = typer.Option(
         Path("."), "--target", "-t", help="Destination root for installation."

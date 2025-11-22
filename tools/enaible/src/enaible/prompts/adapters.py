@@ -21,12 +21,6 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.claude",
         description="Claude Code CLI",
     ),
-    "opencode": SystemRenderContext(
-        name="opencode",
-        project_scope_dir=".opencode",
-        user_scope_dir="~/.config/opencode",
-        description="OpenCode CLI",
-    ),
     "codex": SystemRenderContext(
         name="codex",
         project_scope_dir=".codex",

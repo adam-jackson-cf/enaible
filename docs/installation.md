@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide walks through provisioning the Enaible toolchain and installing agent assets for Codex, Claude Code, and OpenCode. All commands are intended to run from the repository root (`ai-assisted-workflows/`).
+This guide walks through provisioning the Enaible toolchain and installing agent assets for Codex and Claude Code. All commands are intended to run from the repository root (`ai-assisted-workflows/`).
 
 ## Prerequisites
 
@@ -39,7 +39,6 @@ Use `enaible install` to copy prompts, command docs, and rulebooks into the corr
 | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | Codex       | `uv run --project tools/enaible enaible install codex --mode sync --scope project --target .`       | `uv run --project tools/enaible enaible install codex --mode sync --scope user`       | Copies `prompts/`, `rules/`, helper docs, and merges global rules into `AGENTS.md`. |
 | Claude Code | `uv run --project tools/enaible enaible install claude-code --mode sync --scope project --target .` | `uv run --project tools/enaible enaible install claude-code --mode sync --scope user` | Copies `commands/`, `agents/`, `rules/`, settings, and regenerates managed prompts. |
-| OpenCode    | `uv run --project tools/enaible enaible install opencode --mode sync --scope project --target .`    | `uv run --project tools/enaible enaible install opencode --mode sync --scope user`    | Copies `command/`, `agents/`, `rules/` assets and keeps managed prompts current.    |
 
 Key flags:
 
@@ -56,7 +55,7 @@ uv run --project tools/enaible enaible prompts render --prompt all --system all
 uv run --project tools/enaible enaible install codex --mode sync --scope project
 ```
 
-Repeat the `enaible install` step for `claude-code` and `opencode` when those surfaces are affected.
+Repeat the `enaible install` step for `claude-code` when that surface is affected.
 
 ## Step 4 — Validate before publishing
 
@@ -86,4 +85,4 @@ Stop the session when you are done:
 tmux kill-session -t enaible-dev
 ```
 
-With these steps completed, your Codex, Claude Code, and OpenCode CLIs expose the managed prompts and rules maintained in this repository.
+With these steps completed, your Codex and Claude Code CLIs expose the managed prompts and rules maintained in this repository.

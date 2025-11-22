@@ -3,6 +3,7 @@ set -euo pipefail
 
 # Test matrix runner for /todo-background background launch patterns across CLIs.
 # Valid modes: claude, codex, qwen, gemini, all
+# Note: opencode support was removed
 
 # Resolve repo root from fixtures directory: shared/tests/integration/fixtures -> repo root
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")"/../../../.. && pwd)"
@@ -77,14 +78,6 @@ run_mode() {
         echo "SKIP: codex CLI not found"; return 0
       fi
       ;;
-    opencode)
-      if ! exists opencode; then echo "SKIP: opencode CLI not found"; return 0; fi
-      enhanced="$user_prompt IMPORTANT: Report all progress and results to: $report using the Write tool to append updates."
-      set +e
-      opencode run --model "github-copilot/gpt-5-mini" --print-logs --log-level INFO "$enhanced" &
-      pid=$!
-      set -e
-      ;;
     qwen)
       if ! exists qwen; then echo "SKIP: qwen CLI not found"; return 0; fi
       enhanced="$user_prompt IMPORTANT: Report all progress and results to: $report using the Write tool to append updates."
@@ -143,7 +136,7 @@ run_mode() {
 main() {
   local modes=("$@")
   if [[ ${#modes[@]} -eq 0 || "${modes[0]}" == "all" ]]; then
-    modes=(claude codex opencode qwen gemini)
+    modes=(claude codex qwen gemini)
   fi
   for m in "${modes[@]}"; do
     run_mode "$m"

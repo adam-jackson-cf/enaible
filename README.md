@@ -25,11 +25,9 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
-![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
 ![Codex Prompts](https://img.shields.io/badge/Codex-21_Prompts-FF69B4?style=flat-square)
 ![Copilot Prompts](https://img.shields.io/badge/Copilot-8_Prompts-0080FF?style=flat-square)
 ![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
-![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-22_Specialists-ff6b35?style=flat-square>)
 
 </div>
 
@@ -90,10 +88,6 @@ Install for your preferred AI dev runtime. Details in docs/installation.md
 ./systems/claude-code/install.sh             # project-local (creates ./.claude/)
 ./systems/claude-code/install.sh ~           # user-global  (creates ~/.claude/)
 
-# OpenCode
-./systems/opencode/install.sh                # project-local (creates ./.opencode/)
-./systems/opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
-
 # Copilot (GitHub Copilot)
 # Prompts are rendered to systems/copilot/prompts/*.prompt.md
 # Copy files to .github/prompts/ in your project to use with GitHub Copilot
@@ -103,7 +97,6 @@ Notes
 
 - Programmatic prompts (analysis, security, performance) require Python 3.12.
 - For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. See the [Installation Guide](docs/installation.md) for helper snippets.
-- For OpenCode, prefer using the command-executor primary agent for best adherence to shell prompts.
 - The installers copy full system payloads (commands, agents, rules, settings) into your local scope; rerun them after pulling updates to keep managed content in sync.
 
 ---
@@ -161,7 +154,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Combines automated scanning with contextual interpretation
 - Fast onboarding with comprehensive coverage (structure + patterns + recent changes)
 
-**Available via:** Claude Code `/get-primer`, OpenCode `/get-primer`, Codex `/get-primer`.
+**Available via:** Claude Code `/get-primer`, Codex `/get-primer`.
 
 **Common workflow**:
 
@@ -180,9 +173,8 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 
 **Task Actions**:
 
-- **Multi-platform session tracking** with dedicated capture scripts for Claude Code, OpenCode, and Codex, reading directly from each tool's session storage
+- **Multi-platform session tracking** with dedicated capture scripts for Claude Code and Codex, reading directly from each tool's session storage
 - **Claude Code integration** accessing session data from `~/.claude/projects/` JSONL files with comprehensive operation extraction
-- **OpenCode integration** accessing session data from `~/.local/share/opencode/storage/` with message and part file parsing
 - **Codex integration** accessing session data from `~/.codex/sessions/` JSONL archives with shared parsing utilities
 - **Intelligent exclusion system** filtering sensitive data, duplicate operations, and noise patterns through configurable exclusion rules
 - **Automatic redaction** detecting and masking API keys, passwords, tokens, and other sensitive data in captured context
@@ -198,7 +190,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - **Time-based filtering** (`--days`) - Limit analysis to recent sessions within configurable time windows
 - **Verbose expansion** (`--verbose`) - Expand truncated content for detailed investigation of specific sessions
 
-- Prevents repeated investigation by maintaining searchable action history across Claude Code, OpenCode, and Codex platforms
+- Prevents repeated investigation by maintaining searchable action history across Claude Code and Codex platforms
 - Enables quick orientation on recent work through automated activity summaries with flexible search capabilities
 - **Security-first design** with automatic redaction of sensitive data and configurable exclusion patterns
 - Creates objective record of development actions beyond git commits with direct session file system access
@@ -206,7 +198,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - **Noise reduction** through intelligent filtering of duplicate operations and irrelevant system files
 - Provides data-driven insights into development patterns and productivity with multi-platform support
 
-**Available via:** Claude Code `/get-recent-context`, OpenCode `/get-recent-context`, Codex `/get-recent-context`.
+**Available via:** Claude Code `/get-recent-context`, Codex `/get-recent-context`.
 
 **Common workflow**:
 
@@ -292,7 +284,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Consistent planning format enables better estimation and team coordination
 - Quality considerations integrated from planning prevent post-development issues
 
-**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution`.
+**Available via:** Claude Code `/plan-solution`, Codex `/plan-solution`.
 
 **Common workflow**:
 
@@ -333,7 +325,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Structured PRD process ensures all stakeholders align on product vision
 - More UX focused than standard PRD, aims to make it focused at LLM's as opposed to PM's
 
-**Available via:** Claude Code `/plan-ux-prd`, OpenCode `/plan-ux-prd`, Codex `/plan-ux-prd`.
+**Available via:** Claude Code `/plan-ux-prd`, Codex `/plan-ux-prd`.
 
 **Common workflow**:
 
@@ -374,7 +366,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Automated setup reduces configuration errors and saves setup time
 - Monitoring and analysis tools integrated from project start
 
-**Available via:** Claude Code `/create-project`, OpenCode `/create-project`, Codex `/create-project` (with `/setup-dev-monitoring`, `/add-code-precommit-checks`, `/setup-serena-mcp` available across all three).
+**Available via:** Claude Code `/create-project`, Codex `/create-project` (with `/setup-dev-monitoring`, `/add-code-precommit-checks`, `/setup-serena-mcp` available across both).
 
 **Common workflow**:
 
@@ -416,7 +408,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Works across multiple programming languages with consistent analysis
 - Prioritized recommendations focus efforts on high-impact improvements
 
-**Available via:** Claude Code `/analyze-code-quality`, OpenCode `/analyze-code-quality`, Codex `/analyze-code-quality`.
+**Available via:** Claude Code `/analyze-code-quality`, Codex `/analyze-code-quality`.
 
 **Common workflow**:
 
@@ -458,7 +450,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Framework-aware assessment provides technology-specific recommendations
 - Systematic approach prevents security debt accumulation
 
-**Available via:** Claude Code `/analyze-security`, OpenCode `/analyze-security`, Codex `/analyze-security`.
+**Available via:** Claude Code `/analyze-security`, Codex `/analyze-security`.
 
 **Common workflow**:
 
@@ -503,7 +495,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Prioritized recommendations focus efforts on high-impact improvements
 - Works across backend, frontend, and database performance domains
 
-**Available via:** Claude Code `/analyze-performance`, OpenCode `/analyze-performance`, Codex `/analyze-performance`.
+**Available via:** Claude Code `/analyze-performance`, Codex `/analyze-performance`.
 
 **Common workflow**:
 
@@ -553,7 +545,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - Looks for process failures not just bugs
 - ensures comprehensive investigation (code patterns + change history + execution analysis)
 
-**Available via:** Claude Code `/analyze-root-cause`, OpenCode `/analyze-root-cause`, Codex `/analyze-root-cause`.
+**Available via:** Claude Code `/analyze-root-cause`, Codex `/analyze-root-cause`.
 
 **Common workflow**:
 
@@ -601,7 +593,7 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 - **Cost-efficient CI**: Path-triggered workflows minimize CI costs by running only when dependencies actually change
 - **Zero maintenance**: Automated setup and configuration requires no ongoing developer intervention
 
-**Available via:** Claude Code `/setup-package-monitoring`, OpenCode `/setup-package-monitoring`, Codex `/setup-package-monitoring`.
+**Available via:** Claude Code `/setup-package-monitoring`, Codex `/setup-package-monitoring`.
 
 **Common workflow**:
 
@@ -686,12 +678,12 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|   **Category**    | **Document**                                    | **Description**                                          |
-| :---------------: | :---------------------------------------------- | :------------------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions            |
-|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude/OpenCode agent catalog and orchestration guidance |
-|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories              |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components              |
+|   **Category**    | **Document**                                    | **Description**                                 |
+| :---------------: | :---------------------------------------------- | :---------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
+|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude agent catalog and orchestration guidance |
+|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories     |
+| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
 
 ---
 

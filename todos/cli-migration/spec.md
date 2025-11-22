@@ -4,7 +4,7 @@ Date: 2025-10-13
 
 ## Context
 
-- We maintain multiple systems (Claude Code, OpenCode, Codex) whose prompts are largely similar but differ in naming, frontmatter, and session/history handling.
+- We maintain multiple systems (Claude Code, Codex) whose prompts are largely similar but differ in naming, frontmatter, and session/history handling.
 - Duplication across `systems/*` increases rollout time and drift risk when adding or updating prompts/workflows.
 - Shared prompts have been consolidated under `shared/prompts/*`.
 - System wrapper templates have moved/been renamed to `docs/system/<system-name>/templates/*` (to be verified in the current tree; if missing, migrate existing templates accordingly).
@@ -130,7 +130,7 @@ Authoring notes from discussion:
 
 2. Artifact directory convention
 
-- Use `.enaible/` at the repository/project root for local artifacts (e.g., `.enaible/artifacts/<prompt>/<timestamp>/…`). This is system‑agnostic and avoids overloading `.claude/`, `.opencode/`, or `.codex/`.
+- Use `.enaible/` at the repository/project root for local artifacts (e.g., `.enaible/artifacts/<prompt>/<timestamp>/…`). This is system‑agnostic and avoids overloading `.claude/` or `.codex/`.
 
 3. Scope of `enaible install <system>` v1
 
@@ -156,8 +156,8 @@ Authoring notes from discussion:
 7. Install/copy destinations and precedence
 
 - Destinations by adapter:
-  - User scope: `~/.claude`, `~/.config/opencode`, `~/.codex`.
-  - Project scope: `./.claude`, `./.opencode`, `./.codex` beneath a provided target path.
+  - User scope: `~/.claude`, `~/.codex`.
+  - Project scope: `./.claude`, `./.codex` beneath a provided target path.
 - Precedence & safety:
   - `merge` updates managed files, preserves unmanaged and user‑modified files.
   - `update` overwrites managed files when fingerprints match prior generated state; warns otherwise.

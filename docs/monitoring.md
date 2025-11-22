@@ -28,7 +28,7 @@ Automated context capture keeps longitudinal records of AI-assisted sessions. Wr
 ```bash
 uv run --project tools/enaible enaible context_capture --platform codex --days 3 --output-format json
 uv run --project tools/enaible enaible context_capture --platform claude --search-term "refactor sweep"
-uv run --project tools/enaible enaible context_capture --platform opencode --uuid <session-uuid>
+uv run --project tools/enaible enaible context_capture --platform claude --uuid <session-uuid>
 ```
 
 Outputs redact sensitive data using the rules in `shared/context/context_capture_config.json` and respect the artifact root configured through `ENAIBLE_ARTIFACTS_DIR`.
