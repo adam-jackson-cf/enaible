@@ -28,7 +28,7 @@ SKIP_FILES = {
 }
 
 SYSTEM_RULES = {
-    "claude-code": ("rules/global.claude.rules.md", "claude.md"),
+    "claude-code": ("rules/global.claude.rules.md", "CLAUDE.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
 }
@@ -64,6 +64,16 @@ def install(  # noqa: PLR0912
     system: str = typer.Argument(
         ..., help="System adapter to install (claude-code|codex|copilot)."
     ),
+    install_cli: bool = typer.Option(
+        True,
+        "--install-cli/--no-install-cli",
+        help="Install the Enaible CLI with `uv tool install` before copying assets.",
+    ),
+    cli_source: Path = typer.Option(
+        Path("tools/enaible"),
+        "--cli-source",
+        help="Path or URL passed to `uv tool install --from`. Defaults to the local tools/enaible folder.",
+    ),
     target: Path = typer.Option(
         Path("."), "--target", "-t", help="Destination root for installation."
     ),
@@ -82,12 +92,17 @@ def install(  # noqa: PLR0912
     backup: bool = typer.Option(
         True,
         "--backup/--no-backup",
-        help="Create .bak backups for files that will be overwritten.",
+        help="Create timestamped backup of target folder before install.",
     ),
     sync: bool = typer.Option(
         True,
         "--sync/--no-sync",
         help="Run `uv sync --project tools/enaible` to provision Enaible dependencies before copying assets.",
+    ),
+    sync_shared: bool = typer.Option(
+        True,
+        "--sync-shared/--no-sync-shared",
+        help="Copy shared/ workspace files to ~/.enaible/workspace/shared for analyzer execution.",
     ),
 ) -> None:
     """Install rendered system assets into project or user configuration directories."""
@@ -97,13 +112,23 @@ def install(  # noqa: PLR0912
     if not source_root.exists():
         raise typer.BadParameter(f"Source assets missing for system '{system}'.")
 
-    destination_root = _resolve_destination(system_ctx, target, scope)
     summary = InstallSummary(actions=[], skipped=[])
 
+    if install_cli:
+        _install_cli(context.repo_root, cli_source, dry_run, summary)
+
+    if sync_shared:
+        _sync_shared_workspace(context.repo_root, dry_run, summary)
+
+    destination_root = _resolve_destination(system_ctx, target, scope)
+
+    # Create folder-level backup before any install operations (for all modes)
+    if backup:
+        _backup_destination_folder(destination_root, dry_run, summary)
+
+    # FRESH mode clears the destination directory after backup (except codex)
     if mode is InstallMode.FRESH:
-        _prepare_destination_for_fresh_install(
-            system, destination_root, backup, dry_run, summary
-        )
+        _clear_destination_for_fresh_install(system, destination_root, dry_run, summary)
 
     files = _iter_source_files(source_root, system)
 
@@ -147,12 +172,6 @@ def install(  # noqa: PLR0912
             continue
 
         destination_file.parent.mkdir(parents=True, exist_ok=True)
-
-        if backup and dest_exists:
-            backup_path = destination_file.with_suffix(destination_file.suffix + ".bak")
-            shutil.copy2(destination_file, backup_path)
-            summary.record("backup", backup_path)
-
         shutil.copy2(source_file, destination_file)
         summary.record("write", destination_file)
 
@@ -163,6 +182,81 @@ def install(  # noqa: PLR0912
 
     _post_install(system, source_root, destination_root, dry_run, summary)
     _emit_summary(system, destination_root, mode, summary, dry_run)
+
+
+def _install_cli(
+    repo_root: Path, cli_source: Path, dry_run: bool, summary: InstallSummary
+) -> None:
+    """Install the Enaible CLI using uv tool install from the given source."""
+    source = cli_source if cli_source.is_absolute() else (repo_root / cli_source)
+    if not source.exists():
+        raise typer.BadParameter(
+            f"CLI source not found at {source}. Provide a valid path with --cli-source."
+        )
+
+    cmd = ["uv", "tool", "install", "--from", str(source), "enaible"]
+
+    if dry_run:
+        summary.record("install-cli", source)
+        return
+
+    proc = subprocess.run(cmd, cwd=repo_root)
+    if proc.returncode != 0:
+        raise typer.Exit(code=proc.returncode)
+
+    summary.record("install-cli", source)
+
+
+def _sync_shared_workspace(
+    repo_root: Path, dry_run: bool, summary: InstallSummary
+) -> None:
+    """Copy shared workspace assets to ~/.enaible/workspace/shared."""
+    source = repo_root / "shared"
+    target = Path.home() / ".enaible" / "workspace" / "shared"
+    allowed_paths = [
+        Path("core"),
+        Path("analyzers"),
+        Path("config"),
+        Path("utils"),
+        Path("tools") / "ai_docs_changelog.py",
+        Path("setup") / "install_dependencies.py",
+        Path("setup") / "requirements.txt",
+    ]
+
+    if not source.exists():
+        raise typer.BadParameter(
+            f"Shared folder missing at {source}; cannot sync workspace."
+        )
+
+    summary_path = target if target.exists() else target.parent
+
+    if dry_run:
+        summary.record("sync-shared", summary_path)
+        return
+
+    # Reset existing workspace copy to avoid stale or excess files
+    if target.exists():
+        shutil.rmtree(target)
+    target.mkdir(parents=True, exist_ok=True)
+
+    # Copy while ignoring caches and pyc files
+    def _ignore(_dir: str, names: list[str]) -> set[str]:
+        ignored = {"__pycache__", ".pytest_cache", ".DS_Store"}
+        ignored.update({name for name in names if name.endswith((".pyc", ".pyo"))})
+        return ignored
+
+    for rel_path in allowed_paths:
+        src = source / rel_path
+        dest = target / rel_path
+        if not src.exists():
+            continue
+        if src.is_dir():
+            shutil.copytree(src, dest, dirs_exist_ok=True, ignore=_ignore)
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(src, dest)
+
+    summary.record("sync-shared", target)
 
 
 def _iter_source_files(root: Path, system: str) -> Iterable[Path]:
@@ -242,7 +336,12 @@ def _post_install(
     if not source_rules.exists():
         return
 
-    target_path = destination_root / target_name
+    # For claude-code, CLAUDE.md goes in project root (parent of .claude/)
+    # For codex/copilot, target goes inside their respective directories
+    if system == "claude-code":
+        target_path = destination_root.parent / target_name
+    else:
+        target_path = destination_root / target_name
 
     if dry_run:
         summary.record("merge", target_path)
@@ -266,7 +365,7 @@ def _post_install(
     if target_path.exists():
         existing = target_path.read_text(encoding="utf-8")
         if "# AI-Assisted Workflows v" in existing:
-            summary.record_skip(target_path.relative_to(destination_root))
+            summary.record_skip(Path(target_name))
             return
         updated = f"{existing.rstrip()}\n\n---\n\n{header}\n\n{rules_body}\n"
     else:
@@ -389,42 +488,47 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
     summary.record("sync", repo_root / "tools" / "enaible")
 
 
-def _prepare_destination_for_fresh_install(
-    system: str,
+def _backup_destination_folder(
     destination_root: Path,
-    backup: bool,
     dry_run: bool,
     summary: InstallSummary,
 ) -> None:
+    """Create a timestamped backup copy of the destination folder before any install operations."""
     if not destination_root.exists():
         return
 
-    if backup:
-        backup_path = _next_stash_path(destination_root, ".bak")
-        if dry_run:
-            summary.record("backup", backup_path)
-            # In fresh+backup mode, for 'codex' we retain existing dir (no removal)
-            return
-
-        # For codex, keep the existing directory in place to retain unmanaged files.
-        # Take a recursive snapshot using copytree so that operators have a full backup
-        # while the install overlays managed assets.
-        if system == "codex":
-            if destination_root.is_dir():
-                shutil.copytree(
-                    destination_root,
-                    backup_path,
-                    dirs_exist_ok=False,
-                    copy_function=shutil.copy2,
-                )
-            else:
-                shutil.copy2(destination_root, backup_path)
-            summary.record("backup", backup_path)
-            return
-
-        # Other systems: preserve previous behavior (move the directory out of the way)
-        destination_root.rename(backup_path)
+    backup_path = _next_stash_path(destination_root, ".bak")
+    if dry_run:
         summary.record("backup", backup_path)
+        return
+
+    if destination_root.is_dir():
+        shutil.copytree(
+            destination_root,
+            backup_path,
+            dirs_exist_ok=False,
+            copy_function=shutil.copy2,
+        )
+    else:
+        shutil.copy2(destination_root, backup_path)
+    summary.record("backup", backup_path)
+
+
+def _clear_destination_for_fresh_install(
+    system: str,
+    destination_root: Path,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    """Remove the destination directory for FRESH mode installs.
+
+    For codex, the destination is preserved to retain unmanaged files (sessions, auth).
+    """
+    if not destination_root.exists():
+        return
+
+    # Codex preserves unmanaged files - don't clear the destination
+    if system == "codex":
         return
 
     if dry_run:

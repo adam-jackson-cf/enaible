@@ -76,17 +76,16 @@ The principles for this project are designed around the realities of coding with
 
 ## ⚡ Quick Start
 
-Install for your preferred AI dev runtime. Details in docs/installation.md
+Install for your preferred AI dev runtime using the Enaible installer (runs from repo root). Details in docs/installation.md
 
 ```bash
 # Codex CLI (recommended)
-./systems/codex/install.sh                   # interactive (choose scope & scripts location)
-./systems/codex/install.sh ~                 # user-level (creates ~/.codex/)
-./systems/codex/install.sh /my/project/path  # custom (creates <path>/.codex)
+uv run --project tools/enaible enaible install codex --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install codex --scope project --mode sync
 
 # Claude Code
-./systems/claude-code/install.sh             # project-local (creates ./.claude/)
-./systems/claude-code/install.sh ~           # user-global  (creates ~/.claude/)
+uv run --project tools/enaible enaible install claude-code --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
 
 # Copilot (GitHub Copilot)
 # Prompts are rendered to systems/copilot/prompts/*.prompt.md

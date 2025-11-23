@@ -21,7 +21,7 @@ We now have a working tmux-based harness that drives the OpenCode prompts end-to
   - [x] `create-project`
   - [x] `setup-dev-monitoring`
   - [x] `setup-package-monitoring`
-  - [x] `todo-scout-codebase`
+  - [x] `get-feature-primer`
   - [x] others (review `shared/prompts/*.md` for STOP checkpoints)
 - [x] Create minimal fixtures per prompt under `shared/tests/integration/fixtures/prompt-e2e/`
   - Added richer sample repo signals (Next.js frontend, FastAPI backend, manifests) plus plan/rules/report targets.

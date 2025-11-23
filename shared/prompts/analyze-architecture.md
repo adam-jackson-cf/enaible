@@ -37,19 +37,19 @@ Evaluate system architecture quality by combining automated structural analyzers
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run architecture:patterns \
+     enaible analyzers run architecture:patterns \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-patterns.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:dependency \
+     enaible analyzers run architecture:dependency \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-dependency.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:coupling \
+     enaible analyzers run architecture:coupling \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-coupling.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:scalability \
+     enaible analyzers run architecture:scalability \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-scalability.json"
      ```

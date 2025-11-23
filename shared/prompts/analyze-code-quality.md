@@ -36,18 +36,18 @@ Assess code quality by combining automated metrics with architectural review to 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run quality:lizard \
+     enaible analyzers run quality:lizard \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/quality-lizard.json"
 
-     uv run --project tools/enaible enaible analyzers run quality:jscpd \
+     enaible analyzers run quality:jscpd \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/quality-jscpd.json"
      ```
 
    - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
    - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
-   - If either invocation fails, review available flags with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
+   - If either invocation fails, review available flags with `enaible analyzers run --help` before retrying.
 
 3. **Interpret metrics**
    - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).

@@ -45,7 +45,7 @@ Current analyzers still rely on manual script resolution, underscoring the need 
 
 - UI libs/tokens: Guidelines require React Router with shadcn/ui over Radix primitives and Tailwind tokens (systems/claude-code/rules/global.claude.rules.md:12-15).
 - Accessibility posture: Production rules insist on Radix accessibility audits and PostHog gating (systems/claude-code/rules/global.claude.rules.md:22-26).
-- Scoution cues: Audit command instructs scoutors to search for Radix/shadcn/Tailwind usage across the repo (systems/codex/prompts/todo-scout-codebase.md:38-53).
+- Scoution cues: Audit command instructs scoutors to search for Radix/shadcn/Tailwind usage across the repo (systems/codex/prompts/get-feature-primer.md:38-53).
 
 ## Tests
 
@@ -99,7 +99,7 @@ Current analyzers still rely on manual script resolution, underscoring the need 
 - docs/monitoring.md:12 — Unified logging to ./dev.log • Command: "nl -ba docs/monitoring.md | sed -n '1,120p'"
 - systems/claude-code/rules/global.claude.rules.md:12 — Frontend stack guidance • Command: "nl -ba systems/claude-code/rules/global.claude.rules.md | sed -n '1,120p'"
 - systems/claude-code/rules/global.claude.rules.md:25 — Production PostHog guidance • Command: "nl -ba systems/claude-code/rules/global.claude.rules.md | sed -n '1,120p'"
-- systems/codex/prompts/todo-scout-codebase.md:38 — Search cues for UI libraries • Command: "nl -ba systems/codex/prompts/todo-scout-codebase.md | sed -n '1,200p'"
+- systems/codex/prompts/get-feature-primer.md:38 — Search cues for UI libraries • Command: "nl -ba systems/codex/prompts/get-feature-primer.md | sed -n '1,200p'"
 - shared/tests/unit/test_analyzer_registry.py:22 — Registry unit test • Command: "nl -ba shared/tests/unit/test_analyzer_registry.py | sed -n '1,200p'"
 - shared/tests/integration/test_integration_all_analyzers.py:8 — Integration smoke test • Command: "nl -ba shared/tests/integration/test_integration_all_analyzers.py | sed -n '1,200p'"
 - shared/integration/cli/run_all_analyzers.py:32 — Analyzer mapping dictionary • Command: "nl -ba shared/integration/cli/run_all_analyzers.py | sed -n '1,200p'"

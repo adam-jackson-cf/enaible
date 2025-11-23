@@ -148,6 +148,46 @@ def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
     assert rules_path.read_text(encoding="utf-8") == original
 
 
+def test_merge_creates_folder_backup_not_per_file(tmp_path: Path) -> None:
+    """Verify MERGE mode creates a folder-level backup, not per-file .bak siblings."""
+    target = tmp_path
+    claude_dir = target / ".claude"
+    commands_dir = claude_dir / "commands"
+    commands_dir.mkdir(parents=True)
+
+    # Create existing managed file that will be overwritten
+    sentinel = "<!-- ENAIBLE_MANAGED_FILE -->"
+    existing_file = commands_dir / "analyze-security.md"
+    existing_file.write_text(f"{sentinel}\nold content", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(target),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # Verify folder-level backup was created (not per-file .bak)
+    backups = list(target.glob(".claude.bak*"))
+    assert backups, "Expected a folder-level backup to be created"
+    backup_root = backups[0]
+    assert backup_root.is_dir(), "Backup should be a directory"
+    assert (
+        backup_root / "commands" / "analyze-security.md"
+    ).exists(), "Backup should contain original files"
+
+    # Verify NO per-file .bak siblings were created
+    bak_files = list(claude_dir.rglob("*.bak"))
+    assert not bak_files, f"Should not create per-file .bak files, found: {bak_files}"
+
+
 def test_codex_fresh_backup_preserves_existing_unmanaged(tmp_path: Path) -> None:
     target = tmp_path
     codex_dir = target / ".codex"
@@ -189,3 +229,68 @@ def test_codex_fresh_backup_preserves_existing_unmanaged(tmp_path: Path) -> None
     assert (backup_root / "sessions" / "history.jsonl").read_text(
         encoding="utf-8"
     ) == "events"
+
+
+def test_claude_code_merges_rules_into_project_root_claude_md(tmp_path: Path) -> None:
+    """Verify claude-code install merges rules into project root CLAUDE.md."""
+    target = tmp_path
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(target),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # Rules file should be copied to .claude/rules/
+    rules_copy = target / ".claude" / "rules" / "global.claude.rules.md"
+    assert rules_copy.exists(), "Rules file should be copied to .claude/rules/"
+
+    # Rules should ALSO be merged into project root CLAUDE.md
+    claude_md = target / "CLAUDE.md"
+    assert claude_md.exists(), "CLAUDE.md should be created in project root"
+    content = claude_md.read_text(encoding="utf-8")
+    assert "AI-Assisted Workflows" in content, "CLAUDE.md should contain merged rules"
+
+
+def test_claude_code_appends_to_existing_claude_md(tmp_path: Path) -> None:
+    """Verify claude-code install appends rules to existing CLAUDE.md."""
+    target = tmp_path
+
+    # Create existing CLAUDE.md with user content
+    existing_claude_md = target / "CLAUDE.md"
+    existing_claude_md.write_text(
+        "# My Project\n\nCustom instructions here.\n", encoding="utf-8"
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(target),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # CLAUDE.md should contain both original content and merged rules
+    content = existing_claude_md.read_text(encoding="utf-8")
+    assert "# My Project" in content, "Original content should be preserved"
+    assert (
+        "Custom instructions here." in content
+    ), "Original content should be preserved"
+    assert "AI-Assisted Workflows" in content, "Merged rules should be appended"
+    assert (
+        "---" in content
+    ), "Separator should be added between original and merged content"

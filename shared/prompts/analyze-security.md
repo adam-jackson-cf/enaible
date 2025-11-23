@@ -37,14 +37,14 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run security:semgrep --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/semgrep.json"
-     uv run --project tools/enaible enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/detect-secrets.json"
+     enaible analyzers run security:semgrep --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/semgrep.json"
+     enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/detect-secrets.json"
      ```
 
      - Pass `--summary` to generate quick overviews when triaging large reports.
      - Add `--verbose` when @VERBOSE is provided to capture analyzer-specific debugging output.
      - Add `--exclude "<glob>"` or tune `--min-severity` when focusing on specific systems or risk levels.
-     - If an invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
+     - If an invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
    - **STOP (skip when @AUTO):** “Automated security analysis complete. Proceed with gap assessment? (y/n)”

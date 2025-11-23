@@ -283,6 +283,304 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "add-code-precommit-checks": PromptDefinition(
+        prompt_id="add-code-precommit-checks",
+        source_path=_repo_path("shared", "prompts", "add-code-precommit-checks.md"),
+        title="add-code-precommit-checks v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "add-code-precommit-checks.md"
+                ),
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "add-code-precommit-checks.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "copilot",
+                    "prompts",
+                    "add-code-precommit-checks.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Set up language-appropriate pre-commit hooks for the repo",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "apply-rule-set": PromptDefinition(
+        prompt_id="apply-rule-set",
+        source_path=_repo_path("shared", "prompts", "apply-rule-set.md"),
+        title="apply-rule-set v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "apply-rule-set.md"
+                ),
+                frontmatter={"argument-hint": "<ruleset-name>"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "apply-rule-set.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "apply-rule-set.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Load a named rule set and apply its guidance to the session",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
+        },
+    ),
+    "create-project": PromptDefinition(
+        prompt_id="create-project",
+        source_path=_repo_path("shared", "prompts", "create-project.md"),
+        title="create-project v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "create-project.md"
+                ),
+                frontmatter={"argument-hint": "<project-name> [--from-plan <file>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "create-project.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "create-project.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Scaffold a new project with Better-T-Stack CLI",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "create-rule": PromptDefinition(
+        prompt_id="create-rule",
+        source_path=_repo_path("shared", "prompts", "create-rule.md"),
+        title="create-rule v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "create-rule.md"
+                ),
+                frontmatter={"argument-hint": "<technology> [--out <path>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path("systems", "codex", "prompts", "create-rule.md"),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "create-rule.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Generate an implementation rule file for a technology",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
+        },
+    ),
+    "create-session-notes": PromptDefinition(
+        prompt_id="create-session-notes",
+        source_path=_repo_path("shared", "prompts", "create-session-notes.md"),
+        title="create-session-notes v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "create-session-notes.md"
+                ),
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "create-session-notes.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "copilot",
+                    "prompts",
+                    "create-session-notes.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Append a timestamped summary of the current session to session-notes.md",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
+        },
+    ),
+    "plan-ux-prd": PromptDefinition(
+        prompt_id="plan-ux-prd",
+        source_path=_repo_path("shared", "prompts", "plan-ux-prd.md"),
+        title="plan-ux-prd v0.3",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "plan-ux-prd.md"
+                ),
+                frontmatter={"argument-hint": "<product-brief>"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path("systems", "codex", "prompts", "plan-ux-prd.md"),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "plan-ux-prd.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Produce a UX-focused PRD from a product brief",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
+        },
+    ),
+    "setup-dev-monitoring": PromptDefinition(
+        prompt_id="setup-dev-monitoring",
+        source_path=_repo_path("shared", "prompts", "setup-dev-monitoring.md"),
+        title="setup-dev-monitoring v0.4",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "setup-dev-monitoring.md"
+                ),
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "setup-dev-monitoring.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "copilot",
+                    "prompts",
+                    "setup-dev-monitoring.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Configure development monitoring, logging, and orchestration",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "setup-package-monitoring": PromptDefinition(
+        prompt_id="setup-package-monitoring",
+        source_path=_repo_path("shared", "prompts", "setup-package-monitoring.md"),
+        title="setup-package-monitoring v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "claude-code",
+                    "commands",
+                    "setup-package-monitoring.md",
+                ),
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "setup-package-monitoring.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "copilot",
+                    "prompts",
+                    "setup-package-monitoring.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Install dependency monitoring with Dependabot and audit triggers",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase"],
+                },
+            ),
+        },
+    ),
+    "get-feature-primer": PromptDefinition(
+        prompt_id="get-feature-primer",
+        source_path=_repo_path("shared", "prompts", "get-feature-primer.md"),
+        title="get-feature-primer v0.3",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "get-feature-primer.md"
+                ),
+                frontmatter={"argument-hint": "<task-brief> [--target <path>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "get-feature-primer.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems",
+                    "copilot",
+                    "prompts",
+                    "get-feature-primer.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Explore the codebase and produce a comprehensive analysis and todo list",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
 }
 
 

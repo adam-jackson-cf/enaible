@@ -25,13 +25,13 @@ def _run(cmd: str, cwd: str | None = None) -> subprocess.CompletedProcess:
 
 @pytest.mark.slow
 @pytest.mark.timeout(600)
-def test_codex_todo_scout_fixture(tmp_path: Path):
+def test_codex_get_feature_primer_fixture(tmp_path: Path):
     repo_root = Path(__file__).resolve().parents[3]
     report_out = repo_root / "shared/tests/integration/fixtures/scout/report.md"
     # Cleanup: ensure previous runs don't leave stale reports behind.
     report_out.unlink(missing_ok=True)
 
-    script = repo_root / "shared/tests/integration/fixtures/run-todo-scout-codebase.sh"
+    script = repo_root / "shared/tests/integration/fixtures/run-get-feature-primer.sh"
     assert script.exists(), f"Missing fixture script: {script}"
 
     if not (_which("cdx-exec") or _which("codex")):

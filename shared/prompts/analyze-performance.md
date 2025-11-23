@@ -35,26 +35,26 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run performance:ruff \
+     enaible analyzers run performance:ruff \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-ruff.json"
 
-     uv run --project tools/enaible enaible analyzers run performance:frontend \
+     enaible analyzers run performance:frontend \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-frontend.json"
 
-     uv run --project tools/enaible enaible analyzers run performance:sqlglot \
+     enaible analyzers run performance:sqlglot \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-sqlglot.json"
 
-     uv run --project tools/enaible enaible analyzers run performance:semgrep \
+     enaible analyzers run performance:semgrep \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-semgrep.json"
      ```
 
    - Append `--summary` when triaging large repositories; rerun full reports before publishing.
    - Add `--exclude "<glob>"` or refine `--min-severity` to focus on relevant subsystems.
-   - If any invocation fails, inspect supported options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
+   - If any invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
 
 3. **Aggregate findings**
    - Parse hotspots across layers: backend N+1 patterns, frontend re-render costs, SQL anti-patterns, lint warnings.

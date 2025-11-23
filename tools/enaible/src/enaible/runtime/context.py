@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import importlib.resources
 import os
 import sys
 from collections.abc import Iterable
@@ -11,6 +12,8 @@ from pathlib import Path
 import typer
 
 _SHARED_SENTINEL = Path("shared/core/base/analyzer_registry.py")
+_SENTINEL_RELATIVE = Path("core/base/analyzer_registry.py")
+_DEFAULT_SHARED_HOME = Path.home() / ".enaible" / "workspace" / "shared"
 
 
 @dataclass(frozen=True)
@@ -40,12 +43,41 @@ def _candidate_roots(start: Path) -> Iterable[Path]:
     yield from package_relative.parents
 
 
-def _find_repo_root(start: Path | None = None) -> Path:
+def _find_shared_root() -> Path | None:
+    """Resolve a shared/ root containing analyzer_registry.py."""
+    # Explicit env override
+    env_shared = _env_path("ENAIBLE_SHARED_ROOT")
+    if env_shared is not None and (env_shared / _SENTINEL_RELATIVE).exists():
+        return env_shared
+
+    # Installed workspace copy (created by installer)
+    if (_DEFAULT_SHARED_HOME / _SENTINEL_RELATIVE).exists():
+        return _DEFAULT_SHARED_HOME
+
+    # Packaged resources inside the wheel (if bundled)
+    try:
+        pkg_shared = importlib.resources.files("enaible") / "shared"
+        candidate = Path(pkg_shared)
+        if (candidate / _SENTINEL_RELATIVE).exists():  # type: ignore[path-type]
+            return candidate
+    except Exception:  # pragma: no cover - defensive
+        pass
+
+    # Fallback to repo-relative detection later
+    return None
+
+
+def _find_repo_root(start: Path | None = None, require_shared: bool = True) -> Path:
     env_repo = _env_path("ENAIBLE_REPO_ROOT")
-    if env_repo is not None and (env_repo / _SHARED_SENTINEL).exists():
+    if env_repo is not None and (
+        (not require_shared) or (env_repo / _SHARED_SENTINEL).exists()
+    ):
         return env_repo
 
     search_start = (start or Path.cwd()).resolve()
+    if not require_shared:
+        return search_start
+
     for candidate in _candidate_roots(search_start):
         if (candidate / _SHARED_SENTINEL).exists():
             return candidate
@@ -65,12 +97,17 @@ def _resolve_artifacts_root(repo_root: Path) -> Path:
 
 def load_workspace(start: Path | None = None) -> WorkspaceContext:
     """Resolve workspace paths and ensure shared modules are importable."""
-    repo_root = _find_repo_root(start)
-    shared_root = repo_root / "shared"
-    if not shared_root.exists():
-        raise typer.BadParameter(
-            f"Shared analyzers folder missing at {shared_root}; repository may be incomplete."
-        )
+    shared_root = _find_shared_root()
+
+    # If we have a packaged/shared copy, we can relax repo discovery to the current tree.
+    repo_root = _find_repo_root(start, require_shared=shared_root is None)
+
+    if shared_root is None:
+        shared_root = repo_root / "shared"
+        if not shared_root.exists():
+            raise typer.BadParameter(
+                f"Shared analyzers folder missing at {shared_root}; repository may be incomplete."
+            )
 
     artifacts_root = _resolve_artifacts_root(repo_root)
 

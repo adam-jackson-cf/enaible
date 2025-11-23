@@ -38,15 +38,15 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run quality:lizard \
+     enaible analyzers run quality:lizard \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/quality-lizard.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:coupling \
+     enaible analyzers run architecture:coupling \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-coupling.json"
 
-     uv run --project tools/enaible enaible analyzers run performance:baseline \
+     enaible analyzers run performance:baseline \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-baseline.json"
      ```
@@ -65,7 +65,7 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 5. **Phase 3 — Implementation Planning**
    - Break work into phased milestones with timelines and exit criteria.
-   - Run `uv run --project tools/enaible enaible analyzers run quality:coverage --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
+   - Run `enaible analyzers run quality:coverage --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
 6. **Phase 4 — Finalize report**
    - Summarize assessment, strategy, roadmap, and success metrics. If @AUTO is set, note that approvals were auto-confirmed and call out any follow-up decisions required.

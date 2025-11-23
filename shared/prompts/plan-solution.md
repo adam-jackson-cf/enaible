@@ -44,20 +44,24 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
      ```bash
      uv sync --project tools/enaible
 
-     uv run --project tools/enaible enaible analyzers run architecture:patterns \
+     enaible analyzers run architecture:patterns \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-patterns.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:scalability \
+     enaible analyzers run architecture:scalability \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-scalability.json"
 
-     uv run --project tools/enaible enaible analyzers run architecture:coupling \
+     enaible analyzers run architecture:coupling \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-coupling.json"
      ```
 
+   ```
+
    - Record findings: patterns, scalability constraints, integration points, and technical debt hotspots.
+
+   ```
 
 3. Research & option development
    - Perform targeted web/documentation research as needed.

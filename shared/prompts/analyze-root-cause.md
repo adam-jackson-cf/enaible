@@ -43,22 +43,22 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     uv run --project tools/enaible enaible analyzers run root_cause:trace_execution \
+     enaible analyzers run root_cause:trace_execution \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/root-cause-trace.json"
 
-     uv run --project tools/enaible enaible analyzers run root_cause:recent_changes \
+     enaible analyzers run root_cause:recent_changes \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/root-cause-recent-changes.json"
 
-     uv run --project tools/enaible enaible analyzers run root_cause:error_patterns \
+     enaible analyzers run root_cause:error_patterns \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/root-cause-error-patterns.json"
      ```
 
    - When @VERBOSE is provided, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
    - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
-   - If any invocation fails, review options with `uv run --project tools/enaible enaible analyzers run --help` before retrying.
+   - If any invocation fails, review options with `enaible analyzers run --help` before retrying.
 
 4. **Analyze results**
    - Correlate change timelines with error occurrences.
