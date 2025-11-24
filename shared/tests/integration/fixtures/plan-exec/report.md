@@ -45,7 +45,7 @@ Current analyzers still rely on manual script resolution, underscoring the need 
 
 - UI libs/tokens: Guidelines require React Router with shadcn/ui over Radix primitives and Tailwind tokens (systems/claude-code/rules/global.claude.rules.md:12-15).
 - Accessibility posture: Production rules insist on Radix accessibility audits and PostHog gating (systems/claude-code/rules/global.claude.rules.md:22-26).
-- Scoution cues: Audit command instructs scoutors to search for Radix/shadcn/Tailwind usage across the repo (systems/codex/prompts/todo-scout-codebase.md:38-53).
+- Scoution cues: Audit command instructs scoutors to search for Radix/shadcn/Tailwind usage across the repo (systems/codex/prompts/get-feature-primer.md:38-53).
 
 ## Tests
 
@@ -75,7 +75,7 @@ Current analyzers still rely on manual script resolution, underscoring the need 
 
 - Impacted files/modules: `systems/codex/prompts/analyze-security.md:15` — Replace path-probing workflow with `enaible` invocation (systems/codex/prompts/analyze-security.md:15-112); `systems/claude-code/commands/analyze-security.md:21` — Mirror update required for Claude Code command variant (systems/claude-code/commands/analyze-security.md:17-120); `shared/core/cli/run_analyzer.py:7` — Existing registry runner should be wrapped rather than called directly from prompts (shared/core/cli/run_analyzer.py:7-95).
 - Risks/Assumptions: Spec forbids keeping legacy path probing alongside `enaible`, so rollout must be atomic (todos/cli-migration/cli-improvements.md:51-55); Templates must be relocated under `docs/system/<system>/templates/` before render pipeline can work (todos/cli-migration/cli-improvements.md:79-82); Prior orchestration run showed missing `cdx-exec`, so the migration needs a single Codex entrypoint (orchestrate-issues.md:44-53).
-- Search cues used: `rg -n --hidden "@tanstack/(react-router|router)|react-router-dom|routeTree\.gen\.ts" .` confirmed routing references sit in rules documentation (systems/opencode/rules/global.opencode.rules.md:30); `rg -n --hidden "drizzle|drizzle-orm|better-sqlite3|drizzle\.config\.(ts|js)" .` showed ORM mentions concentrated in command docs (systems/opencode/command/create-project.md:57); `rg -n --hidden "@radix-ui/react-|shadcn/ui|tailwind\.config\.(ts|js|cjs)" .` highlighted design guidance in rules files (systems/claude-code/rules/global.claude.rules.md:12).
+- Search cues used: `rg -n --hidden "@tanstack/(react-router|router)|react-router-dom|routeTree\.gen\.ts" .` confirmed routing references sit in rules documentation; `rg -n --hidden "drizzle|drizzle-orm|better-sqlite3|drizzle\.config\.(ts|js)" .` showed ORM mentions concentrated in command docs; `rg -n --hidden "@radix-ui/react-|shadcn/ui|tailwind\.config\.(ts|js|cjs)" .` highlighted design guidance in rules files (systems/claude-code/rules/global.claude.rules.md:12).
 
 ## Evidence Ledger
 
@@ -99,15 +99,14 @@ Current analyzers still rely on manual script resolution, underscoring the need 
 - docs/monitoring.md:12 — Unified logging to ./dev.log • Command: "nl -ba docs/monitoring.md | sed -n '1,120p'"
 - systems/claude-code/rules/global.claude.rules.md:12 — Frontend stack guidance • Command: "nl -ba systems/claude-code/rules/global.claude.rules.md | sed -n '1,120p'"
 - systems/claude-code/rules/global.claude.rules.md:25 — Production PostHog guidance • Command: "nl -ba systems/claude-code/rules/global.claude.rules.md | sed -n '1,120p'"
-- systems/codex/prompts/todo-scout-codebase.md:38 — Search cues for UI libraries • Command: "nl -ba systems/codex/prompts/todo-scout-codebase.md | sed -n '1,200p'"
+- systems/codex/prompts/get-feature-primer.md:38 — Search cues for UI libraries • Command: "nl -ba systems/codex/prompts/get-feature-primer.md | sed -n '1,200p'"
 - shared/tests/unit/test_analyzer_registry.py:22 — Registry unit test • Command: "nl -ba shared/tests/unit/test_analyzer_registry.py | sed -n '1,200p'"
 - shared/tests/integration/test_integration_all_analyzers.py:8 — Integration smoke test • Command: "nl -ba shared/tests/integration/test_integration_all_analyzers.py | sed -n '1,200p'"
 - shared/integration/cli/run_all_analyzers.py:32 — Analyzer mapping dictionary • Command: "nl -ba shared/integration/cli/run_all_analyzers.py | sed -n '1,200p'"
 - orchestrate-issues.md:20 — Pre-commit formatting failure noted • Command: "nl -ba orchestrate-issues.md | sed -n '1,200p'"
 - execplans/20251014-cli-migration-improvements.md:15 — Acceptance tests for enaible CLI • Command: "nl -ba execplans/20251014-cli-migration-improvements.md | sed -n '1,120p'"
 - todos/cli-migration/cli-improvements.md:52 — Directive to remove path probing • Command: "nl -ba todos/cli-migration/cli-improvements.md | sed -n '1,200p'"
-- systems/opencode/rules/global.opencode.rules.md:30 — Result from routing search cue • Command: "rg -n --hidden "@tanstack/(react-router|router)|react-router-dom|routeTree\.gen\.ts" ."
-- systems/opencode/command/create-project.md:57 — Result from ORM search cue • Command: "rg -n --hidden "drizzle|drizzle-orm|better-sqlite3|drizzle\.config\.(ts|js)" ."
+- (codex references removed)
 - systems/claude-code/rules/global.claude.rules.md:12 — Result from UI library search cue • Command: "rg -n --hidden "@radix-ui/react-|shadcn/ui|tailwind\.config\.(ts|js|cjs)" ."
 
 ## Open Questions

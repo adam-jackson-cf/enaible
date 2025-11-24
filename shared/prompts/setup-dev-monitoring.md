@@ -6,12 +6,20 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 ## Variables
 
-- `$TARGET_PATH` ← repository root (default `.`)
-- `$SCRIPT_PATH` ← resolved monitoring script directory (dependency installer only)
-- `$SCRIPTS_ROOT` ← base path for PYTHONPATH (dependency installer only)
-- `$COMPONENTS_JSON` ← JSON array of services: `[{ name, label, cwd, start_command, port|null }]`
-- `$WATCH_GLOBS` ← optional CSV for non‑native watch patterns
-- `$LOG_FILE` ← unified log path (default `./dev.log`)
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @TARGET_PATH = --target-path — repository root for discovery (default .)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+
+### Derived (internal)
+
+- @COMPONENTS_JSON = <config> — JSON array describing services ({ name, label, cwd, start_command, port|null })
+- @WATCH_GLOBS = <config> — CSV of custom globs for components lacking native hot reload
+- @LOG_FILE = <config> — unified log destination for orchestrated services (default ./dev.log)
 
 ## Instructions
 
@@ -20,38 +28,42 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 - Write Makefile, Procfile, and documentation directly as specified below.
 - Exclude overlapping orchestrators when granular per‑component commands are preferable.
 - Confirm before excluding components, installing dependencies, or overwriting files.
-- Always log to `$LOG_FILE` (default `./dev.log`), never `/dev.log`.
+- Always log to @LOG_FILE (default `./dev.log`), never `/dev.log`.
 - Validate generated files (syntax, logging pipeline, ports) before success.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Verify prerequisites (dependency installer only)
-   - Check for dependency installer: `ls .claude/scripts/setup/monitoring/*.py || ls "$HOME/.claude/scripts/setup/monitoring/install_monitoring_dependencies.py"`.
-   - If not found, prompt for a directory that includes `install_monitoring_dependencies.py`; exit if unavailable.
-   - Verify Python is present: `python3 --version || python --version` (abort if missing).
-2. Environment preparation (dependency installer only)
-   - Resolve `$SCRIPT_PATH` (project‑level → user‑level → prompt for path).
-   - Compute `$SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
-   - Dry‑run dependency check: `python "$SCRIPT_PATH"/install_monitoring_dependencies.py --dry-run`.
-   - If tools missing, **STOP:** “Install missing core tools: <list>? (y/n)”. On approval, run full install.
-3. Project component discovery
+1. Dependency check (Enaible-managed)
+   - !`uv sync --project tools/enaible`
+   - Dry-run tooling verification:
+     ```bash
+     PYTHONPATH=shared \
+       uv run --project tools/enaible python shared/setup/monitoring/install_monitoring_dependencies.py --dry-run
+     ```
+   - If prerequisites are missing, **STOP (skip when @AUTO):** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
+     - When @AUTO is present, continue immediately, record internally that the confirmation was auto-applied, and rerun the command without `--dry-run`.
+2. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.
    - Assign log labels (FRONTEND, BACKEND, WORKER, etc.) and capture port information.
    - Verify each component has a runnable command; halt if any remain unresolved.
-4. Component overlap analysis
+3. Component overlap analysis
    - Detect orchestrators that duplicate child services; mark for exclusion when appropriate.
    - Identify port conflicts.
-   - **STOP:** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
-5. Watch pattern analysis
+   - **STOP (skip when @AUTO):** “Exclude overlapping components: <list>? (y/n)” Adjust list based on user input.
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+4. Watch pattern analysis
    - Decide which technologies rely on native hot reload vs. external watchers.
    - Build `WATCH_PATTERNS[]` only for components lacking native watching.
-   - **STOP:** “Component analysis complete. Proceed with setup? (y/n)”
-6. Existing file handling
+   - **STOP (skip when @AUTO):** “Component analysis complete. Proceed with setup? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+5. Existing file handling
    - Detect existing `Makefile` or `Procfile`.
-   - **STOP:** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
+   - **STOP (skip when @AUTO):** “Existing Procfile/Makefile found. Choose action: (b)ackup, (o)verwrite, (c)ancel.”
+     - When @AUTO is present, follow the documented default (overwrite unless the prompt specifies otherwise) and record internally that the confirmation was auto-applied.
    - Respect choice and create timestamped backups when requested.
-7. Write Makefile (direct content)
+6. Write Makefile (direct content)
 
    - Write a Makefile that defines a timestamped log pipeline, core targets, and one run‑<LABEL> target per component.
    - Content to write (template; expand per component from `$COMPONENTS_JSON`):
@@ -96,7 +108,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      - For each component: `LABEL` is UPPER_SNAKE; `cwd` = component.cwd; `start_command` = component.start_command.
      - If Next.js dev and `port` present: prefix `PORT=<port>` and append `-- --port <port>`.
 
-8. Write Procfile (direct content)
+7. Write Procfile (direct content)
    - Add one line per component that cds into `cwd`, runs the start command, and applies a timestamped log pipeline to `$LOG_FILE`.
    - Content to write (expand per component):
      ```Procfile
@@ -104,7 +116,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      BACKEND: cd packages/api && bun run dev 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [BACKEND] $$line"; done | tee -a ./dev.log
      ```
    - Always use `./dev.log` for writeability; never `/dev.log`.
-9. Update AGENTS.md or CLAUDE.md (direct content)
+8. Update AGENTS.md or CLAUDE.md (direct content)
 
    - Prefer `AGENTS.md` if present; otherwise update/create `CLAUDE.md`.
    - Insert or upsert this Development section:
@@ -122,7 +134,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      Services log to `./dev.log` with timestamps. Each service can be run individually via `make run-<LABEL>`.
      ```
 
-10. Validation
+9. Validation
 
 - Ensure every component has a corresponding `run-<LABEL>` target and a Procfile process line.
 - Verify logging pipeline targets `$LOG_FILE` (`./dev.log`) in both files.

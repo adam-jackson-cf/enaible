@@ -4,11 +4,18 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 ## Variables
 
-- `PROJECT_NAME` ← first positional argument; required.
-- `MODE` ← `"direct"` when technologies follow the name; `"plan"` when `--from-plan <path>` is supplied.
-- `PLAN_FILE` ← path provided to `--from-plan`, when present.
-- `TECH_ARGUMENTS[]` ← remaining positional arguments describing technology choices.
-- `$ARGUMENTS` ← raw argument string for logging.
+### Required
+
+- @PROJECT_NAME = $1 — name of the project to scaffold
+
+### Optional (derived from $ARGUMENTS)
+
+- @PLAN_FILE = --from-plan — path to a todos/plan file when using plan mode
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+
+### Derived (internal)
+
+- @TECH_ARGUMENTS = <config> — additional technology selections parsed from remaining input
 
 ## Instructions
 
@@ -16,6 +23,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 - NEVER guess technology mappings; derive them from explicit arguments or todos analysis.
 - When analyzing todos, document the detection logic and resulting stack choices.
 - Present a full configuration summary and obtain user confirmation prior to execution.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - After generation, run the project’s health checks and report outcomes.
 
 ## Workflow
@@ -29,18 +37,19 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
      - Read `PLAN_FILE`.
      - Identify technology keywords (React Native, Expo, Zustand, OAuth, WebSocket, etc.).
      - Map findings to Better-T-Stack options.
-   - If `MODE="direct"`:
-     - Interpret each argument as a technology or flag; validate against supported sets.
+   - Else `MODE="direct"`:
+     - Interpret each tech choice from remaining arguments as a technology or flag; validate against supported sets.
 3. Validate environment
    - Ensure Node/NPM/Bun availability as required by the selected stack.
    - Confirm target directory (`./<PROJECT_NAME>`) does not already exist.
 4. Present proposed configuration
    - Build the command:
      ```
-     npx create-better-t-stack@latest <PROJECT_NAME> <mapped-flags>
+     bun create better-t-stack@latest <PROJECT_NAME> <mapped-flags>
      ```
    - Display a table of components (Frontend, Backend, Runtime, Database, ORM, Auth, Addons) with their mapped values.
-   - **STOP:** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
+   - **STOP (skip when @AUTO):** “Project setup details ready. Proceed with Better-T-Stack initialization? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 5. Execute scaffold
    - Run the composed CLI command.
    - Capture stdout/stderr for reporting.
@@ -60,16 +69,16 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 ## STACK
 
-| Component | Selection | Source  |
-| --------- | --------- | ------- | ------ |
-| Frontend  | <value>   | <direct | todos> |
-| Backend   | <value>   | <direct | todos> |
-| Runtime   | <value>   | <direct | todos> |
-| Database  | <value>   | <direct | todos> |
+| Component | Selection | Source            |
+| --------- | --------- | ----------------- |
+| Frontend  | <value>   | <direct or todos> |
+| Backend   | <value>   | <direct or todos> |
+| Runtime   | <value>   | <direct or todos> |
+| Database  | <value>   | <direct or todos> |
 
 ## COMMANDS RUN
 
-- `npx create-better-t-stack@latest ...` → <pass|fail>
+- `bun create better-t-stack@latest ...` → <pass|fail>
 - `<install command>` → <pass|fail>
 - `<dev command>` → <pass|fail>
 - `<type/build checks>` → <pass|fail>
@@ -87,5 +96,5 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 /create-project acme-dashboard react-router hono bun sqlite drizzle
 
 # Infer stack from todos file
-/create-project mobile-app --from-plan ./.workspace/execplan.md
+/create-project mobile-app --from-plan ./.enaible/execplan.md
 ```

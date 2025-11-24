@@ -4,48 +4,75 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ## Variables
 
-- `ISSUE_DESCRIPTION` ← first positional argument; required narrative of the problem.
-- `VERBOSE_MODE` ← boolean flag set when `--verbose` is present.
-- `SCRIPT_PATH` ← resolved root cause analyzer directory.
-- `$ARGUMENTS` ← raw argument string for logging.
+### Required
+
+- @ISSUE_DESCRIPTION = $1 — description of the defect or incident
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @TARGET_PATH = --target-path — path to analyze; defaults to repo root
+- @VERBOSE = --verbose — enable verbose diagnostics capture
+- @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., test_codebase/\*\*)
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts path used for evidence capture
 
 ## Instructions
 
-- ALWAYS collect the user-provided issue description before running analyzers; stop if missing.
-- Use the registry-driven analyzers only; do not call module scripts directly.
-- Correlate findings across recent code changes, error patterns, and trace outputs; avoid single-source conclusions.
-- Clearly distinguish confirmed root causes from contributing factors and unknowns.
-- In `VERBOSE_MODE`, capture extended diagnostics (logs, stack traces) and include them in the report.
+- ALWAYS capture the issue description before running analyzers; stop if details are insufficient.
+- Validate @TARGET_PATH (default `.`) exists and is readable before executing analyzers.
+- Use Enaible analyzers exclusively—do not probe for scripts or import modules manually.
+- Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
+- Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
+- When @VERBOSE is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Validate inputs
-   - Ensure `ISSUE_DESCRIPTION` is present; prompt for details when absent.
-   - Store any CLI flags, notably `--verbose`.
-2. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/root_cause/*.py || ls "$HOME/.claude/scripts/analyzers/root_cause/"`; if both fail, prompt the user for a path containing `trace_execution.py`, `recent_changes.py`, and `error_patterns.py`, and exit if none is provided.
-3. Prepare environment
-   - Compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-4. Execute automated investigation
-   - Run sequentially:
-     - `root_cause:trace_execution`
-     - `root_cause:recent_changes`
-     - `root_cause:error_patterns`
-   - Store JSON outputs and note relevant timestamps.
-5. Analyze results
+1. **Validate inputs**
+   - Confirm @ISSUE_DESCRIPTION is present. If missing, request more information or explicit approval to proceed with assumptions.
+   - Resolve @TARGET_PATH (default `.`) and ensure it is readable.
+   - Note whether @VERBOSE is enabled.
+2. **Establish artifacts directory**
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+3. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
+
+     ```bash
+     enaible analyzers run root_cause:trace_execution \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-trace.json"
+
+     enaible analyzers run root_cause:recent_changes \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-recent-changes.json"
+
+     enaible analyzers run root_cause:error_patterns \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/root-cause-error-patterns.json"
+     ```
+
+   - When @VERBOSE is provided, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
+   - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
+   - If any invocation fails, review options with `enaible analyzers run --help` before retrying.
+
+4. **Analyze results**
    - Correlate change timelines with error occurrences.
    - Map stack traces to code locations and execution paths.
-   - Identify recurring error signatures and environmental triggers.
-   - In `VERBOSE_MODE`, gather additional diagnostics (process logs, tracing output, profiling data).
-6. Perform causal reasoning
-   - Apply techniques such as the Five Whys, timeline reconstruction, and hypothesis testing.
-   - Differentiate primary root cause(s) from secondary contributing factors.
-7. Recommend remediation
+   - Identify recurring error signatures and environment triggers.
+5. **Perform causal reasoning**
+   - Apply techniques such as Five Whys, timeline reconstruction, and hypothesis testing.
+   - Distinguish primary root causes from contributing factors or unknowns that require follow-up.
+6. **Recommend remediation**
    - Propose fixes, regression tests, and preventive measures.
-   - Surface open questions or missing data that requires follow-up.
-8. Deliver report
+   - Surface open questions or missing data that must be resolved before rollout.
+7. **Deliver report**
    - Summarize evidence, findings, and next actions in a structured format.
-   - Attach analyzer outputs or reference paths for traceability.
+   - Reference analyzer outputs using the artifact paths recorded earlier.
 
 ## Output
 
@@ -53,6 +80,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 # RESULT
 
 - Summary: Root cause identified for "<ISSUE_DESCRIPTION>".
+- Artifacts: `.enaible/artifacts/analyze-root-cause/<timestamp>/`
 
 ## EVIDENCE
 
@@ -74,9 +102,9 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 ## ATTACHMENTS
 
-- root_cause:trace_execution → <path>
-- root_cause:recent_changes → <path>
-- root_cause:error_patterns → <path>
+- root_cause:trace_execution → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-trace.json`
+- root_cause:recent_changes → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-recent-changes.json`
+- root_cause:error_patterns → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-error-patterns.json`
 ```
 
 ## Examples

@@ -25,7 +25,7 @@ def _run(cmd: str, cwd: str | None = None) -> subprocess.CompletedProcess:
     )
 
 
-ALLOWED_MODES = ("claude", "codex", "opencode", "qwen", "gemini")
+ALLOWED_MODES = ("claude", "codex", "qwen", "gemini")
 SLOW_MODES = {"claude", "qwen", "gemini"}
 
 
@@ -57,8 +57,6 @@ def test_todo_background_fixture_script_gate_modes(mode: str):
         pytest.skip("Codex CLI not installed; skipping")
     if mode == "claude" and not _which("claude"):
         pytest.skip("Claude CLI not installed; skipping")
-    if mode == "opencode" and not _which("opencode"):
-        pytest.skip("OpenCode CLI not installed; skipping")
     if mode == "qwen" and not _which("qwen"):
         pytest.skip("Qwen CLI not installed; skipping")
     if mode == "gemini" and not _which("gemini"):

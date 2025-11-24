@@ -1,65 +1,80 @@
-# Development Monitoring System
+# Monitoring & Operational Notes
 
-## 🖥️ Visual Dashboard Overview
+Enaible emphasizes traceable automation. This guide captures how to observe workflows, persist evidence, and keep quality gates transparent across environments.
 
-_After running `/setup-dev-monitoring`, you'll see:_
+## Artifact conventions
 
-<div align="center">
+- All managed prompts write findings to `.enaible/artifacts/<task>/<timestamp>/`.
+- Use UTC timestamps (`$(date -u +%Y%m%dT%H%M%SZ)`) when scripting to avoid collisions across time zones.
+- Keep raw analyzer JSON alongside derived Markdown or summaries so reviewers can audit evidence.
 
-![Stack Detection](stack-detection-analysis.png)
-_Smart stack detection: Auto-identifies React Native + Expo, tRPC + TypeScript, and sets up optimal monitoring_
+Example structure created by the security workflow:
 
-![Unified Logs](dev-logs-unified.png)
-_Timestamped unified logging: All services stream to `./dev.log` — Claude, OpenCode, and Codex commands can query logs directly_
+```
+.enaible/
+  artifacts/
+    analyze-security/
+      20251102T120000Z/
+        semgrep.json
+        detect-secrets.json
+        gap-analysis.md
+        risk-summary.md
+```
 
-![Service Status](service-status-dashboard.png)
-_Real-time service monitoring: Live status for API and Mobile services with health indicators_
+## Capture development sessions
 
-</div>
+Automated context capture keeps longitudinal records of AI-assisted sessions. Wrap the helper around your target platform:
 
-## 🎯 Key Monitoring Features
+```bash
+uv run --project tools/enaible enaible context_capture --platform codex --days 3 --output-format json
+uv run --project tools/enaible enaible context_capture --platform claude --search-term "refactor sweep"
+uv run --project tools/enaible enaible context_capture --platform claude --uuid <session-uuid>
+```
 
-| Feature                    | Description                                       | Benefit                   |
-| :------------------------- | :------------------------------------------------ | :------------------------ |
-| 🚀 **Live Service Status** | Real-time health indicators for all services      | Immediate issue detection |
-| 📊 **Unified Logging**     | All logs stream to `./dev.log` with timestamps    | Centralized debugging     |
-| 🔍 **Smart Analysis**      | Auto-detects tech stack and configures monitoring | Zero-config setup         |
-| ⚡ **Hot Reload Tracking** | File watching and change detection                | Development efficiency    |
-| 🛠️ **Command Suite**       | `make dev`, `make status`, `make logs`            | Streamlined workflow      |
+Outputs redact sensitive data using the rules in `shared/context/context_capture_config.json` and respect the artifact root configured through `ENAIBLE_ARTIFACTS_DIR`.
 
-## Setup Development Monitoring
+## Health checks
 
-The `/setup-dev-monitoring` command (available in Claude Code, OpenCode, and Codex) establishes comprehensive development monitoring infrastructure for any project structure through LLM-driven analysis and cross-platform automation.
+Before shipping prompts or analyzers, run the diagnostics sweep:
 
-### Workflow
+```bash
+uv run --project tools/enaible enaible doctor
+uv run --project tools/enaible enaible doctor --json > .enaible/doctor.json
+```
 
-1. **Project Component Discovery** - Identify runnable/compilable components and determine appropriate log labels
-2. **Component Overlap Analysis** - Review discovered components for overlaps and conflicts
-3. **Watch Pattern Analysis** - Determine file watching requirements based on discovered technologies
-4. **System Dependencies Check and Install** - Verify and install required monitoring dependencies
-5. **Existing File Handling** - Handle existing Procfile and Makefile appropriately
-6. **Makefile Generation** - Generate Makefile with proper service configurations
-7. **Procfile Generation** - Create Procfile with unified logging setup
-8. **Project Integration** - Update project documentation with monitoring commands
-9. **Validation and Testing** - Verify all generated files and configurations
+The report surfaces missing registry files, absent `.enaible/schema.json`, and Python environment mismatches.
 
-## Quality Gates
+## CI telemetry
 
-The `/add-code-precommit-checks` command (available across all three CLIs) sets up pre-commit framework to enforce quality standards by preventing commits containing code violations.
+The GitHub Actions workflow `.github/workflows/ci-quality-gates.yml` invokes the same commands recommended in local development:
 
-### Workflow
+- `uv run --project tools/enaible pytest tools/enaible/tests -v`
+- `uv run --project tools/enaible ruff check tools/enaible/src`
+- `uv run --project tools/enaible mypy tools/enaible/src`
+- `uv run --project tools/enaible enaible prompts diff`
 
-1. **Check git repository** - Verify this is a git repository (required for git hooks)
-2. **Check existing setup** - Look for existing pre-commit configuration
-3. **Install pre-commit** - Install pre-commit if not already available
-4. **Analyze project and generate config** - Detect project languages and frameworks, select appropriate hooks
-5. **Install git hooks** - Set up git hooks to run automatically on commit
-6. **Report completion** - Confirm pre-commit is active with configured hooks
+Pipe analyzer outputs into the `enaible ci` helpers to create CodeClimate or Markdown artifacts for dashboards.
 
-### Supported Languages
+## Long-running tasks
 
-The system automatically configures appropriate hooks for:
+For services or analyzers that take longer than a single CLI session, follow the tmux guidance baked into the project rules:
 
-- TypeScript/JavaScript with ESLint and Prettier
-- Python with Black, Ruff, and MyPy
-- And many other languages through pre-commit hooks
+```bash
+tmux new-session -d -s enaible-longrun 'uv run --project tools/enaible enaible analyzers run quality:lizard --target . --out .enaible/artifacts/tmp/lizard.json'
+tmux capture-pane -p -S -200 -t enaible-longrun
+tmux kill-session -t enaible-longrun
+```
+
+This keeps ports from colliding with CLI-managed sessions and preserves logs for later inspection.
+
+## Logging & troubleshooting tips
+
+- Pass `--verbose` to analyzers that support it (security, performance) to include expanded metadata.
+- Store generated Markdown summaries (e.g., risk reports) next to raw JSON to maintain traceability.
+- When installing assets, run with `--dry-run` first to inspect planned writes:
+
+  ```bash
+  uv run --project tools/enaible enaible install codex --mode sync --dry-run
+  ```
+
+- Regenerate managed prompts any time `shared/prompts/` or `docs/system/**` is edited to avoid drift across environments.

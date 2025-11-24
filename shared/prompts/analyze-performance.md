@@ -4,49 +4,76 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.`.
-- `SCRIPT_PATH` ← resolved performance analyzer directory.
-- `$ARGUMENTS` ← raw argument string (for logging).
+### Required
+
+- @TARGET_PATH = $1 — path to analyze; defaults to repo root
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory used for analyzer outputs
 
 ## Instructions
 
-- ALWAYS execute the registry-driven analyzers; never call the individual modules directly.
-- Treat analyzer outputs as evidence—cite metrics when highlighting bottlenecks.
-- Consider database, frontend, algorithmic, and network layers; avoid tunnel vision.
-- Tie each recommendation to measurable performance goals.
-- Document assumptions and required follow-up experiments (profiling, load tests).
+- ALWAYS leverage Enaible analyzers; avoid manual script path discovery.
+- Persist analyzer results under `.enaible/artifacts/analyze-performance/` and cite them in the final report.
+- Investigate bottlenecks holistically (compute, IO, frontend rendering, data access, configuration).
+- Tie each recommendation to measurable outcomes and validation steps.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/performance/*.py || ls "$HOME/.claude/scripts/analyzers/performance/"`; if both fail, prompt for a directory containing `ruff_analyzer.py`, `analyze_frontend.py`, and `sqlglot_analyzer.py`, then exit if none is provided.
-2. Prepare environment
-   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-3. Run automated analyzers
-   - Execute sequentially:
-     - `performance:ruff`
-     - `performance:frontend`
-     - `performance:sqlglot`
-     - `performance:semgrep` (universal heuristics; deferred install if missing)
-   - Save JSON outputs and note start/end timestamps.
-4. Aggregate findings
-   - Parse slow hotspots (function-level metrics, lint warnings, SQL anti-patterns).
-   - Map findings to system components (API endpoints, React routes, SQL migrations).
-5. Investigate context
-   - Examine code around flagged areas for caching gaps, unnecessary re-renders, unindexed queries.
-   - Consider infrastructure or configuration contributors (rate limits, memory caps).
-6. Prioritize remediations
-   - Group issues by impact: critical (user-facing latency, OOM risks), high, medium.
-   - Recommend targeted actions (index creation, memoization, batching, background jobs).
-7. Produce report
-   - Provide a structured summary, include metric tables, and outline validation steps (profiling, load tests).
+1. **Establish artifacts directory**
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
+
+     ```bash
+     enaible analyzers run performance:ruff \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-ruff.json"
+
+     enaible analyzers run performance:frontend \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-frontend.json"
+
+     enaible analyzers run performance:sqlglot \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-sqlglot.json"
+
+     enaible analyzers run performance:semgrep \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-semgrep.json"
+     ```
+
+   - Append `--summary` when triaging large repositories; rerun full reports before publishing.
+   - Add `--exclude "<glob>"` or refine `--min-severity` to focus on relevant subsystems.
+   - If any invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
+
+3. **Aggregate findings**
+   - Parse hotspots across layers: backend N+1 patterns, frontend re-render costs, SQL anti-patterns, lint warnings.
+   - Map each issue to system components (API endpoints, React routes, migrations, jobs).
+4. **Investigate context**
+   - Inspect flagged areas for caching gaps, over-fetching, synchronous IO, or configuration constraints.
+   - Consider infrastructure contributors (rate limits, autoscaling thresholds, memory footprints).
+5. **Prioritize remediations**
+   - Group issues by impact (critical, high, medium) and outline validation experiments (profiling, load tests).
+6. **Produce report**
+   - Summarize bottlenecks, attach metric tables, and define success metrics for remediation.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Performance analysis completed for <TARGET_PATH>.
+- Summary: Performance analysis completed for <@TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-performance/<timestamp>/`
 
 ## BOTTLENECKS
 
@@ -68,10 +95,10 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## ATTACHMENTS
 
-- performance:ruff → <path>
-- performance:frontend → <path>
-- performance:sqlglot → <path>
-- performance:semgrep → <path>
+- performance:ruff → `.enaible/artifacts/analyze-performance/<timestamp>/performance-ruff.json`
+- performance:frontend → `.enaible/artifacts/analyze-performance/<timestamp>/performance-frontend.json`
+- performance:sqlglot → `.enaible/artifacts/analyze-performance/<timestamp>/performance-sqlglot.json`
+- performance:semgrep → `.enaible/artifacts/analyze-performance/<timestamp>/performance-semgrep.json`
 ```
 
 ## Examples

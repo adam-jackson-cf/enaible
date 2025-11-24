@@ -1,67 +1,68 @@
 ---
 description: "Codify lessons from recent Claude sessions (user/assistant prompts) into personal workflow guidance"
-argument-hint: [--uuid UUID] [--search-term TERM] [--days N]
+argument-hint: [--uuid] [--search-term] [--days]
 allowed-tools: ["Task", "Read", "Write", "Bash", "Grep", "Glob", "LS"]
 ---
 
-# Codify Claude History — Lessons & Habits
+# codify-claude-history v0.1
 
-Derive standards, preferences, ways of working, and approaches from recent Claude session prompts, then propose user-level updates to `~/.claude/CLAUDE.md`.
+## Purpose
 
-## Usage
-
-```bash
-/codify-claude-history [--days 7] [--uuid <ID>] [--search-term <TEXT>]
-```
+Derive standards, preferences, ways of working, and approaches from recent Claude session prompts, then propose user-level updates to CLAUDE.md.
 
 ## Variables
 
-- `DAYS` (default 7): Lookback window for sessions
-- `UUID`: Optional session id filter
-- `SEARCH_TERM`: Optional semantic filter
+### Optional (derived from $ARGUMENTS)
+
+- @DAYS = --days — lookback window (default 7)
+- @UUID = --uuid — filter to a specific session
+- @SEARCH_TERM = --search-term — keyword/phrase filter
 
 ## Instructions
 
-- Use the capture script `shared/context/context_bundle_capture_claude.py`.
+- Use the Enaible `context_capture` command (Claude platform) to gather raw history.
 - Prefer `sessions[].user_messages` (and `assistant_messages` when present) as the primary signal; treat `operations` as secondary context.
 - Focus on standards, preferences, ways_of_working, approaches; ignore tool errors unless they imply a rule.
 - Propose user-level changes only; do not edit project files here.
 
 ## Workflow
 
-1. Resolve script path
+1. **Capture (7-day default)**
 
-   - Project-level: `.claude/scripts/context/context_bundle_capture_claude.py`
-   - User-level: `$HOME/.claude/scripts/context/context_bundle_capture_claude.py`
+   - Collect Claude session history with Enaible and honor optional UUID or search filters:
 
-2. Environment check
+     ```bash
+     uv run --project tools/enaible enaible context_capture \
+       --platform claude \
+       --days ${DAYS:-7} \
+       ${UUID:+--uuid "@UUID"} \
+       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
+       --output-format json
+     ```
 
-   - !`SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)" && PYTHONPATH="$SCRIPTS_ROOT" python -c "import context.context_bundle_capture_claude; print('env OK')"`
+   - Focus on `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, and `operations[]` for downstream analysis.
 
-3. Capture (7-day default)
+2. **Build Corpus**
 
-   - `PYTHONPATH="$SCRIPTS_ROOT" python "$SCRIPT_PATH" --days ${DAYS:-7} ${UUID:+--uuid "$UUID"} ${SEARCH_TERM:+--search-term "$SEARCH_TERM"} --output-format json`
-   - Input fields: `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, `operations[]` (for file footprints)
+   - For each session, order `user_messages` chronologically, append up to two trimmed `assistant_messages`, and record high-signal file paths from `operations`.
+   - Chunk content to ~12k tokens per segment while keeping the total corpus ≤ ~200k tokens.
 
-4. Build corpus
+3. **Summarize (Subagent)**
 
-   - For each session: place `user_messages` first (chronological), then 0–2 `assistant_messages` (trimmed), then a short list of file paths from `operations` (file tool ops only).
-   - Chunk to ~12k per segment, total ≤ ~200k.
+   - Use the Task tool to summarize each chunk into YAML containing `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes` (lists only, no prose or code blocks).
 
-5. Summarize (subagent)
+4. **Consolidate & Propose**
 
-   - Invoke a focused summarizer via Task tool:
-     - Return YAML with keys: `standards`, `preferences`, `ways_of_working`, `approaches`, `notes` (lists of short items).
-     - No prose or code blocks.
-
-6. Consolidate & propose
-
-   - Merge YAML across chunks; sort by frequency and clarity.
-   - Produce a merge-ready block for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
+   - Merge YAML outputs, rank items by frequency and clarity, and craft a merge-ready proposal for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
    - STOP → "Apply to ~/.claude/CLAUDE.md? (y/n)"
 
-7. Cleanup
-   - !`rm -rf .workspace/codify-history || true`
+5. **Cleanup**
+
+   - Remove temporary artifacts:
+
+     ```bash
+     rm -rf .enaible/codify-history || true
+     ```
 
 ## Output
 

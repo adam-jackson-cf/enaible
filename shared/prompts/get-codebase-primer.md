@@ -6,7 +6,18 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 
 ## Variables
 
-- `TARGET_PATH` ← $1 (defaults to `./`.
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @TARGET_PATH = --target-path — path to analyze; defaults to the project
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -14,6 +25,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 - Capture findings for purpose, features, tech stack, architecture, commands, and testing.
 - Summaries must be concise yet comprehensive, referencing concrete files and directories.
 - Include recent git history insights to surface active development themes.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
@@ -32,10 +44,14 @@ Analyse the following aspects of the target codebase:
 - Locate key configurations and framework signals
 - Documentation, Global rules files and configs
 
-2. **Generate Project Primer**
+2. **Git history review**
 
-   - Compile findings into standardized markdown format
-   - Present comprehensive project overview
+   - Run `git status`, `git log --since="30 days ago"`, and `git shortlog -sn --since="30 days ago"` (adjust window when @TARGET_PATH differs).
+   - Capture recent themes, active contributors, and churn hotspots for inclusion in the primer.
+
+3. **Generate Project Primer**
+   - Compile findings into standardized markdown format.
+   - Present comprehensive project overview.
 
 ## Output
 

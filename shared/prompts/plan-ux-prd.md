@@ -2,26 +2,35 @@
 
 ## Purpose
 
-Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria.
+Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria based on @USER_PROMPT.
 
 ## Variables
 
-- `PRODUCT_BRIEF` ← first positional argument describing the feature or product.
-- `QUESTION_RESPONSES` ← structured answers gathered during Phase 1.
-- `PRD_OUTPUT` ← final markdown document adhering to the mandated contract.
+### Required
+
+- @USER_PROMPT = $1 — UX-focused product brief provided by the user
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
 - Lead with detailed discovery; gather product foundation, user insights, UX requirements, screen architecture, and onboarding details.
 - Assign stable IDs (F-001, S-001, FL-001) for features, screens, and flows; reuse consistently across sections.
-- Respect STOP confirmations before generating the PRD and before concluding quality validation.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - Ensure MoSCoW scope ties directly to screen architecture and flows.
 - Document design principles, accessibility requirements (WCAG), interaction patterns, and content tone explicitly.
 
 ## Workflow
 
 1. Information gathering
-   - Review provided context and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
+
+   - Review @USER_PROMPT and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
    - Conduct targeted question sequence covering:
      - Product foundation
      - User & market
@@ -30,7 +39,9 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - Design standards
      - Onboarding experience
    - Summarize understanding and confirm key requirements with user.
-   - **STOP:** “Ready to generate the PRD? (y/n)”
+   - **STOP (skip when @AUTO):** “Ready to generate the PRD? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+
 2. PRD generation
 
    - Generate the complete PRD using the Output Contract below. Populate all required sections using the Phase 1 answers. Use stable IDs for cross‑references.
@@ -128,14 +139,15 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - Screen architecture reflects user journeys.
      - UX specifications actionable for design.
      - Acceptance criteria cover each feature.
-   - **STOP:** “PRD generated with quality validation complete.”
+   - **STOP (skip when @AUTO):** “PRD generated with quality validation complete.”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: UX PRD generated for "<PRODUCT_BRIEF>".
+- Summary: UX PRD generated for "<@USER_PROMPT>".
 - Personas: <count>
 - Features: <count> (Must: <n>, Should: <n>, Could: <n>, Won't: <n>)
 

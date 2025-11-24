@@ -1,98 +1,108 @@
-# Background Codex Code
+# Purpose
 
-Run a Codex Code instance in the background to perform tasks autonomously while you continue working.
+Run a single Codex CLI workflow inside a named tmux session so it can keep working in the background while progress is logged to a timestamped report file.
 
 ## Variables
 
-USER_PROMPT: $1
-MODEL: $2 (defaults to 'codex:sonnet' if not provided, format: 'codex:model' or just 'qwen'/'gemini' e.g. codex:opus, qwen, gemini)
-REPORT_FILE: $3 (defaults to './agents/background/background-report-DAY-NAME_HH_MM_SS.md' if not provided)
+### Required
+
+- @USER_PROMPT — first CLI argument; background task brief forwarded to Codex.
+
+### Optional (derived from @ARGUMENTS)
+
+- @MODEL_SELECTOR = --model — Codex model identifier (default codex-medium).
+- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
-- Capture timestamp in a variable FIRST to ensure consistency across file creation and references
-- Create the initial report file with header BEFORE launching the background agent
-- Fire off a new AI CLI instance (Codex Code, Qwen, or Gemini) using the Bash tool with run_in_background=true
-- IMPORTANT: Pass the `USER_PROMPT` exactly as provided with no modifications
-- Parse the MODEL parameter to determine CLI (codex/qwen/gemini) and model name
-- Configure the appropriate CLI with all necessary flags for automated operation
-- For Codex Code: Use --print flag, --output-format text, --dangerously-skip-permissions, and --append-system-prompt
-- For Qwen/Gemini: Use --prompt flag and --yolo for automated operation (no append-system-prompt support)
-- Use all provided CLI flags AS IS. Do not alter them.
+- Capture a timestamp before creating directories or files so report names, tmux sessions, and logs stay aligned.
+- Create the report directory and header before launching Codex to guarantee every background run has a writable log.
+- Pass @USER_PROMPT verbatim to Codex after prepending the reporting instructions (Codex lacks an append-system-prompt flag).
+- Always launch Codex inside a dedicated tmux session.
+- Record the tmux session name, Codex model, PID, and report path so operators can monitor or terminate the run later.
 
-## Process
+## Workflow
 
-1. **Capture timestamp** - Store current timestamp for consistent file naming
-2. **Create report file** - Initialize the report file with header and timestamp
-3. **Launch background instance** - Start Codex Code with all required flags
-4. **Configure monitoring** - Set up progress tracking and output capture
-5. **Confirm launch** - Report successful background task initiation
+0. Auth preflight
 
-## Command Structure
+   - Run `uv run --project tools/enaible enaible auth_check --cli codex --report @REPORT_FILE` using the parsed report path. If it fails, write the message to the report and exit without launching Codex.
 
-```bash
-# Capture timestamp for consistency
-TIMESTAMP=$(date +"%A_%H_%M_%S")
-DEFAULT_REPORT="./agents/background/background-report-${TIMESTAMP}.md"
-REPORT_FILE=${3:-$DEFAULT_REPORT}
+1. Prepare reporting directory
 
-# Create initial report file
-mkdir -p "$(dirname "$REPORT_FILE")"
-echo "# Background Task Report - $(date)" > "$REPORT_FILE"
-echo "## Task: $1" >> "$REPORT_FILE"
-echo "## Started: $(date)" >> "$REPORT_FILE"
-echo "" >> "$REPORT_FILE"
+   - Execute `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`. Abort immediately if the directory cannot be created or is not writable.
 
-# Parse CLI and model from argument
-IFS=':' read -r CLI MODEL_NAME <<< "${2:-codex:gpt-5-codex}"
+2. Parse inputs
 
-# Launch appropriate CLI instance based on selection
-case "$CLI" in
-  claude)
-    claude --model "${MODEL_NAME:-sonnet}" \
-      --output-format text \
-      --dangerously-skip-permissions \
-      --append-system-prompt "Report all progress and results to: $REPORT_FILE. Use Write tool to append updates." \
-      --print "$1"
-    ;;
-  codex)
-    codex exec \
-      --model 'gpt-5-codex' \
-      --sandbox workspace-write \
-      --search \
-      "$@"
-    ;;
-  qwen)
-    # For qwen, prepend report instructions to the prompt since no append-system-prompt support
-    ENHANCED_PROMPT="$1 IMPORTANT: Report all progress and results to: $REPORT_FILE using the Write tool to append updates."
-    qwen --yolo \
-      --prompt "$ENHANCED_PROMPT"
-    ;;
-  gemini)
-    # For gemini, prepend report instructions to the prompt since no append-system-prompt support
-    ENHANCED_PROMPT="$1 IMPORTANT: Report all progress and results to: $REPORT_FILE using the Write tool to append updates."
-    gemini --yolo \
-      --prompt "$ENHANCED_PROMPT"
-    ;;
-  *)
-    echo "Error: Unknown CLI '$CLI'. Use codex:sonnet, codex:opus, qwen, or gemini."
-    exit 1
-    ;;
-esac
-```
+   - Require @USER_PROMPT; if missing, prompt the operator and stop.
+   - Split @MODEL_SELECTOR on `:` to derive @MODEL_NAME. Default to `codex-medium` when the selector is absent.
 
-## Usage Examples
+3. Prepare reporting path
 
-- `/todo-background "Analyze the codebase for performance issues"` - Uses default codex:sonnet model and auto-generated report file
-- `/todo-background "Refactor the authentication module" codex:opus ./reports/auth-refactor.md` - Uses Codex Opus model with custom report location
-- `/todo-background "Run security audit and create remediation plan" qwen` - Uses Qwen CLI with default report location
-- `/todo-background "Generate API documentation" gemini ./reports/api-docs.md` - Uses Gemini CLI with custom report location
+   - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided.
+   - Create parent directories and initialize the markdown header:
+     ```
+     # Background Task Report - <human-readable date>
+     ## Task: @USER_PROMPT
+     ## Started: <date time>
+     ```
+
+4. Launch tmux session
+
+   - Set @SESSION_NAME to `codex-bg-@TIMESTAMP` (or another unique identifier).
+   - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
+   - Launch Codex inside tmux:
+     ```bash
+     tmux new-session -d -s @SESSION_NAME \
+       "cdx-exec --model @MODEL_NAME \\
+         \"@ENHANCED_PROMPT\""
+     ```
+   - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
+
+5. Configure monitoring
+
+   - Document how to attach to the session (`tmux attach -t @SESSION_NAME`), capture recent output (`tmux capture-pane -p -S -200 -t @SESSION_NAME`), and stop it (`tmux kill-session -t @SESSION_NAME`).
+   - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
+
+6. Report launch status
+   - Summarize Codex model, tmux session, PID, and report path.
+   - Provide explicit monitoring and termination guidance so operators can manage the background task without guessing.
 
 ## Output
 
-- **Background Process ID** - For monitoring the running task
-- **Report File Location** - Where progress updates will be written
-- **Task Summary** - Brief description of what was initiated
-- **Monitoring Instructions** - How to check progress and results
+```md
+# RESULT
 
-$ARGUMENTS
+- Summary: Codex background task launched (@MODEL_NAME) inside tmux session @SESSION_NAME.
+
+## PROCESS
+
+- tmux session: @SESSION_NAME
+- PID: @PROCESS_ID
+- Command: tmux new-session -d -s @SESSION_NAME 'cdx-exec --model @MODEL_NAME "@ENHANCED_PROMPT"'
+
+## REPORT
+
+- File: @REPORT_FILE
+- Monitoring:
+  - `tmux attach -t @SESSION_NAME`
+  - `tail -f @REPORT_FILE`
+
+## NEXT STEPS
+
+1. Review the report for periodic updates.
+2. Terminate the tmux session when work completes (`tmux kill-session -t @SESSION_NAME`).
+```
+
+## Examples
+
+```bash
+# Default Codex background task
+/todo-background "Analyze the codebase for performance issues"
+
+# Custom Codex model with explicit report path
+/todo-background "Refactor the authentication module" codex:codex-large ./.enaible/agents/background/auth-refactor.md
+```

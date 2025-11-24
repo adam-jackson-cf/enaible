@@ -27,6 +27,7 @@ EXTENDS: Similar to BaseProfiler but for general analysis tools
 - Abstract interface for specific analysis implementations
 """
 
+import fnmatch
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -51,7 +52,7 @@ class AnalyzerConfig:
     # Core settings
     target_path: str = "."
     output_format: str = "json"
-    min_severity: str = "medium"
+    min_severity: str = "high"
     summary_mode: bool = False
 
     # File filtering
@@ -113,6 +114,8 @@ class AnalyzerConfig:
             "Release",
         }
     )
+    gitignore_patterns: list[str] = field(default_factory=list)
+    exclude_globs: set[str] = field(default_factory=set)
 
     # Analysis settings
     max_files: int | None = None
@@ -174,15 +177,16 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
         self.config = config or AnalyzerConfig()
 
         # Initialize common utilities (available from CIAnalysisModule)
+        self.analysis_root = self._determine_analysis_root(
+            Path(self.config.target_path)
+        )
         self.tech_detector = self.TechStackDetector()
 
         # Initialize vendor detector with project root
-        project_root = (
-            Path(self.config.target_path).resolve()
-            if hasattr(self.config, "target_path") and self.config.target_path != "."
-            else None
-        )
+        project_root = self.analysis_root if self.analysis_root.exists() else None
         self.vendor_detector = VendorDetector(project_root)
+        self._gitignore_spec = self._build_gitignore_spec()
+        self._exclude_globs = set(getattr(self.config, "exclude_globs", set()))
 
         # Analysis tracking
         self.files_processed = 0
@@ -239,6 +243,12 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
             # Check individual path parts for exact matches only
             if skip_pattern in file_path.parts:
                 return False
+
+        if self._matches_exclude_globs(file_path):
+            return False
+
+        if self._is_gitignored(file_path):
+            return False
 
         # Enhanced skip pattern checking for dot directories and paths
         path_str = str(file_path).lower()
@@ -301,6 +311,83 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
             return False
 
         return True
+
+    def _matches_exclude_globs(self, file_path: Path) -> bool:
+        """Return True if file_path matches configured exclusion globs."""
+        if not self._exclude_globs:
+            return False
+
+        relative_path = self._relative_path_str(file_path)
+        for pattern in self._exclude_globs:
+            if fnmatch.fnmatch(relative_path, pattern) or fnmatch.fnmatch(
+                file_path.name, pattern
+            ):
+                self.log_operation(
+                    "file_skipped_pattern",
+                    {"file": str(file_path), "pattern": pattern},
+                )
+                return True
+        return False
+
+    def _is_gitignored(self, file_path: Path) -> bool:
+        """Return True if gitignore patterns exclude the file."""
+        if not self._gitignore_spec:
+            return False
+
+        relative_path = self._relative_path_str(file_path)
+        if self._gitignore_spec.match_file(relative_path):
+            self.log_operation(
+                "file_skipped_gitignore",
+                {"file": str(file_path), "relative_path": relative_path},
+            )
+            return True
+        return False
+
+    def _relative_path_str(self, file_path: Path) -> str:
+        """Return the file path relative to the analysis root for matching."""
+        try:
+            return str(file_path.resolve().relative_to(self.analysis_root))
+        except Exception:
+            return str(file_path)
+
+    def _determine_analysis_root(self, target_path: Path) -> Path:
+        """Best-effort determination of the root directory for analysis."""
+        try:
+            resolved = target_path.resolve()
+        except FileNotFoundError:
+            return Path.cwd()
+        except Exception:
+            return Path.cwd()
+
+        if resolved.is_dir():
+            return resolved
+        if resolved.is_file():
+            return resolved.parent
+        return Path.cwd()
+
+    def _build_gitignore_spec(self):
+        """Compile gitignore patterns into a PathSpec matcher if available."""
+        patterns = getattr(self.config, "gitignore_patterns", [])
+        if not patterns:
+            return None
+
+        try:
+            from pathspec import PathSpec
+        except ImportError:
+            self.log_operation(
+                "gitignore_spec_unavailable",
+                {"reason": "pathspec_not_installed"},
+            )
+            return None
+
+        try:
+            return PathSpec.from_lines("gitwildmatch", patterns)
+        except Exception as exc:
+            self.log_operation(
+                "gitignore_spec_failed",
+                {"error": str(exc)},
+            )
+            return None
 
     def scan_directory(self, target_path: str) -> list[Path]:
         """

@@ -4,48 +4,70 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.`.
-- `SCRIPT_PATH` ← resolved path to the quality analyzer directory.
-- `$ARGUMENTS` ← full raw argument string.
+### Required
+
+- @TARGET_PATH = $1 — path to analyze; defaults to repo root
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory used for analyzer outputs
 
 ## Instructions
 
-- ALWAYS run the registry-driven analyzer (`quality:lizard`) instead of stand-alone tools.
-- Capture raw complexity metrics (cyclomatic complexity, function length, parameter counts) for transparency.
-- Cross-reference quantitative results with observed design patterns before making recommendations.
-- Prioritize remediation by impact and ease, citing exact files and symbols.
-- Do not proceed if analyzer scripts are missing or imports fail.
+- ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
+- Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
+- Correlate quantitative metrics with qualitative observations before recommending remediation.
+- Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
+- Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/quality/*.py || ls "$HOME/.claude/scripts/analyzers/quality/"`; if both fail, exit and request a valid path.
-   - When scripts are missing locally, prompt the user for a directory containing `complexity_lizard.py`, then set `SCRIPT_PATH`.
-2. Prepare environment
-   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-3. Execute automated analysis
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:lizard --target "$TARGET_PATH" --output-format json`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer quality:jscpd --target "$TARGET_PATH" --output-format json`.
-   - Persist the JSON outputs for later reference.
-4. Interpret metrics
-   - Identify hotspots exceeding thresholds (e.g., cyclomatic complexity > 10, function length > 80 lines).
-   - Detect duplicated code blocks and high parameter counts.
-5. Evaluate qualitative dimensions
-   - Examine documentation coverage, readability, adherence to SOLID principles, and test coverage signals.
-   - Highlight technical-debt themes (code smells, anti-patterns, refactor opportunities).
-6. Formulate improvement plan
-   - Group recommendations by category: maintainability, testing, patterns, debt reduction.
-   - Include quick wins vs. strategic refactors.
-7. Deliver report
-   - Summarize key findings, attach metric tables, and map recommendations to affected modules.
+1. **Establish artifacts directory**
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
+
+     ```bash
+     enaible analyzers run quality:lizard \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/quality-lizard.json"
+
+     enaible analyzers run quality:jscpd \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/quality-jscpd.json"
+     ```
+
+   - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
+   - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
+   - If either invocation fails, review available flags with `enaible analyzers run --help` before retrying.
+
+3. **Interpret metrics**
+   - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
+   - Cross-reference duplication findings with the impacted components.
+4. **Evaluate qualitative dimensions**
+   - Review documentation depth, readability, adherence to SOLID principles, and test coverage signals.
+   - Identify recurring code smells or anti-patterns that amplify the quantitative results.
+5. **Formulate improvement plan**
+   - Group recommendations by category (maintainability, testing, patterns, debt reduction) with impact/effort notes.
+   - Map each action to specific files or modules and call out enabling prerequisites.
+6. **Deliver the report**
+   - Summarize findings, attach metric tables, and cite evidence paths from `@ARTIFACT_ROOT`.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Code quality assessment completed for <TARGET_PATH>.
+- Summary: Code quality assessment completed for <@TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-code-quality/<timestamp>/`
 
 ## METRICS
 
@@ -69,8 +91,8 @@ Assess code quality by combining automated metrics with architectural review to 
 
 ## ATTACHMENTS
 
-- quality:lizard report → <path>
-- quality:jscpd report → <path>
+- quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
+- quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```
 
 ## Examples

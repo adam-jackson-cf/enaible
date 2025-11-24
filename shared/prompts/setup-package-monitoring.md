@@ -4,14 +4,21 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 
 ## Variables
 
-- `AUDIT_LEVEL` ← value from `--audit-level` (default `critical`).
-- `PACKAGE_FILE` ← path from `--package-file` (optional).
-- `EXCLUDE_PATHS[]` ← paths supplied via `--exclude`.
-- `SETUP_BRANCH_PROTECTION` ← boolean when `--branch-protection=true`.
-- `SCRIPT_PATH` ← resolved path to `setup_package_monitoring.py`.
-- `SCRIPTS_ROOT` ← computed base directory.
-- `DETECTED_ECOSYSTEMS[]` ← languages/package managers discovered.
-- `$ARGUMENTS` ← raw argument string.
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @AUDIT_LEVEL = --audit-level — severity threshold (default critical)
+- @PACKAGE_FILE = --package-file — restrict monitoring to a specific manifest
+- @EXCLUDE = --exclude [repeatable] — paths to exclude from monitoring
+- @BRANCH_PROTECTION = --branch-protection — enable branch-protection scaffolding when true
+
+### Derived (internal)
+
+- @DETECTED_ECOSYSTEMS = <derived> — ecosystems identified during setup (npm, pip, cargo, etc.)
 
 ## Instructions
 
@@ -20,39 +27,43 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 - Document detection heuristics, excluded paths, and resulting configurations.
 - Generate Dependabot and GitHub Actions workflows with path-based triggers.
 - Update security policy documentation to reflect the monitoring approach.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Verify prerequisites
-   - Run `ls .claude/scripts/setup/security/setup_package_monitoring.py || ls "$HOME/.claude/scripts/setup/security/setup_package_monitoring.py"`; if both fail, prompt for a directory containing `setup_package_monitoring.py` and exit if unavailable.
+1. Environment preparation
    - Run `git rev-parse --is-inside-work-tree`; exit immediately if not in a git repository because generated workflows rely on repository structure.
 2. Parse arguments
-   - Capture `AUDIT_LEVEL`, `PACKAGE_FILE`, multiple `--exclude` values, and `SETUP_BRANCH_PROTECTION`.
-3. Resolve script location
-   - Search project-level `.claude/scripts/setup/security/`, then user-level equivalent.
-   - Prompt for path when unresolved; ensure `setup_package_monitoring.py` exists.
-4. Prepare environment
-   - Compute `SCRIPTS_ROOT` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; abort on failure.
-5. Execute setup script
-   - Run:
+   - Capture `--audit-level`, `--package-file`, all `--exclude` values, and the optional `--branch-protection` flag.
+   - Store results in `AUDIT_LEVEL`, `PACKAGE_FILE`, `EXCLUDE_PATHS[]`, and `SETUP_BRANCH_PROTECTION` (default `AUDIT_LEVEL=critical`).
+3. Execute setup script
+   - Build exclusion flags only when values are provided:
      ```bash
-     PYTHONPATH="$SCRIPTS_ROOT" python -m setup.security.setup_package_monitoring \
-       --audit-level "$AUDIT_LEVEL" \
-       --branch-protection "${SETUP_BRANCH_PROTECTION:-false}" \
-       ${PACKAGE_FILE:+--package-file "$PACKAGE_FILE"} \
-       $(printf ' --exclude %q' "${EXCLUDE_PATHS[@]}")
+     EXCLUDE_ARGS=""
+     for path in "${EXCLUDE_PATHS[@]}"; do
+       EXCLUDE_ARGS+=" --exclude \"$path\""
+     done
+     ```
+   - Run the shared setup module via the Enaible environment:
+     ```bash
+     PYTHONPATH=shared \
+       uv run --project tools/enaible python shared/setup/security/setup_package_monitoring.py \
+         --audit-level "${AUDIT_LEVEL:-critical}" \
+         --branch-protection "${SETUP_BRANCH_PROTECTION:-false}" \
+         ${PACKAGE_FILE:+--package-file "$PACKAGE_FILE"} \
+         ${EXCLUDE_ARGS}
      ```
    - Capture stdout to extract detected ecosystems and generated files.
-6. Review generated artifacts
+4. Review generated artifacts
    - `.github/dependabot.yml`
    - `.github/workflows/package-audit.yml`
    - `SECURITY.md` (new or updated)
    - Optional branch protection configuration summary (if requested).
-7. Validate configuration
+5. Validate configuration
    - Confirm workflow triggers monitor only package files.
    - Ensure Dependabot entries cover each detected ecosystem with appropriate schedule.
    - Verify audit workflow executes critical-level checks aligned with Dependabot PRs.
-8. Summarize outcome
+6. Summarize outcome
    - Report ecosystems, audit level, exclusions, and branch protection status.
    - Provide next steps for enabling workflows (commit/push, review Actions tab).
 

@@ -1,39 +1,68 @@
 # Purpose
 
-Develop and compare solution approaches for a technical challenge using targeted context gathering, research, and structured recommendations.
+Develop and compare solution approaches for a @USER_PROMPT using targeted context gathering, research, and structured recommendations.
 
 ## Variables
 
-- `CHALLENGE` ← first positional argument or prompt input describing the technical problem.
-- `CRITIQUE_MODE` ← boolean flag when `--critique` present.
-- `SCRIPT_PATH` ← resolved architecture analyzer directory (conditional when analyzing code).
-- `$ARGUMENTS` ← raw argument string.
+### Required
+
+- @USER_PROMPT = $1 — description of the technical problem to solve
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @TARGET_PATH = --target-path — repository path when targeting an existing codebase (default .)
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory for plan-solution evidence
 
 ## Instructions
 
-- Begin by collecting detailed context—technical challenge, environment constraints, and delivery preferences.
+- Begin by collecting detailed context based on @USER_PROMPT, environment constraints, and delivery preferences.
 - If analyzing an existing codebase, run the architecture analyzers before crafting solutions.
 - Produce exactly three solution options (Conservative, Balanced, Innovative) with consistent evaluation criteria.
 - Support recommendations with research citations or code insights.
-- When `--critique` is used, invoke `@agent-solution-validator` after drafting the recommendation.
-- Wait for approval before appending tasks to `todos.md`.
+- Wait for approval before appending tasks to `todos.md` unless @AUTO is provided (log follow-up actions instead).
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
 1. Intake context
-   - Request explicit information:
-     1. Technical Challenge
-     2. Technical Environment Constraints
-     3. Development Approach Preferences
-   - **STOP:** Wait until the user provides answers or grants permission to proceed with assumptions.
+   - Request explicit information when missing from @USER_PROMPT - frame with assumptions:
+     1. Defintion of problem to solve or feature to create
+     2. Any technical constraints or predetermined tech stack choices
+     3. Development approach preferences
+   - When the solution targets an existing repository, record the working directory as @TARGET_PATH (default `.`).
+   - **STOP (skip when @AUTO):** Wait until the user provides answers or grants permission to proceed with assumptions.
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 2. **Conditional** system analysis (only when working against an existing codebase)
-   - Locate analyzer scripts: Run `ls .claude/scripts/analyzers/architecture/pattern_evaluation.py || ls "$HOME/.claude/scripts/analyzers/architecture/pattern_evaluation.py"`; if both fail, prompt for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
-   - Prepare environment: Compute `SCRIPTS_ROOT="$(cd "$(dirname \"$SCRIPT_PATH\")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-   - Run:
-     - `architecture:patterns`
-     - `architecture:scalability`
-     - `architecture:coupling`
-   - Record findings: patterns, scalability constraints, integration points, technical debt.
+
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
+   - Run the architecture analyzers through Enaible for the relevant target (default `.` unless discovery identifies a subpath):
+
+     ```bash
+     uv sync --project tools/enaible
+
+     enaible analyzers run architecture:patterns \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-patterns.json"
+
+     enaible analyzers run architecture:scalability \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-scalability.json"
+
+     enaible analyzers run architecture:coupling \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-coupling.json"
+     ```
+
+   ```
+
+   - Record findings: patterns, scalability constraints, integration points, and technical debt hotspots.
+
+   ```
+
 3. Research & option development
    - Perform targeted web/documentation research as needed.
    - Draft three solution options:
@@ -46,19 +75,14 @@ Develop and compare solution approaches for a technical challenge using targeted
 5. Recommendation & roadmap
    - Select a recommended solution with justification.
    - Outline phased implementation roadmap and success criteria.
-6. Task transfer (optional)
-   - **STOP:** “Ready to transfer implementation roadmap to todos.md? (y/n)”
-   - On approval:
-     - Ensure `./todos/todos.md` exists.
-     - Append actionable tasks derived from the roadmap.
-   - Confirm transfer status in final report.
+   - Write a summary using below output format with no additional commentary.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Solution plan generated for "<CHALLENGE>."
+- Summary: Solution plan generated for "<@USER_PROMPT>."
 
 ## SOLUTION OPTIONS
 
@@ -97,10 +121,6 @@ Develop and compare solution approaches for a technical challenge using targeted
 - Phase 2: <milestones>
 - Phase 3: <milestones>
 - Success Criteria: <metrics/tests>
-
-## TODOS TRANSFERRED
-
-- <yes/no> (list added items if applicable)
 ```
 
 ## Examples
@@ -108,7 +128,4 @@ Develop and compare solution approaches for a technical challenge using targeted
 ```bash
 # Explore solutions to a scalability challenge
 /plan-solution "Scale real-time collaboration engine"
-
-# Generate plan and trigger validator critique
-/plan-solution "Modernize authentication architecture" --critique
 ```

@@ -39,36 +39,16 @@ Note: The output directory can be specified by the user when invoking this agent
 
 When invoked, you must follow these steps:
 
-1. **Fetch the URL content** - Use the crawl4ai CLI as the primary tool following the script resolution pattern:
-
-   **FIRST - Resolve SCRIPT_PATH:**
-
-   a. **Try project-level .claude folder**:
+1. **Fetch the URL content** - Use the Enaible `docs_scrape` command as the primary tool:
 
    ```bash
-   Glob: ".claude/scripts/web_scraper/cli.py"
+   uv run --project tools/enaible enaible docs_scrape \
+     --url "$URL" \
+     --out "$OUTPUT_DIR/$(basename).md" \
+     --title "Page Title"
    ```
 
-   b. **Try user-level .claude folder**:
-
-   ```bash
-   Bash: ls "$HOME/.claude/scripts/web_scraper/cli.py"
-   ```
-
-   c. **Try shared/ directory**:
-
-   ```bash
-   Glob: "shared/web_scraper/cli.py"
-   ```
-
-   **THEN - Execute web_scraper CLI:**
-
-   ```bash
-   SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
-   PYTHONPATH="$SCRIPTS_ROOT" python -m web_scraper.cli save-as-markdown "$URL" "$OUTPUT_DIR/$(basename).md" --title "Page Title"
-   ```
-
-   If crawl4ai unavailable, fall back to `WebFetch` with a prompt to extract the full documentation content.
+   If the command exits non-zero, fall back to `WebFetch` with a prompt to extract the full documentation content.
 
 2. **Process the content** - IMPORTANT: Reformat and clean the scraped content to ensure it's in proper markdown format. Remove any unnecessary navigation elements or duplicate content while preserving ALL substantive documentation content.
 

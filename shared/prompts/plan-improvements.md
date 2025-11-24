@@ -6,56 +6,78 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 ## Variables
 
-- `REFACTOR_SCOPE` ← first positional argument; defines area or component.
-- `SCRIPT_PATH` ← resolved analyzer root (quality, architecture, performance).
-- `VERBOSE_FLAGS` ← flags passed through `$ARGUMENTS` (none currently defined).
+### Required
+
+- @REFACTOR_SCOPE = $1 — area or component to refactor
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @TARGET_PATH = --target-path — filesystem path to analyze (default .)
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory for plan-refactor evidence
 
 ## Instructions
 
-- Execute the workflow phases in order and honor each STOP confirmation.
-- Run registry-driven analyzers only; capture outputs for quality documentation.
+- Execute the workflow phases in order.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
+- Use Enaible analyzers for evidence gathering; store outputs in `.enaible/artifacts/plan-refactor/`.
+- Confirm @TARGET_PATH exists (default `.`) before invoking analyzers; use descriptive @REFACTOR_SCOPE text in the narrative.
 - Anchor migration strategies in proven patterns (Strangler Fig, Module Federation, blue-green, etc.).
 - Define rollback steps and monitoring at every migration phase.
 - Translate the final plan into actionable todos when approved.
 
 ## Workflow
 
-1. Resolve analyzer scripts
-   - Run `ls .claude/scripts/analyzers/quality/complexity_lizard.py || ls "$HOME/.claude/scripts/analyzers/quality/complexity_lizard.py"`; if both fail, prompt for a directory containing `quality/complexity_lizard.py`, `architecture/coupling_analysis.py`, and `performance/performance_baseline.py`, then exit if none is provided. Set `SCRIPT_PATH` to the resolved script path.
-   - Once resolved, compute `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"` and run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-2. Phase 1 — Technical Debt Assessment
-   - Execute analyzers:
-     - `quality:lizard`
-     - `architecture:coupling`
-     - `performance:baseline`
-   - Identify hotspots, architectural debt, security overlaps.
-   - Generate technical debt summary.
-   - **STOP:** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
-3. Phase 2 — Migration Strategy
-   - Research industry patterns tailored to `REFACTOR_SCOPE`.
-   - Outline phased migration (feature flags, decomposition, deployment strategy).
-   - Define rollback procedures and monitoring hooks.
-   - **STOP:** “Migration strategy defined. Ready to create implementation plan? (y/n)”
-4. Phase 3 — Implementation Planning
-   - Break work into phases with timelines and checkpoints.
-   - Run `quality:coverage` analyzer to inform testing strategy.
+1. **Establish artifacts directory**
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing the JSON output:
+
+     ```bash
+     enaible analyzers run quality:lizard \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/quality-lizard.json"
+
+     enaible analyzers run architecture:coupling \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-coupling.json"
+
+     enaible analyzers run performance:baseline \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/performance-baseline.json"
+     ```
+
+   - Capture key hotspots, architectural risks, and performance warnings.
+
+3. **Phase 1 — Technical Debt Assessment**
+   - Summarize analyzer outputs (complexity spikes, coupling hotspots, perf regressions).
+   - Identify the debt themes affecting @REFACTOR_SCOPE.
+   - **STOP (skip when @AUTO):** “Technical debt analysis complete. Proceed with strategy development? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+4. **Phase 2 — Migration Strategy**
+   - Research suitable refactoring patterns and outline phased migration (feature flags, decomposition, deployment plan).
+   - Define rollback procedures, monitoring hooks, and stakeholder checkpoints.
+   - **STOP (skip when @AUTO):** “Migration strategy defined. Ready to create implementation plan? (y/n)”
+     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+5. **Phase 3 — Implementation Planning**
+   - Break work into phased milestones with timelines and exit criteria.
+   - Run `enaible analyzers run quality:coverage --target "@TARGET_PATH" --out "$ARTIFACT_ROOT/quality-coverage.json"` to inform the testing roadmap.
    - Establish success metrics (complexity targets, performance budgets, velocity impact).
-5. Phase 4 — Quality Validation & Task Transfer
-   - Confirm quality gates:
-     - Hotspots prioritized.
-     - Strategy aligns with proven patterns.
-     - Rollback and monitoring defined.
-     - Testing strategy in place.
-     - Success metrics measurable.
-   - **STOP:** “Implementation plan complete and validated. Transfer to todos.md? (y/n)”
-   - On approval, append structured tasks (Phase headers with checkboxes) to `todos.md`.
+6. **Phase 4 — Finalize report**
+   - Summarize assessment, strategy, roadmap, and success metrics. If @AUTO is set, note that approvals were auto-confirmed and call out any follow-up decisions required.
+   - Reference artifacts in `ARTIFACT_ROOT` and note follow-up tasks.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Refactoring plan created for <REFACTOR_SCOPE>.
+- Summary: Refactoring plan created for <@REFACTOR_SCOPE>.
+- Artifacts: `.enaible/artifacts/plan-refactor/<timestamp>/`
 
 ## ASSESSMENT
 
@@ -69,25 +91,25 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 - Phases: <Phase 1, Phase 2, Phase 3 titles>
 - Rollback Plan: <overview>
 
-## Justification
+## JUSTIFICATION
 
 - Technical alignment with current system
 - Balance of risk vs benefit
 - Resource/timeline fit
 
-## IMPLEMENTATION PLAN
+## IMPLEMENTATION SUMMARY
 
-- Checklist: <bullet summary of tasks>
-- Testing Strategy: <coverage plan, tooling>
-- Success Metrics: <targets>
+### High Level Checklist:
 
-## [System/Component] Refactoring Implementation
+<bullet summary of tasks>
 
-### Phase [PHASE-NUMBER]: [PHASE-TITLE]
+### Testing Strategy:
 
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
-- [ ] [PHASE-TASK]
+<coverage plan, tooling>
+
+### Success Metrics:
+
+<targets>
 ```
 
 ## Examples

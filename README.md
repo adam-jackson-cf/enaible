@@ -17,7 +17,7 @@
   <!-- Platform & Language Support -->
 
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
-![Python](https://img.shields.io/badge/python-3.11%2B-3776ab?style=flat-square&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/typescript-supported-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
@@ -25,10 +25,9 @@
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
 ![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
-![OpenCode](https://img.shields.io/badge/OpenCode-22_Commands-2E8B57?style=flat-square)
 ![Codex Prompts](https://img.shields.io/badge/Codex-21_Prompts-FF69B4?style=flat-square)
+![Copilot Prompts](https://img.shields.io/badge/Copilot-8_Prompts-0080FF?style=flat-square)
 ![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
-![OpenCode Agents](<https://img.shields.io/badge/Agents_(OpenCode)-22_Specialists-ff6b35?style=flat-square>)
 
 </div>
 
@@ -77,28 +76,51 @@ The principles for this project are designed around the realities of coding with
 
 ## ⚡ Quick Start
 
-Install for your preferred AI dev runtime. Details in docs/installation.md
+Install for your preferred AI dev runtime using the Enaible installer (runs from repo root). Details in docs/installation.md
 
 ```bash
 # Codex CLI (recommended)
-./systems/codex/install.sh                   # interactive (choose scope & scripts location)
-./systems/codex/install.sh ~                 # user-level (creates ~/.codex/)
-./systems/codex/install.sh /my/project/path  # custom (creates <path>/.codex)
+uv run --project tools/enaible enaible install codex --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install codex --scope project --mode sync
 
 # Claude Code
-./systems/claude-code/install.sh             # project-local (creates ./.claude/)
-./systems/claude-code/install.sh ~           # user-global  (creates ~/.claude/)
+uv run --project tools/enaible enaible install claude-code --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
 
-# OpenCode
-./systems/opencode/install.sh                # project-local (creates ./.opencode/)
-./systems/opencode/install.sh ~              # user-global  (creates ~/.config/opencode/)
+# Copilot (GitHub Copilot)
+# not yet implemented
+
+# Cursor
+# not yet implemented
+
 ```
 
 Notes
 
-- Programmatic prompts (analysis, security, performance) require Python 3.11+.
-- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. Helpers available in `systems/codex/codex-init-helpers.md`.
-- For OpenCode, prefer using the command-executor primary agent for best adherence to shell prompts.
+- Programmatic prompts (analysis, security, performance) require Python 3.12.
+- The installers copy full system payloads (commands, agents, rules, settings) into your local scope; rerun them after pulling updates to keep managed content in sync.
+
+---
+
+## 🛡️ Quality Gates & Enaible CLI
+
+The `enaible` CLI standardizes analyzer execution and prompt rendering across systems. Run these guardrails before opening a PR to mirror CI:
+
+```bash
+# Sync the Enaible workspace (installs uv dependencies)
+uv sync --project tools/enaible
+
+# Run Enaible unit tests
+uv run --project tools/enaible pytest tools/enaible/tests -v
+
+# Confirm managed prompts are drift-free
+uv run --project tools/enaible enaible prompts diff
+
+# Optional diagnostics snapshot (JSON report)
+uv run --project tools/enaible enaible doctor --json
+```
+
+GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml`, so keeping these commands green locally ensures the Enaible pipeline stage remains healthy.
 
 ---
 
@@ -133,7 +155,7 @@ Notes
 - Combines automated scanning with contextual interpretation
 - Fast onboarding with comprehensive coverage (structure + patterns + recent changes)
 
-**Available via:** Claude Code `/get-primer`, OpenCode `/get-primer`, Codex `/get-primer`.
+**Available via:** Claude Code `/get-primer`, Codex `/get-primer`.
 
 **Common workflow**:
 
@@ -152,9 +174,8 @@ Notes
 
 **Task Actions**:
 
-- **Multi-platform session tracking** with dedicated capture scripts for Claude Code, OpenCode, and Codex, reading directly from each tool's session storage
+- **Multi-platform session tracking** with dedicated capture scripts for Claude Code and Codex, reading directly from each tool's session storage
 - **Claude Code integration** accessing session data from `~/.claude/projects/` JSONL files with comprehensive operation extraction
-- **OpenCode integration** accessing session data from `~/.local/share/opencode/storage/` with message and part file parsing
 - **Codex integration** accessing session data from `~/.codex/sessions/` JSONL archives with shared parsing utilities
 - **Intelligent exclusion system** filtering sensitive data, duplicate operations, and noise patterns through configurable exclusion rules
 - **Automatic redaction** detecting and masking API keys, passwords, tokens, and other sensitive data in captured context
@@ -170,7 +191,7 @@ Notes
 - **Time-based filtering** (`--days`) - Limit analysis to recent sessions within configurable time windows
 - **Verbose expansion** (`--verbose`) - Expand truncated content for detailed investigation of specific sessions
 
-- Prevents repeated investigation by maintaining searchable action history across Claude Code, OpenCode, and Codex platforms
+- Prevents repeated investigation by maintaining searchable action history across Claude Code and Codex platforms
 - Enables quick orientation on recent work through automated activity summaries with flexible search capabilities
 - **Security-first design** with automatic redaction of sensitive data and configurable exclusion patterns
 - Creates objective record of development actions beyond git commits with direct session file system access
@@ -178,7 +199,7 @@ Notes
 - **Noise reduction** through intelligent filtering of duplicate operations and irrelevant system files
 - Provides data-driven insights into development patterns and productivity with multi-platform support
 
-**Available via:** Claude Code `/get-recent-context`, OpenCode `/get-recent-context`, Codex `/get-recent-context`.
+**Available via:** Claude Code `/get-recent-context`, Codex `/get-recent-context`.
 
 **Common workflow**:
 
@@ -264,7 +285,7 @@ Notes
 - Consistent planning format enables better estimation and team coordination
 - Quality considerations integrated from planning prevent post-development issues
 
-**Available via:** Claude Code `/plan-solution`, OpenCode `/plan-solution`, Codex `/plan-solution`.
+**Available via:** Claude Code `/plan-solution`, Codex `/plan-solution`.
 
 **Common workflow**:
 
@@ -305,7 +326,7 @@ Notes
 - Structured PRD process ensures all stakeholders align on product vision
 - More UX focused than standard PRD, aims to make it focused at LLM's as opposed to PM's
 
-**Available via:** Claude Code `/plan-ux-prd`, OpenCode `/plan-ux-prd`, Codex `/plan-ux-prd`.
+**Available via:** Claude Code `/plan-ux-prd`, Codex `/plan-ux-prd`.
 
 **Common workflow**:
 
@@ -346,7 +367,7 @@ Notes
 - Automated setup reduces configuration errors and saves setup time
 - Monitoring and analysis tools integrated from project start
 
-**Available via:** Claude Code `/create-project`, OpenCode `/create-project`, Codex `/create-project` (with `/setup-dev-monitoring`, `/add-code-precommit-checks`, `/setup-serena-mcp` available across all three).
+**Available via:** Claude Code `/create-project`, Codex `/create-project` (with `/setup-dev-monitoring`, `/add-code-precommit-checks`, `/setup-serena-mcp` available across both).
 
 **Common workflow**:
 
@@ -388,7 +409,7 @@ Notes
 - Works across multiple programming languages with consistent analysis
 - Prioritized recommendations focus efforts on high-impact improvements
 
-**Available via:** Claude Code `/analyze-code-quality`, OpenCode `/analyze-code-quality`, Codex `/analyze-code-quality`.
+**Available via:** Claude Code `/analyze-code-quality`, Codex `/analyze-code-quality`.
 
 **Common workflow**:
 
@@ -430,7 +451,7 @@ Notes
 - Framework-aware assessment provides technology-specific recommendations
 - Systematic approach prevents security debt accumulation
 
-**Available via:** Claude Code `/analyze-security`, OpenCode `/analyze-security`, Codex `/analyze-security`.
+**Available via:** Claude Code `/analyze-security`, Codex `/analyze-security`.
 
 **Common workflow**:
 
@@ -475,7 +496,7 @@ Notes
 - Prioritized recommendations focus efforts on high-impact improvements
 - Works across backend, frontend, and database performance domains
 
-**Available via:** Claude Code `/analyze-performance`, OpenCode `/analyze-performance`, Codex `/analyze-performance`.
+**Available via:** Claude Code `/analyze-performance`, Codex `/analyze-performance`.
 
 **Common workflow**:
 
@@ -525,7 +546,7 @@ Notes
 - Looks for process failures not just bugs
 - ensures comprehensive investigation (code patterns + change history + execution analysis)
 
-**Available via:** Claude Code `/analyze-root-cause`, OpenCode `/analyze-root-cause`, Codex `/analyze-root-cause`.
+**Available via:** Claude Code `/analyze-root-cause`, Codex `/analyze-root-cause`.
 
 **Common workflow**:
 
@@ -573,7 +594,7 @@ Notes
 - **Cost-efficient CI**: Path-triggered workflows minimize CI costs by running only when dependencies actually change
 - **Zero maintenance**: Automated setup and configuration requires no ongoing developer intervention
 
-**Available via:** Claude Code `/setup-package-monitoring`, OpenCode `/setup-package-monitoring`, Codex `/setup-package-monitoring`.
+**Available via:** Claude Code `/setup-package-monitoring`, Codex `/setup-package-monitoring`.
 
 **Common workflow**:
 
@@ -658,12 +679,12 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|   **Category**    | **Document**                                    | **Description**                                          |
-| :---------------: | :---------------------------------------------- | :------------------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions            |
-|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude/OpenCode agent catalog and orchestration guidance |
-|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories              |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components              |
+|   **Category**    | **Document**                                    | **Description**                                 |
+| :---------------: | :---------------------------------------------- | :---------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
+|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude agent catalog and orchestration guidance |
+|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories     |
+| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
 
 ---
 

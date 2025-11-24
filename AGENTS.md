@@ -1,137 +1,122 @@
-# Project: AI-Assisted Workflows
+# AI-Assisted Workflows Developer Guide
 
-A comprehensive development automation system that combines Claude Code CLI workflows, Python analysis tools, and an 8-agent orchestration system for intelligent code quality management.
+This document is for maintainers of the Enaible toolchain inside the `ai-assisted-workflows` repository. It explains how to extend prompts, analyzers, and installers, as well as the checks required before shipping changes. End-user installation and usage live in `README.md`.
 
-## Tech Stack
+## Audience & Expectations
 
-- Languages: Python 3.11+, TypeScript/JavaScript, Bash/Shell, SQL
-- Security Tools: Semgrep (deferred), Detect-secrets
-- Quality Analysis: Lizard, Ruff, JSCPD, Pattern Classifier
-- Testing: pytest, pytest-cov, Karma, Jasmine, Custom evaluation frameworks
-- Development Tools: Biome, Ruff, Black, Rich CLI, Click
-- CI/CD: GitHub Actions, Cross-platform workflows
+- You are updating prompt source files, analyzer implementations, or system installers.
+- You run all quality gates (`ruff`, `mypy`, `pytest`, `enaible prompts diff`) before merging.
+- You keep managed assets in `.codex/`, `.claude/`, `.github/` synchronized via `enaible install`.
 
-## Project Structure
+## Toolchain Requirements
 
+- Python 3.12 (local and CI use the same floor; `tools/enaible/pyproject.toml` enforces `<3.13`).
+- `uv` 0.4 or newer for syncing and running Enaible commands.
+- Bun ≥1.2 with the Ultracite preset when you edit JavaScript/Tailwind resources referenced by managed prompts.
+
+## Repository Structure (maintainer view)
+
+```
 ai-assisted-workflows/
-├── systems/ # CLI workflows and configurations for supported runtimes
-│ ├── claude-code/ # Claude Code CLI workflows and configurations
-│ │ ├── commands/ # 24 slash commands for development workflows
-│ │ ├── agents/ # 23 specialized agents (orchestration, specialists, research/UX, handlers)
-│ │ ├── rules/ # Technology-specific coding standards and best practices
-│ │ ├── templates/ # PRD, subagent, and todo templates
-│ │ ├── docs/ # CLI documentation and integration guides
-│ │ └── install.sh/.ps1 # Cross-platform installation scripts
-│ ├── opencode/ # OpenCode CLI workflows and configurations
-│ │ ├── command/ # 22 commands for development workflows
-│ │ ├── agent/ # 21 specialized agents (parity with Claude where possible)
-│ │ ├── docs/ # CLI documentation and integration guides
-│ │ ├── rules/ # Technology-specific coding standards and best practices
-│ │ ├── plugin/ # Editor plugin hooks and integrations
-│ │ └── install.sh/.ps1 # Cross-platform installation scripts
-│ └── codex/ # Codex CLI prompts, rules, and installers
-│ ├── prompts/ # Prompt definitions and bodies for Codex workflows
-│ ├── rules/ # Codex-specific operating rules and guardrails
-│ └── install.sh/.ps1 # Cross-platform installation scripts
-├── shared/ # Core Python analysis infrastructure
-│ ├── core/base/ # BaseAnalyzer and BaseProfiler frameworks
-│ ├── analyzers/ # 22 analysis tools across 5 categories
-│ │ ├── security/ # Vulnerability scanning and secrets detection
-│ │ ├── quality/ # Code complexity, duplication, and pattern analysis
-│ │ ├── architecture/ # Dependency analysis and scalability checks
-│ │ ├── performance/ # Profiling, bottleneck detection, and optimization
-│ │ └── root_cause/ # Error pattern analysis and trace execution
-│ ├── config/ # Configuration templates and CI workflows
-│ ├── setup/ # Installation scripts and dependency management
-│ └── tests/ # Comprehensive test suite with E2E integration tests
-│ └── integration/ # Security analyzer evaluation and E2E CI testing
-├── test_codebase/ # Controlled test applications for validation
-│ ├── vulnerable-apps/ # 9 vulnerable applications with known security issues
-│ ├── clean-apps/ # 5 clean applications for false positive testing
-│ └── juice-shop-monorepo/ # Complex real-world application for comprehensive testing
-├── docs/ # Comprehensive project documentation
-│ ├── installation.md # Installation and setup guide
-│ ├── agents.md # Agent orchestration system documentation
-│ ├── analysis-scripts.md # Language support and analysis capabilities
-│ ├── monitoring.md # Runtime monitoring and logs guidance
-│ └── roadmap.md # Progress tracking and upcoming work
-└── todos/ # Task management and workflow documentation
+├── shared/
+│   ├── analyzers/          # Security, quality, architecture, performance, root_cause implementations
+│   ├── core/base/          # Analyzer registry + abstractions
+│   ├── context/            # Context capture scripts invoked by enaible
+│   └── prompts/            # Source prompt catalog rendered into CLI commands
+├── systems/
+│   ├── codex/
+│   └── claude-code/        # Managed outputs (prompts/rules) consumed by respective CLIs
+├── tools/enaible/          # uv-packaged Typer CLI providing render/install/run commands
+├── docs/                   # Maintainer guidance (installation, analysis, monitoring, agents, roadmap)
+└── todos/                  # Planning notes and exec plans
+```
 
-### Entry Points
+## Prompt Catalog & Drift Control
 
-- systems/claude-code/commands/ - Claude Code slash commands
-- systems/opencode/command/ - OpenCode slash commands
-- shared/analyzers/ - Direct Python analysis tool execution
-- shared/tests/integration/ - Comprehensive testing and evaluation frameworks
+1. **Author** prompt sources under `shared/prompts/*.md` using the shared tokens/variables patterns.
+2. **Render** every edited prompt for all systems:
+   ```bash
+   uv run --project tools/enaible enaible prompts render --prompt all --system all
+   ```
+3. **Detect drift** before committing:
+   ```bash
+   uv run --project tools/enaible enaible prompts diff
+   uv run --project tools/enaible enaible prompts validate
+   ```
 
-## Architecture
+````
+Both commands must exit `0`. Managed files include `<!-- generated: enaible -->`; do not hand-edit generated blocks.
+4. **Install** regenerated prompts into local scopes when you need to verify in a CLI:
+ ```bash
+ uv run --project tools/enaible enaible install codex --mode sync --scope project --target .
+ uv run --project tools/enaible enaible install claude-code --mode sync --scope project --target .
+````
 
-The system uses a hybrid AI-automation approach combining traditional static analysis with modern ML techniques:
+The installer treats everything under `commands/`, `agents/`, and `rules/` as managed assets even when a sentinel is absent so subsequent installs will overwrite manual edits—apply custom changes to upstream sources instead. 5. **Lint** prompt sources and unmanaged Markdown using:
 
-### Core Components
+```bash
+uv run --project tools/enaible enaible prompts lint
+```
 
-- BaseAnalyzer Framework: Provides shared infrastructure for all 22 analysis tools with strict validation
-- 8-Agent Orchestration: State-machine workflow management with quality gates and CTO escalation
-- Expert Agent Routing: Language and complexity-based delegation to specialized agents
+## Prompt Token Conventions
 
-### Data Flow
+- Use `@TOKEN` placeholders for all non-argument variables inside prompts, including inside code fences. Avoid `$VAR`, `${...}`, and `$(...)` in prompt bodies to prevent accidental argument parsing.
+- Reserve `$`-prefixed tokens only in the `## Variables` section to denote positional/user arguments (e.g., `$1`, `$2`, `$ARGUMENTS`). `$` must not appear elsewhere in a prompt.
+- Examples:
+  - ✅ `- @ARTIFACT_ROOT = .enaible/artifacts/analyze-code-quality/@TIMESTAMP`
+  - ✅ `uv run ... --out "@ARTIFACT_ROOT/quality-lizard.json"`
+  - ❌ `ARTIFACT_ROOT=".enaible/.../$(date -u +%Y%m%dT%H%M%SZ)"`
+  - ❌ `--out "$ARTIFACT_ROOT/quality-lizard.json"`
 
-User Input → Claude Commands → Agent Orchestration → Analysis Tools → Results
+## Analyzer Development Workflow
 
-### Key Integrations
+- Import analyzers through the `analyzers.*` namespace only. The registry bootstrap lives in `shared/core/base/registry_bootstrap.py`.
+- When adding a new analyzer:
+  1. Implement it under the appropriate category in `shared/analyzers/<category>/`.
+  2. Register it via `registry_bootstrap.py`.
+  3. Add coverage in `tools/enaible/tests/` or `shared/tests/` to exercise creation and normalization.
+  4. Expose guidance in the relevant prompt if the workflow relies on it.
+- Preferred execution for local testing:
+  ```bash
+  uv run --project tools/enaible enaible analyzers list
+  uv run --project tools/enaible enaible analyzers run quality:lizard --target . --out .enaible/artifacts/dev/$(date -u +%Y%m%dT%H%M%SZ)/lizard.json
+  ```
+- Manual fallback when debugging outside Enaible:
+  ```bash
+  PYTHONPATH=shared python -m analyzers.quality.complexity_lizard . --output-format json
+  ```
+- Avoid mutating `sys.path` inside analyzers; rely on `load_workspace()` to supply `shared/` when running through Enaible.
 
-- Serena MCP: Enhanced codebase search via Language Server Protocol
-- GitHub Actions: Automated CI/CD with quality gate enforcement
-- Multi-Language LSP: Symbol extraction across 10+ programming languages
+## Quality Gates Before Merging
 
-## Dependencies
+```bash
+uv sync --project tools/enaible
+uv run --project tools/enaible ruff check tools/enaible/src
+uv run --project tools/enaible mypy tools/enaible/src
+uv run --project tools/enaible pytest tools/enaible/tests -v
+uv run --project tools/enaible enaible prompts diff
+```
 
-**Dependencies:**
+Run additional `PYTHONPATH=shared pytest shared/tests` when analyzer behavior changes.
 
-- `requirements-dev.txt` - Minimal CI/testing dependencies (pytest, ruff, mypy)
-- `shared/setup/requirements.txt` - Slim base (lizard, ruff, sqlglot, detect-secrets, infra)
+## Context Capture & Artifact Hygiene
 
-**CI workflow** (`.github/workflows/ci-quality-gates.yml`) - Manually maintained quality gates using dev dependencies for fast execution.
+- Capture session history with:
+  ```bash
+  uv run --project tools/enaible enaible context_capture --platform codex --days 3 --output-format json
+  ```
+- Respect `.enaible/artifacts/<task>/<timestamp>/` for evidence storage. Managed prompts assume this layout.
+- Keep diagnostic records by exporting `enaible doctor` results:
+  ```bash
+  uv run --project tools/enaible enaible doctor --json > .enaible/doctor.json
+  ```
 
-## Script Location Pattern
+## Provenance Governance
 
-**Commands use a standardized script discovery pattern:**
+## Reference Material
 
-Covers command files added under `systems/claude-code/commands/` and `systems/opencode/command/` that invoke scripts located in `shared/` during local development and in their installed locations at runtime.
-
-1. Project-level: `.claude/scripts/analyzers/` and `.opencode/scripts/analyzers/`
-2. User-level: `$HOME/.claude/scripts/analyzers/` and `$HOME/.config/opencode/scripts/analyzers/`
-3. Interactive fallback: Prompt user for a custom path if neither found
-
-Execution: `PYTHONPATH="$SCRIPTS_ROOT" python -m core.cli.run_analyzer --analyzer category:tool --target . --output-format json`
-
-## Testing
-
-**Unit Test Suite:**
-
-- Run all unit tests: `PYTHONPATH=shared pytest shared/tests/unit -v`
-- Run specific test file: `PYTHONPATH=shared pytest shared/tests/unit/test_analyzer_registry.py -v`
-
-**Integration Test Suite:**
-
-- Run all integration tests: `PYTHONPATH=shared pytest shared/tests/integration -v`
-- Run specific integration test: `PYTHONPATH=shared pytest shared/tests/integration/test_integration_all_analyzers.py -v`
-
-**Coverage Reports:**
-
-- Generate coverage report: `PYTHONPATH=shared pytest shared/tests/unit --cov=shared --cov-report=html`
-
-## Analyzer Registration & Imports
-
-To avoid duplicate analyzer registrations during imports (especially in tests), follow these rules:
-
-- Use the `analyzers.*` package root everywhere (implementation and tests). Do not import via `shared.analyzers.*`.
-- The central registry bootstrap (`shared/core/base/registry_bootstrap.py`) imports analyzers via `analyzers.*`. Mixing roots (`shared.analyzers.*` and `analyzers.*`) in the same process causes double registration errors.
-- Always run tests with `PYTHONPATH=shared` so the `analyzers` package root resolves to `shared/analyzers`.
-- If you must patch module-level constants in tests, patch against the `analyzers.*` path (e.g., `analyzers.quality.coverage_analysis._LANGUAGE_CONFIG_PATH`).
-- Never import the same analyzer module through two different roots in a single test session.
-
-Quick example
-
-- Good: `from analyzers.quality.coverage_analysis import TestCoverageAnalyzer`
-- Avoid: `from shared.analyzers.quality.coverage_analysis import TestCoverageAnalyzer`
+- [docs/installation.md](docs/installation.md) — provisioning Enaible and syncing managed assets
+- [docs/analysis-scripts.md](docs/analysis-scripts.md) — analyzer catalog and usage patterns
+- [docs/subagents.md](docs/subagents.md) — managed prompt catalog and render/install workflow
+- [docs/monitoring.md](docs/monitoring.md) — artifact conventions and diagnostics
+- [docs/roadmap.md](docs/roadmap.md) — current milestone tracking

@@ -1,82 +1,124 @@
 # Purpose
 
-Evaluate project architecture for scalability, maintainability, and design-pattern alignment while producing actionable recommendations.
+Evaluate system architecture quality by combining automated structural analyzers with contextual review of layering, coupling, and scalability trade-offs.
 
 ## Variables
 
-- `TARGET_PATH` ← first positional argument; defaults to `.` when omitted.
-- `SCRIPT_PATH` ← absolute path to the architecture analyzer directory resolved during workflow.
-- `$ARGUMENTS` ← raw argument string (space-joined) for logging.
+### Required
+
+- @TARGET_PATH = $1 — path to analyze; defaults to repo root
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
+- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude
+- @VERBOSE = --verbose — emit extended analyzer metadata and reasoning notes
+
+### Derived (internal)
+
+- @ARTIFACT_ROOT = <derived> — timestamped artifacts directory for architecture evidence
 
 ## Instructions
 
-- ALWAYS verify analyzer scripts exist and are readable before running any checks.
-- NEVER substitute per-module CLIs; use the registry-driven runner exclusively.
-- Capture each analyzer’s JSON output for reporting; do not discard raw metrics.
-- Assess architecture dimensions using both quantitative (script output) and qualitative reasoning.
-- Summaries must connect findings to concrete improvement recommendations.
+- ALWAYS run Enaible analyzers; do not call analyzer modules directly.
+- Persist every analyzer output plus derived notes under @ARTIFACT_ROOT for auditability.
+- Tie structural findings to concrete files, modules, or layers before recommending action.
+- Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
+- When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Locate analyzer scripts
-   - Run `ls .claude/scripts/analyzers/architecture/*.py || ls "$HOME/.claude/scripts/analyzers/architecture/"`; if both fail, exit and request a valid path.
-   - When scripts are missing locally, prompt the user for a directory containing `pattern_evaluation.py`, `scalability_check.py`, and `coupling_analysis.py`, then set `SCRIPT_PATH`.
-2. Prepare environment
-   - Derive `SCRIPTS_ROOT="$(cd "$(dirname "$SCRIPT_PATH")/../.." && pwd)"`.
-   - Run `PYTHONPATH="$SCRIPTS_ROOT" python -c "import core.base; print('env OK')"`; exit immediately if it fails.
-3. Run automated analyzers
-   - Execute sequentially:
-     - `architecture:patterns`
-     - `architecture:scalability`
-     - `architecture:coupling`
-     - `architecture:dependency`
-   - Store JSON reports alongside timestamps and command invocations.
-4. Synthesize quantitative findings
-   - Extract metrics: service boundaries, coupling indices, dependency depth, scalability bottlenecks.
-   - Highlight hotspots exceeding thresholds (complexity, fan-in/out, layering).
-5. Perform qualitative assessment
-   - Map findings to architectural concerns: service boundary clarity, SOLID adherence, data flow consistency, deployment topology.
-   - Identify design-pattern compliance and anti-patterns with traceable evidence.
-6. Draft recommendations
-   - Prioritize remediation steps with impact vs. effort notes.
-   - Include architecture diagrams or hierarchy sketches when beneficial.
-7. Deliver final report
-   - Provide structured summary with metrics, risk assessment, and next actions.
-   - Attach raw analyzer outputs or inlined excerpts in an appendix section.
+1. **Establish artifacts directory**
+   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+2. **Run automated analyzers**
+
+   - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
+
+     ```bash
+     enaible analyzers run architecture:patterns \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-patterns.json"
+
+     enaible analyzers run architecture:dependency \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-dependency.json"
+
+     enaible analyzers run architecture:coupling \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-coupling.json"
+
+     enaible analyzers run architecture:scalability \
+       --target "@TARGET_PATH" \
+       --out "@ARTIFACT_ROOT/architecture-scalability.json"
+     ```
+
+   - Add `--min-severity "@MIN_SEVERITY"`, `--exclude "<glob>"`, or `--summary` as needed to control output size; rerun without `--summary` before final delivery.
+   - Document any exclusions in the final report.
+
+3. **Synthesize architecture baseline**
+   - Identify the primary domains, layers, shared libraries, and external interfaces referenced by architecture:patterns.
+   - Note whether observed patterns (CQRS, hexagonal, micro-frontends) align with project standards.
+4. **Dependency & coupling assessment**
+   - Highlight modules with excessive in-degree/out-degree, circular dependencies, or boundary violations surfaced by architecture:dependency and architecture:coupling.
+   - Map findings to concrete files/services and describe user-visible risk (regression blast radius, deployment friction, scalability constraints).
+5. **Scalability evaluation**
+   - Review architecture:scalability signals for bottlenecks (synchronous fan-out, global locks, shared state) and capture recommended guardrails or capacity tests.
+6. **Deliver report**
+   - Summarize architecture health, list hotspots, and propose remediation with impact/effort guidance.
+   - Reference analyzer artifacts directly so stakeholders can inspect raw findings.
 
 ## Output
 
 ```md
 # RESULT
 
-- Summary: Architecture assessment completed for <TARGET_PATH>.
+- Summary: Architecture assessment completed for <@TARGET_PATH>.
+- Artifacts: `.enaible/artifacts/analyze-architecture/<timestamp>/`
 
-## FINDINGS
+## ARCHITECTURE OVERVIEW
 
-- Service Boundaries: <observation + metric>
-- Coupling & Cohesion: <observation + metric>
-- Scalability Risks: <observation + metric>
-- Data Flow & State: <observation + metric>
+- Domain Boundaries: <summary>
+- Layering & Contracts: <summary>
+- Patterns Observed: <summary>
+
+## DEPENDENCY MATRIX (Top Findings)
+
+| Source Module | Target Module | Notes  | Evidence                |
+| ------------- | ------------- | ------ | ----------------------- |
+| <module>      | <module>      | <desc> | architecture:dependency |
+
+## COUPLING HOTSPOTS
+
+| Component | Finding | Impact | Analyzer              |
+| --------- | ------- | ------ | --------------------- |
+| <module>  | <desc>  | <risk> | architecture:coupling |
+
+## RISKS & GAPS
+
+1. <Risk with impact + likelihood>
+2. <Risk>
 
 ## RECOMMENDATIONS
 
-1. <Highest-priority improvement with rationale and expected impact>
-2. <Next action>
+1. <Highest priority architectural remediation>
+2. <Follow-on improvement>
 
 ## ATTACHMENTS
 
-- architecture:patterns → <path to JSON>
-- architecture:scalability → <path to JSON>
-- architecture:coupling → <path to JSON>
-- architecture:dependency → <path to JSON>
+- architecture:patterns → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-patterns.json`
+- architecture:dependency → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-dependency.json`
+- architecture:coupling → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-coupling.json`
+- architecture:scalability → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-scalability.json`
 ```
 
 ## Examples
 
 ```bash
-# Analyze repository architecture from the current directory
+# Run architecture analysis on entire repository
 /analyze-architecture .
 
-# Target a specific service directory
+# Focus on a specific service directory
 /analyze-architecture services/api
 ```

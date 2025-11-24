@@ -23,6 +23,8 @@ REPLACES: Multiple bespoke analyzers with regex patterns
 """
 
 import json
+import os
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -139,8 +141,6 @@ class SemgrepAnalyzer(BaseAnalyzer):
 
     def _is_testing_environment(self) -> bool:
         """Detect if we're running in a testing environment."""
-        import os
-
         # Check for common testing environment indicators
         return any(
             [
@@ -215,12 +215,10 @@ class SemgrepAnalyzer(BaseAnalyzer):
         findings = []
 
         try:
-            # Combine security and secrets rules for single invocation
-            # Using auto config which includes comprehensive security rules
+            # Build semgrep command with configurable rulesets
             cmd = [
                 "semgrep",
                 "scan",
-                "--config=auto",  # Auto includes security rules
                 "--json",
                 "--timeout",
                 "10",  # Faster timeout per file
@@ -232,12 +230,28 @@ class SemgrepAnalyzer(BaseAnalyzer):
                 "4",  # Parallel processing
                 "--optimizations",
                 "all",  # Enable all optimizations
-                "--oss-only",  # Use only OSS rules for speed
             ]
 
-            # Add custom Rust security rules if analyzing Rust files
-            import os
+            # Config override via env
+            configs_str = os.environ.get("AAW_SEMGREP_CONFIGS", "").strip()
+            configs: list[str]
+            if configs_str:
+                configs = [
+                    c.strip() for c in re.split(r"[\n,]+", configs_str) if c.strip()
+                ]
+            else:
+                configs = ["auto"]
+            for cfg in configs:
+                if cfg == "auto":
+                    cmd.append("--config=auto")
+                else:
+                    cmd.extend(["--config", cfg])
 
+            # OSS-only toggle (defaults true)
+            oss_only = os.environ.get("AAW_SEMGREP_OSS_ONLY", "true").lower() != "false"
+            if oss_only:
+                cmd.append("--oss-only")
+            # Add custom Rust security rules if analyzing Rust files
             rust_files = [fp for fp in file_paths if fp.endswith(".rs")]
             if rust_files:
                 rust_rules_path = os.path.join(
@@ -427,11 +441,10 @@ class SemgrepAnalyzer(BaseAnalyzer):
         findings = []
 
         try:
-            # Run Semgrep on the entire directory
+            # Run Semgrep on the entire directory with configurable rulesets
             cmd = [
                 "semgrep",
                 "scan",
-                "--config=auto",  # Auto includes comprehensive security rules
                 "--json",
                 "--timeout",
                 "10",  # Per-file timeout
@@ -443,9 +456,60 @@ class SemgrepAnalyzer(BaseAnalyzer):
                 "4",  # Parallel processing
                 "--optimizations",
                 "all",  # Enable all optimizations
-                "--oss-only",  # Use only OSS rules for speed
-                directory_path,  # Pass directory, not individual files
             ]
+
+            # Config override via env
+            configs_str = os.environ.get("AAW_SEMGREP_CONFIGS", "").strip()
+            configs: list[str]
+            if configs_str:
+                configs = [
+                    c.strip() for c in re.split(r"[\n,]+", configs_str) if c.strip()
+                ]
+            else:
+                configs = ["auto"]
+            for cfg in configs:
+                if cfg == "auto":
+                    cmd.append("--config=auto")
+                else:
+                    cmd.extend(["--config", cfg])
+
+            # OSS-only toggle (defaults true)
+            oss_only = os.environ.get("AAW_SEMGREP_OSS_ONLY", "true").lower() != "false"
+            if oss_only:
+                cmd.append("--oss-only")
+
+            ignore_patterns: set[str] = set()
+
+            for pattern in getattr(self.config, "exclude_globs", set()):
+                trimmed = pattern.strip()
+                if trimmed:
+                    ignore_patterns.add(trimmed)
+
+            for skip in self.config.skip_patterns:
+                sanitized = skip.strip("/")
+                if not sanitized:
+                    continue
+                ignore_patterns.add(sanitized)
+                ignore_patterns.add(f"**/{sanitized}")
+                ignore_patterns.add(f"{sanitized}/**")
+
+                if sanitized.endswith("*") and not sanitized.startswith("**/"):
+                    ignore_patterns.add(f"**/{sanitized}")
+
+            for pattern in getattr(self.config, "gitignore_patterns", []):
+                trimmed = pattern.strip()
+                if not trimmed or trimmed.startswith("#") or trimmed.startswith("!"):
+                    continue
+                ignore_patterns.add(trimmed)
+                if trimmed.endswith("/"):
+                    base = trimmed.rstrip("/")
+                    ignore_patterns.add(f"{trimmed}**")
+                    ignore_patterns.add(f"**/{base}/**")
+
+            for pattern in sorted(p for p in ignore_patterns if p):
+                cmd.extend(["--exclude", pattern])
+
+            cmd.append(directory_path)  # Pass directory, not individual files
 
             self.logger.info(f"Running Semgrep on directory: {directory_path}")
 
@@ -638,8 +702,6 @@ class SemgrepAnalyzer(BaseAnalyzer):
         ]
 
         # Add custom Rust security rules if analyzing Rust code
-        import os
-
         rust_rules_path = os.path.join(
             os.path.dirname(__file__), "rules", "rust-security.yml"
         )

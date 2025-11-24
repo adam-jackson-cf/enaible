@@ -156,8 +156,8 @@ Authoring notes from discussion:
 7. Install/copy destinations and precedence
 
 - Destinations by adapter:
-  - User scope: `~/.claude`, `~/.config/opencode`, `~/.codex`.
-  - Project scope: `./.claude`, `./.opencode`, `./.codex` beneath a provided target path.
+  - User scope: `~/.claude`, `~/.codex`.
+  - Project scope: `./.claude`, `./.codex` beneath a provided target path.
 - Precedence & safety:
   - `merge` updates managed files, preserves unmanaged and user‑modified files.
   - `update` overwrites managed files when fingerprints match prior generated state; warns otherwise.

@@ -4,8 +4,17 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 
 ## Variables
 
-- No positional arguments; operate from the repository root detected via `pwd`.
-- `$ARGUMENTS` is ignored and must remain empty.
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -14,6 +23,7 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 - Detect the active language stack; do NOT assume JavaScript or Python by default.
 - Match hook selections to the detected stack; only include tools that exist in the project.
 - Record the installation approach used (`pip`, `pipx`, `brew`, etc.) in the final summary.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
@@ -63,3 +73,5 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 # Run from a freshly cloned project (no arguments supported)
 /add-code-precommit-checks
 ```
+
+$ARGUMENTS

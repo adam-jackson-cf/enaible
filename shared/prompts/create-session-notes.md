@@ -4,9 +4,19 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 
 ## Variables
 
-- `SESSION_FILE` ← `./session-notes.md` (create if missing).
-- `TIMESTAMP` ← ISO-formatted timestamp (`date -u +"%Y-%m-%dT%H:%M:%SZ"`).
-- `$ARGUMENTS` ← optional context string to insert under Discussion Overview.
+### Required
+
+- (none)
+
+### Optional (derived from $ARGUMENTS)
+
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @SESSION_FILE = --session-file — destination file (default ./session-notes.md)
+- @DISCUSSION_HINT = --overview — optional sentence appended to Discussion Overview
+
+### Derived (internal)
+
+- (none)
 
 ## Instructions
 
@@ -14,26 +24,25 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 - Append—never overwrite—`session-notes.md`; maintain chronological order.
 - Summaries must be factual, concise, and actionable; highlight key decisions and pending items.
 - Use the provided markdown structure exactly; omit sections only when truly empty.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. Prepare workspace
-   - Run `mkdir -p . && test -w .`; exit immediately if the working directory is not writable because session notes must be persisted.
-2. Collect session context
+1. Collect session context
    - Review recent conversation history, executed commands, file edits, and outcomes.
    - Extract key themes, actions, and blockers.
-3. Prepare note entry
+2. Prepare note entry
    - Capture `TIMESTAMP`.
    - Derive bullet lists for Actions Taken, Files Referenced, Outstanding Tasks, etc.
-   - If `$ARGUMENTS` supplied, incorporate into Discussion Overview.
-4. Ensure file availability
+   - If @DISCUSSION_HINT is supplied, incorporate it into Discussion Overview.
+3. Ensure file availability
    - `touch session-notes.md` if the file does not exist.
-5. Append entry
+4. Append entry
    - Use the template below, filling each section with session-specific content.
    - Separate entries with `---`.
-6. Confirm write
+5. Confirm write
    - Optionally display the appended section for verification.
-7. Report completion
+6. Report completion
    - Provide file path and summary of captured highlights.
 
 ## Output
@@ -53,5 +62,5 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 /create-session-notes
 
 # Add contextual hint for discussion overview
-/create-session-notes "Focus: API error triage"
+/create-session-notes --overview "Focus: API error triage"
 ```
