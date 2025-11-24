@@ -1,20 +1,20 @@
-name: Windows PowerShell Installer Testing - Claude
+name: Windows PowerShell Installer Testing - OpenCode
 
 on:
   push:
     branches: [main, develop]
     paths:
-      - "claude-code/install.ps1"
-      - "claude-code/**"
-      - "shared/tests/integration/test_powershell_installer_claude.ps1"
-      - ".github/workflows/test-powershell-installer-claude.yml"
+      - "opencode/install.ps1"
+      - "opencode/**"
+      - "shared/tests/integration/test_powershell_installer_opencode.ps1"
+      - ".github/workflows/test-powershell-installer-opencode.yml"
   pull_request:
     branches: [main, develop]
     paths:
-      - "claude-code/install.ps1"
-      - "claude-code/**"
-      - "shared/tests/integration/test_powershell_installer_claude.ps1"
-      - ".github/workflows/test-powershell-installer-claude.yml"
+      - "opencode/install.ps1"
+      - "opencode/**"
+      - "shared/tests/integration/test_powershell_installer_opencode.ps1"
+      - ".github/workflows/test-powershell-installer-opencode.yml"
   workflow_dispatch:
     inputs:
       test_scenario:
@@ -66,19 +66,19 @@ jobs:
         with:
           node-version: "18"
 
-      - name: Install Claude CLI (mock for testing)
+      - name: Install OpenCode CLI (mock for testing)
         shell: powershell
         run: |
-          # Create a mock claude command for testing
-          $claudeDir = "$env:USERPROFILE\.claude-cli"
-          $claudeBin = "$claudeDir\claude.exe"
-          New-Item -ItemType Directory -Path $claudeDir -Force | Out-Null
+          # Create a mock opencode command for testing
+          $opencodeDir = "$env:USERPROFILE\.opencode-cli"
+          $opencodeBin = "$opencodeDir\opencode.exe"
+          New-Item -ItemType Directory -Path $opencodeDir -Force | Out-Null
 
-          # Create a simple batch file that mimics claude cli
+          # Create a simple batch file that mimics opencode cli
           @"
           @echo off
           if "%1"=="--version" (
-              echo claude-cli 1.0.0
+              echo opencode-cli 1.0.0
               exit /b 0
           )
           if "%1"=="mcp" (
@@ -93,14 +93,14 @@ jobs:
           )
           echo Unknown command: %*
           exit /b 1
-          "@ | Out-File -FilePath "$claudeDir\claude.bat" -Encoding ASCII
+          "@ | Out-File -FilePath "$opencodeDir\opencode.bat" -Encoding ASCII
 
           # Add to PATH for this session
-          $env:PATH = "$claudeDir;$env:PATH"
-          [Environment]::SetEnvironmentVariable("PATH", "$claudeDir;$env:PATH", "Process")
+          $env:PATH = "$opencodeDir;$env:PATH"
+          [Environment]::SetEnvironmentVariable("PATH", "$opencodeDir;$env:PATH", "Process")
 
           # Verify mock installation
-          claude --version
+          opencode --version
 
       - name: Install test dependencies
         run: |
@@ -119,12 +119,12 @@ jobs:
           Write-Output "Node.js: $(node --version)"
           Write-Output "npm: $(npm --version)"
 
-          # Test claude mock
+          # Test opencode mock
           try {
-              $claudeVersion = claude --version
-              Write-Output "Claude CLI (mock): $claudeVersion"
+              $opencodeVersion = opencode --version
+              Write-Output "OpenCode CLI (mock): $opencodeVersion"
           } catch {
-              Write-Output "Claude CLI: Not available"
+              Write-Output "OpenCode CLI: Not available"
           }
 
       - name: Run PowerShell Installer Tests
@@ -138,9 +138,9 @@ jobs:
           Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
 
           # Run the test suite
-          $testScript = "shared/tests/integration/test_powershell_installer_claude.ps1"
+          $testScript = "shared/tests/integration/test_powershell_installer_opencode.ps1"
           if (Test-Path $testScript) {
-              Write-Output "Running Claude PowerShell installer tests..."
+              Write-Output "Running OpenCode PowerShell installer tests..."
               & $testScript -TestScenario $env:TEST_SCENARIO -Verbose
           } else {
               Write-Output "Test script not found: $testScript"
@@ -150,7 +150,7 @@ jobs:
               Write-Output "Running basic installer validation instead..."
 
               # Basic validation of install.ps1
-              $installerScript = "claude-code/install.ps1"
+              $installerScript = "opencode/install.ps1"
               if (Test-Path $installerScript) {
                   Write-Output "Testing installer help:"
                   & $installerScript -Help
@@ -187,7 +187,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.os }}-powershell-core-claude
+          name: test-results-${{ matrix.os }}-powershell-core-opencode
           path: |
             ${{ runner.temp }}/ai-workflows-install.log
             ${{ runner.temp }}/powershell-installer-test/
