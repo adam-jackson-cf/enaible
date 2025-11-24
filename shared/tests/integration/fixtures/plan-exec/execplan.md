@@ -147,7 +147,7 @@ Status key: `@` = in progress, `X` = complete, blank = outstanding. Task types: 
 
 - Store analyzer runs, prompt render logs, and CI transcripts under `.enaible/artifacts/cli-migration/<timestamp>/`.
 - Capture git diffs for `systems/*` outputs plus schema documentation excerpts inside the same artifact folder for reviewers.
-- Record installer dry-run summaries (stdout) to `.enaible/artifacts/cli-migration/install-summary.txt` for provenance.
+- Record installer dry-run summaries (stdout) to `.enaible/artifacts/cli-migration/install-summary.txt` for traceability.
 
 ## PR & Review
 

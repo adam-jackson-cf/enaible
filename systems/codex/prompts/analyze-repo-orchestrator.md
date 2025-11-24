@@ -24,7 +24,7 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 
 - ALWAYS call Enaible analyzers via the CLI (uv + enaible); do not call other prompts from this prompt.
 - Launch each analysis in its own tmux session to run in parallel and avoid blocking on long tasks.
-- Persist all outputs under @ORCH_ROOT and the analyzer-specific directories; capture paths to a manifest for provenance.
+- Persist all outputs under @ORCH_ROOT and the analyzer-specific directories; capture paths to a manifest for traceability.
 - Use the Output section to compute scores deterministically from artifacts (anchors, normalization, and final format).
 
 ## Workflow

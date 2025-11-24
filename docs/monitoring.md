@@ -70,7 +70,7 @@ This keeps ports from colliding with CLI-managed sessions and preserves logs for
 ## Logging & troubleshooting tips
 
 - Pass `--verbose` to analyzers that support it (security, performance) to include expanded metadata.
-- Store generated Markdown summaries (e.g., risk reports) next to raw JSON to maintain provenance.
+- Store generated Markdown summaries (e.g., risk reports) next to raw JSON to maintain traceability.
 - When installing assets, run with `--dry-run` first to inspect planned writes:
 
   ```bash

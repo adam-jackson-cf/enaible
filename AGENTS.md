@@ -113,13 +113,6 @@ Run additional `PYTHONPATH=shared pytest shared/tests` when analyzer behavior ch
 
 ## Provenance Governance
 
-For provenance-aware PR analysis using the sibling repo `../provenance`:
-
-1. `make docker-start` inside `../provenance` (requires GitHub authentication).
-2. Ensure secrets `PROVENANCE_API_URL=http://provenance:8000` and `PROVENANCE_API_TOKEN=<token>` exist on the target repo.
-3. Label PRs with `provenance` to trigger `.github/workflows/provenance-selfhosted.yml`.
-4. `make docker-stop` when finished to tear down the stack and deregister the runner.
-
 ## Reference Material
 
 - [docs/installation.md](docs/installation.md) — provisioning Enaible and syncing managed assets

@@ -26,7 +26,6 @@ This document tracks progress toward fully productizing the Enaible automation s
 
 - Finalize multi-repo installation story with remote target support baked into `enaible install`.
 - Add performance baselines for Bun/TanStack stacks and integrate with Ultracite linting defaults.
-- Harden provenance integration with the optional `../provenance` stack and publish quick-start instructions.
 - Provide migration playbooks for teams moving from legacy prompt sets to the consolidated Enaible catalog.
 
 ## Backlog
