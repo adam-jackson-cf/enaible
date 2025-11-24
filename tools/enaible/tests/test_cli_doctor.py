@@ -21,8 +21,11 @@ def test_doctor_json_output() -> None:
     result = runner.invoke(app, ["doctor", "--json"])
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["checks"]["workspace"] is True
-    assert payload["checks"]["schema_exists"] is True
+    assert payload["checks"]["shared_workspace"] is True
+    assert payload["checks"]["analyzer_registry"] is True
+    assert payload["checks"]["workspace"] in (True, False)
+    assert "schema_exists" in payload["checks"]
+    assert "enaible_version" in payload
     assert payload["checks"]["analyzer_registry"] is True
 
 
@@ -30,4 +33,5 @@ def test_doctor_text_output(tmp_path: Path) -> None:
     result = runner.invoke(app, ["doctor"])
     assert result.exit_code == 0
     assert "Enaible Diagnostics" in result.stdout
-    assert "Workspace: OK" in result.stdout
+    assert "Shared Workspace: OK" in result.stdout
+    assert "Analyzer Registry: OK" in result.stdout

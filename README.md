@@ -98,7 +98,6 @@ uv run --project tools/enaible enaible install claude-code --scope user --mode s
 Notes
 
 - Programmatic prompts (analysis, security, performance) require Python 3.12.
-- For Codex, minimal friction comes from placing scripts inside your project (e.g., `./.codex/scripts`) and launching with workspace write. See the [Installation Guide](docs/installation.md) for helper snippets.
 - The installers copy full system payloads (commands, agents, rules, settings) into your local scope; rerun them after pulling updates to keep managed content in sync.
 
 ---

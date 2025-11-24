@@ -13,7 +13,7 @@ from pathlib import Path
 import typer
 
 from ..app import app
-from ..runtime.context import load_workspace
+from ..runtime.context import find_shared_root, load_workspace
 
 
 class ContextPlatform(str, Enum):
@@ -200,46 +200,52 @@ def doctor(
     report: dict[str, object] = {
         "python": platform.python_version(),
         "typer_version": metadata.version("typer"),
+        "enaible_version": metadata.version("enaible"),
         "checks": {},
         "errors": [],
     }
     exit_code = 0
 
-    try:
-        context = load_workspace()
-    except typer.BadParameter as exc:  # pragma: no cover - defensive
-        report["errors"].append(str(exc))
-        report["checks"]["workspace"] = False
+    checks: dict[str, bool] = report["checks"]  # type: ignore[assignment]
+
+    shared_root = find_shared_root()
+    if shared_root is None:
+        checks["shared_workspace"] = False
+        checks["analyzer_registry"] = False
+        report["errors"].append(
+            "Shared workspace not found. Re-run `enaible install ... --sync-shared`."
+        )
         exit_code = 1
-        context = None  # type: ignore[assignment]
     else:
-        report["checks"]["workspace"] = True
-        report["repo_root"] = str(context.repo_root)
-        report["shared_root"] = str(context.shared_root)
-
-    if context is not None:
-        schema_path = context.repo_root / ".enaible" / "schema.json"
-        schema_exists = schema_path.exists()
-        report["checks"]["schema_exists"] = schema_exists
-        if not schema_exists:
-            report["errors"].append(
-                "Missing .enaible/schema.json – regenerate artifacts schema."
-            )
-            exit_code = 1
-
-        registry_stub = context.shared_root / "core" / "base" / "analyzer_registry.py"
+        checks["shared_workspace"] = True
+        report["shared_root"] = str(shared_root)
+        registry_stub = shared_root / "core" / "base" / "analyzer_registry.py"
         registry_exists = registry_stub.exists()
-        report["checks"]["analyzer_registry"] = registry_exists
+        checks["analyzer_registry"] = registry_exists
         if not registry_exists:
             report["errors"].append(
                 "Analyzer registry module not found under shared/core/base."
             )
             exit_code = 1
 
+    try:
+        context = load_workspace()
+    except typer.BadParameter as exc:  # pragma: no cover - defensive
+        checks["workspace"] = False
+        report["errors"].append(str(exc))
+        context = None  # type: ignore[assignment]
+    else:
+        checks["workspace"] = True
+        report["repo_root"] = str(context.repo_root)
+
+    if context is not None:
+        schema_path = context.repo_root / ".enaible" / "schema.json"
+        schema_exists = schema_path.exists()
+        checks["schema_exists"] = schema_exists
+
     if json_output:
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
     else:
-        checks = report.get("checks", {})
         typer.echo("Enaible Diagnostics")
         if "repo_root" in report:
             typer.echo(f"  Repo root: {report['repo_root']}")

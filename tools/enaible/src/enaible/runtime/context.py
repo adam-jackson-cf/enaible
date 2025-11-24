@@ -67,6 +67,11 @@ def _find_shared_root() -> Path | None:
     return None
 
 
+def find_shared_root() -> Path | None:
+    """Public helper to locate the shared/ workspace root."""
+    return _find_shared_root()
+
+
 def _find_repo_root(start: Path | None = None, require_shared: bool = True) -> Path:
     env_repo = _env_path("ENAIBLE_REPO_ROOT")
     if env_repo is not None and (
