@@ -58,6 +58,14 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["edit", "githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "analyze-security.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "security"},
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -88,7 +96,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Evaluate system architecture for scalability, maintainability, and best practices",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "analyze-architecture.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "analysis"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "analyze-architecture.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "analysis"},
             ),
         },
     ),
@@ -120,7 +144,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Assess code quality and complexity, and highlight high-value refactors",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "analyze-code-quality.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "quality"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "analyze-code-quality.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "quality"},
             ),
         },
     ),
@@ -152,7 +192,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "analyze-performance.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "performance"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "analyze-performance.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "performance"},
             ),
         },
     ),
@@ -184,7 +240,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Perform root cause analysis for a defect or failure",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "analyze-root-cause.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "debugging"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "analyze-root-cause.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "debugging"},
             ),
         },
     ),
@@ -216,7 +288,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Plan a minimal, high-impact refactor with clear boundaries and tests",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "plan-refactor.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "planning"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "plan-refactor.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "planning"},
             ),
         },
     ),
@@ -248,7 +336,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Develop a solution plan for a technical challenge with constraints and milestones",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "plan-solution.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "planning"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "plan-solution.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "planning"},
             ),
         },
     ),
@@ -279,7 +383,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Generate a comprehensive primer for understanding the codebase",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "get-codebase-primer.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "documentation"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "get-codebase-primer.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "documentation"},
             ),
         },
     ),
@@ -313,7 +433,26 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Set up language-appropriate pre-commit hooks for the repo",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems",
+                            "cursor",
+                            "rules",
+                            "add-code-precommit-checks.mdc",
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "development"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "add-code-precommit-checks.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "development"},
             ),
         },
     ),
@@ -345,7 +484,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Load a named rule set and apply its guidance to the session",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "apply-rule-set.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "configuration"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "apply-rule-set.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "configuration"},
             ),
         },
     ),
@@ -377,7 +532,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Scaffold a new project with Better-T-Stack CLI",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "create-project.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "scaffolding"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "create-project.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "scaffolding"},
             ),
         },
     ),
@@ -407,7 +578,21 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Generate an implementation rule file for a technology",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "create-rule.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "configuration"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path("systems", "cursor", "rules", "create-rule.mdc"),
+                frontmatter={},
+                metadata={"rule_category": "configuration"},
             ),
         },
     ),
@@ -441,7 +626,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Append a timestamped summary of the current session to session-notes.md",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "create-session-notes.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "documentation"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "create-session-notes.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "documentation"},
             ),
         },
     ),
@@ -471,7 +672,21 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Produce a UX-focused PRD from a product brief",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "plan-ux-prd.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "planning"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path("systems", "cursor", "rules", "plan-ux-prd.mdc"),
+                frontmatter={},
+                metadata={"rule_category": "planning"},
             ),
         },
     ),
@@ -505,7 +720,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Configure development monitoring, logging, and orchestration",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "setup-dev-monitoring.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "development"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "setup-dev-monitoring.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "development"},
             ),
         },
     ),
@@ -542,7 +773,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install dependency monitoring with Dependabot and audit triggers",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "setup-package-monitoring.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "development"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "setup-package-monitoring.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "development"},
             ),
         },
     ),
@@ -577,7 +824,23 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
+                    "cursor": SystemPromptConfig(
+                        template="docs/system/cursor/templates/rule.mdc.j2",
+                        output_path=_repo_path(
+                            "systems", "cursor", "rules", "get-feature-primer.mdc"
+                        ),
+                        frontmatter={},
+                        metadata={"rule_category": "analysis"},
+                    ),
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/rule.mdc.j2",
+                output_path=_repo_path(
+                    "systems", "cursor", "rules", "get-feature-primer.mdc"
+                ),
+                frontmatter={},
+                metadata={"rule_category": "analysis"},
             ),
         },
     ),

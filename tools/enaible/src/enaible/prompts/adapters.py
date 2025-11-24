@@ -33,4 +33,10 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.github",
         description="GitHub Copilot",
     ),
+    "cursor": SystemRenderContext(
+        name="cursor",
+        project_scope_dir=".cursor",
+        user_scope_dir="~/.cursor",
+        description="Cursor IDE",
+    ),
 }
