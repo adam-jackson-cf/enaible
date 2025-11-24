@@ -88,8 +88,11 @@ uv run --project tools/enaible enaible install claude-code --scope user --mode s
 # for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
 
 # Copilot (GitHub Copilot)
-# Prompts are rendered to systems/copilot/prompts/*.prompt.md
-# Copy files to .github/prompts/ in your project to use with GitHub Copilot
+# not yet implemented
+
+# Cursor
+# not yet implemented
+
 ```
 
 Notes

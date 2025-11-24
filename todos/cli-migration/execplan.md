@@ -80,34 +80,34 @@ Unify analyzer execution and prompt generation across Claude Code, OpenCode, and
 "Gate" - quality gate actions - create/edit/run
 "Human" - manual action that requires human involvement
 
-| Status | Phase # | Task # | Task Type | Description                                                                                                                                        |
-| ------ | ------- | ------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ----- | ------ | --------------------------------------------------------------- |
-| X      | 1       | 1      | Read      | Review `shared/core/base/analyzer_registry.py:1` to map registry APIs needed by Typer commands.                                                    |
-| X      | 1       | 2      | Read      | Inspect `shared/core/cli/run_analyzer.py:1` to capture current argparse behavior and options.                                                      |
-| X      | 1       | 3      | Code      | Create `tools/enaible/pyproject.toml:1` scoped for uv with Typer, Jinja2, and strict type settings.                                                |
-| X      | 1       | 4      | Code      | Add `tools/enaible/src/enaible/__init__.py:1` and `tools/enaible/src/enaible/__main__.py:1` with Typer app skeleton.                               |
-| X      | 1       | 5      | Test      | Establish CLI smoke test at `tools/enaible/tests/test_cli_smoke.py:1` covering `--help` and empty commands.                                        |
-| X      | 1       | 6      | Action    | Run `uv sync` in `tools/enaible/` to materialize the new project environment.                                                                      |
-| X      | 2       | 7      | Code      | Implement `analyzers run` command in `tools/enaible/src/enaible/commands/analyzers.py:1`, delegating to registry adapters.                         |
-| X      | 2       | 8      | Code      | Define normalized result schema in `tools/enaible/src/enaible/models/results.py:1` and persist schema to `.enaible/schema.json:1`.                 |
-| X      | 2       | 9      | Test      | Add contract tests `tools/enaible/tests/test_analyzers_run.py:1` covering exit codes and JSON output.                                              |
-| X      | 2       | 10     | Code      | Implement `analyzers list` with registry introspection in `tools/enaible/src/enaible/commands/analyzers.py:120`.                                   |
-| X      | 3       | 11     | Read      | Audit template directories `docs/system/claude-code/templates/:1`, `docs/system/opencode/templates/:1`, `docs/system/codex/templates/:1` for gaps. |
-| X      | 3       | 12     | Code      | Create adapter module at `tools/enaible/src/enaible/prompts/adapters.py:1` producing frontmatter/context per system.                               |
-| X      | 3       | 13     | Code      | Build render pipeline in `tools/enaible/src/enaible/commands/prompts.py:1` with Jinja2 env and includes.                                           |
-| X      | 3       | 14     | Test      | Add golden template tests `tools/enaible/tests/test_prompts_render.py:1` comparing rendered output fixtures.                                       |
-| X      | 4       | 15     | Read      | Review `shared/prompts/analyze-security.md:1` and `shared/prompts/get-primer.md:1` to plan replacement of path-probing blocks.                     |
-| X      | 4       | 16     | Code      | Refactor shared prompts under `shared/prompts/*.md:1` to invoke `enaible analyzers run …` and remove legacy instructions.                          |
-| X      | 4       | 17     | Action    | Execute `uv run enaible prompts render -s claude-code -p analyze-security -o systems/claude-code/commands` for pilot validation.                   |
-| X      | 4       | 18     | Test      | Capture pre/post diffs via `uv run enaible prompts diff` ensuring zero drift before expanding scope.                                               |
-| X      | 5       | 19     | Code      | Add CI job in `.github/workflows/ci-quality-gates-incremental.yml:1` invoking `uv run enaible prompts render` and `uv run enaible prompts diff`.   |
-| X      | 5       | 20     | Code      | Update `.gitignore:1` to include `.enaible/` artifacts and rendered scratch directories.                                                           |
-| X      | 5       | 21     | Test      | Author CLI smoke script `tools/enaible/tests/test_cli_doctor.py:1` covering `enaible doctor`.                                                      |
-| X      | 5       | 22     | Gate      | Document quality gate commands in `README.md:1` and `docs/system/claude-code/templates/USAGE.md:1`.                                                |
-| X      | 6       | 23     | Code      | Implement `enaible install` command with `fresh                                                                                                    | merge | update | sync`modes in`tools/enaible/src/enaible/commands/install.py:1`. |
-| X      | 6       | 24     | Test      | Write integration test `tools/enaible/tests/test_install_command.py:1` validating merge/update behaviors on managed/unmanaged files.               |
-| X      | 6       | 25     | Action    | Produce rollout playbook in `docs/enaible/migration-guide.md:1` and update `session-notes.md:1` with adoption milestones.                          |
-| X      | 6       | 26     | Human     | Schedule enablement session with system owners to hand off new CLI workflows.                                                                      |
+| Status | Phase # | Task # | Task Type | Description                                                                                                                                      |
+| ------ | ------- | ------ | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----- | ------ | --------------------------------------------------------------- |
+| X      | 1       | 1      | Read      | Review `shared/core/base/analyzer_registry.py:1` to map registry APIs needed by Typer commands.                                                  |
+| X      | 1       | 2      | Read      | Inspect `shared/core/cli/run_analyzer.py:1` to capture current argparse behavior and options.                                                    |
+| X      | 1       | 3      | Code      | Create `tools/enaible/pyproject.toml:1` scoped for uv with Typer, Jinja2, and strict type settings.                                              |
+| X      | 1       | 4      | Code      | Add `tools/enaible/src/enaible/__init__.py:1` and `tools/enaible/src/enaible/__main__.py:1` with Typer app skeleton.                             |
+| X      | 1       | 5      | Test      | Establish CLI smoke test at `tools/enaible/tests/test_cli_smoke.py:1` covering `--help` and empty commands.                                      |
+| X      | 1       | 6      | Action    | Run `uv sync` in `tools/enaible/` to materialize the new project environment.                                                                    |
+| X      | 2       | 7      | Code      | Implement `analyzers run` command in `tools/enaible/src/enaible/commands/analyzers.py:1`, delegating to registry adapters.                       |
+| X      | 2       | 8      | Code      | Define normalized result schema in `tools/enaible/src/enaible/models/results.py:1` and persist schema to `.enaible/schema.json:1`.               |
+| X      | 2       | 9      | Test      | Add contract tests `tools/enaible/tests/test_analyzers_run.py:1` covering exit codes and JSON output.                                            |
+| X      | 2       | 10     | Code      | Implement `analyzers list` with registry introspection in `tools/enaible/src/enaible/commands/analyzers.py:120`.                                 |
+| X      | 3       | 11     | Read      | Audit template directories `docs/system/claude-code/templates/:1` and `docs/system/codex/templates/:1` for gaps.                                 |
+| X      | 3       | 12     | Code      | Create adapter module at `tools/enaible/src/enaible/prompts/adapters.py:1` producing frontmatter/context per system.                             |
+| X      | 3       | 13     | Code      | Build render pipeline in `tools/enaible/src/enaible/commands/prompts.py:1` with Jinja2 env and includes.                                         |
+| X      | 3       | 14     | Test      | Add golden template tests `tools/enaible/tests/test_prompts_render.py:1` comparing rendered output fixtures.                                     |
+| X      | 4       | 15     | Read      | Review `shared/prompts/analyze-security.md:1` and `shared/prompts/get-primer.md:1` to plan replacement of path-probing blocks.                   |
+| X      | 4       | 16     | Code      | Refactor shared prompts under `shared/prompts/*.md:1` to invoke `enaible analyzers run …` and remove legacy instructions.                        |
+| X      | 4       | 17     | Action    | Execute `uv run enaible prompts render -s claude-code -p analyze-security -o systems/claude-code/commands` for pilot validation.                 |
+| X      | 4       | 18     | Test      | Capture pre/post diffs via `uv run enaible prompts diff` ensuring zero drift before expanding scope.                                             |
+| X      | 5       | 19     | Code      | Add CI job in `.github/workflows/ci-quality-gates-incremental.yml:1` invoking `uv run enaible prompts render` and `uv run enaible prompts diff`. |
+| X      | 5       | 20     | Code      | Update `.gitignore:1` to include `.enaible/` artifacts and rendered scratch directories.                                                         |
+| X      | 5       | 21     | Test      | Author CLI smoke script `tools/enaible/tests/test_cli_doctor.py:1` covering `enaible doctor`.                                                    |
+| X      | 5       | 22     | Gate      | Document quality gate commands in `README.md:1` and `docs/system/claude-code/templates/USAGE.md:1`.                                              |
+| X      | 6       | 23     | Code      | Implement `enaible install` command with `fresh                                                                                                  | merge | update | sync`modes in`tools/enaible/src/enaible/commands/install.py:1`. |
+| X      | 6       | 24     | Test      | Write integration test `tools/enaible/tests/test_install_command.py:1` validating merge/update behaviors on managed/unmanaged files.             |
+| X      | 6       | 25     | Action    | Produce rollout playbook in `docs/enaible/migration-guide.md:1` and update `session-notes.md:1` with adoption milestones.                        |
+| X      | 6       | 26     | Human     | Schedule enablement session with system owners to hand off new CLI workflows.                                                                    |
 
 ## Progress Per Session (Running Summary Log)
 
