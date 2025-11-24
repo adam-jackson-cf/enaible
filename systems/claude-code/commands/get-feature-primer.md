@@ -1,9 +1,8 @@
 ---
-argument-hint: [--user-prompt] [--out] [--exclude]
-description: Analyse a codebase in relation to a specific user request to create a supporting context
+argument-hint: <task-brief> [--target <path>]
 ---
 
-# get-feature-primer v0.4
+# get-feature-primer v0.3
 
 ## Purpose
 
@@ -17,9 +16,10 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
 
 ### Optional (derived from $ARGUMENTS)
 
-- @TARGET_PATH = --target-path — root to analyze (default .)
+- @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
+- @TARGET_PATH = --target — root to analyze (default .)
 - @OUT = --out — write the final Markdown to this path (also print to stdout)
-- @DAYS = --days — window for history insights (default 20)
+- @DAYS = --days — history window for insights (default 20)
 - @EXCLUDE_GLOBS = --exclude [repeatable] — CSV or repeated flags (e.g., node_modules,dist)
 
 ## Instructions
@@ -30,12 +30,13 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
 - Format every section for quick scanning: short paragraphs, bullet lists, and tables. Keep guidance concise and documentation-focused.
 - When secrets are encountered, note file and nature only—never print the secret.
 - Default to the repository root when @TARGET_PATH is not supplied; respect @EXCLUDE_GLOBS for all searches.
+- Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
 1. **Scope & Setup**
 
-   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving `EXCLUDE_ARG` from `.gitignore` (and `.git/info/exclude` when present).
+   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving EXCLUDE_ARG from `.gitignore` (and `.git/info/exclude` when present).
    - Confirm the command operates read-only except for writing the final report to @OUT.
 
 2. **Deep Analysis (LLM + file-driven)**
@@ -53,12 +54,12 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
 
 3. **Git History & Pattern Recognition (last @DAYS days)**
 
-   - Run history commands to surface recent themes, key contributors, and churn hotspots (default to 20 days when @DAYS is omitted):
+   - Run history commands to surface recent themes, key contributors, and churn hotspots:
 
      ```bash
      git status
-     git log --since="<@DAYS> days ago"
-     git shortlog -sn --since="<@DAYS> days ago"
+     git log --since="${DAYS:-20} days ago"
+     git shortlog -sn --since="${DAYS:-20} days ago"
      ```
 
    - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
@@ -224,3 +225,5 @@ project-root/
 - `/get-feature-primer "Identify auth risks in API" . --exclude node_modules,dist`
 - `/get-feature-primer "Assess React route performance" web/`
 ```
+
+<!-- generated: enaible -->
