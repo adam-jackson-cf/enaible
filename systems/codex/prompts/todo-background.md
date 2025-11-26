@@ -6,7 +6,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 ### Required
 
-- @USER_PROMPT — first CLI argument; background task brief forwarded to Codex.
+- @USER_PROMPT = $1 — first CLI argument; background task brief forwarded to Codex.
 
 ### Optional (derived from @ARGUMENTS)
 
@@ -15,7 +15,11 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 ### Derived (internal)
 
-- (none)
+- @SESSION_NAME — unique tmux session name for this background task
+- @TIMESTAMP — UTC timestamp for file naming and session identification
+- @MODEL_NAME — parsed Codex model name from @MODEL_SELECTOR
+- @ENHANCED_PROMPT — user prompt with appended reporting instructions
+- @PROCESS_ID — PID of the tmux pane running Codex
 
 ## Instructions
 

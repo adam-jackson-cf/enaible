@@ -124,6 +124,7 @@ def _format_variables_block(variables: list[VariableSpec]) -> list[str]:
         lines.append("### Derived (internal)")
         lines.append("")
         for var in derived:
+            # For derived variables, omit the "= <value>" part
             detail = var.description or var.type_text.strip()
             suffix = f" — {detail}" if detail else ""
             lines.append(f"- {var.token}{suffix}")
@@ -267,10 +268,16 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
         mapping_part = desc_split[0].strip()
         description = desc_split[1].strip() if len(desc_split) > 1 else ""
 
+        # For derived variables, allow just "@TOKEN — description" without "= value"
         parts = _MAPPING_SPLIT.split(mapping_part)
-        if len(parts) != 2:
+        if len(parts) == 1 and section == "derived":
+            # Derived variable without explicit mapping: "@TOKEN — description"
+            token_part = parts[0].strip()
+            value_part = None
+        elif len(parts) == 2:
+            token_part, value_part = parts[0].strip(), parts[1].strip()
+        else:
             continue
-        token_part, value_part = parts[0].strip(), parts[1].strip()
 
         tok_match = _TOKEN_RE.match(token_part)
         if not tok_match:
@@ -279,7 +286,7 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
             )
         token = f"@{tok_match.group(1)}"
 
-        repeatable = "[repeatable]" in value_part.lower()
+        repeatable = "[repeatable]" in value_part.lower() if value_part else False
 
         kind = "derived"
         required = section == "required"
@@ -288,6 +295,10 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
         type_text: str
 
         if section == "required":
+            if not value_part:
+                raise ValueError(
+                    f"Required variable '{token}' must have a mapping (e.g., $1)."
+                )
             pos_m = _POS_VALUE.match(value_part)
             if not pos_m:
                 raise ValueError(
@@ -302,6 +313,10 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
             kind = "positional"
             type_text = f"positional ${positional_index} (REQUIRED)"
         elif section == "optional":
+            if not value_part:
+                raise ValueError(
+                    f"Optional variable '{token}' must have a mapping (e.g., --flag)."
+                )
             flag_m = _FLAG_VALUE.match(value_part)
             if not flag_m:
                 raise ValueError(f"Optional variable '{token}' must map to a --flag.")
