@@ -20,17 +20,17 @@ State the objective in one sentence. Be direct and outcome‑focused.
 
 <!-- Bind positional arguments or flags used by the prompt. Prefix all resolved variables with `$` to avoid ambiguity. -->
 
-- Define explicit, $‑prefixed variable names for clarity:
-  - $1 → $TARGET (or domain‑specific name)
-  - $2 → $SCOPE (optional)
-  - $3 → $MESSAGE (optional)
+- Define explicit, @‑prefixed variable names for clarity:
+  - $1 → @TARGET (or domain‑specific name)
+  - $2 → @SCOPE (optional)
+  - $3 → @MESSAGE (optional)
   - $4..$9 → additional specifics (document if used)
   - $ARGUMENTS → full raw argument string (space‑joined)
 - Flags map to $‑prefixed variables (examples):
-  - --remote → $REMOTE (default "origin")
-  - --worktrees → $WORKTREES (default ".worktrees")
-  - --days → $DAYS (default 20)
-  - --exclude → $EXCLUDE_GLOBS (CSV)
+  - --remote → @REMOTE (default "origin")
+  - --worktrees → @WORKTREES (default ".worktrees")
+  - --days → @DAYS (default 20)
+  - --exclude → @EXCLUDE_GLOBS (CSV)
 
 ## Instructions
 
@@ -106,18 +106,6 @@ This section should be the final output report to the user in a structure detail
 }
 ```
 
-## Examples (optional)
-
-<!-- Show CLI invocations. Include only when helpful. -->
-
-```bash
-# 1) Minimal invocation with positional arguments
-/<command-name> feat api "add pagination"
-
-# 2) With explicit target path as $1 (used by Environment checks)
-/<command-name> ./services/api
-```
-
 </prompt_template>
 
 ## Example prompts
@@ -132,13 +120,13 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 ## Variables
 
-- `$TARGET_PATH` ← first positional argument (default `.`)
-- `$SCRIPT_PATH` ← resolved performance analyzer directory
-- `$ARGUMENTS` ← raw argument string (for logging)
+- `@TARGET_PATH` ← first positional argument (default `.`)
+- `@SCRIPT_PATH` ← resolved performance analyzer directory
+- `@ARGUMENTS` ← raw argument string (for logging)
 
 Resolution rules
 
-- Resolve `$TARGET_PATH`/`$SCRIPT_PATH` in INIT; use only resolved variables thereafter.
+- Resolve `@TARGET_PATH`/`@SCRIPT_PATH` in INIT; use only resolved variables thereafter.
 
 ## Instructions
 
@@ -202,16 +190,6 @@ Resolution rules
 - performance:flake8-perf → <path>
 - performance:frontend → <path>
 - performance:sqlfluff → <path>
-```
-
-## Examples
-
-```bash
-# Run full performance assessment
-/analyze-performance .
-
-# Target a service directory
-/analyze-performance services/api
 ```
 
 </prompt_example>

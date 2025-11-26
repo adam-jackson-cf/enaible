@@ -23,5 +23,4 @@ Then exercise any analyzer calls via `enaible analyzers run ...` and keep artifa
 - Variables section: use the standard bullet layout under `## Variables` with `### Required / ### Optional (derived from $ARGUMENTS) / ### Derived (internal)` and `@TOKEN = $N` / `@TOKEN = --flag` mappings. No `$` tokens elsewhere in the body.
 - Token usage: all placeholders are `@TOKEN` and must be declared in Variables; lint enforces this.
 - Managed sentinel: don’t add it manually—the renderer injects `<!-- generated: enaible -->` into system outputs.
-
-- For full formatting and section ordering, mirror the pattern in `docs/system/templates/prompt.md`.
+- Use the exact template and pattern to mirror can be found here `docs/system/templates/prompt.md`.
