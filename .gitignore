@@ -109,6 +109,9 @@ test_codebase/.claude/
 # Development history
 .specstory/
 
+# Beads task tracking database
+.beads/
+
 # cache files
 .mypy_cache/
 .pytest_cache/

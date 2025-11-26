@@ -197,42 +197,26 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
    - Add or update Beads documentation section:
 
      ````md
-     ### Beads - AI Agent Task Memory
+     ### Beads (bd) - Task Tracking
 
-     Beads (bd) provides git-backed, persistent task tracking across Claude Code sessions with dependency management.
+     **Task Protocol:**
 
-     **Installation:**
-
-     ```bash
-     # Install bd binary (Go)
-     brew install steveyegge/beads/bd
-     # OR download from: https://github.com/steveyegge/beads/releases
-
-     # Initialize in project
-     bd init
-     ```
-     ````
-
-     **Task Management Protocol:**
-
-     1. **Listing tasks**: When asked about project tasks or what to work on, reference the bd ready list automatically loaded in your context at SessionStart
-     2. **Creating todos**: When creating TodoWrite items for bd tasks, ALWAYS include the bd ID in the content:
-        - Format: `[bd-123] Task description`
-        - Example: `[bd-45] Implement JWT authentication`
-     3. **Viewing tasks**: Run `bd ready` to see actionable tasks, `bd list` for all open tasks
-     4. **Closing tasks**: Completed TodoWrite items with bd IDs are auto-closed via PostToolUse hook
+     - When creating TodoWrite items for bd tasks, ALWAYS use format: `[<issue-id>] Task description`
+     - SessionStart auto-loads bd ready list — reference it when asked about tasks
+     - Completed todos with bd IDs auto-close via PostToolUse hook
 
      **Common commands:**
 
      - `bd ready --limit 10` — Show ready-to-work tasks (no blockers)
-     - `bd show bd-123` — View task details and dependencies
-     - `bd add "Task description"` — Create new task
-     - `bd close bd-123` — Mark task complete
+     - `bd show <issue-id>` — View task details and dependencies
+     - `bd create "Task description"` — Create new task
+     - `bd close <issue-id>` — Mark task complete
      - `bd list --label backend` — Filter by labels
 
      ```
 
      ```
+     ````
 
 10. Validate setup
     - Verify bd binary accessible: `bd --version`
@@ -240,7 +224,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
     - Verify `.beads/` in `.gitignore`
     - Test hooks configuration syntax (if validation available)
     - Run `bd list` to confirm database initialized
-    - Provide instructions to test: create a task with `bd add "Test task"`, then run `bd ready`
+    - Provide instructions to test: create a task with `bd create "Test task"`, then run `bd ready`
 
 ## Output
 
@@ -269,10 +253,10 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 
 ## NEXT STEPS
 
-1. Create a test task: `bd add "Test Beads integration"`
+1. Create a test task: `bd create "Test Beads integration"`
 2. View ready tasks: `bd ready`
 3. In Claude Code session, verify tasks appear at SessionStart
-4. Create TodoWrite item with `[bd-1] Test Beads integration` format
+4. Create TodoWrite item with `[<issue-id>] Test Beads integration` format (use actual issue ID from step 1)
 5. Complete the todo and verify bd auto-closes the task
 ```
 

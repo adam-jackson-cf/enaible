@@ -263,6 +263,10 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
             continue
         content = m.group(1)
 
+        # Skip placeholder indicating no variables in this section
+        if content.strip() == "(none)":
+            continue
+
         # Split description if provided using em dash or hyphen dash separation
         desc_split = re.split(r"\s+—\s+|\s+-\s+", content, maxsplit=1)
         mapping_part = desc_split[0].strip()

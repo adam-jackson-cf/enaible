@@ -77,42 +77,27 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 
      ```bash
      # Start Chrome with remote debugging
-     browser-start.js              # Fresh profile
-     browser-start.js --profile    # Use your Chrome profile (preserves logins)
+     @INSTALL_DIR/browser-start.js              # Fresh profile
+     @INSTALL_DIR/browser-start.js --profile    # Use your Chrome profile (preserves logins)
 
      # Navigate to your app
-     browser-nav.js http://localhost:3000
+     @INSTALL_DIR/browser-nav.js http://localhost:3000
 
      # Take a screenshot to verify UI
-     browser-screenshot.js
+     @INSTALL_DIR/browser-screenshot.js
      ```
      ````
 
      **Available Commands:**
 
-     - `browser-start.js` — Launch Chrome with remote debugging on `:9222`
-     - `browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
-     - `browser-screenshot.js` — Capture current viewport, returns temp file path
-     - `browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
-     - `browser-pick.js` — Interactive element selector (returns CSS selectors)
-     - `browser-cookies.js` — Display all cookies for debugging auth/sessions
-     - `browser-search.js <query>` — Search Google and return results
-     - `browser-content.js` — Extract page content as markdown
-
-     **Optional Shell Aliases:**
-
-     For shorter commands, you can add these aliases to your shell configuration:
-
-     ```bash
-     alias bt-start="browser-start.js"
-     alias bt-nav="browser-nav.js"
-     alias bt-screenshot="browser-screenshot.js"
-     alias bt-eval="browser-eval.js"
-     alias bt-pick="browser-pick.js"
-     alias bt-cookies="browser-cookies.js"
-     alias bt-search="browser-search.js"
-     alias bt-content="browser-content.js"
-     ```
+     - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
+     - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
+     - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
+     - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
+     - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
+     - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
+     - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
+     - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
 
      ```
 

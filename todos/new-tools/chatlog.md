@@ -155,7 +155,7 @@ comprehensive plan:
 │ - Installation via bd binary │
 │ - bd init setup │
 │ - Instructions for Claude Code to use bd commands │
-│ - Basic command reference (bd list, bd add, bd done, etc.) │
+│ - Basic command reference (bd list, bd create, bd close, etc.) │
 │ │
 │ --- │
 │ Open Questions │
@@ -299,7 +299,7 @@ If you want to track which session created a bd item, you could:
 
 # PostToolUse hook when syncing to bd
 
-bd add "Implement user auth" --label "session:abc123" --label "claude-code"
+bd create "Implement user auth" --label "session:abc123" --label "claude-code"
 
 But filtering should be by status (bd ready, bd blocked), priority (--priority 1), or labels (--label backend), not by session ID.
 
@@ -497,9 +497,9 @@ Does this clarify the mechanics?
 
      Common commands:
      - bd ready --limit 10 - Show ready-to-work tasks
-     - bd show bd-123 - View task details
-     - bd add "Task description" - Create new task
-     - bd close bd-123 - Mark task complete
+     - bd show <issue-id> - View task details
+     - bd create "Task description" - Create new task
+     - bd close <issue-id> - Mark task complete
 
      #### Atuin - Enhanced Shell History
      ```markdown
@@ -701,9 +701,9 @@ Does this clarify the mechanics?
 140 +
 141 + **Common commands:**
 142 + - `bd ready --limit 10` — Show ready-to-work tasks (no blockers)
-143 + - `bd show bd-123` — View task details and dependencies
-144 + - `bd add "Task description"` — Create new task
-145 + - `bd close bd-123` — Mark task complete
+143 + - `bd show <issue-id>` — View task details and dependencies
+144 + - `bd create "Task description"` — Create new task
+145 + - `bd close <issue-id>` — Mark task complete
 146 + - `bd list --label backend` — Filter by labels
 147 +
 148 + ### Atuin - Enhanced Shell History
@@ -828,7 +828,7 @@ To activate this integration:
 
 # Create a test task
 
-bd add "Test integration" --json
+bd create "Test integration" --json
 
 # In next Claude session, ask: "What tasks are ready?"
 

@@ -144,9 +144,9 @@ bd init
 **Common commands:**
 
 - `bd ready --limit 10` — Show ready-to-work tasks (no blockers)
-- `bd show bd-123` — View task details and dependencies
-- `bd add "Task description"` — Create new task
-- `bd close bd-123` — Mark task complete
+- `bd show <issue-id>` — View task details and dependencies
+- `bd create "Task description"` — Create new task
+- `bd close <issue-id>` — Mark task complete
 - `bd list --label backend` — Filter by labels
 
 ### Atuin - Enhanced Shell History

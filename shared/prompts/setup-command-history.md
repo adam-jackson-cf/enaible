@@ -77,36 +77,17 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
    - Add or update Atuin documentation section:
 
      ````md
-     ### Atuin - Enhanced Shell History
+     ### Atuin - Shell History
 
-     Atuin replaces default shell history with SQLite database, providing searchable command history with full context (directory, duration, timestamp).
-
-     **Installation:**
-
-     ```bash
-     curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
-     atuin register -u <username> -e <email>  # Optional: encrypted cloud sync
-     ```
-     ````
-
-     **Usage:**
-
-     - **Ctrl+R** — Enhanced search UI with fuzzy finding
-     - Commands executed via AGENT Bash tool are automatically captured with directory context
+     - **Ctrl+R** for enhanced search UI with fuzzy finding
+     - All Bash commands auto-captured with directory context
      - Search history: `atuin search <term>`
      - Sync across machines: `atuin sync` (end-to-end encrypted)
 
-     **Key Features:**
-
-     - SQLite-backed command history with full context
-     - Fuzzy search with Ctrl+R interactive UI
-     - Optional end-to-end encrypted cloud sync
-     - Automatic capture of AGENT Bash commands
-     - Directory-aware command history
-
      ```
 
      ```
+     ````
 
 7. Test installation
    - Source shell config or instruct user to restart shell:
