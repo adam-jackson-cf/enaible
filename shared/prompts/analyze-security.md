@@ -27,12 +27,21 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Map findings to OWASP Top 10 categories, business impact, and exploitability.
 - Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
 - When @VERBOSE is provided, include exhaustive vulnerability details, gap tables, and remediation notes.
+- Run reconnaissance before analyzers to detect project context and auto-apply smart exclusions.
+- After synthesis, explicitly identify gaps in deterministic tool coverage and backfill where possible.
 
 ## Workflow
 
 1. **Establish artifacts directory**
    - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-2. **Run automated analyzers**
+2. **Reconnaissance**
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Detect layout: monorepo vs single-project, primary language(s), auth framework indicators
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Merge with any user-provided @EXCLUDE patterns
+   - Note security-relevant context: auth libraries, secrets management tools, infrastructure-as-code configs
+   - Log applied exclusions for final report
+3. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
 
@@ -50,21 +59,29 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - **STOP (skip when @AUTO):** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
-3. **Phase 2 — Gap Assessment & Contextual Analysis**
+4. **Phase 2 — Gap Assessment & Contextual Analysis**
+   - List what the analyzers checked (code patterns, hardcoded secrets) vs. what they cannot check
    - Compare analyzer coverage versus OWASP Top 10 and stack-specific concerns.
    - Perform targeted manual review for auth, configuration, secrets management, supply chain, and data flow gaps.
+   - For each gap category:
+     - Business logic authorization: inspect permission checks and role-based access
+     - Implicit trust boundaries: review service-to-service auth and internal API security
+     - Data flow assumptions: trace sensitive data through the system
+   - If inspectable via code reading: perform targeted review, cite evidence
+   - If requires runtime/external info: flag as "requires manual verification"
+   - Assign confidence: High (tool + LLM agreement), Medium (LLM inference only), Low (couldn't verify)
    - Document technology-specific validations (e.g., Django CSRF, React XSS mitigations, Express headers, Terraform security controls).
    - Capture contextual notes in `@ARTIFACT_ROOT/gap-analysis.md`.
-   - **STOP (skip when @AUTO):** “Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)”
+   - **STOP (skip when @AUTO):** "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)"
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
-4. **Phase 3 — Risk Prioritization & Reporting**
+5. **Phase 3 — Risk Prioritization & Reporting**
    - Merge automated findings with contextual insights.
    - Assign impact \* likelihood scoring to derive Critical/High/Medium/Low grading.
    - Build a remediation roadmap with milestone-based sequencing (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening tasks).
    - Snapshot risk posture in `@ARTIFACT_ROOT/risk-summary.md`.
-   - **STOP (skip when @AUTO):** “Security analysis complete and validated. Transfer findings to todos.md? (y/n)”
+   - **STOP (skip when @AUTO):** "Security analysis complete and validated. Transfer findings to todos.md? (y/n)"
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
-5. **Phase 4 — Quality Validation & Task Transfer**
+6. **Phase 4 — Quality Validation & Task Transfer**
    - Confirm the following before closure:
      - OWASP Top 10 categories reviewed with supporting evidence.
      - Analyzer outputs parsed and cross-referenced.
@@ -81,6 +98,12 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Summary: Security analysis completed for <@TARGET_PATH> on <date/time>.
 - Artifacts: `.enaible/artifacts/analyze-security/<timestamp>/`
 
+## RECONNAISSANCE
+
+- Project type: <monorepo|single-project>
+- Primary stack: <languages/frameworks detected>
+- Auto-excluded: <patterns applied>
+
 ## FINDINGS
 
 | Severity | OWASP Category           | Location / Asset                | Description                          | Evidence Source         |
@@ -94,6 +117,14 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Scorecard: <overall risk score or narrative>
 - Blocking Issues: <list of critical/high items>
 - Recommended Timeline: <immediate / short-term / long-term>
+
+## GAP ANALYSIS
+
+| Gap Category                 | Status            | Finding                                     | Confidence      |
+| ---------------------------- | ----------------- | ------------------------------------------- | --------------- |
+| Business logic authorization | Inspected         | <finding>                                   | High/Medium/Low |
+| Implicit trust boundaries    | Inspected/Flagged | <finding or "requires manual verification"> | High/Medium/Low |
+| Data flow assumptions        | Inspected         | <finding>                                   | High/Medium/Low |
 
 ## REMEDIATION ROADMAP
 

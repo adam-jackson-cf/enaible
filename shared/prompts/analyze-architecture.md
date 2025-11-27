@@ -27,12 +27,21 @@ Evaluate system architecture quality by combining automated structural analyzers
 - Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
 - When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
+- Run reconnaissance before analyzers to detect project context and auto-apply smart exclusions.
+- After synthesis, explicitly identify gaps in deterministic tool coverage and backfill where possible.
 
 ## Workflow
 
 1. **Establish artifacts directory**
    - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-2. **Run automated analyzers**
+2. **Reconnaissance**
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Detect layout: monorepo vs single-project, primary language(s), framework conventions
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Merge with any user-provided @EXCLUDE patterns
+   - Note architectural patterns to look for based on detected stack (e.g., Rails conventions, Spring layers, React component hierarchy)
+   - Log applied exclusions for final report
+3. **Run automated analyzers**
 
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
@@ -57,15 +66,24 @@ Evaluate system architecture quality by combining automated structural analyzers
    - Add `--min-severity "@MIN_SEVERITY"`, `--exclude "<glob>"`, or `--summary` as needed to control output size; rerun without `--summary` before final delivery.
    - Document any exclusions in the final report.
 
-3. **Synthesize architecture baseline**
+4. **Synthesize architecture baseline**
    - Identify the primary domains, layers, shared libraries, and external interfaces referenced by architecture:patterns.
    - Note whether observed patterns (CQRS, hexagonal, micro-frontends) align with project standards.
-4. **Dependency & coupling assessment**
+5. **Dependency & coupling assessment**
    - Highlight modules with excessive in-degree/out-degree, circular dependencies, or boundary violations surfaced by architecture:dependency and architecture:coupling.
    - Map findings to concrete files/services and describe user-visible risk (regression blast radius, deployment friction, scalability constraints).
-5. **Scalability evaluation**
+6. **Scalability evaluation**
    - Review architecture:scalability signals for bottlenecks (synchronous fan-out, global locks, shared state) and capture recommended guardrails or capacity tests.
-6. **Deliver report**
+7. **Identify coverage gaps**
+   - List what the analyzers checked (structural patterns, dependency graphs, coupling metrics, scalability signals) vs. what they cannot check
+   - For each gap category:
+     - Business domain alignment: inspect naming conventions and module boundaries for semantic fit
+     - Team ownership boundaries: check for CODEOWNERS or ownership markers
+     - Cross-cutting concerns: review logging, auth, and error-handling patterns for consistency
+   - If inspectable via code reading: perform targeted review, cite evidence
+   - If requires runtime/external info: flag as "requires manual verification"
+   - Assign confidence: High (tool + LLM agreement), Medium (LLM inference only), Low (couldn't verify)
+8. **Deliver report**
    - Summarize architecture health, list hotspots, and propose remediation with impact/effort guidance.
    - Reference analyzer artifacts directly so stakeholders can inspect raw findings.
 
@@ -76,6 +94,12 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 - Summary: Architecture assessment completed for <@TARGET_PATH>.
 - Artifacts: `.enaible/artifacts/analyze-architecture/<timestamp>/`
+
+## RECONNAISSANCE
+
+- Project type: <monorepo|single-project>
+- Primary stack: <languages/frameworks detected>
+- Auto-excluded: <patterns applied>
 
 ## ARCHITECTURE OVERVIEW
 
@@ -99,6 +123,14 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 1. <Risk with impact + likelihood>
 2. <Risk>
+
+## GAP ANALYSIS
+
+| Gap Category              | Status            | Finding                                     | Confidence      |
+| ------------------------- | ----------------- | ------------------------------------------- | --------------- |
+| Business domain alignment | Inspected         | <finding>                                   | High/Medium/Low |
+| Team ownership boundaries | Inspected/Flagged | <finding or "requires manual verification"> | High/Medium/Low |
+| Cross-cutting concerns    | Inspected         | <finding>                                   | High/Medium/Low |
 
 ## RECOMMENDATIONS
 

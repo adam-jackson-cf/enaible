@@ -192,31 +192,35 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
              python3 @HOOK_PATH/sync-todos-to-bd.py "$TOOL_USE_PAYLOAD"
      ```
    - **STOP (skip when @AUTO):** "Add PostToolUse hook to sync completed todos? (y/n)"
-9. Update @SYSTEMS.md
+9. Update CLAUDE.md
 
    - Add or update Beads documentation section:
 
-     ````md
+     ```md
      ### Beads (bd) - Task Tracking
 
-     **Task Protocol:**
+     **When to use Beads:**
 
-     - When creating TodoWrite items for bd tasks, ALWAYS use format: `[<issue-id>] Task description`
-     - SessionStart auto-loads bd ready list — reference it when asked about tasks
-     - Completed todos with bd IDs auto-close via PostToolUse hook
+     - Multi-session work that needs to persist beyond current session
+     - Tracked deliverables the user wants visibility into
+     - Tasks with dependencies or blockers
+     - Work that should be discoverable in future sessions
 
-     **Common commands:**
+     **When NOT to use Beads (just use TodoWrite):**
 
-     - `bd ready --limit 10` — Show ready-to-work tasks (no blockers)
-     - `bd show <issue-id>` — View task details and dependencies
-     - `bd create "Task description"` — Create new task
-     - `bd close <issue-id>` — Mark task complete
-     - `bd list --label backend` — Filter by labels
+     - Single-session tasks
+     - Implementation steps within a larger tracked bd task
+     - Quick fixes or explorations
 
+     **Workflow:**
+
+     1. At session start: Check `bd ready` for pending tasks
+     2. When planning multi-session work: `bd create "Task description"` to get ID
+     3. In TodoWrite: Use `[bd-xxx] Step description` to link steps to bd task
+     4. On completion: Completed TodoWrite items with bd IDs auto-close via hook
+
+     **Commands:** `bd ready`, `bd show <id>`, `bd create "<title>"`, `bd close <id>`, `bd list --label <name>`
      ```
-
-     ```
-     ````
 
 10. Validate setup
     - Verify bd binary accessible: `bd --version`
@@ -241,7 +245,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
   - SessionStart: load-bd-tasks (limit: @BD_READY_LIMIT)
   - PostToolUse: sync-completed-todos-to-bd
 - Sync Script: @SYNC_SCRIPT_PATH (executable)
-- Documentation: @SYSTEMS.md updated
+- Documentation: CLAUDE.md updated
 
 ## VALIDATION
 
