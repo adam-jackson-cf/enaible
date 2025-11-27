@@ -1,48 +1,43 @@
 ## Testing
 
-Frameworks: pytest, Custom evaluation frameworks, Integration test suites
+Frameworks: `pytest` (unit + integration) plus the Enaible CLI (`uv run --project tools/enaible ...`). Prefer the CLI wrappers—they bootstrap the analyzer registry, honor gitignore patterns, and normalize JSON output automatically.
 
-Running Tests:
+### Integration Suites
 
-# Run all analyzer integration tests (registry-based)
+- **All analyzers smoke** (`shared/tests/integration/test_integration_all_analyzers.py:1-21`)
 
-PYTHONPATH=shared NO_EXTERNAL=true python shared/tests/integration/test_all_analyzers.py test_codebase/juice-shop-monorepo --output-format json --max-files 2
+  ```bash
+  NO_EXTERNAL=true uv run --project tools/enaible \
+    pytest shared/tests/integration/test_integration_all_analyzers.py -q
+  ```
 
-# Omit NO_EXTERNAL to include analyzers that require external tools (semgrep, detect-secrets, sqlfluff)
+  Clears external dependencies by default; unset `NO_EXTERNAL` to include tools like Semgrep or Detect-Secrets.
 
-# Security analyzer evaluation
+- **Security CLI adapters** (`shared/tests/integration/test_integration_security_cli.py:1-64`)
 
-PYTHONPATH=shared python shared/tests/integration/test_security_analysers.py --analyzer detect_secrets --verbose
+  ```bash
+  uv run --project tools/enaible pytest shared/tests/integration/test_integration_security_cli.py -k semgrep
+  uv run --project tools/enaible pytest shared/tests/integration/test_integration_security_cli.py -k detect_secrets
+  ```
 
-# Root cause analyzers integration test
+  Each test spins up `integration.cli.evaluate_security` for a small subset; make sure the corresponding binaries (`semgrep`, `detect-secrets`) exist on PATH or the test skips.
 
-PYTHONPATH=shared python shared/tests/integration/test_root_cause_analyzers.py
+- **Root-cause CLI** (`shared/tests/integration/test_integration_root_cause_cli.py:1-14`)
+  ```bash
+  uv run --project tools/enaible pytest shared/tests/integration/test_integration_root_cause_cli.py -q
+  ```
+  Validates `integration.cli.evaluate_root_cause` end-to-end.
 
-# Individual analyzer testing
+### Targeted Analyzer Runs
 
-cd shared && python analyzers/security/detect_secrets_analyzer.py ../test_codebase/project --max-files 10
-
-### Test Commands:
+Use the Typer command instead of invoking modules manually:
 
 ```bash
-from repo root:
-
-# Run evaluation with specific analyzer (clean output)
-PYTHONPATH=shared python shared/tests/integration/test_security_analysers.py --analyzer detect_secrets
-
-# Run with detailed progress information
-PYTHONPATH=shared python shared/tests/integration/test_security_analysers.py --analyzer semgrep --verbose
-
-# Test specific applications only
-PYTHONPATH=shared python shared/tests/integration/test_security_analysers.py --analyzer detect_secrets --applications test-python test-java
-
-# Run with limited file scanning
-PYTHONPATH=shared python shared/tests/integration/test_security_analysers.py --analyzer semgrep --max-files 10
+uv run --project tools/enaible enaible analyzers list
+uv run --project tools/enaible enaible analyzers run quality:lizard --target test_codebase --summary
+uv run --project tools/enaible enaible analyzers run security:semgrep --target test_codebase/test-python --max-files 10 --min-severity medium
 ```
 
-- `--analyzer`: Choose specific analyzer (detect_secrets, semgrep)
-- `--applications`: Test specific applications only
-- `--max-files`: Limit number of files scanned per application
-- `--min-severity medium`: Filter findings by severity
-- `--verbose`: Show detailed execution progress and debug information
-- `--output-format json` Output results in JSON format
+- `--no-external` sets `ENAIBLE_DISABLE_EXTERNAL=1` for the run.
+- `--exclude` can be repeated to add repo-specific ignore globs.
+- Use `--out .enaible/artifacts/<task>/<timestamp>/result.json` to persist normalized payloads for CI evidence.

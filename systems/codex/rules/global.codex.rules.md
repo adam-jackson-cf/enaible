@@ -1,5 +1,3 @@
-# General coding rules
-
 ## **CRITICAL** Tooling preferences
 
 ### TypeScript / JavaScript
@@ -21,8 +19,6 @@
 
 ## **CRITICAL** Must follow Design Principles
 
-### General Principles
-
 - **ALWAYS** establish a working base project before beginging bespoke configuration and feature development, this means confirmed successful compile and run of the dev server with quality gates established - this is used as the baseline first commit.
 - **ALWAYS** commit to git after the logical conclusion of task steps, use a frequent, atomic commit pattern to establish safe check points of known good implementation that can be reverted to if need.
 - **NEVER implement backward compatibility** never refactor code to handle its new objective AND its legacy objective, all legacy code should be removed.
@@ -33,51 +29,7 @@
 - **ALWAYS use appropriate symbol naming when refactoring code**: When refactoring do not add prefixes/suffixes like "Refactored", "Updated", "New", or "V2" to symbol names to indicate changes.
 - **ALWAYS Align UI style changes to shadcn/Tailwind/Radix patterns and Lucide assets**: For your UI stack implementation avoid bespoke classes and direct style hardcoding to objects.
 
-### SOLID Principles - Architectural Shaping (with Examples)
-
-#### Single Responsibility
-
-- **ALWAYS** give every module/class/function exactly one clear responsibility — Example: keep `InvoiceFormatter` focused on string formatting; move PDF generation to `InvoicePdfBuilder`.
-- **NEVER** bundle unrelated behaviors in a single unit — Example: if `UserController` handles profile edits and billing, split billing into `BillingController`.
-- **ALWAYS** extract shared logic when the same behavior appears 3+ times — Example: move repeated “normalize phone number” snippets into `sanitize_phone_number()`.
-
-#### Open/Closed
-
-- **ALWAYS** design abstractions so new behavior is added via extension, not edits — Example: add `StripePaymentProcessor` that implements `PaymentProcessor` rather than changing `PaypalPaymentProcessor`.
-- **NEVER** edit a stable component just to introduce a variant — Example: don’t rewrite `DiscountCalculator`; introduce `SeasonalDiscountCalculator` that plugs into the same interface.
-- **ALWAYS** protect core contracts with tests before restructuring — Example: lock in `ShippingCostService`’s public API with tests, then add `ExpressShippingStrategy`.
-
-#### Liskov Substitution
-
-- **ALWAYS** ensure any subtype can replace its base without changing observable behavior — Example: `CachingConfigLoader` must return the same config shape as `ConfigLoader`.
-- **NEVER** narrow preconditions or widen postconditions in overrides — Example: if `FileStorage.save()` accepts any file-like object, `S3Storage.save()` must accept the same, not only file paths.
-- **ALWAYS** preserve exception semantics across the hierarchy — Example: if `Queue.dequeue()` raises `QueueEmptyError`, `PriorityQueue.dequeue()` must raise the same error.
-
-#### Interface Segregation
-
-- **ALWAYS** offer clients the smallest interface they need — Example: split `ReportingService` into `ReportBuilder` and `ReportPublisher` so consumers depend only on `ReportBuilder`.
-- **NEVER** force consumers to import methods they’ll never call — Example: if `NotificationClient` exposes `send_sms()` and `send_email()` but a caller only emails, provide `EmailSender` instead.
-- **ALWAYS** document each interface’s audience and responsibility — Example: mark `AuditTrailWriter` as “used solely by compliance logging” to prevent general-purpose reuse.
-
-#### Dependency Inversion
-
-- **ALWAYS** depend on abstractions and inject collaborators — Example: have `OrderService` receive a `PaymentProcessor` in its constructor rather than instantiating `StripePaymentProcessor` directly.
-- **NEVER** let high-level policies import low-level modules — Example: keep `AnalyticsController` from importing `psycopg2`; depend on an `EventRepository` interface.
-- **ALWAYS** centralize wiring in composition roots or factories — Example: configure bindings in `app_container.py`, leaving `InventoryService` free of framework-specific setup.
-
-### DRY Principles - Implementation Hygiene (with Examples)
-
-- **ALWAYS** extract repeated behavior into a single reusable unit as soon as duplication appears — Example: consolidate three separate "calculate tax and tip" snippets into a single `compute_order_totals()` helper used by checkout, refunds, and reporting.
-- **NEVER** copy‑paste code to meet a deadline; refactor the shared logic before adding new cases — Example: instead of duplicating the email confirmation workflow for SMS, move the common "compose confirmation payload" steps into `build_confirmation_payload()` and reuse it for both channels.
-- **ALWAYS** reconcile parallel knowledge sources so there’s a single source of truth — Example: migrate duplicated validation rules from both `signup_form.validate()` and `user_service.create_user()` into a central `UserValidator`, then delete the scattered checks.
-- **NEVER** let configuration or constants drift across files — Example: pull repeated "30-minute session timeout" literals into `SESSION_TIMEOUT_MINUTES` inside `settings.py` and reference it everywhere.
-
 ## **CRITICAL** Must follow Behaviour Rules - how you carry out actions
-
-### Research Approach
-
-- **ALWAYS**: Read the entire contents of a source of information or context for your current task objective
-- **ALWAYS**: Read the entire class, symbols or function you intend to change
 
 ### Security Requirements
 
@@ -95,7 +47,9 @@
 - **NEVER** implement fallback modes or temporary strategys to meet task requirements
 - **NEVER** bypass quality gates by using `--skip` or `--no-verify`
 
-### Long-Running Task Execution & Defence
+## **CRITICAL** Development workflow tools
+
+### Tmux - Long-Running Task Execution & Defence
 
 - Launch intentional long-running services (Next.js dev server, workers, landing, etc.) inside named tmux sessions so hotswap reloads keep running while the CLI stays responsive.
   - Start: `tmux new-session -d -s frontend 'make frontend'`
@@ -106,5 +60,3 @@
 - Treat background-process requests the same way: run them in tmux, confirm the session is listed via `tmux list-sessions`, and share the session name with the user so they can monitor or stop it later.
 - Before starting duplicate services, check for existing sessions to avoid port collisions: `tmux list-sessions | grep frontend`.
 - If a command unexpectedly hangs, move it into tmux (`tmux new-session -t rescue`) and gather diagnostics from outside the session while it continues running.
-
----

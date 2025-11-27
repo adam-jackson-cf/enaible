@@ -19,19 +19,19 @@ These suites cover CLI command behaviors, analyzer registry logic, and lower-lev
 
 Location: `shared/tests/integration/`
 
-Highlights:
+Highlights (kept current):
 
 - Analyzer smoke tests (`test_integration_all_analyzers.py`, `test_quality_analyzer.py`)
-- Context capture fixtures and CLI installer scripts
-- Background workflow smoke test (`test_todo_background_script.py`)
+- Security and root-cause CLI wrappers (`test_integration_security_cli.py`, `test_integration_root_cause_cli.py`)
 
-Run the full integration suite with:
+Run the focused integration suite with:
 
 ```bash
-PYTHONPATH=shared pytest shared/tests/integration -v
+uv run --project tools/enaible pytest shared/tests/integration -v \
+  -k "integration_all_analyzers or integration_security_cli or integration_root_cause_cli or quality_analyzer"
 ```
 
-Some tests require optional CLIs (Codex, Claude, Qwen, Gemini). They automatically skip when dependencies are missing.
+Tests that depended on external CLIs or backlog todos have been removed to reduce flakiness.
 
 ## Troubleshooting
 

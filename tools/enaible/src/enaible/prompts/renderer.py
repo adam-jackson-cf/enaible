@@ -131,11 +131,15 @@ class PromptRenderer:
         source_path = (self.context.repo_root / definition.source_path).resolve()
         template_path = source_path.relative_to(self.context.repo_root).as_posix()
         template = self.env.get_template(template_path)
-        return template.render(
+        rendered = template.render(
             prompt=definition,
             system=system,
             metadata=config.metadata,
         )
+        # Replace @SYSTEMS.md placeholder with system-specific file
+        systems_file = "CLAUDE.md" if system.name == "claude-code" else "AGENTS.md"
+        rendered = rendered.replace("@SYSTEMS.md", systems_file)
+        return rendered
 
     def _render_wrapper(
         self,

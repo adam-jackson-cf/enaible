@@ -56,13 +56,3 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 - Enforce these rules for subsequent commands this session.
 ```
-
-## Examples
-
-```bash
-# Apply performance optimization rules
-/apply-rule-set performance
-
-# Load custom security rules stored in the user-level directory
-/apply-rule-set security
-```

@@ -88,13 +88,3 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 1. <Action item (e.g., configure environment variables)>
 2. <Action item>
 ```
-
-## Examples
-
-```bash
-# Direct technology selection
-/create-project acme-dashboard react-router hono bun sqlite drizzle
-
-# Infer stack from todos file
-/create-project mobile-app --from-plan ./.enaible/execplan.md
-```

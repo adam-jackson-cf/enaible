@@ -60,3 +60,111 @@
 - Treat background-process requests the same way: run them in tmux, confirm the session is listed via `tmux list-sessions`, and share the session name with the user so they can monitor or stop it later.
 - Before starting duplicate services, check for existing sessions to avoid port collisions: `tmux list-sessions | grep frontend`.
 - If a command unexpectedly hangs, move it into tmux (`tmux new-session -t rescue`) and gather diagnostics from outside the session while it continues running.
+
+### Visual UI Web Testing - Browser Tool
+
+The browser tools provide Chrome DevTools Protocol-based automation for testing UI changes during feature development. These tools connect to a Chrome instance running with remote debugging enabled on port `:9222`.
+
+### Quick Start
+
+```bash
+# Start Chrome with remote debugging
+bt-start              # Fresh profile
+bt-start --profile    # Use your Chrome profile (preserves logins)
+
+# Navigate to your app
+bt-nav http://localhost:3000
+
+# Take a screenshot to verify UI
+bt-screenshot
+```
+
+### Available Commands
+
+All tools are accessible via `bt-*` aliases or directly as `browser-*.js`:
+
+- **bt-start** — Launch Chrome with remote debugging on `:9222`
+- **bt-nav** — Navigate to URLs (use `--new` flag for new tab)
+- **bt-screenshot** — Capture current viewport, returns temp file path
+- **bt-eval** — Execute JavaScript in active tab for data extraction/inspection
+- **bt-pick** — Interactive element selector (returns CSS selectors)
+- **bt-cookies** — Display all cookies for debugging auth/sessions
+- **bt-search** — Search Google and return results
+- **bt-content** — Extract page content as markdown
+
+### React Grab - Element Context Capture for AI
+
+React Grab enables you to ⌘-click any element in your React app to capture its component structure, props, and source context—ready to paste into AI coding assistants.
+
+**Installation:**
+
+```bash
+bun add react-grab
+```
+
+**Usage (Development Only):**
+
+```typescript
+// In your app entry point (e.g., main.tsx or App.tsx)
+if (import.meta.env.DEV) {
+  import("react-grab")
+}
+```
+
+**Workflow:**
+
+1. Hold ⌘ (Command) and click any element in your running app
+2. The component's HTML, React structure, and file source are copied to clipboard
+3. Paste directly into Claude Code or other AI tools for context-aware assistance
+
+### Beads - AI Agent Task Memory
+
+Beads (bd) provides git-backed, persistent task tracking across Claude Code sessions with dependency management.
+
+**Installation:**
+
+```bash
+# Install bd binary (Go)
+brew install steveyegge/beads/bd
+# OR download from: https://github.com/steveyegge/beads/releases
+
+# Initialize in project
+bd init
+```
+
+**Task Management Protocol:**
+
+1. **Listing tasks**: When asked about project tasks or what to work on, reference the bd ready list automatically loaded in your context at SessionStart
+2. **Creating todos**: When creating TodoWrite items for bd tasks, ALWAYS include the bd ID in the content:
+   - Format: `[bd-123] Task description`
+   - Example: `[bd-45] Implement JWT authentication`
+3. **Viewing tasks**: Run `bd ready` to see actionable tasks, `bd list` for all open tasks
+4. **Closing tasks**: Completed TodoWrite items with bd IDs are auto-closed via PostToolUse hook
+
+**Common commands:**
+
+- `bd ready --limit 10` — Show ready-to-work tasks (no blockers)
+- `bd show <issue-id>` — View task details and dependencies
+- `bd create "Task description"` — Create new task
+- `bd close <issue-id>` — Mark task complete
+- `bd list --label backend` — Filter by labels
+
+### Atuin - Enhanced Shell History
+
+Atuin replaces default shell history with SQLite database, providing searchable command history with full context (directory, duration, timestamp).
+
+**Installation:**
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://setup.atuin.sh | sh
+atuin register -u <username> -e <email>  # Optional: encrypted cloud sync
+```
+
+**Usage:**
+
+- **Ctrl+R** — Enhanced search UI with fuzzy finding
+- Commands executed via Claude Code Bash tool are automatically captured with directory context
+- Search history: `atuin search <term>`
+- Sync across machines: `atuin sync` (end-to-end encrypted)
+
+---

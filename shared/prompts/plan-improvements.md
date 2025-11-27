@@ -111,13 +111,3 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 
 <targets>
 ```
-
-## Examples
-
-```bash
-# Plan refactor for the payments service
-/plan-refactor "payments service"
-
-# Use verbose notes (no additional flags currently supported; reserved for future)
-/plan-refactor "frontend shell"
-```

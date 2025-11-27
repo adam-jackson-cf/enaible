@@ -46,7 +46,7 @@ The report surfaces missing registry files, absent `.enaible/schema.json`, and P
 
 ## CI telemetry
 
-The GitHub Actions workflow `.github/workflows/ci-quality-gates.yml` invokes the same commands recommended in local development:
+The GitHub Actions workflow `.github/workflows/ci-quality-gates-incremental.yml` invokes the same commands recommended in local development:
 
 - `uv run --project tools/enaible pytest tools/enaible/tests -v`
 - `uv run --project tools/enaible ruff check tools/enaible/src`

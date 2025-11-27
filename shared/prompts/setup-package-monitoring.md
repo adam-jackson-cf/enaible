@@ -97,13 +97,3 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 2. Review Actions tab for package-audit workflow.
 3. Monitor Dependabot PRs for security updates.
 ```
-
-## Examples
-
-```bash
-# Default critical-only auditing across detected ecosystems
-/setup-package-monitoring
-
-# Specify a package file and enable branch protection
-/setup-package-monitoring --package-file=requirements.txt --branch-protection=true
-```

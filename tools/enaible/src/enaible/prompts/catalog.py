@@ -581,6 +581,104 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "setup-ui-pointer": PromptDefinition(
+        prompt_id="setup-ui-pointer",
+        source_path=_repo_path("shared", "prompts", "setup-ui-pointer.md"),
+        title="setup-ui-pointer v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "setup-ui-pointer.md"
+                ),
+                frontmatter={"argument-hint": "[--auto] [--entry-point <path>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "setup-ui-pointer.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "setup-ui-pointer.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Install and configure react-grab for AI-assisted element capture",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "setup-browser-tools": PromptDefinition(
+        prompt_id="setup-browser-tools",
+        source_path=_repo_path("shared", "prompts", "setup-browser-tools.md"),
+        title="setup-browser-tools v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "setup-browser-tools.md"
+                ),
+                frontmatter={"argument-hint": "[--auto] [--install-dir <path>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "setup-browser-tools.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "setup-browser-tools.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Install Chrome DevTools Protocol automation scripts for UI testing",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "setup-command-history": PromptDefinition(
+        prompt_id="setup-command-history",
+        source_path=_repo_path("shared", "prompts", "setup-command-history.md"),
+        title="setup-command-history v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    "systems", "claude-code", "commands", "setup-command-history.md"
+                ),
+                frontmatter={
+                    "argument-hint": "[--auto] [--register] [--username <user>] [--email <email>]"
+                },
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "codex", "prompts", "setup-command-history.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    "systems", "copilot", "prompts", "setup-command-history.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Install Atuin shell history with SQLite storage and optional cloud sync",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
 }
 
 

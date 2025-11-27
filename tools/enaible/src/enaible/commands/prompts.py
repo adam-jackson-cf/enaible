@@ -194,6 +194,9 @@ def prompts_lint(
         if not d.exists():
             continue
         for p in d.glob("*.md"):
+            if p.name.lower() == "agents.md":
+                # Skip helper docs meant for the LLM, not renderable prompts
+                continue
             try:
                 head = p.read_text().splitlines()[:3]
             except Exception:
