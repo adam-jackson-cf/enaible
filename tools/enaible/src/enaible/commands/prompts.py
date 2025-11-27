@@ -52,7 +52,7 @@ def _build_overrides(
     selected_systems: list[str], out: Path | None
 ) -> dict[str, Path | None]:
     if out is None:
-        return {system: None for system in selected_systems}
+        return dict.fromkeys(selected_systems)
 
     overrides: dict[str, Path | None] = {}
     if len(selected_systems) == 1:
