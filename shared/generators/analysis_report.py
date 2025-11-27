@@ -9,7 +9,7 @@ Integrates with the GitHub Actions workflow monitoring system.
 """
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 # Import output formatter (package root must be on PYTHONPATH)
@@ -49,7 +49,7 @@ def generate_comprehensive_report(
         # Generate comprehensive report structure
         report = {
             "report_metadata": {
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "target_path": target_path,
                 "generator_version": "1.0.0-placeholder",
                 "report_type": "comprehensive_analysis",
@@ -69,25 +69,25 @@ def generate_comprehensive_report(
                 "vulnerabilities_found": 0,
                 "security_score": 100.0,
                 "tools_used": ["placeholder"],
-                "last_scan_date": datetime.now(timezone.utc).isoformat(),
+                "last_scan_date": datetime.now(UTC).isoformat(),
             },
             "performance_analysis": {
                 "bottlenecks_detected": 0,
                 "performance_score": 85.0,
                 "tools_used": ["placeholder"],
-                "last_analysis_date": datetime.now(timezone.utc).isoformat(),
+                "last_analysis_date": datetime.now(UTC).isoformat(),
             },
             "architecture_analysis": {
                 "dependency_issues": 0,
                 "architecture_score": 90.0,
                 "tools_used": ["placeholder"],
-                "last_analysis_date": datetime.now(timezone.utc).isoformat(),
+                "last_analysis_date": datetime.now(UTC).isoformat(),
             },
             "code_quality_analysis": {
                 "complexity_issues": 0,
                 "quality_score": 88.0,
                 "tools_used": ["placeholder"],
-                "last_analysis_date": datetime.now(timezone.utc).isoformat(),
+                "last_analysis_date": datetime.now(UTC).isoformat(),
             },
             "detailed_findings": [],
             "improvement_recommendations": [

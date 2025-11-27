@@ -8,7 +8,6 @@ import hashlib
 import json
 import os
 from pathlib import Path
-from typing import Optional
 
 
 class UserManager:
@@ -49,7 +48,7 @@ class UserManager:
         }
         return True
 
-    def authenticate_user(self, username: str, password: str) -> Optional[dict]:
+    def authenticate_user(self, username: str, password: str) -> dict | None:
         """Authenticate user with proper password verification."""
         if username not in self.users:
             return None

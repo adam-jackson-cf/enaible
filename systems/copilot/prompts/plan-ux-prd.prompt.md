@@ -156,11 +156,4 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 - Saved PRD: <path-to-document>
 ```
 
-## Examples
-
-```bash
-# Create PRD for a new onboarding experience
-/plan-ux-prd "Team onboarding dashboard"
-```
-
 <!-- generated: enaible -->

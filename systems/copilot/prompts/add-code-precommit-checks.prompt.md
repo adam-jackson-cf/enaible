@@ -62,16 +62,6 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 - Validation: <pass|fail> (attach failing hook names if any)
 ```
 
-## Examples
-
-```bash
-# Install pre-commit hooks in the current repository
-/add-code-precommit-checks
-
-# Run from a freshly cloned project (no arguments supported)
-/add-code-precommit-checks
-```
-
 $ARGUMENTS
 
 <!-- generated: enaible -->

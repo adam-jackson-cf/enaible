@@ -128,16 +128,8 @@ project-root/
 **Creating New Tests**:
 [Instructions on where tests go and basic test structure example]
 
-````
+```
 
-## Examples
-
-```bash
-# Generate primer for current repo
-/get-primer
-
-# Target a subdirectory
-/get-primer packages/service
-````
+```
 
 <!-- generated: enaible -->

@@ -129,11 +129,4 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - Success Criteria: <metrics/tests>
 ```
 
-## Examples
-
-```bash
-# Explore solutions to a scalability challenge
-/plan-solution "Scale real-time collaboration engine"
-```
-
 <!-- generated: enaible -->

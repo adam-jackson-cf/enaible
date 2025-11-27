@@ -71,14 +71,4 @@ Produce an implementation-focused rule file for a specified technology so automa
 - <Reference 2>
 ```
 
-## Examples
-
-```bash
-# Create React implementation rules
-/create-rule react
-
-# Generate Prisma ORM implementation guidance
-/create-rule prisma
-```
-
 <!-- generated: enaible -->
