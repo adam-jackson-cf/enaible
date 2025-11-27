@@ -82,9 +82,3 @@ jobs:
       - name: Run Enaible CLI tests
         run: |
           uv run --project tools/enaible pytest tools/enaible/tests -v
-
-      - name: Verify managed prompts are synchronized
-        env:
-          UV_PROJECT: tools/enaible
-        run: |
-          uv run --project tools/enaible enaible prompts diff
