@@ -116,17 +116,4 @@ Install and configure react-grab to enable ⌘-click element capture for AI-assi
 4. Paste into Claude Code for AI-assisted development
 ```
 
-## Examples
-
-```bash
-# Auto-install and configure
-/setup-react-grab
-
-# Skip confirmations
-/setup-react-grab --auto
-
-# Specify custom entry point
-/setup-react-grab --entry-point src/custom-entry.tsx
-```
-
 $ARGUMENTS

@@ -94,13 +94,3 @@ Assess code quality by combining automated metrics with architectural review to 
 - quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
 - quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```
-
-## Examples
-
-```bash
-# Run quality analysis on entire repo
-/analyze-code-quality .
-
-# Focus on a specific package
-/analyze-code-quality packages/service
-```

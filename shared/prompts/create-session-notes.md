@@ -54,13 +54,3 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 - File: session-notes.md
 - Sections Updated: [Overview, Actions, Files, Outstanding, Decisions, Next Steps, Context]
 ```
-
-## Examples
-
-```bash
-# Record current session summary
-/create-session-notes
-
-# Add contextual hint for discussion overview
-/create-session-notes --overview "Focus: API error triage"
-```

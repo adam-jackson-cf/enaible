@@ -106,13 +106,3 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - root_cause:recent_changes → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-recent-changes.json`
 - root_cause:error_patterns → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-error-patterns.json`
 ```
-
-## Examples
-
-```bash
-# Investigate a crash reported in production
-/analyze-root-cause "API returns 500 when updating invoices"
-
-# Capture extended diagnostics
-/analyze-root-cause "Payment queue stuck in processing" --verbose
-```

@@ -153,17 +153,4 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 4. (Optional) Add shell aliases from @SYSTEMS.md for shorter commands
 ```
 
-## Examples
-
-```bash
-# Install to default location (~/.local/bin)
-/setup-browser-tools
-
-# Skip confirmations
-/setup-browser-tools --auto
-
-# Install to custom directory
-/setup-browser-tools --install-dir /usr/local/bin
-```
-
 $ARGUMENTS

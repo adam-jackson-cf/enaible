@@ -260,20 +260,4 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 5. Complete the todo and verify bd auto-closes the task
 ```
 
-## Examples
-
-```bash
-# Auto-install and configure
-/setup-beads
-
-# Skip confirmations
-/setup-beads --auto
-
-# Custom hooks path
-/setup-beads --hook-path .custom/hooks
-
-# Custom ready task limit
-/setup-beads --limit 20
-```
-
 $ARGUMENTS

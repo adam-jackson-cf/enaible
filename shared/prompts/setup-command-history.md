@@ -139,20 +139,4 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
 6. View statistics: `atuin stats`
 ```
 
-## Examples
-
-```bash
-# Install locally (no cloud sync)
-/setup-atuin
-
-# Skip confirmations, local only
-/setup-atuin --auto
-
-# Install with cloud sync registration
-/setup-atuin --register --username myuser --email user@example.com
-
-# Auto-install with cloud sync
-/setup-atuin --auto --register --username myuser --email user@example.com
-```
-
 $ARGUMENTS

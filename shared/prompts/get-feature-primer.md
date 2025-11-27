@@ -215,9 +215,4 @@ project-root/
 
 ```
 
-## Examples
-
-- `/get-feature-primer "Map data flow for refunds"`
-- `/get-feature-primer "Identify auth risks in API" . --exclude node_modules,dist`
-- `/get-feature-primer "Assess React route performance" web/`
 ```

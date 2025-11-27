@@ -100,13 +100,3 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 - performance:sqlglot → `.enaible/artifacts/analyze-performance/<timestamp>/performance-sqlglot.json`
 - performance:semgrep → `.enaible/artifacts/analyze-performance/<timestamp>/performance-semgrep.json`
 ```
-
-## Examples
-
-```bash
-# Run full performance assessment
-/analyze-performance .
-
-# Target a service directory
-/analyze-performance services/api
-```

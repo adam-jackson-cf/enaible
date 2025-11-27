@@ -171,10 +171,3 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 2. Use `make logs` to tail `./dev.log`.
 3. Review CLAUDE.md for updated workflow commands.
 ```
-
-## Examples
-
-```bash
-# Configure monitoring for current repo
-/setup-dev-monitoring
-```

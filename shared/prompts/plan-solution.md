@@ -122,10 +122,3 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 - Phase 3: <milestones>
 - Success Criteria: <metrics/tests>
 ```
-
-## Examples
-
-```bash
-# Explore solutions to a scalability challenge
-/plan-solution "Scale real-time collaboration engine"
-```

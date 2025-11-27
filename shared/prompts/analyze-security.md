@@ -115,13 +115,3 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - security:detect_secrets → `.enaible/artifacts/analyze-security/<timestamp>/detect-secrets.json`
 - Gap Analysis Notes → `.enaible/artifacts/analyze-security/<timestamp>/gap-analysis.md`
 ```
-
-## Examples
-
-```bash
-# Run default security assessment and emit artifacts
-/analyze-security .
-
-# Include verbose analyzer logs and summary-only JSON outputs
-/analyze-security services/web --verbose
-```

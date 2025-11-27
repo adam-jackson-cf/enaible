@@ -112,13 +112,3 @@ Evaluate system architecture quality by combining automated structural analyzers
 - architecture:coupling → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-coupling.json`
 - architecture:scalability → `.enaible/artifacts/analyze-architecture/<timestamp>/architecture-scalability.json`
 ```
-
-## Examples
-
-```bash
-# Run architecture analysis on entire repository
-/analyze-architecture .
-
-# Focus on a specific service directory
-/analyze-architecture services/api
-```
