@@ -116,3 +116,7 @@ For detailed workflows, see:
 - `shared/context/AGENTS.md` — context capture commands and artifacts
 - `systems/AGENTS.md` — system adapter playbook and managed-file rules
 - `docs/testing.md` — active test suites and how to run them
+
+```
+
+```
