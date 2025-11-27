@@ -20,6 +20,8 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - @REPO_URL = <url> — browser-tools repository URL (https://github.com/badlogic/agent-tools)
 - @TEMP_DIR = <path> — temporary clone directory
 - @SCRIPTS = <list> — browser-\*.js script names to install
+- @SCOPE = <user|project> — installation scope from user choice
+- @SYSTEMS_PATH = <path> — full path to systems file based on scope
 
 ## Instructions
 
@@ -64,9 +66,12 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
    - Check each script is executable and in @INSTALL_DIR
    - Verify scripts can be found via PATH: `command -v browser-start.js`
    - If not found, remind user to add @INSTALL_DIR to PATH
-6. Update @SYSTEMS.md
-
-   - Add or update Browser Tools documentation section:
+6. Update @SYSTEMS.MD
+   - **STOP (skip when @AUTO):** "Document browser tools at project level (./@SYSTEMS.md) or user level ({{ system.user_scope_dir }}/@SYSTEMS.md)?"
+   - Based on user choice, set @SYSTEMS_PATH:
+     - Project: `./@SYSTEMS.md` (repo root)
+     - User: `{{ system.user_scope_dir }}/@SYSTEMS.md`
+   - Add or update Browser Tools documentation section at @SYSTEMS_PATH:
 
      ````md
      ### Visual UI Web Testing - Browser Tools
@@ -126,7 +131,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - Installation Directory: @INSTALL_DIR
 - Scripts Installed: 8 browser-\*.js tools
 - PATH Status: <accessible|not in PATH - manual configuration required>
-- Documentation: @SYSTEMS.md updated
+- Documentation: @SYSTEMS_PATH updated
 
 ## INSTALLED COMMANDS
 
@@ -150,7 +155,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 1. Start Chrome with debugging: `browser-start.js`
 2. Navigate to your app: `browser-nav.js http://localhost:3000`
 3. Take a screenshot: `browser-screenshot.js`
-4. (Optional) Add shell aliases from @SYSTEMS.md for shorter commands
+4. (Optional) Add shell aliases from @SYSTEMS_PATH for shorter commands
 ```
 
 $ARGUMENTS
