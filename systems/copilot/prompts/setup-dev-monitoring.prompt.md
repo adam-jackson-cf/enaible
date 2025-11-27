@@ -21,6 +21,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 - @WATCH_GLOBS — CSV of custom globs for components lacking native hot reload
 - @LOG_FILE — unified log destination for orchestrated services (default ./dev.log)
 
+
 ## Instructions
 
 - Discover real start commands; refuse placeholder or missing commands.

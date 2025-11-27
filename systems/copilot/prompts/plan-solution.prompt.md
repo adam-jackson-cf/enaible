@@ -23,6 +23,7 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
 
 - @ARTIFACT_ROOT — timestamped artifacts directory for plan-solution evidence
 
+
 ## Instructions
 
 - Begin by collecting detailed context based on @USER_PROMPT, environment constraints, and delivery preferences.

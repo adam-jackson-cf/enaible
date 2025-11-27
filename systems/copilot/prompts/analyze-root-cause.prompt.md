@@ -26,6 +26,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 - @ARTIFACT_ROOT — timestamped artifacts path used for evidence capture
 
+
 ## Instructions
 
 - ALWAYS capture the issue description before running analyzers; stop if details are insufficient.

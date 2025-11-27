@@ -23,6 +23,7 @@ Scaffold a new project with the Better-T-Stack CLI using either explicit technol
 
 - @TECH_ARGUMENTS — additional technology selections parsed from remaining input
 
+
 ## Instructions
 
 - ALWAYS confirm the project name and target directory before running the generator.

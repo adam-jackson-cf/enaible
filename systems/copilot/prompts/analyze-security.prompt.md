@@ -25,6 +25,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 - @ARTIFACT_ROOT — artifacts directory used in workflow examples
 
+
 ## Instructions
 
 - ALWAYS execute automated analyzers first; abort the workflow if any analyzer returns a non-zero exit code.

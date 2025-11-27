@@ -14,6 +14,7 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 
 - @AUTO = ${input:auto} — skip STOP confirmations (auto-approve checkpoints)
 
+
 ## Instructions
 
 - NEVER overwrite an existing `.pre-commit-config.yaml`; exit immediately if one is detected.

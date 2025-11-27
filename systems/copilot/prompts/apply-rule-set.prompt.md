@@ -18,6 +18,7 @@ Load a named rule set and apply its guidance to the active session so subsequent
 
 - @AUTO = ${input:auto} — skip STOP confirmations (auto-approve checkpoints)
 
+
 ## Instructions
 
 - ALWAYS validate that the rule file exists and is readable before applying it.

@@ -21,6 +21,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - @TEMP_DIR — temporary clone directory
 - @SCRIPTS — browser-\*.js script names to install
 
+
 ## Instructions
 
 - ALWAYS ensure @INSTALL_DIR is in the user's PATH.

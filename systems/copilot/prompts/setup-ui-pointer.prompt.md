@@ -20,6 +20,7 @@ Install and configure react-grab to enable ⌘-click element capture for AI-assi
 - @DETECTED_ENTRY — auto-detected entry point (main.tsx, App.tsx, index.tsx)
 - @IMPORT_GUARD — development-only import guard pattern
 
+
 ## Instructions
 
 - ALWAYS validate this is a React project before proceeding.

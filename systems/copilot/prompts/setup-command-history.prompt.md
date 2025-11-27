@@ -23,6 +23,7 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
 - @DETECTED_SHELL — detected shell type (bash, zsh, fish)
 - @SHELL_CONFIG — shell configuration file path
 
+
 ## Instructions
 
 - ALWAYS detect the user's shell before proceeding.

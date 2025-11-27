@@ -22,6 +22,7 @@ Install multi-ecosystem dependency monitoring with Dependabot and path-triggered
 
 - @DETECTED_ECOSYSTEMS — ecosystems identified during setup (npm, pip, cargo, etc.)
 
+
 ## Instructions
 
 - Detect all package ecosystems unless `--package-file` explicitly narrows scope.

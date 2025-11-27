@@ -23,6 +23,7 @@ Produce an implementation-focused rule file for a specified technology so automa
 
 - @RULE_SLUG — slugified @TECHNOLOGY used for default filenames
 
+
 ## Instructions
 
 - ALWAYS ground rules in authoritative sources (official docs → style guides → production case studies → community patterns).

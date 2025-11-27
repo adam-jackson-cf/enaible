@@ -18,6 +18,7 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 
 - @AUTO = ${input:auto} — skip STOP confirmations (auto-approve checkpoints)
 
+
 ## Instructions
 
 - Lead with detailed discovery; gather product foundation, user insights, UX requirements, screen architecture, and onboarding details.

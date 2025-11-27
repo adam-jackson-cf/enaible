@@ -16,6 +16,7 @@ Append a timestamped summary of the current chat session to `session-notes.md`, 
 - @DISCUSSION_HINT = ${input:overview} — optional sentence appended to Discussion Overview
 - @SESSION_FILE = ${input:session-file} — destination file (default ./session-notes.md)
 
+
 ## Instructions
 
 - Gather a complete view of the current session before writing (messages, actions, command outputs).

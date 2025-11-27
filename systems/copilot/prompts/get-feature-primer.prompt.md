@@ -22,6 +22,7 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
 - @OUT = ${input:out} — write the final Markdown to this path (also print to stdout)
 - @TARGET_PATH = ${input:target} — root to analyze (default .)
 
+
 ## Instructions
 
 - Operate read-only (apart from writing the report). Do not run builds or install tools.

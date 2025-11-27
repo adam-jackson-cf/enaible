@@ -15,6 +15,7 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 - @AUTO = ${input:auto} — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = ${input:target-path} — path to analyze; defaults to the project
 
+
 ## Instructions
 
 - Read all relevant docs (CLAUDE.md, AGENTS.md, README variants) before synthesizing conclusions.
