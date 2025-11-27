@@ -116,9 +116,8 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      BACKEND: cd packages/api && bun run dev 2>&1 | while IFS= read -r line; do echo "[$(date '+%H:%M:%S')] [BACKEND] $$line"; done | tee -a ./dev.log
      ```
    - Always use `./dev.log` for writeability; never `/dev.log`.
-8. Update AGENTS.md or CLAUDE.md (direct content)
+8. Update @SYSTEMS.md (direct content)
 
-   - Prefer `AGENTS.md` if present; otherwise update/create `CLAUDE.md`.
    - Insert or upsert this Development section:
 
      ```md
@@ -171,11 +170,4 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 1. Run `make dev` to start services.
 2. Use `make logs` to tail `./dev.log`.
 3. Review CLAUDE.md for updated workflow commands.
-```
-
-## Examples
-
-```bash
-# Configure monitoring for current repo
-/setup-dev-monitoring
 ```

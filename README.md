@@ -58,17 +58,17 @@
 
 > **Supporting AI Development Workflows with Core Principles**
 
-The principles for this project are designed around the realities of coding with AI. We are approximately **60% complete** on the work needed to fully meet these principles—see the [roadmap](docs/roadmap.md).
+The principles for this project are designed around the realities of coding with AI. Progress below reflects the current state of shipped features.
 
 <div align="center">
 
-| **Principle**                  |                               **Progress**                               | **Key Features**                                         |
-| :----------------------------- | :----------------------------------------------------------------------: | :------------------------------------------------------- |
-| 🪶 **Lightweight**             | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Minimize context impact, JIT loading, external processes |
-| 🎯 **Mitigate LLM Weaknesses** |   ![60%](https://img.shields.io/badge/60%25-yellow?style=flat-square)    | Repeatability, predictability, duplication prevention    |
-| ⚙️ **Minimize Structure**      | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Tools over workflows, flexibility over rigidity          |
-| 🔄 **LLM Agnostic**            |      ![0%](https://img.shields.io/badge/0%25-red?style=flat-square)      | Process independence from specific LLM providers         |
-| 💻 **Language Support**        |  ![100%](https://img.shields.io/badge/100%25-success?style=flat-square)  | Python, TypeScript, Go, Rust, C#                         |
+| **Principle**                  |                               **Progress**                               | **Key Features**                                                                         |
+| :----------------------------- | :----------------------------------------------------------------------: | :--------------------------------------------------------------------------------------- |
+| 🪶 **Lightweight**             | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Minimize context impact, JIT loading, external processes                                 |
+| 🎯 **Mitigate LLM Weaknesses** |   ![60%](https://img.shields.io/badge/60%25-yellow?style=flat-square)    | Repeatability, predictability, duplication prevention                                    |
+| ⚙️ **Minimize Structure**      | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Tools over workflows, flexibility over rigidity                                          |
+| 🔄 **LLM Agnostic**            | ![80%](https://img.shields.io/badge/80%25-brightgreen?style=flat-square) | Process independence from specific LLM providers (Codex, Claude Code, Copilot supported) |
+| 💻 **Language Support**        |  ![100%](https://img.shields.io/badge/100%25-success?style=flat-square)  | Python, TypeScript, Go, Rust, C#                                                         |
 
 </div>
 
@@ -88,10 +88,11 @@ uv run --project tools/enaible enaible install claude-code --scope user --mode s
 # for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
 
 # Copilot (GitHub Copilot)
-# not yet implemented
+uv run --project tools/enaible enaible install copilot --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install copilot --scope project --mode sync
 
 # Cursor
-# not yet implemented
+# rules only today (no installer); see systems/cursor/rules
 
 ```
 
@@ -99,6 +100,16 @@ Notes
 
 - Programmatic prompts (analysis, security, performance) require Python 3.12.
 - The installers copy full system payloads (commands, agents, rules, settings) into your local scope; rerun them after pulling updates to keep managed content in sync.
+
+## 🗂️ Prompt Catalog & System Assets
+
+- **Shared source of truth**: author prompts in `shared/prompts/*.md`; render with `uv run --project tools/enaible enaible prompts render --prompt all --system all`.
+- **System-specific outputs** live under `systems/<system>/`:
+  - Codex & Copilot → `prompts/` + `rules/`
+  - Claude Code → `commands/`, `agents/`, `rules/`, `skills/`, `hooks/`
+  - Cursor → `rules/` only (installer not yet wired; copy as needed)
+- Managed files carry `<!-- generated: enaible -->`; edit upstream sources, not generated outputs.
+- How-tos: see `shared/prompts/AGENTS.md` (adding shared prompts) and `systems/AGENTS.md` (adding system adapters).
 
 ---
 
@@ -642,14 +653,11 @@ GitHub Actions executes the same checks inside `ci-quality-gates-incremental.yml
 **Common workflow**:
 
 ```bash
-# Complex refactoring with detailed documentation using Claude Opus
-/todo-background "Refactor authentication module to use OAuth 2.0" claude:opus ./reports/auth-refactor.md
+# Complex refactoring with detailed documentation using Claude
+/todo-background "Refactor authentication module to use OAuth 2.0" claude ./reports/auth-refactor.md
 
-# Cost-effective documentation generation using Qwen
-/todo-background "Generate comprehensive API documentation for all endpoints" qwen
-
-# Long-running analysis using Gemini with auto-generated report
-/todo-background "Analyze codebase for performance optimization opportunities" gemini
+# Lightweight background run with Codex
+/todo-background "Summarize recent changes and open issues" codex
 
 # Expected output: Background process running autonomously with progress
 # reports saved to specified files for later review and integration
@@ -666,10 +674,8 @@ These examples give a flavour, explore the repo and find what works for you.
 ## 📚 Documentation Map
 
 - Install & setup: docs/installation.md
-- Analyzer scripts overview: docs/analysis-scripts.md
 - Monitoring & logs: docs/monitoring.md
-- Agent orchestration: docs/subagents.md
-- Roadmap: docs/roadmap.md
+- Prompt/catalog overview: see "Prompt Catalog & System Assets" in this README
 
 ---
 
@@ -679,12 +685,11 @@ These examples give a flavour, explore the repo and find what works for you.
 
 <div align="center">
 
-|   **Category**    | **Document**                                    | **Description**                                 |
-| :---------------: | :---------------------------------------------- | :---------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md)      | Complete setup and configuration instructions   |
-|   🤖 **Agents**   | [Agent Orchestration](docs/subagents.md)        | Claude agent catalog and orchestration guidance |
-|  ⚙️ **Commands**  | [Commands & Analysis](docs/analysis-scripts.md) | 20 analyzers across five quality categories     |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)            | Live Monitoring of hot swappable components     |
+|   **Category**    | **Document**                               | **Description**                               |
+| :---------------: | :----------------------------------------- | :-------------------------------------------- |
+|   🚀 **Setup**    | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
+|  🗂️ **Prompts**   | Prompt Catalog (in this README)            | Shared sources, render steps, system outputs  |
+| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
 
 ---
 

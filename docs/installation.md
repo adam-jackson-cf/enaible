@@ -1,6 +1,6 @@
 # Installation Guide
 
-This guide walks through provisioning the Enaible toolchain and installing agent assets for Codex and Claude Code. All commands are intended to run from the repository root (`ai-assisted-workflows/`).
+This guide walks through provisioning the Enaible toolchain and installing agent assets for Codex, Claude Code, and Copilot. All commands are intended to run from the repository root (`ai-assisted-workflows/`).
 
 ## Prerequisites
 
@@ -39,6 +39,7 @@ Use `enaible install` to copy prompts, command docs, and rulebooks into the corr
 | ----------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
 | Codex       | `uv run --project tools/enaible enaible install codex --mode sync --scope project --target .`       | `uv run --project tools/enaible enaible install codex --mode sync --scope user`       | Copies `prompts/`, `rules/`, helper docs, and merges global rules into `AGENTS.md`. |
 | Claude Code | `uv run --project tools/enaible enaible install claude-code --mode sync --scope project --target .` | `uv run --project tools/enaible enaible install claude-code --mode sync --scope user` | Copies `commands/`, `agents/`, `rules/`, settings, and regenerates managed prompts. |
+| Copilot     | `uv run --project tools/enaible enaible install copilot --mode sync --scope project --target .`     | `uv run --project tools/enaible enaible install copilot --mode sync --scope user`     | Copies `prompts/` and `rules/` for GitHub Copilot surfaces.                         |
 
 Key flags:
 
@@ -59,7 +60,7 @@ Repeat the `enaible install` step for `claude-code` when that surface is affecte
 
 ## Step 4 — Validate before publishing
 
-Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates.yml`:
+Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates-incremental.yml`:
 
 ```bash
 uv run --project tools/enaible ruff check tools/enaible/src

@@ -29,6 +29,8 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
 - When @VERBOSE is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
+- Run reconnaissance before analyzers to detect project context and auto-apply smart exclusions.
+- After synthesis, explicitly identify gaps in deterministic tool coverage and backfill where possible.
 
 ## Workflow
 
@@ -38,7 +40,14 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Note whether @VERBOSE is enabled.
 2. **Establish artifacts directory**
    - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
-3. **Run automated analyzers**
+3. **Reconnaissance**
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Detect layout: monorepo vs single-project, primary language(s), deployment topology indicators
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Merge with any user-provided @EXCLUDE patterns
+   - Note root-cause-relevant context: logging infrastructure, error tracking services, deployment configs
+   - Log applied exclusions for final report
+4. **Run automated analyzers**
 
    - Execute each Enaible command, storing the JSON output:
 
@@ -60,17 +69,26 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
    - If any invocation fails, review options with `enaible analyzers run --help` before retrying.
 
-4. **Analyze results**
+5. **Analyze results**
    - Correlate change timelines with error occurrences.
    - Map stack traces to code locations and execution paths.
    - Identify recurring error signatures and environment triggers.
-5. **Perform causal reasoning**
+6. **Perform causal reasoning**
    - Apply techniques such as Five Whys, timeline reconstruction, and hypothesis testing.
    - Distinguish primary root causes from contributing factors or unknowns that require follow-up.
-6. **Recommend remediation**
+7. **Recommend remediation**
    - Propose fixes, regression tests, and preventive measures.
    - Surface open questions or missing data that must be resolved before rollout.
-7. **Deliver report**
+8. **Identify coverage gaps**
+   - List what the analyzers checked (traces, recent changes, error patterns) vs. what they cannot check
+   - For each gap category:
+     - Environmental differences: compare prod vs dev configs, feature flags, dependency versions
+     - Timing/race conditions: review async code and concurrent access patterns for non-deterministic behavior
+     - Data-dependent paths: inspect code paths that vary based on input data or state
+   - If inspectable via code reading: perform targeted review, cite evidence
+   - If requires runtime/external info: flag as "requires manual verification"
+   - Assign confidence: High (tool + LLM agreement), Medium (LLM inference only), Low (couldn't verify)
+9. **Deliver report**
    - Summarize evidence, findings, and next actions in a structured format.
    - Reference analyzer outputs using the artifact paths recorded earlier.
 
@@ -81,6 +99,12 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 - Summary: Root cause identified for "<ISSUE_DESCRIPTION>".
 - Artifacts: `.enaible/artifacts/analyze-root-cause/<timestamp>/`
+
+## RECONNAISSANCE
+
+- Project type: <monorepo|single-project>
+- Primary stack: <languages/frameworks detected>
+- Auto-excluded: <patterns applied>
 
 ## EVIDENCE
 
@@ -100,19 +124,17 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Verification: <tests, monitors, checkpoints>
 - Preventive Measures: <telemetry, guardrails, process updates>
 
+## GAP ANALYSIS
+
+| Gap Category              | Status            | Finding                                     | Confidence      |
+| ------------------------- | ----------------- | ------------------------------------------- | --------------- |
+| Environmental differences | Inspected         | <finding>                                   | High/Medium/Low |
+| Timing/race conditions    | Inspected/Flagged | <finding or "requires manual verification"> | High/Medium/Low |
+| Data-dependent paths      | Inspected         | <finding>                                   | High/Medium/Low |
+
 ## ATTACHMENTS
 
 - root_cause:trace_execution → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-trace.json`
 - root_cause:recent_changes → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-recent-changes.json`
 - root_cause:error_patterns → `.enaible/artifacts/analyze-root-cause/<timestamp>/root-cause-error-patterns.json`
-```
-
-## Examples
-
-```bash
-# Investigate a crash reported in production
-/analyze-root-cause "API returns 500 when updating invoices"
-
-# Capture extended diagnostics
-/analyze-root-cause "Payment queue stuck in processing" --verbose
 ```

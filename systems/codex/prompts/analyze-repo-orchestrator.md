@@ -19,6 +19,17 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 ### Derived (internal)
 
 - @ORCH_ROOT — timestamped orchestrator artifact directory
+- @TARGET_ABS — absolute path to the target directory resolved from @TARGET_PATH
+- @EXCLUDE_ARGS — shell-formatted exclusion arguments built from @EXCLUDE options
+- @ORCH_TS — UTC timestamp (YYYYMMDDTHHMMSSZ) for this orchestration run
+- @ARCH_ROOT — architecture analyzer artifact directory
+- @QUALITY_ROOT — code quality analyzer artifact directory
+- @SECURITY_ROOT — security analyzer artifact directory
+- @PERF_ROOT — performance analyzer artifact directory
+- @HISTORY_ROOT — git history analyzer artifact directory
+- @STATUS_LOG — CSV/JSON status log file for tracking tmux session completion
+- @SCOPE — iteration variable for directory scopes in JSCPD analysis loops
+- @DAYS — number of days for git history analysis window
 
 ## Instructions
 
