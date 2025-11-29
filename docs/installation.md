@@ -12,7 +12,7 @@ This guide walks through provisioning the Enaible toolchain and installing agent
 Verify your environment:
 
 ```bash
-python3 --version            # Expect 3.12.x
+python --version            # Expect 3.12.x
 uv --version                 # Confirm uv is installed
 ```
 
