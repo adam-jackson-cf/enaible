@@ -101,12 +101,12 @@ Notes
 
 ### Planning
 
-| Prompt               | Example                           | Use Case                                        |
-| -------------------- | --------------------------------- | ----------------------------------------------- |
-| plan-refactor        | `/plan-refactor "auth module"`    | Design staged refactoring with risk mitigation  |
-| plan-solution        | `/plan-solution "OAuth2 auth"`    | Develop and compare solution approaches         |
-| plan-ux-prd          | `/plan-ux-prd "code review tool"` | Create UX-focused product requirements document |
-| create-session-notes | `/create-session-notes`           | Append timestamped session summary to notes     |
+| Prompt          | Example                           | Use Case                                        |
+| --------------- | --------------------------------- | ----------------------------------------------- |
+| plan-refactor   | `/plan-refactor "auth module"`    | Design staged refactoring with risk mitigation  |
+| plan-solution   | `/plan-solution "OAuth2 auth"`    | Develop and compare solution approaches         |
+| plan-ux-prd     | `/plan-ux-prd "code review tool"` | Create UX-focused product requirements document |
+| create-hand-off | `/create-hand-off`                | Generate handoff prompt for next AI session     |
 
 ### Setup
 

@@ -570,10 +570,10 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "create-session-notes": PromptDefinition(
-        prompt_id="create-session-notes",
-        source_path=_repo_path("shared", "prompts", "create-session-notes.md"),
-        title="create-session-notes v1.0",
+    "create-hand-off": PromptDefinition(
+        prompt_id="create-hand-off",
+        source_path=_repo_path("shared", "prompts", "create-hand-off.md"),
+        title="create-hand-off v1.0",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -582,13 +582,13 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "claude-code",
                     "commands",
-                    "create-session-notes.md",
+                    "create-hand-off.md",
                 ),
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "create-session-notes.md"
+                    ".build", "rendered", "codex", "prompts", "create-hand-off.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
@@ -599,10 +599,10 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "copilot",
                     "prompts",
-                    "create-session-notes.prompt.md",
+                    "create-hand-off.prompt.md",
                 ),
                 frontmatter={
-                    "description": "Append a timestamped summary of the current session to session-notes.md",
+                    "description": "Generate handoff prompt for next AI session",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
@@ -614,7 +614,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "cursor",
                     "commands",
-                    "create-session-notes.md",
+                    "create-hand-off.md",
                 ),
             ),
         },
