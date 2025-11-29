@@ -1,4 +1,4 @@
-# setup-task-lists v0.1
+# setup-task-lists v0.2
 
 ## Purpose
 
@@ -19,7 +19,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 ### Derived (internal)
 
 - @BD_BINARY_PATH = <path> — resolved bd binary location
-- @HOOKS_CONFIG_PATH = <path> — hooks configuration file path (.claude/hooks.yaml or similar)
+- @SETTINGS_PATH = .claude/settings.local.json — Claude Code settings file for hooks
 - @SYNC_SCRIPT_PATH = <path> — TodoWrite sync script path
 
 ## Instructions
@@ -56,34 +56,36 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
    - Search for `.beads/` entry: `grep -q '^\.beads/' .gitignore`
    - If not found, **STOP (skip when @AUTO):** "Add .beads/ to .gitignore? (y/n)"
    - Append `.beads/` to `.gitignore`
-5. Create hooks directory
+5. Create hooks directory and settings
    - Ensure @HOOK_PATH directory exists: `mkdir -p @HOOK_PATH`
-   - If hooks configuration file doesn't exist, create it
-   - Detect existing hooks config location (.claude/hooks.yaml, .claude/hooks.yml, etc.)
+   - Check if @SETTINGS_PATH exists; if not, create with empty JSON object `{}`
+   - If file exists, read current content to merge hooks configuration
 6. Configure SessionStart hook
-   - Add or update hooks configuration with SessionStart event:
-     ```yaml
-     # Load active Beads tasks at session start
-     - name: load-bd-tasks
-       events:
-         - SessionStart
-       hooks:
-         - type: command
-           command: |
-             #!/bin/bash
-             if command -v bd &> /dev/null; then
-               echo "📋 Active Beads Tasks (bd ready):"
-               echo ""
-               bd ready --limit @BD_READY_LIMIT
-               echo ""
-               echo "---"
-             fi
+   - Add or update @SETTINGS_PATH with SessionStart hook configuration.
+   - Claude Code hooks use JSON format in settings files. Merge this into @SETTINGS_PATH:
+     ```json
+     {
+       "hooks": {
+         "SessionStart": [
+           {
+             "matcher": "startup",
+             "hooks": [
+               {
+                 "type": "command",
+                 "command": "if command -v bd &> /dev/null; then echo '📋 Active Beads Tasks:' && echo '' && bd ready --limit @BD_READY_LIMIT && echo '' && echo '---'; fi"
+               }
+             ]
+           }
+         ]
+       }
+     }
      ```
    - **STOP (skip when @AUTO):** "Add SessionStart hook to load bd tasks? (y/n)"
 7. Create sync script
 
    - Write sync script to `@HOOK_PATH/sync-todos-to-bd.py`
-   - Use the following content (exact implementation from reference):
+   - Claude Code hooks receive JSON payload via stdin, not command-line arguments.
+   - Use the following content:
 
      ```python
      #!/usr/bin/env python3
@@ -92,7 +94,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 
      Extract bd IDs from completed todos and close them.
 
-     Usage: sync-todos-to-bd.py <TOOL_USE_PAYLOAD>
+     Claude Code hooks receive JSON payload via stdin.
      """
      import json
      import re
@@ -141,14 +143,13 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 
      def main():
          """Run the TodoWrite → Beads sync hook."""
-         if len(sys.argv) < 2:
-             # No payload provided, exit silently
-             sys.exit(0)
-
          try:
-             # Parse the TodoWrite payload
-             payload = json.loads(sys.argv[1])
-             todos = payload.get("parameters", {}).get("todos", [])
+             # Read payload from stdin (Claude Code hooks pass JSON via stdin)
+             payload = json.load(sys.stdin)
+
+             # PostToolUse format: tool_input contains the TodoWrite parameters
+             tool_input = payload.get("tool_input", {})
+             todos = tool_input.get("todos", [])
 
              closed_count = 0
              for todo in todos:
@@ -177,20 +178,26 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
    - Make script executable: `chmod +x @HOOK_PATH/sync-todos-to-bd.py`
 
 8. Configure PostToolUse hook
-   - Add or update hooks configuration with PostToolUse event:
-     ```yaml
-     # Sync completed TodoWrite items to Beads
-     - name: sync-completed-todos-to-bd
-       events:
-         - PostToolUse
-       matchers:
-         - TodoWrite
-       hooks:
-         - type: command
-           command: |
-             #!/bin/bash
-             python3 @HOOK_PATH/sync-todos-to-bd.py "$TOOL_USE_PAYLOAD"
+   - Merge PostToolUse hook into @SETTINGS_PATH:
+     ```json
+     {
+       "hooks": {
+         "PostToolUse": [
+           {
+             "matcher": "TodoWrite",
+             "hooks": [
+               {
+                 "type": "command",
+                 "command": "python3 @HOOK_PATH/sync-todos-to-bd.py",
+                 "timeout": 10
+               }
+             ]
+           }
+         ]
+       }
+     }
      ```
+   - Note: Use singular `"matcher"` not `"matchers"`. The script receives input via stdin automatically.
    - **STOP (skip when @AUTO):** "Add PostToolUse hook to sync completed todos? (y/n)"
 9. Update CLAUDE.md
 
@@ -232,9 +239,9 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
 
 - Binary: bd @BD_BINARY_PATH (version: <version>)
 - Database: .beads/ (added to .gitignore)
-- Hooks: @HOOKS_CONFIG_PATH
-  - SessionStart: load-bd-tasks (limit: @BD_READY_LIMIT)
-  - PostToolUse: sync-completed-todos-to-bd
+- Hooks: @SETTINGS_PATH
+  - SessionStart: matcher "startup" (limit: @BD_READY_LIMIT)
+  - PostToolUse: matcher "TodoWrite"
 - Sync Script: @SYNC_SCRIPT_PATH (executable)
 - Documentation: CLAUDE.md updated
 
