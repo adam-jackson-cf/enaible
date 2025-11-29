@@ -42,8 +42,6 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
    - Run the architecture analyzers through Enaible for the relevant target (default `.` unless discovery identifies a subpath):
 
      ```bash
-     uv sync --project tools/enaible
-
      enaible analyzers run architecture:patterns \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/architecture-patterns.json"
