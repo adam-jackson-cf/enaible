@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import pytest
-
 from enaible.prompts.utils import _parse_variables_bullets, extract_variables
 
 
