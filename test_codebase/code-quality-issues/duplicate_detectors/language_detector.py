@@ -6,7 +6,6 @@ Shared utility for detecting programming languages in project files
 
 import fnmatch
 from pathlib import Path
-from typing import Optional
 
 
 class LanguageDetector:
@@ -34,7 +33,7 @@ class LanguageDetector:
     }
 
     @classmethod
-    def detect_from_files(cls, file_paths: list[Path], exclusion_patterns: Optional[list[str]] = None) -> set[str]:
+    def detect_from_files(cls, file_paths: list[Path], exclusion_patterns: list[str] | None = None) -> set[str]:
         """
         Detect programming languages from a list of files.
 
@@ -59,7 +58,7 @@ class LanguageDetector:
         return languages
 
     @classmethod
-    def detect_from_directory(cls, project_dir: str, exclusion_patterns: Optional[list[str]] = None) -> set[str]:
+    def detect_from_directory(cls, project_dir: str, exclusion_patterns: list[str] | None = None) -> set[str]:
         """
         Detect programming languages from all files in a directory.
 
