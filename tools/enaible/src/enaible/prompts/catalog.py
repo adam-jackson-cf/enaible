@@ -685,6 +685,38 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "setup-task-lists": PromptDefinition(
+        prompt_id="setup-task-lists",
+        source_path=_repo_path("shared", "prompts", "setup-task-lists.md"),
+        title="setup-task-lists v0.3",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "claude-code", "commands", "setup-task-lists.md"
+                ),
+                frontmatter={"argument-hint": "[--auto]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "codex", "prompts", "setup-task-lists.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "copilot", "prompts", "setup-task-lists.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Install Beads (bd) for git-backed persistent task tracking",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
 }
 
 
