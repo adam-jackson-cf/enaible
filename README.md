@@ -103,7 +103,6 @@ Notes
 
 | Prompt               | Example                           | Use Case                                        |
 | -------------------- | --------------------------------- | ----------------------------------------------- |
-| plan-improvements    | `/plan-improvements`              | Generate prioritized improvement roadmap        |
 | plan-refactor        | `/plan-refactor "auth module"`    | Design staged refactoring with risk mitigation  |
 | plan-solution        | `/plan-solution "OAuth2 auth"`    | Develop and compare solution approaches         |
 | plan-ux-prd          | `/plan-ux-prd "code review tool"` | Create UX-focused product requirements document |

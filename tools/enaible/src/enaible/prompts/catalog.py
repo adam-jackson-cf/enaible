@@ -268,7 +268,7 @@ CATALOG: dict[str, PromptDefinition] = {
     ),
     "plan-refactor": PromptDefinition(
         prompt_id="plan-refactor",
-        source_path=_repo_path("shared", "prompts", "plan-improvements.md"),
+        source_path=_repo_path("shared", "prompts", "plan-refactor.md"),
         title="plan-refactor v1.0",
         systems={
             "claude-code": SystemPromptConfig(
