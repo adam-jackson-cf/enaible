@@ -91,76 +91,76 @@ Notes
 
 ### Analysis
 
-| Prompt | Example | Use Case |
-|--------|---------|----------|
-| analyze-architecture | `/analyze-architecture src/` | Evaluate layering, coupling, and scalability |
-| analyze-code-quality | `/analyze-code-quality src/` | Assess complexity, maintainability, technical debt |
-| analyze-performance | `/analyze-performance src/` | Identify bottlenecks across backend, frontend, data |
-| analyze-root-cause | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces |
-| analyze-security | `/analyze-security src/` | OWASP-aligned scanning with gap analysis |
+| Prompt               | Example                             | Use Case                                              |
+| -------------------- | ----------------------------------- | ----------------------------------------------------- |
+| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          |
+| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    |
+| analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   |
+| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces |
+| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              |
 
 ### Planning
 
-| Prompt | Example | Use Case |
-|--------|---------|----------|
-| plan-improvements | `/plan-improvements` | Generate prioritized improvement roadmap |
-| plan-refactor | `/plan-refactor "auth module"` | Design staged refactoring with risk mitigation |
-| plan-solution | `/plan-solution "OAuth2 auth"` | Develop and compare solution approaches |
-| plan-ux-prd | `/plan-ux-prd "code review tool"` | Create UX-focused product requirements document |
-| create-session-notes | `/create-session-notes` | Append timestamped session summary to notes |
+| Prompt               | Example                           | Use Case                                        |
+| -------------------- | --------------------------------- | ----------------------------------------------- |
+| plan-improvements    | `/plan-improvements`              | Generate prioritized improvement roadmap        |
+| plan-refactor        | `/plan-refactor "auth module"`    | Design staged refactoring with risk mitigation  |
+| plan-solution        | `/plan-solution "OAuth2 auth"`    | Develop and compare solution approaches         |
+| plan-ux-prd          | `/plan-ux-prd "code review tool"` | Create UX-focused product requirements document |
+| create-session-notes | `/create-session-notes`           | Append timestamped session summary to notes     |
 
 ### Setup
 
-| Prompt | Example | Use Case |
-|--------|---------|----------|
-| setup-dev-monitoring | `/setup-dev-monitoring` | Configure Makefile/Procfile with central logging |
-| setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits |
-| setup-browser-tools | `/setup-browser-tools` | Install Chrome DevTools Protocol automation |
-| setup-command-history | `/setup-command-history` | Install Atuin shell history with SQLite |
-| setup-ui-pointer | `/setup-ui-pointer` | Install react-grab for element capture |
+| Prompt                   | Example                     | Use Case                                         |
+| ------------------------ | --------------------------- | ------------------------------------------------ |
+| setup-dev-monitoring     | `/setup-dev-monitoring`     | Configure Makefile/Procfile with central logging |
+| setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits   |
+| setup-browser-tools      | `/setup-browser-tools`      | Install Chrome DevTools Protocol automation      |
+| setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite          |
+| setup-ui-pointer         | `/setup-ui-pointer`         | Install react-grab for element capture           |
 
 ### Project & Feature
 
-| Prompt | Example | Use Case |
-|--------|---------|----------|
-| create-project | `/create-project api --from-todos spec.md` | Scaffold project with Better-T-Stack CLI |
-| create-rule | `/create-rule typescript` | Generate domain-specific coding rules |
-| get-codebase-primer | `/get-codebase-primer` | Generate project overview with architecture |
-| get-feature-primer | `/get-feature-primer "auth flow"` | Explore codebase for feature-specific context |
+| Prompt              | Example                                   | Use Case                                      |
+| ------------------- | ----------------------------------------- | --------------------------------------------- |
+| setup-project       | `/setup-project api --from-todos spec.md` | Scaffold project with Better-T-Stack CLI      |
+| create-rule         | `/create-rule typescript`                 | Generate domain-specific coding rules         |
+| get-codebase-primer | `/get-codebase-primer`                    | Generate project overview with architecture   |
+| get-feature-primer  | `/get-feature-primer "auth flow"`         | Explore codebase for feature-specific context |
 
 ### Utility
 
-| Prompt | Example | Use Case |
-|--------|---------|----------|
-| add-code-precommit-checks | `/add-code-precommit-checks` | Add git hooks for language-specific quality gates |
-| apply-rule-set | `/apply-rule-set security` | Load named rule set for domain standards |
+| Prompt                      | Example                        | Use Case                                          |
+| --------------------------- | ------------------------------ | ------------------------------------------------- |
+| setup-code-precommit-checks | `/setup-code-precommit-checks` | Add git hooks for language-specific quality gates |
+| apply-rule-set              | `/apply-rule-set security`     | Load named rule set for domain standards          |
 
 ### System-Specific Commands
 
-| Command | System | Example | Use Case |
-|---------|--------|---------|----------|
-| codify-claude-history | Claude | `/codify-claude-history --days 7` | Extract workflow standards from sessions |
-| get-recent-context | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
-| setup-task-lists | Claude | `/setup-task-lists` | Initialize Beads task tracking |
-| codify-codex-history | Codex | `/codify-codex-history` | Mine sessions for recurring patterns |
-| get-recent-context | Codex | `/get-recent-context --days 3` | Analyze Codex session logs |
-| analyze-repo-orchestrator | Codex | `/analyze-repo-orchestrator` | Parallel repo analysis with KPI scoring |
-| todo-background | Codex | `/todo-background "refactor auth"` | Run task in background tmux session |
+| Command                   | System | Example                                    | Use Case                                  |
+| ------------------------- | ------ | ------------------------------------------ | ----------------------------------------- |
+| codify-claude-history     | Claude | `/codify-claude-history --days 7`          | Extract workflow standards from sessions  |
+| get-recent-context        | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
+| setup-task-lists          | Claude | `/setup-task-lists`                        | Initialize Beads task tracking            |
+| codify-codex-history      | Codex  | `/codify-codex-history`                    | Mine sessions for recurring patterns      |
+| get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
+| analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
+| todo-background           | Codex  | `/todo-background "refactor auth"`         | Run task in background tmux session       |
 
 ### Agents (Claude Code)
 
-| Agent | Example | Specialization |
-|-------|---------|----------------|
-| docs-scraper | `@docs-scraper` | Fetch and convert docs to markdown |
-| docker-expert | `@docker-expert` | Advice on Container optimization and deployment |
-| git-action-expert | `@git-action-expert` | Advice on GitHub Actions and CI/CD pipelines |
-| market-analyst | `@market-analyst` | Competitive intelligence and research |
-| python-expert | `@python-expert` | Python 3.13+ development planning |
-| rag-architecture-expert | `@rag-architecture-expert` | RAG system design and implementation |
-| research-coordinator | `@research-coordinator` | Multi-researcher orchestration |
-| technical-researcher | `@technical-researcher` | Code repo analysis and documentation |
-| typescript-expert | `@typescript-expert` | TypeScript 5.7+ and Bun patterns |
-| user-researcher | `@user-researcher` | Persona development and journey mapping |
+| Agent                   | Example                    | Specialization                                  |
+| ----------------------- | -------------------------- | ----------------------------------------------- |
+| docs-scraper            | `@docs-scraper`            | Fetch and convert docs to markdown              |
+| docker-expert           | `@docker-expert`           | Advice on Container optimization and deployment |
+| git-action-expert       | `@git-action-expert`       | Advice on GitHub Actions and CI/CD pipelines    |
+| market-analyst          | `@market-analyst`          | Competitive intelligence and research           |
+| python-expert           | `@python-expert`           | Python 3.13+ development planning               |
+| rag-architecture-expert | `@rag-architecture-expert` | RAG system design and implementation            |
+| research-coordinator    | `@research-coordinator`    | Multi-researcher orchestration                  |
+| technical-researcher    | `@technical-researcher`    | Code repo analysis and documentation            |
+| typescript-expert       | `@typescript-expert`       | TypeScript 5.7+ and Bun patterns                |
+| user-researcher         | `@user-researcher`         | Persona development and journey mapping         |
 
 ---
 
