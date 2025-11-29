@@ -31,12 +31,14 @@ SYSTEM_RULES = {
     "claude-code": ("rules/global.claude.rules.md", "CLAUDE.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
+    "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "claude-code": ("commands/", "agents/", "rules/"),
     "codex": ("prompts/", "rules/"),
     "copilot": ("prompts/",),
+    "cursor": ("commands/", "rules/"),
 }
 
 
@@ -62,7 +64,7 @@ class InstallSummary:
 @app.command("install")
 def install(  # noqa: PLR0912
     system: str = typer.Argument(
-        ..., help="System adapter to install (claude-code|codex|copilot)."
+        ..., help="System adapter to install (claude-code|codex|copilot|cursor)."
     ),
     install_cli: bool = typer.Option(
         True,
@@ -140,8 +142,8 @@ def install(  # noqa: PLR0912
 
         relative_posix = relative.as_posix()
 
-        # Skip rules directory for copilot (only used as source for AGENTS.md)
-        if system == "copilot" and relative_posix.startswith("rules/"):
+        # Skip rules directory for copilot/cursor (only used as source for AGENTS.md/user-rules-setting.md)
+        if system in ("copilot", "cursor") and relative_posix.startswith("rules/"):
             summary.record_skip(relative)
             continue
 
@@ -359,6 +361,16 @@ def _post_install(
         summary.record("merge", target_path)
         return
 
+    if system == "cursor":
+        _create_cursor_user_rules(target_path, source_rules)
+        summary.record("write", target_path)
+        typer.echo(
+            "\n>>> Cursor requires manual configuration:\n"
+            f"    Copy the contents of {target_path}\n"
+            "    into Cursor > Settings > Rules > User Rules\n"
+        )
+        return
+
     header = (
         f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
     )
@@ -458,6 +470,18 @@ def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
+
+
+def _create_cursor_user_rules(target_path: Path, source_rules: Path) -> None:
+    """Create user-rules-setting.md for Cursor with instructions to copy to IDE settings."""
+    header = f"# Cursor User Rules v{_enaible_version()} - Copy to Cursor > Settings > Rules > User"
+    instruction = "Copy the contents below into Cursor > Settings > Rules > User Rules."
+    body = source_rules.read_text(encoding="utf-8").strip()
+
+    content = f"{header}\n\n{instruction}\n\n---\n\n{body}\n"
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(content, encoding="utf-8")
 
 
 def _enaible_version() -> str:

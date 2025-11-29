@@ -20,6 +20,7 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 - @COMPONENTS_JSON = <config> — JSON array describing services ({ name, label, cwd, start_command, port|null })
 - @WATCH_GLOBS = <config> — CSV of custom globs for components lacking native hot reload
 - @LOG_FILE = <config> — unified log destination for orchestrated services (default ./dev.log)
+- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
 
 ## Instructions
 

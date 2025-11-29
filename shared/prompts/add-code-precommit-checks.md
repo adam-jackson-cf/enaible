@@ -63,5 +63,3 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 - Installation Method: <pip|pipx|brew|pre-existing>
 - Validation: <pass|fail> (attach failing hook names if any)
 ```
-
-$ARGUMENTS

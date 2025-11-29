@@ -21,6 +21,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - @TEMP_DIR = <path> — temporary clone directory
 - @SCRIPTS = <list> — browser-\*.js script names to install
 - @SCOPE = <user|project> — installation scope from user choice
+- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
 - @SYSTEMS_PATH = <path> — full path to systems file based on scope
 
 ## Instructions
@@ -144,5 +145,3 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 3. Take a screenshot: `browser-screenshot.js`
 4. (Optional) Add shell aliases from @SYSTEMS_PATH for shorter commands
 ```
-
-$ARGUMENTS

@@ -22,6 +22,7 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
 - @INSTALL_SCRIPT_URL = <url> — Atuin installation script URL
 - @DETECTED_SHELL = <shell> — detected shell type (bash, zsh, fish)
 - @SHELL_CONFIG = <path> — shell configuration file path
+- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
 
 ## Instructions
 
@@ -137,5 +138,3 @@ If `--bash-history` is included in the users request or a request requires searc
 5. (If cloud sync enabled) Sync across machines: `atuin sync`
 6. View statistics: `atuin stats`
 ```
-
-$ARGUMENTS

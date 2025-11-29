@@ -1,6 +1,9 @@
-<!-- generated: enaible -->
-<{{ rule_category | default('coding') }}>
+---
+description: {{ frontmatter.description | default(title) }}
+globs: {{ frontmatter.globs | default('"**/*"') }}
+---
+
 # {{ title }}
 
 {{ body }}
-</{{ rule_category | default('coding') }}>
+{{ managed_sentinel }}
