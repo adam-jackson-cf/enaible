@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any
 import typer
 
 from ..app import app
-from ..models.results import AnalyzerRunResponse
+from ..models.results import AnalysisResultContext, AnalyzerRunResponse
 from ..runtime.context import WorkspaceContext, load_workspace
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -196,7 +196,7 @@ def analyzers_run(
     result = analyzer.analyze(str(target))
     finished = time.time()
 
-    response = AnalyzerRunResponse.from_analysis_result(
+    ctx = AnalysisResultContext(
         tool=tool,
         result=result,
         started_at=started,
@@ -204,6 +204,7 @@ def analyzers_run(
         summary_mode=summary_mode,
         min_severity=min_severity,
     )
+    response = AnalyzerRunResponse.from_analysis_result(ctx)
 
     payload = response.to_dict()
 

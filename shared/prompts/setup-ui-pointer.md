@@ -19,6 +19,7 @@ Install and configure react-grab to enable ⌘-click element capture for AI-assi
 
 - @DETECTED_ENTRY = <path> — auto-detected entry point (main.tsx, App.tsx, index.tsx)
 - @IMPORT_GUARD = <code> — development-only import guard pattern
+- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
 
 ## Instructions
 
@@ -97,5 +98,3 @@ Install and configure react-grab to enable ⌘-click element capture for AI-assi
 3. Component context will be copied to clipboard
 4. Paste into Claude Code for AI-assisted development
 ```
-
-$ARGUMENTS

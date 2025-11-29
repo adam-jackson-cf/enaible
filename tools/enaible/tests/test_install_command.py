@@ -294,3 +294,144 @@ def test_claude_code_appends_to_existing_claude_md(tmp_path: Path) -> None:
     assert (
         "---" in content
     ), "Separator should be added between original and merged content"
+
+
+def test_install_update_mode_skips_unmanaged_files(tmp_path: Path) -> None:
+    """Verify UPDATE mode skips files that don't exist or aren't managed."""
+    destination = tmp_path / ".claude" / "commands"
+    destination.mkdir(parents=True)
+
+    # Create unmanaged file
+    unmanaged_file = destination / "custom-command.md"
+    unmanaged_file.write_text("custom", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "update",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    # Unmanaged file should be skipped
+    assert "Skipped" in result.stdout
+    assert unmanaged_file.read_text(encoding="utf-8") == "custom"
+
+
+def test_install_fresh_mode_clears_destination(tmp_path: Path) -> None:
+    """Verify FRESH mode clears destination (except codex)."""
+    destination = tmp_path / ".claude"
+    destination.mkdir(parents=True)
+    existing_file = destination / "old-file.md"
+    existing_file.write_text("old", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "fresh",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    # Old file should be removed
+    assert not existing_file.exists()
+    # New managed files should exist
+    assert (destination / "commands").exists()
+
+
+def test_install_dry_run_no_backup_created(tmp_path: Path) -> None:
+    """Verify dry run doesn't create backups."""
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--dry-run",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    backups = list(tmp_path.glob(".claude.bak*"))
+    assert not backups, "Dry run should not create backups"
+
+
+def test_install_no_backup_flag_skips_backup(tmp_path: Path) -> None:
+    """Verify --no-backup flag skips backup creation."""
+    destination = tmp_path / ".claude"
+    destination.mkdir(parents=True)
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-backup",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    backups = list(tmp_path.glob(".claude.bak*"))
+    assert not backups, "Backup should be skipped with --no-backup"
+
+
+def test_install_no_sync_shared_skips_workspace_sync(tmp_path: Path) -> None:
+    """Verify --no-sync-shared skips workspace synchronization."""
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+            "--no-sync-shared",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    # Should complete without errors even if workspace sync is skipped
+    assert (tmp_path / ".claude" / "commands").exists()
+
+
+def test_install_merge_mode_preserves_unmanaged(tmp_path: Path) -> None:
+    """Verify MERGE mode preserves unmanaged files."""
+    destination = tmp_path / ".claude" / "commands"
+    destination.mkdir(parents=True)
+    unmanaged = destination / "custom.md"
+    unmanaged.write_text("custom content", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    # Unmanaged file should be preserved
+    assert unmanaged.exists()
+    assert unmanaged.read_text(encoding="utf-8") == "custom content"

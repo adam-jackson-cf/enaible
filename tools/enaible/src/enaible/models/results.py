@@ -35,6 +35,18 @@ class FindingPayload:
 
 
 @dataclass(slots=True)
+class AnalysisResultContext:
+    """Context object for creating AnalyzerRunResponse from analysis results."""
+
+    tool: str
+    result: Any
+    started_at: float
+    finished_at: float
+    summary_mode: bool
+    min_severity: str
+
+
+@dataclass(slots=True)
 class AnalyzerRunResponse:
     """Normalized payload returned from `enaible analyzers run`."""
 
@@ -73,36 +85,34 @@ class AnalyzerRunResponse:
 
     @classmethod
     def from_analysis_result(
-        cls,
-        tool: str,
-        result: Any,
-        started_at: float,
-        finished_at: float,
-        summary_mode: bool,
-        min_severity: str,
+        cls, ctx: AnalysisResultContext
     ) -> AnalyzerRunResponse:
-        duration_ms = int((finished_at - started_at) * 1000)
-        started_iso = datetime.fromtimestamp(started_at, UTC).isoformat()
-        finished_iso = datetime.fromtimestamp(finished_at, UTC).isoformat()
+        """Create AnalyzerRunResponse from analysis result context."""
+        duration_ms = int((ctx.finished_at - ctx.started_at) * 1000)
+        started_iso = datetime.fromtimestamp(ctx.started_at, UTC).isoformat()
+        finished_iso = datetime.fromtimestamp(ctx.finished_at, UTC).isoformat()
 
-        raw_dict = result.to_dict(summary_mode=summary_mode, min_severity=min_severity)
+        raw_dict = ctx.result.to_dict(
+            summary_mode=ctx.summary_mode, min_severity=ctx.min_severity
+        )
         findings = [
             FindingPayload.from_core(item) for item in raw_dict.get("findings", [])
         ]
 
-        exit_code = 0 if result.success else 1
+        exit_code = 0 if ctx.result.success else 1
         errors: list[str] = []
-        if not result.success and getattr(result, "error_message", None):
-            errors.append(str(result.error_message))
+        if not ctx.result.success and getattr(ctx.result, "error_message", None):
+            errors.append(str(ctx.result.error_message))
 
         stats = {
-            "execution_time_seconds": getattr(result, "execution_time", None),
-            "files_processed": getattr(result, "files_processed", None),
-            "processing_errors": getattr(result, "processing_errors", None),
+            "execution_time_seconds": getattr(ctx.result, "execution_time", None),
+            "files_processed": getattr(ctx.result, "files_processed", None),
+            "processing_errors": getattr(ctx.result, "processing_errors", None),
         }
 
         summary = raw_dict.get(
-            "summary", result.get_summary() if hasattr(result, "get_summary") else {}
+            "summary",
+            ctx.result.get_summary() if hasattr(ctx.result, "get_summary") else {},
         )
 
         metadata = raw_dict.get("metadata", {})
@@ -114,16 +124,16 @@ class AnalyzerRunResponse:
             stats.setdefault("notes", metadata["info"])
 
         return cls(
-            tool=tool,
+            tool=ctx.tool,
             analyzer_type=getattr(
-                result.analysis_type, "value", str(result.analysis_type)
+                ctx.result.analysis_type, "value", str(ctx.result.analysis_type)
             ),
-            success=bool(result.success),
+            success=bool(ctx.result.success),
             exit_code=exit_code,
             started_at=started_iso,
             completed_at=finished_iso,
             duration_ms=duration_ms,
-            target=getattr(result, "target_path", ""),
+            target=getattr(ctx.result, "target_path", ""),
             findings=findings,
             summary=summary,
             metadata=metadata,

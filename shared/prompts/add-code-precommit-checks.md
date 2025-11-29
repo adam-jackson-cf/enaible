@@ -40,6 +40,7 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 4. Generate `.pre-commit-config.yaml`
    - Populate the file with repositories and hooks tailored to the project (e.g., Prettier + ESLint for TypeScript, Black + Ruff + Mypy for Python).
    - Preserve YAML ordering and include only necessary hooks; no placeholders.
+   - ALWAYS include a local `stage-fixes` hook after all formatting hooks (Black, Ruff, Prettier, pyupgrade, etc.) that automatically stages modified files using `git add -u`. This ensures auto-fixes are included in commits and prevents CI failures where CI runs linters without `--fix`. Configure it as: `repo: local`, `id: stage-fixes`, `entry: bash -c 'git add -u'`, `language: system`, `pass_filenames: false`, `always_run: true`, `stages: [pre-commit]`.
 5. Register git hooks
    - Run `pre-commit install`.
    - When supported by the project, also enable `pre-commit install --hook-type commit-msg`.
@@ -63,5 +64,3 @@ Establish pre-commit hooks so git rejects commits that violate the project's lan
 - Installation Method: <pip|pipx|brew|pre-existing>
 - Validation: <pass|fail> (attach failing hook names if any)
 ```
-
-$ARGUMENTS

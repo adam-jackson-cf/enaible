@@ -101,5 +101,3 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
 2. View ready tasks: `bd ready`
 3. Close the test task: `bd close <id>`
 ```
-
-$ARGUMENTS

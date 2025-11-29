@@ -31,12 +31,14 @@ SYSTEM_RULES = {
     "claude-code": ("rules/global.claude.rules.md", "CLAUDE.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
+    "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "claude-code": ("commands/", "agents/", "rules/"),
     "codex": ("prompts/", "rules/"),
     "copilot": ("prompts/",),
+    "cursor": ("commands/", "rules/"),
 }
 
 
@@ -59,10 +61,134 @@ class InstallSummary:
         self.skipped.append(path.as_posix())
 
 
+def _setup_installation_context(
+    context, system: str, target: Path, scope: str
+) -> tuple[SystemRenderContext, Path, Path]:
+    """Set up installation context and validate source assets."""
+    system_ctx = _get_system_context(system)
+    source_root = context.repo_root / "systems" / system
+    if not source_root.exists():
+        raise typer.BadParameter(f"Source assets missing for system '{system}'.")
+    destination_root = _resolve_destination(system_ctx, target, scope)
+    return system_ctx, source_root, destination_root
+
+
+def _prepare_installation_environment(
+    context,
+    install_cli: bool,
+    cli_source: Path,
+    sync_shared: bool,
+    backup: bool,
+    destination_root: Path,
+    system: str,
+    mode: InstallMode,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    """Prepare installation environment: CLI, shared workspace, backups."""
+    if install_cli:
+        _install_cli(context.repo_root, cli_source, dry_run, summary)
+
+    if sync_shared:
+        _sync_shared_workspace(context.repo_root, dry_run, summary)
+
+    if backup:
+        _backup_destination_folder(destination_root, dry_run, summary)
+
+    if mode is InstallMode.FRESH:
+        _clear_destination_for_fresh_install(system, destination_root, dry_run, summary)
+
+
+def _should_skip_file(
+    source_file: Path,
+    destination_file: Path,
+    relative_posix: str,
+    system: str,
+    mode: InstallMode,
+    always_managed_prefixes: tuple[str, ...],
+) -> bool:
+    """Determine if a file should be skipped based on mode and managed status."""
+    # Skip rules directory for copilot/cursor
+    if system in ("copilot", "cursor") and relative_posix.startswith("rules/"):
+        return True
+
+    managed = _has_managed_sentinel(source_file) or any(
+        relative_posix.startswith(prefix) for prefix in always_managed_prefixes
+    )
+    dest_exists = destination_file.exists()
+    dest_managed = (
+        _has_managed_sentinel(destination_file) if dest_exists else managed
+    )
+    if any(relative_posix.startswith(prefix) for prefix in always_managed_prefixes):
+        dest_managed = True
+
+    if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
+        return True
+
+    return mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed
+
+
+def _process_source_files(
+    source_root: Path,
+    destination_root: Path,
+    system: str,
+    mode: InstallMode,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    """Process and copy source files to destination based on installation mode."""
+    files = _iter_source_files(source_root, system)
+    always_managed_prefixes = ALWAYS_MANAGED_PREFIXES.get(system, ())
+
+    for source_file in files:
+        relative = source_file.relative_to(source_root)
+        destination_file = destination_root / relative
+        relative_posix = relative.as_posix()
+
+        if _should_skip_file(
+            source_file,
+            destination_file,
+            relative_posix,
+            system,
+            mode,
+            always_managed_prefixes,
+        ):
+            summary.record_skip(relative)
+            continue
+
+        if dry_run:
+            summary.record("write", destination_file)
+            continue
+
+        destination_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_file, destination_file)
+        summary.record("write", destination_file)
+
+
+def _complete_installation(
+    context,
+    system: str,
+    source_root: Path,
+    destination_root: Path,
+    sync: bool,
+    mode: InstallMode,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    """Complete installation: render prompts, sync, post-install, emit summary."""
+    _render_managed_prompts(context, system, destination_root, mode, dry_run, summary)
+
+    if sync:
+        _sync_enaible_env(context.repo_root, dry_run, summary)
+
+    _post_install(system, source_root, destination_root, dry_run, summary)
+    _emit_summary(system, destination_root, mode, summary, dry_run)
+
+
 @app.command("install")
-def install(  # noqa: PLR0912
+def install(
     system: str = typer.Argument(
-        ..., help="System adapter to install (claude-code|codex|copilot)."
+        ..., help="System adapter to install (claude-code|codex|copilot|cursor)."
     ),
     install_cli: bool = typer.Option(
         True,
@@ -107,81 +233,29 @@ def install(  # noqa: PLR0912
 ) -> None:
     """Install rendered system assets into project or user configuration directories."""
     context = load_workspace()
-    system_ctx = _get_system_context(system)
-    source_root = context.repo_root / "systems" / system
-    if not source_root.exists():
-        raise typer.BadParameter(f"Source assets missing for system '{system}'.")
-
     summary = InstallSummary(actions=[], skipped=[])
+    system_ctx, source_root, destination_root = _setup_installation_context(
+        context, system, target, scope
+    )
 
-    if install_cli:
-        _install_cli(context.repo_root, cli_source, dry_run, summary)
+    _prepare_installation_environment(
+        context,
+        install_cli,
+        cli_source,
+        sync_shared,
+        backup,
+        destination_root,
+        system,
+        mode,
+        dry_run,
+        summary,
+    )
 
-    if sync_shared:
-        _sync_shared_workspace(context.repo_root, dry_run, summary)
+    _process_source_files(source_root, destination_root, system, mode, dry_run, summary)
 
-    destination_root = _resolve_destination(system_ctx, target, scope)
-
-    # Create folder-level backup before any install operations (for all modes)
-    if backup:
-        _backup_destination_folder(destination_root, dry_run, summary)
-
-    # FRESH mode clears the destination directory after backup (except codex)
-    if mode is InstallMode.FRESH:
-        _clear_destination_for_fresh_install(system, destination_root, dry_run, summary)
-
-    files = _iter_source_files(source_root, system)
-
-    always_managed_prefixes = ALWAYS_MANAGED_PREFIXES.get(system, ())
-
-    for source_file in files:
-        relative = source_file.relative_to(source_root)
-        destination_file = destination_root / relative
-
-        relative_posix = relative.as_posix()
-
-        # Skip rules directory for copilot (only used as source for AGENTS.md)
-        if system == "copilot" and relative_posix.startswith("rules/"):
-            summary.record_skip(relative)
-            continue
-
-        managed = _has_managed_sentinel(source_file) or any(
-            relative_posix.startswith(prefix) for prefix in always_managed_prefixes
-        )
-        dest_exists = destination_file.exists()
-        dest_managed = (
-            _has_managed_sentinel(destination_file) if dest_exists else managed
-        )
-        if any(relative_posix.startswith(prefix) for prefix in always_managed_prefixes):
-            dest_managed = True
-
-        if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
-            summary.record_skip(relative)
-            continue
-
-        if (
-            mode in {InstallMode.MERGE, InstallMode.SYNC}
-            and dest_exists
-            and not dest_managed
-        ):
-            summary.record_skip(relative)
-            continue
-
-        if dry_run:
-            summary.record("write", destination_file)
-            continue
-
-        destination_file.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_file, destination_file)
-        summary.record("write", destination_file)
-
-    _render_managed_prompts(context, system, destination_root, dry_run, summary)
-
-    if sync:
-        _sync_enaible_env(context.repo_root, dry_run, summary)
-
-    _post_install(system, source_root, destination_root, dry_run, summary)
-    _emit_summary(system, destination_root, mode, summary, dry_run)
+    _complete_installation(
+        context, system, source_root, destination_root, sync, mode, dry_run, summary
+    )
 
 
 def _install_cli(
@@ -359,6 +433,16 @@ def _post_install(
         summary.record("merge", target_path)
         return
 
+    if system == "cursor":
+        _create_cursor_user_rules(target_path, source_rules)
+        summary.record("write", target_path)
+        typer.echo(
+            "\n>>> Cursor requires manual configuration:\n"
+            f"    Copy the contents of {target_path}\n"
+            "    into Cursor > Settings > Rules > User Rules\n"
+        )
+        return
+
     header = (
         f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
     )
@@ -382,6 +466,7 @@ def _render_managed_prompts(
     context,
     system: str,
     destination_root: Path,
+    mode: InstallMode,
     dry_run: bool,
     summary: InstallSummary,
 ) -> None:
@@ -411,7 +496,14 @@ def _render_managed_prompts(
             summary.record("render", output_path)
             continue
 
-        if output_path.exists() and not _has_managed_sentinel(output_path):
+        dest_exists = output_path.exists()
+        dest_managed = _has_managed_sentinel(output_path) if dest_exists else False
+
+        if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
+            summary.record_skip(relative)
+            continue
+
+        if mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed:
             summary.record_skip(relative)
             continue
 
@@ -458,6 +550,18 @@ def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
+
+
+def _create_cursor_user_rules(target_path: Path, source_rules: Path) -> None:
+    """Create user-rules-setting.md for Cursor with instructions to copy to IDE settings."""
+    header = f"# Cursor User Rules v{_enaible_version()} - Copy to Cursor > Settings > Rules > User"
+    instruction = "Copy the contents below into Cursor > Settings > Rules > User Rules."
+    body = source_rules.read_text(encoding="utf-8").strip()
+
+    content = f"{header}\n\n{instruction}\n\n---\n\n{body}\n"
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(content, encoding="utf-8")
 
 
 def _enaible_version() -> str:

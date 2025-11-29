@@ -58,6 +58,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["edit", "githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "analyze-security.md"
+                ),
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -89,6 +95,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "analyze-architecture.md"
+                ),
             ),
         },
     ),
@@ -122,6 +134,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "analyze-code-quality.md"
+                ),
+            ),
         },
     ),
     "analyze-performance": PromptDefinition(
@@ -153,6 +171,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "analyze-performance.md"
+                ),
             ),
         },
     ),
@@ -186,6 +210,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "analyze-root-cause.md"
+                ),
+            ),
         },
     ),
     "plan-refactor": PromptDefinition(
@@ -217,6 +247,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "plan-refactor.md"
+                ),
             ),
         },
     ),
@@ -250,6 +286,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "plan-solution.md"
+                ),
+            ),
         },
     ),
     "get-codebase-primer": PromptDefinition(
@@ -280,6 +322,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "get-codebase-primer.md"
+                ),
             ),
         },
     ),
@@ -316,6 +364,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "add-code-precommit-checks.md"
+                ),
+            ),
         },
     ),
     "apply-rule-set": PromptDefinition(
@@ -347,6 +401,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "apply-rule-set.md"
+                ),
             ),
         },
     ),
@@ -380,6 +440,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "create-project.md"
+                ),
+            ),
         },
     ),
     "create-rule": PromptDefinition(
@@ -409,6 +475,10 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(".build", "rendered", "cursor", "commands", "create-rule.md"),
             ),
         },
     ),
@@ -445,6 +515,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "create-session-notes.md"
+                ),
+            ),
         },
     ),
     "plan-ux-prd": PromptDefinition(
@@ -474,6 +550,10 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(".build", "rendered", "cursor", "commands", "plan-ux-prd.md"),
             ),
         },
     ),
@@ -509,6 +589,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-dev-monitoring.md"
+                ),
             ),
         },
     ),
@@ -549,6 +635,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-package-monitoring.md"
+                ),
+            ),
         },
     ),
     "get-feature-primer": PromptDefinition(
@@ -585,6 +677,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "get-feature-primer.md"
+                ),
+            ),
         },
     ),
     "setup-ui-pointer": PromptDefinition(
@@ -617,6 +715,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["edit", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-ui-pointer.md"
+                ),
+            ),
         },
     ),
     "setup-browser-tools": PromptDefinition(
@@ -648,6 +752,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["edit", "search/codebase", "terminal"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-browser-tools.md"
+                ),
             ),
         },
     ),
@@ -683,6 +793,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "tools": ["edit", "search/codebase", "terminal"],
                 },
             ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-command-history.md"
+                ),
+            ),
         },
     ),
     "setup-task-lists": PromptDefinition(
@@ -714,6 +830,12 @@ CATALOG: dict[str, PromptDefinition] = {
                     "mode": "agent",
                     "tools": ["edit", "search/codebase", "terminal"],
                 },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-task-lists.md"
+                ),
             ),
         },
     ),
