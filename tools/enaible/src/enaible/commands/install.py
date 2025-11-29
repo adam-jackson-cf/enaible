@@ -125,10 +125,7 @@ def _should_skip_file(
     if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
         return True
 
-    if mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed:
-        return True
-
-    return False
+    return mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed
 
 
 def _process_source_files(
