@@ -239,8 +239,144 @@ def _interpret_type_cell(
     return kind, required, positional_index, flag_name
 
 
+def _detect_section(line: str, current_section: str | None) -> str | None:
+    """Detect which Variables section (required/optional/derived) a line represents."""
+    if _H3_REQUIRED.match(line):
+        return "required"
+    if _H3_OPTIONAL.match(line):
+        return "optional"
+    if _H3_DERIVED.match(line):
+        return "derived"
+    return current_section
+
+
+def _parse_variable_line(content: str) -> tuple[str, str | None, str]:
+    """Parse a bullet line into token, value part, and description."""
+    # Split description if provided using em dash or hyphen dash separation
+    desc_split = re.split(r"\s+—\s+|\s+-\s+", content, maxsplit=1)
+    mapping_part = desc_split[0].strip()
+    description = desc_split[1].strip() if len(desc_split) > 1 else ""
+    return mapping_part, description
+
+
+def _extract_token_and_value(
+    mapping_part: str, section: str
+) -> tuple[str, str | None]:
+    """Extract token and value parts from mapping string."""
+    parts = _MAPPING_SPLIT.split(mapping_part)
+    if len(parts) == 1 and section == "derived":
+        # Derived variable without explicit mapping: "@TOKEN — description"
+        token_part = parts[0].strip()
+        value_part = None
+    elif len(parts) == 2:
+        token_part, value_part = parts[0].strip(), parts[1].strip()
+    else:
+        return None, None
+    return token_part, value_part
+
+
+def _validate_token(token_part: str) -> str:
+    """Validate and normalize token format."""
+    tok_match = _TOKEN_RE.match(token_part)
+    if not tok_match:
+        raise ValueError(
+            f"Invalid token '{token_part}'. Tokens must be @UPPER_SNAKE_CASE."
+        )
+    return f"@{tok_match.group(1)}"
+
+
+def _validate_required_variable(
+    token: str, value_part: str | None, positional_seen: set[int]
+) -> tuple[int, str]:
+    """Validate and extract positional index for required variables."""
+    if not value_part:
+        raise ValueError(
+            f"Required variable '{token}' must have a mapping (e.g., $1)."
+        )
+    pos_m = _POS_VALUE.match(value_part)
+    if not pos_m:
+        raise ValueError(
+            f"Required variable '{token}' must map to $N (e.g., $1)."
+        )
+    positional_index = int(pos_m.group(1))
+    if positional_index in positional_seen:
+        raise ValueError(
+            f"Duplicate positional index ${positional_index} for {token}."
+        )
+    positional_seen.add(positional_index)
+    type_text = f"positional ${positional_index} (REQUIRED)"
+    return positional_index, type_text
+
+
+def _validate_optional_variable(token: str, value_part: str | None) -> tuple[str, str]:
+    """Validate and extract flag name for optional variables."""
+    if not value_part:
+        raise ValueError(
+            f"Optional variable '{token}' must have a mapping (e.g., --flag)."
+        )
+    flag_m = _FLAG_VALUE.match(value_part)
+    if not flag_m:
+        raise ValueError(f"Optional variable '{token}' must map to a --flag.")
+    flag_name = flag_m.group(1)
+    return flag_name, "derived from @ARGUMENTS"
+
+
+def _create_variable_spec(
+    token: str,
+    section: str,
+    description: str,
+    value_part: str | None,
+    positional_seen: set[int],
+) -> VariableSpec:
+    """Create a VariableSpec from parsed components."""
+    repeatable = "[repeatable]" in value_part.lower() if value_part else False
+
+    if section == "required":
+        positional_index, type_text = _validate_required_variable(
+            token, value_part, positional_seen
+        )
+        return VariableSpec(
+            token=token,
+            type_text=type_text,
+            description=description,
+            kind="positional",
+            required=True,
+            flag_name=None,
+            positional_index=positional_index,
+            repeatable=repeatable,
+        )
+
+    if section == "optional":
+        flag_name, base_type = _validate_optional_variable(token, value_part)
+        repeatable_text = ", repeatable" if repeatable else ""
+        type_text = f"{base_type} ({flag_name}) (optional{repeatable_text})"
+        return VariableSpec(
+            token=token,
+            type_text=type_text,
+            description=description,
+            kind="flag",
+            required=False,
+            flag_name=flag_name,
+            positional_index=None,
+            repeatable=repeatable,
+        )
+
+    # derived internal
+    return VariableSpec(
+        token=token,
+        type_text="derived (internal)",
+        description=description,
+        kind="derived",
+        required=False,
+        flag_name=None,
+        positional_index=None,
+        repeatable=repeatable,
+    )
+
+
 def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
-    section = None  # 'required' | 'optional' | 'derived'
+    """Parse Variables section from bullet-style markdown lines."""
+    section: str | None = None
     variables: list[VariableSpec] = []
     positional_seen: set[int] = set()
 
@@ -248,103 +384,54 @@ def _parse_variables_bullets(block_lines: Iterable[str]) -> list[VariableSpec]:
         line = raw.strip()
         if not line:
             continue
-        if _H3_REQUIRED.match(line):
-            section = "required"
-            continue
-        if _H3_OPTIONAL.match(line):
-            section = "optional"
-            continue
-        if _H3_DERIVED.match(line):
-            section = "derived"
+
+        # Detect section headers - if this line is a header, update section and skip
+        detected = _detect_section(line, None)
+        if detected is not None and detected != section:
+            section = detected
             continue
 
+        # Parse bullet lines
         m = _BULLET.match(line)
         if not m or section is None:
             continue
+
         content = m.group(1)
 
         # Skip placeholder indicating no variables in this section
         if content.strip() == "(none)":
             continue
 
-        # Split description if provided using em dash or hyphen dash separation
-        desc_split = re.split(r"\s+—\s+|\s+-\s+", content, maxsplit=1)
-        mapping_part = desc_split[0].strip()
-        description = desc_split[1].strip() if len(desc_split) > 1 else ""
+        # Parse line components
+        mapping_part, description = _parse_variable_line(content)
+        token_part, value_part = _extract_token_and_value(mapping_part, section)
 
-        # For derived variables, allow just "@TOKEN — description" without "= value"
-        parts = _MAPPING_SPLIT.split(mapping_part)
-        if len(parts) == 1 and section == "derived":
-            # Derived variable without explicit mapping: "@TOKEN — description"
-            token_part = parts[0].strip()
-            value_part = None
-        elif len(parts) == 2:
-            token_part, value_part = parts[0].strip(), parts[1].strip()
-        else:
+        # For required variables without mapping, raise error before skipping
+        if token_part is None:
+            # Check if this might be a required variable missing its mapping
+            if section == "required":
+                # Try to extract token from mapping_part directly
+                tok_match = _TOKEN_RE.match(mapping_part.strip())
+                if tok_match:
+                    token = f"@{tok_match.group(1)}"
+                    raise ValueError(
+                        f"Required variable '{token}' must have a mapping (e.g., $1)."
+                    )
             continue
 
-        tok_match = _TOKEN_RE.match(token_part)
-        if not tok_match:
+        # Validate and normalize token
+        token = _validate_token(token_part)
+
+        # For required variables, value_part must be present
+        if section == "required" and value_part is None:
             raise ValueError(
-                f"Invalid token '{token_part}'. Tokens must be @UPPER_SNAKE_CASE."
+                f"Required variable '{token}' must have a mapping (e.g., $1)."
             )
-        token = f"@{tok_match.group(1)}"
 
-        repeatable = "[repeatable]" in value_part.lower() if value_part else False
-
-        kind = "derived"
-        required = section == "required"
-        positional_index: int | None = None
-        flag_name: str | None = None
-        type_text: str
-
-        if section == "required":
-            if not value_part:
-                raise ValueError(
-                    f"Required variable '{token}' must have a mapping (e.g., $1)."
-                )
-            pos_m = _POS_VALUE.match(value_part)
-            if not pos_m:
-                raise ValueError(
-                    f"Required variable '{token}' must map to $N (e.g., $1)."
-                )
-            positional_index = int(pos_m.group(1))
-            if positional_index in positional_seen:
-                raise ValueError(
-                    f"Duplicate positional index ${positional_index} for {token}."
-                )
-            positional_seen.add(positional_index)
-            kind = "positional"
-            type_text = f"positional ${positional_index} (REQUIRED)"
-        elif section == "optional":
-            if not value_part:
-                raise ValueError(
-                    f"Optional variable '{token}' must have a mapping (e.g., --flag)."
-                )
-            flag_m = _FLAG_VALUE.match(value_part)
-            if not flag_m:
-                raise ValueError(f"Optional variable '{token}' must map to a --flag.")
-            flag_name = flag_m.group(1)
-            kind = "flag"
-            repeatable_text = ", repeatable" if repeatable else ""
-            type_text = (
-                f"derived from @ARGUMENTS ({flag_name}) (optional{repeatable_text})"
-            )
-        else:  # derived internal
-            kind = "derived"
-            type_text = "derived (internal)"
-
-        variables.append(
-            VariableSpec(
-                token=token,
-                type_text=type_text,
-                description=description,
-                kind=kind,
-                required=required,
-                flag_name=flag_name,
-                positional_index=positional_index,
-                repeatable=repeatable,
-            )
+        # Create variable spec
+        spec = _create_variable_spec(
+            token, section, description, value_part, positional_seen
         )
+        variables.append(spec)
 
     return variables

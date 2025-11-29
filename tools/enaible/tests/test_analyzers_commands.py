@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,10 @@ PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "src"
 sys.path.insert(0, str(PACKAGE_ROOT))
 
 from enaible import app  # noqa: E402
+from enaible.models.results import (  # noqa: E402
+    AnalysisResultContext,
+    AnalyzerRunResponse,
+)
 
 runner = CliRunner()
 
@@ -137,3 +142,111 @@ def test_analyzers_run_out_file(tmp_path: Path) -> None:
     payload = json.loads(out_path.read_text())
     assert payload["tool"] == "demo:stub"
     assert result.stdout.strip() == ""
+
+
+def test_from_analysis_result_with_context_success() -> None:
+    """Test AnalyzerRunResponse.from_analysis_result with successful result."""
+    result = _StubResult("test-target")
+    started = time.time()
+    finished = started + 0.5
+
+    ctx = AnalysisResultContext(
+        tool="demo:stub",
+        result=result,
+        started_at=started,
+        finished_at=finished,
+        summary_mode=False,
+        min_severity="high",
+    )
+
+    response = AnalyzerRunResponse.from_analysis_result(ctx)
+
+    assert response.tool == "demo:stub"
+    assert response.success is True
+    assert response.exit_code == 0
+    assert response.duration_ms == 500
+    assert len(response.findings) == 1
+    assert response.findings[0].id == "DEMO001"
+    assert response.summary == {"low": 1}
+
+
+def test_from_analysis_result_with_context_failure() -> None:
+    """Test AnalyzerRunResponse.from_analysis_result with failed result."""
+    result = _StubResult("test-target")
+    result.success = False
+    result.error_message = "Analysis failed"
+
+    started = time.time()
+    finished = started + 0.1
+
+    ctx = AnalysisResultContext(
+        tool="demo:stub",
+        result=result,
+        started_at=started,
+        finished_at=finished,
+        summary_mode=False,
+        min_severity="high",
+    )
+
+    response = AnalyzerRunResponse.from_analysis_result(ctx)
+
+    assert response.success is False
+    assert response.exit_code == 1
+    assert len(response.errors) == 1
+    assert "Analysis failed" in response.errors[0]
+
+
+def test_from_analysis_result_empty_findings() -> None:
+    """Test AnalyzerRunResponse.from_analysis_result with empty findings."""
+    result = _StubResult("test-target")
+
+    def empty_findings_dict(
+        summary_mode: bool, min_severity: str
+    ) -> dict[str, Any]:
+        return {
+            "findings": [],
+            "summary": {},
+            "metadata": {"info": "No issues found"},
+        }
+
+    result.to_dict = empty_findings_dict
+
+    started = time.time()
+    finished = started + 0.2
+
+    ctx = AnalysisResultContext(
+        tool="demo:stub",
+        result=result,
+        started_at=started,
+        finished_at=finished,
+        summary_mode=False,
+        min_severity="high",
+    )
+
+    response = AnalyzerRunResponse.from_analysis_result(ctx)
+
+    assert len(response.findings) == 0
+    assert response.summary == {}
+    assert "notes" in response.stats
+    assert response.stats["notes"] == "No issues found"
+
+
+def test_from_analysis_result_summary_mode() -> None:
+    """Test AnalyzerRunResponse.from_analysis_result with summary_mode enabled."""
+    result = _StubResult("test-target")
+    started = time.time()
+    finished = started + 0.3
+
+    ctx = AnalysisResultContext(
+        tool="demo:stub",
+        result=result,
+        started_at=started,
+        finished_at=finished,
+        summary_mode=True,
+        min_severity="medium",
+    )
+
+    response = AnalyzerRunResponse.from_analysis_result(ctx)
+
+    assert response.tool == "demo:stub"
+    assert response.summary == {"low": 1}
