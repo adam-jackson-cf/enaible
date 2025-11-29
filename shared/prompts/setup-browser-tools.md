@@ -68,6 +68,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
    - Verify scripts can be found via PATH: `command -v browser-start.js`
    - If not found, remind user to add @INSTALL_DIR to PATH
 6. Update @SYSTEMS.MD
+
    - **STOP (skip when @AUTO):** "Document browser tools at project level (./@SYSTEMS.md) or user level ({{ system.user_scope_dir }}/@SYSTEMS.md)?"
    - Based on user choice, set @SYSTEMS_PATH:
      - Project: `./@SYSTEMS.md` (repo root)
@@ -83,14 +84,15 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 
    **Available Commands:**
 
-   - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
-   - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
-   - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
-   - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
-   - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
-   - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
-   - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
-   - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
+   - @INSTALL_DIR + `/browser-start.js` — Launch Chrome with remote debugging on `:9222`
+   - @INSTALL_DIR + `/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
+   - @INSTALL_DIR + `/browser-screenshot.js` — Capture current viewport, returns temp file path
+   - @INSTALL_DIR + `/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
+   - @INSTALL_DIR + `/browser-pick.js` — Interactive element selector (returns CSS selectors)
+   - @INSTALL_DIR + `/browser-cookies.js` — Display all cookies for debugging auth/sessions
+   - @INSTALL_DIR + `/browser-search.js <query>` — Search Google and return results
+   - @INSTALL_DIR + `/browser-content.js` — Extract page content as markdown
+   ```
 
    ```
 

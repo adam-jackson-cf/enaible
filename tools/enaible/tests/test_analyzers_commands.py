@@ -200,9 +200,7 @@ def test_from_analysis_result_empty_findings() -> None:
     """Test AnalyzerRunResponse.from_analysis_result with empty findings."""
     result = _StubResult("test-target")
 
-    def empty_findings_dict(
-        summary_mode: bool, min_severity: str
-    ) -> dict[str, Any]:
+    def empty_findings_dict(summary_mode: bool, min_severity: str) -> dict[str, Any]:
         return {
             "findings": [],
             "summary": {},

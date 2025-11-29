@@ -116,16 +116,18 @@ def _should_skip_file(
         relative_posix.startswith(prefix) for prefix in always_managed_prefixes
     )
     dest_exists = destination_file.exists()
-    dest_managed = (
-        _has_managed_sentinel(destination_file) if dest_exists else managed
-    )
+    dest_managed = _has_managed_sentinel(destination_file) if dest_exists else managed
     if any(relative_posix.startswith(prefix) for prefix in always_managed_prefixes):
         dest_managed = True
 
     if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
         return True
 
-    return mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed
+    return (
+        mode in {InstallMode.MERGE, InstallMode.SYNC}
+        and dest_exists
+        and not dest_managed
+    )
 
 
 def _process_source_files(
@@ -503,7 +505,11 @@ def _render_managed_prompts(
             summary.record_skip(relative)
             continue
 
-        if mode in {InstallMode.MERGE, InstallMode.SYNC} and dest_exists and not dest_managed:
+        if (
+            mode in {InstallMode.MERGE, InstallMode.SYNC}
+            and dest_exists
+            and not dest_managed
+        ):
             summary.record_skip(relative)
             continue
 

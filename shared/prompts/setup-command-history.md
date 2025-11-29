@@ -86,7 +86,6 @@ If `--bash-history` is included in the users request or a request requires searc
 - All Bash commands auto-captured with directory context
 - Search history: `atuin search <term>`
 - Sync across machines: `atuin sync` (end-to-end encrypted)
-
 ```
 
 7. Test installation

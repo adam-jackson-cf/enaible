@@ -84,9 +84,7 @@ class AnalyzerRunResponse:
         }
 
     @classmethod
-    def from_analysis_result(
-        cls, ctx: AnalysisResultContext
-    ) -> AnalyzerRunResponse:
+    def from_analysis_result(cls, ctx: AnalysisResultContext) -> AnalyzerRunResponse:
         """Create AnalyzerRunResponse from analysis result context."""
         duration_ms = int((ctx.finished_at - ctx.started_at) * 1000)
         started_iso = datetime.fromtimestamp(ctx.started_at, UTC).isoformat()

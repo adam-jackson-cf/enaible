@@ -7,6 +7,7 @@ This directory contains test applications used for validating the AI-Assisted Wo
 ### Primary Test Target
 
 **`juice-shop-monorepo/`** - OWASP Juice Shop
+
 - **Purpose**: Main test target for comprehensive analysis
 - **Technology**: Full-stack TypeScript/JavaScript application (Node.js, Express, Angular)
 - **Content**: Intentionally vulnerable e-commerce application with documented security issues
@@ -19,15 +20,18 @@ This directory contains test applications used for validating the AI-Assisted Wo
 ### Specialized Test Applications
 
 **`vulnerable-apps/`** - Language-specific vulnerable applications
+
 - Individual applications for testing security analyzers
 - Covers: Python, JavaScript, Java, C#, Go, PHP, Rust, SQL
 - Each contains documented vulnerabilities for validation
 
 **`clean-apps/`** - Clean code examples
+
 - Well-written applications for false positive testing
 - Ensures analyzers don't flag clean code as problematic
 
 **`code-quality-issues/`** - Code quality test cases
+
 - Applications with specific quality issues (duplication, complexity)
 - Used for testing quality analyzers
 
@@ -46,6 +50,7 @@ PYTHONPATH=shared NO_EXTERNAL=true python shared/tests/integration/test_all_anal
 The OWASP Juice Shop contains intentionally vulnerable and poorly designed code that should be detected by our analyzers:
 
 #### Security Issues
+
 - SQL injection vulnerabilities
 - Cross-site scripting (XSS)
 - Authentication bypasses
@@ -53,18 +58,21 @@ The OWASP Juice Shop contains intentionally vulnerable and poorly designed code 
 - Sensitive data exposure
 
 #### Architecture Problems
+
 - Mixed concerns (business logic in routes)
 - Tight coupling between components
 - Inconsistent error handling
 - Poor separation of data access
 
 #### Performance Issues
+
 - Inefficient database queries
 - Memory leaks in Node.js code
 - Large bundle sizes in frontend
 - Blocking operations
 
 #### Code Quality Issues
+
 - Complex functions (high cyclomatic complexity)
 - Code duplication across modules
 - Long parameter lists

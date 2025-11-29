@@ -49,10 +49,12 @@
 
 ## **CRITICAL** Development workflow tools
 
+If the user types --help list out bulleted list of all the available tools below, single line per tool with short description and how to invoke
+
 ### When you need to execute Long-Running Tasks
 
 If `--tmux` is included in a users request or a request requires long runnning execution (like a dev server) or we want to defence against a bash task that may stall, you **must** use tmux.
- 
+
 - Run long-running services in named tmux sessions: `tmux new-session -d -s <name> '<command>'`
 - Check existing: `tmux list-sessions`, Attach: `tmux attach -t <name>`, Logs: `tmux capture-pane -p -S -200 -t <name>`
 - Wrap uncertain/long commands in tmux to prevent blocking

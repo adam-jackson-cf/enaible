@@ -259,9 +259,7 @@ def _parse_variable_line(content: str) -> tuple[str, str | None, str]:
     return mapping_part, description
 
 
-def _extract_token_and_value(
-    mapping_part: str, section: str
-) -> tuple[str, str | None]:
+def _extract_token_and_value(mapping_part: str, section: str) -> tuple[str, str | None]:
     """Extract token and value parts from mapping string."""
     parts = _MAPPING_SPLIT.split(mapping_part)
     if len(parts) == 1 and section == "derived":
@@ -290,19 +288,13 @@ def _validate_required_variable(
 ) -> tuple[int, str]:
     """Validate and extract positional index for required variables."""
     if not value_part:
-        raise ValueError(
-            f"Required variable '{token}' must have a mapping (e.g., $1)."
-        )
+        raise ValueError(f"Required variable '{token}' must have a mapping (e.g., $1).")
     pos_m = _POS_VALUE.match(value_part)
     if not pos_m:
-        raise ValueError(
-            f"Required variable '{token}' must map to $N (e.g., $1)."
-        )
+        raise ValueError(f"Required variable '{token}' must map to $N (e.g., $1).")
     positional_index = int(pos_m.group(1))
     if positional_index in positional_seen:
-        raise ValueError(
-            f"Duplicate positional index ${positional_index} for {token}."
-        )
+        raise ValueError(f"Duplicate positional index ${positional_index} for {token}.")
     positional_seen.add(positional_index)
     type_text = f"positional ${positional_index} (REQUIRED)"
     return positional_index, type_text

@@ -41,7 +41,12 @@ def monitoring_deps(
 ) -> None:
     """Install development monitoring dependencies (make, watchexec, foreman)."""
     workspace = load_workspace()
-    script = workspace.shared_root / "setup" / "monitoring" / "install_monitoring_dependencies.py"
+    script = (
+        workspace.shared_root
+        / "setup"
+        / "monitoring"
+        / "install_monitoring_dependencies.py"
+    )
 
     if not script.exists():
         typer.echo(
@@ -72,7 +77,8 @@ def package_monitoring(
         "--branch-protection/--no-branch-protection",
         help="Setup branch protection rules.",
     ),
-    package_file: str | None = typer.Option(
+    package_file: str
+    | None = typer.Option(
         None,
         "--package-file",
         help="Specify package file directly to skip ecosystem detection.",
@@ -86,7 +92,9 @@ def package_monitoring(
 ) -> None:
     """Configure Dependabot and path-triggered CI auditing for package security."""
     workspace = load_workspace()
-    script = workspace.shared_root / "setup" / "security" / "setup_package_monitoring.py"
+    script = (
+        workspace.shared_root / "setup" / "security" / "setup_package_monitoring.py"
+    )
 
     if not script.exists():
         typer.echo(
@@ -97,8 +105,10 @@ def package_monitoring(
         raise typer.Exit(code=1)
 
     args: list[str] = [
-        "--audit-level", audit_level,
-        "--branch-protection", "true" if branch_protection else "false",
+        "--audit-level",
+        audit_level,
+        "--branch-protection",
+        "true" if branch_protection else "false",
     ]
 
     if package_file:

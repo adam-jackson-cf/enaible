@@ -126,6 +126,7 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
       || printf 'ra-sec,failed,%s\n' "$(date -u +%FT%TZ)" >> '@STATUS_LOG'
      ```
    - Performance (reuse decisions from the language scan; only launch analyzers that match the stack). For each chosen tool (e.g., `performance:ruff` for Python services, `performance:frontend` for JS bundles, `performance:sqlglot` when SQL is present, `performance:semgrep` as a baseline), start a tmux session rooted at `@TARGET_ABS` and log status lines in `@STATUS_LOG`:
+
      ```bash
      tmux new-session -d -s ra-perf-ruff "\
        set -euo pipefail; \
@@ -135,6 +136,7 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
        printf 'ra-perf-ruff,success,%s\n' "$(date -u +%FT%TZ)" >> '@STATUS_LOG'" \
      || printf 'ra-perf-ruff,failed,%s\n' "$(date -u +%FT%TZ)" >> '@STATUS_LOG'
      ```
+
      - Repeat the same pattern (unique session names + `@STATUS_LOG` entries) for any other performance analyzers deemed relevant. Document skipped tools and justification in the final notes so downstream reviewers know what was (or wasn’t) executed.
 
 3. **Git History Review (smells, churn, ownership)**

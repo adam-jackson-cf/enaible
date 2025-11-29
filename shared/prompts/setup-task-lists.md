@@ -62,6 +62,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
      **Single-session tasks:** Use TodoWrite only (no bd needed).
 
      **Available Commands:**
+
      - `bd ready` — List active tasks at session start
      - `bd create "<title>"` — Create a new tracked task (returns ID)
      - `bd show <id>` — View task details

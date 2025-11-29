@@ -78,7 +78,7 @@ def clean_claude_config(clear_all_history=False):
                     ):
                         obj[key] = "[Large image removed to reduce file size]"
                         images_removed += 1
-                    elif isinstance(value, (dict, list)):
+                    elif isinstance(value, dict | list):
                         clean_history_recursively(value)
             elif isinstance(obj, list):
                 for item in obj:
