@@ -197,29 +197,20 @@ Install and configure Beads (bd) for git-backed persistent task tracking with Cl
    - Add or update Beads documentation section:
 
      ```md
-     ### Beads (bd) - Task Tracking
+     ### When you need to track tasks across multiple sessions
 
-     **When to use Beads:**
+     If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
 
-     - Multi-session work that needs to persist beyond current session
-     - Tracked deliverables the user wants visibility into
-     - Tasks with dependencies or blockers
-     - Work that should be discoverable in future sessions
+     **Single-session tasks:** Use TodoWrite only (no bd needed).
 
-     **When NOT to use Beads (just use TodoWrite):**
+     **Available Commands:**
+     - `bd ready` — List active tasks at session start
+     - `bd create "<title>"` — Create a new tracked task (returns ID)
+     - `bd show <id>` — View task details
+     - `bd close <id>` — Mark task complete
+     - `bd list --label <name>` — Filter tasks by label
 
-     - Single-session tasks
-     - Implementation steps within a larger tracked bd task
-     - Quick fixes or explorations
-
-     **Workflow:**
-
-     1. At session start: Check `bd ready` for pending tasks
-     2. When planning multi-session work: `bd create "Task description"` to get ID
-     3. In TodoWrite: Use `[bd-xxx] Step description` to link steps to bd task
-     4. On completion: Completed TodoWrite items with bd IDs auto-close via hook
-
-     **Commands:** `bd ready`, `bd show <id>`, `bd create "<title>"`, `bd close <id>`, `bd list --label <name>`
+     **TodoWrite Integration:** Use `[bd-xxx] Step description` format to link todo items. Completed items auto-close via hook.
      ```
 
 10. Validate setup

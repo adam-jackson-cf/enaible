@@ -73,40 +73,27 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
      - User: `{{ system.user_scope_dir }}/@SYSTEMS.md`
    - Add or update Browser Tools documentation section at @SYSTEMS_PATH:
 
-     ````md
-     ### Visual UI Web Testing - Browser Tools
+   ```md
+   ### When you need to perform visual web UI tests
 
-     The browser tools provide Chrome DevTools Protocol-based automation for testing UI changes during feature development. These tools connect to a Chrome instance running with remote debugging enabled on port `:9222`.
+   If `--browser` is included in a users request or a request requires visual testing of a web ui, you **must** use the below browser tool.
 
-     **Quick Start:**
+   These tools connect to a Chrome instance running with remote debugging enabled on port `:9222`.
 
-     ```bash
-     # Start Chrome with remote debugging
-     @INSTALL_DIR/browser-start.js              # Fresh profile
-     @INSTALL_DIR/browser-start.js --profile    # Use your Chrome profile (preserves logins)
+   **Available Commands:**
 
-     # Navigate to your app
-     @INSTALL_DIR/browser-nav.js http://localhost:3000
+   - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
+   - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
+   - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
+   - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
+   - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
+   - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
+   - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
+   - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
 
-     # Take a screenshot to verify UI
-     @INSTALL_DIR/browser-screenshot.js
-     ```
-     ````
+   ```
 
-     **Available Commands:**
-
-     - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
-     - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
-     - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
-     - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
-     - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
-     - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
-     - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
-     - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
-
-     ```
-
-     ```
+   ```
 
 7. Test installation
    - **STOP (skip when @AUTO):** "Test browser-start.js to verify Chrome launches? (y/n)"
