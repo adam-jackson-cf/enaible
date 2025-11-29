@@ -36,21 +36,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "analyze-security.md"
+                    ".build", "rendered", "claude-code", "commands", "analyze-security.md"
                 ),
                 frontmatter={"argument-hint": "[target-path] [--verbose]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "analyze-security.md"
+                    ".build", "rendered", "codex", "prompts", "analyze-security.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "analyze-security.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "analyze-security.prompt.md"
                 ),
                 frontmatter={
                     "description": "Perform a comprehensive security audit of the repository and dependencies",
@@ -76,21 +76,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "analyze-architecture.md"
+                    ".build", "rendered", "claude-code", "commands", "analyze-architecture.md"
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "analyze-architecture.md"
+                    ".build", "rendered", "codex", "prompts", "analyze-architecture.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "analyze-architecture.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "analyze-architecture.prompt.md"
                 ),
                 frontmatter={
                     "description": "Evaluate system architecture for scalability, maintainability, and best practices",
@@ -124,21 +124,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "analyze-code-quality.md"
+                    ".build", "rendered", "claude-code", "commands", "analyze-code-quality.md"
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "analyze-code-quality.md"
+                    ".build", "rendered", "codex", "prompts", "analyze-code-quality.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "analyze-code-quality.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "analyze-code-quality.prompt.md"
                 ),
                 frontmatter={
                     "description": "Assess code quality and complexity, and highlight high-value refactors",
@@ -172,21 +172,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "analyze-performance.md"
+                    ".build", "rendered", "claude-code", "commands", "analyze-performance.md"
                 ),
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "analyze-performance.md"
+                    ".build", "rendered", "codex", "prompts", "analyze-performance.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "analyze-performance.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "analyze-performance.prompt.md"
                 ),
                 frontmatter={
                     "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations",
@@ -220,21 +220,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "analyze-root-cause.md"
+                    ".build", "rendered", "claude-code", "commands", "analyze-root-cause.md"
                 ),
                 frontmatter={"argument-hint": "[issue-description]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "analyze-root-cause.md"
+                    ".build", "rendered", "codex", "prompts", "analyze-root-cause.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "analyze-root-cause.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "analyze-root-cause.prompt.md"
                 ),
                 frontmatter={
                     "description": "Perform root cause analysis for a defect or failure",
@@ -268,21 +268,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "plan-refactor.md"
+                    ".build", "rendered", "claude-code", "commands", "plan-refactor.md"
                 ),
                 frontmatter={"argument-hint": "<refactor-scope-or-area>"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "plan-refactor.md"
+                    ".build", "rendered", "codex", "prompts", "plan-refactor.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "plan-refactor.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "plan-refactor.prompt.md"
                 ),
                 frontmatter={
                     "description": "Plan a minimal, high-impact refactor with clear boundaries and tests",
@@ -316,21 +316,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "plan-solution.md"
+                    ".build", "rendered", "claude-code", "commands", "plan-solution.md"
                 ),
                 frontmatter={"argument-hint": "<technical-challenge> [--critique]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "plan-solution.md"
+                    ".build", "rendered", "codex", "prompts", "plan-solution.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "plan-solution.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "plan-solution.prompt.md"
                 ),
                 frontmatter={
                     "description": "Develop a solution plan for a technical challenge with constraints and milestones",
@@ -364,20 +364,20 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "get-codebase-primer.md"
+                    ".build", "rendered", "claude-code", "commands", "get-codebase-primer.md"
                 ),
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "get-codebase-primer.md"
+                    ".build", "rendered", "codex", "prompts", "get-codebase-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "get-codebase-primer.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "get-codebase-primer.prompt.md"
                 ),
                 frontmatter={
                     "description": "Generate a comprehensive primer for understanding the codebase",
@@ -411,20 +411,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "add-code-precommit-checks.md"
+                    ".build", "rendered", "claude-code", "commands", "add-code-precommit-checks.md"
                 ),
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "add-code-precommit-checks.md"
+                    ".build", "rendered", "codex", "prompts", "add-code-precommit-checks.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "copilot",
                     "prompts",
                     "add-code-precommit-checks.prompt.md",
@@ -464,21 +465,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "apply-rule-set.md"
+                    ".build", "rendered", "claude-code", "commands", "apply-rule-set.md"
                 ),
                 frontmatter={"argument-hint": "<ruleset-name>"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "apply-rule-set.md"
+                    ".build", "rendered", "codex", "prompts", "apply-rule-set.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "apply-rule-set.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "apply-rule-set.prompt.md"
                 ),
                 frontmatter={
                     "description": "Load a named rule set and apply its guidance to the session",
@@ -512,21 +513,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "create-project.md"
+                    ".build", "rendered", "claude-code", "commands", "create-project.md"
                 ),
                 frontmatter={"argument-hint": "<project-name> [--from-plan <file>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "create-project.md"
+                    ".build", "rendered", "codex", "prompts", "create-project.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "create-project.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "create-project.prompt.md"
                 ),
                 frontmatter={
                     "description": "Scaffold a new project with Better-T-Stack CLI",
@@ -560,19 +561,19 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "create-rule.md"
+                    ".build", "rendered", "claude-code", "commands", "create-rule.md"
                 ),
                 frontmatter={"argument-hint": "<technology> [--out <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
-                output_path=_repo_path("systems", "codex", "prompts", "create-rule.md"),
+                output_path=_repo_path(".build", "rendered", "codex", "prompts", "create-rule.md"),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "create-rule.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "create-rule.prompt.md"
                 ),
                 frontmatter={
                     "description": "Generate an implementation rule file for a technology",
@@ -604,20 +605,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "create-session-notes.md"
+                    ".build", "rendered", "claude-code", "commands", "create-session-notes.md"
                 ),
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "create-session-notes.md"
+                    ".build", "rendered", "codex", "prompts", "create-session-notes.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "copilot",
                     "prompts",
                     "create-session-notes.prompt.md",
@@ -654,19 +656,19 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "plan-ux-prd.md"
+                    ".build", "rendered", "claude-code", "commands", "plan-ux-prd.md"
                 ),
                 frontmatter={"argument-hint": "<product-brief>"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
-                output_path=_repo_path("systems", "codex", "prompts", "plan-ux-prd.md"),
+                output_path=_repo_path(".build", "rendered", "codex", "prompts", "plan-ux-prd.md"),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "plan-ux-prd.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "plan-ux-prd.prompt.md"
                 ),
                 frontmatter={
                     "description": "Produce a UX-focused PRD from a product brief",
@@ -698,20 +700,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "setup-dev-monitoring.md"
+                    ".build", "rendered", "claude-code", "commands", "setup-dev-monitoring.md"
                 ),
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "setup-dev-monitoring.md"
+                    ".build", "rendered", "codex", "prompts", "setup-dev-monitoring.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "copilot",
                     "prompts",
                     "setup-dev-monitoring.prompt.md",
@@ -748,7 +751,8 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "claude-code",
                     "commands",
                     "setup-package-monitoring.md",
@@ -757,14 +761,15 @@ CATALOG: dict[str, PromptDefinition] = {
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "setup-package-monitoring.md"
+                    ".build", "rendered", "codex", "prompts", "setup-package-monitoring.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "copilot",
                     "prompts",
                     "setup-package-monitoring.prompt.md",
@@ -801,21 +806,22 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "get-feature-primer.md"
+                    ".build", "rendered", "claude-code", "commands", "get-feature-primer.md"
                 ),
                 frontmatter={"argument-hint": "<task-brief> [--target <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "get-feature-primer.md"
+                    ".build", "rendered", "codex", "prompts", "get-feature-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems",
+                    ".build",
+                    "rendered",
                     "copilot",
                     "prompts",
                     "get-feature-primer.prompt.md",
@@ -852,21 +858,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "setup-ui-pointer.md"
+                    ".build", "rendered", "claude-code", "commands", "setup-ui-pointer.md"
                 ),
                 frontmatter={"argument-hint": "[--auto] [--entry-point <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "setup-ui-pointer.md"
+                    ".build", "rendered", "codex", "prompts", "setup-ui-pointer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "setup-ui-pointer.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "setup-ui-pointer.prompt.md"
                 ),
                 frontmatter={
                     "description": "Install and configure react-grab for AI-assisted element capture",
@@ -884,21 +890,21 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "setup-browser-tools.md"
+                    ".build", "rendered", "claude-code", "commands", "setup-browser-tools.md"
                 ),
                 frontmatter={"argument-hint": "[--auto] [--install-dir <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "setup-browser-tools.md"
+                    ".build", "rendered", "codex", "prompts", "setup-browser-tools.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "setup-browser-tools.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "setup-browser-tools.prompt.md"
                 ),
                 frontmatter={
                     "description": "Install Chrome DevTools Protocol automation scripts for UI testing",
@@ -916,7 +922,7 @@ CATALOG: dict[str, PromptDefinition] = {
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
-                    "systems", "claude-code", "commands", "setup-command-history.md"
+                    ".build", "rendered", "claude-code", "commands", "setup-command-history.md"
                 ),
                 frontmatter={
                     "argument-hint": "[--auto] [--register] [--username <user>] [--email <email>]"
@@ -925,17 +931,49 @@ CATALOG: dict[str, PromptDefinition] = {
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "codex", "prompts", "setup-command-history.md"
+                    ".build", "rendered", "codex", "prompts", "setup-command-history.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
                 template="docs/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    "systems", "copilot", "prompts", "setup-command-history.prompt.md"
+                    ".build", "rendered", "copilot", "prompts", "setup-command-history.prompt.md"
                 ),
                 frontmatter={
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+        },
+    ),
+    "setup-task-lists": PromptDefinition(
+        prompt_id="setup-task-lists",
+        source_path=_repo_path("shared", "prompts", "setup-task-lists.md"),
+        title="setup-task-lists v0.3",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "claude-code", "commands", "setup-task-lists.md"
+                ),
+                frontmatter={"argument-hint": "[--auto]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "codex", "prompts", "setup-task-lists.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "copilot", "prompts", "setup-task-lists.prompt.md"
+                ),
+                frontmatter={
+                    "description": "Install Beads (bd) for git-backed persistent task tracking",
                     "mode": "agent",
                     "tools": ["edit", "search/codebase", "terminal"],
                 },

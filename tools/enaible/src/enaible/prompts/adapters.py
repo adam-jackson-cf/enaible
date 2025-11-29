@@ -30,7 +30,7 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
     "copilot": SystemRenderContext(
         name="copilot",
         project_scope_dir=".github",
-        user_scope_dir="~/.github",
+        user_scope_dir="~/.copilot",
         description="GitHub Copilot",
     ),
     "cursor": SystemRenderContext(

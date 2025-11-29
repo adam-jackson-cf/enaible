@@ -74,20 +74,19 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
    - If cloud sync declined, note that Atuin works locally without registration
 6. Update @SYSTEMS.md
 
-   - Add or update Atuin documentation section:
+- Add or update Atuin documentation section:
 
-     ````md
-     ### Atuin - Shell History
+```md
+### When you want to search past command execution history
 
-     - **Ctrl+R** for enhanced search UI with fuzzy finding
-     - All Bash commands auto-captured with directory context
-     - Search history: `atuin search <term>`
-     - Sync across machines: `atuin sync` (end-to-end encrypted)
+If `--bash-history` is included in the users request or a request requires searching past bash command execution, you **must** Atuin shell History tool.
 
-     ```
+- **Ctrl+R** for enhanced search UI with fuzzy finding
+- All Bash commands auto-captured with directory context
+- Search history: `atuin search <term>`
+- Sync across machines: `atuin sync` (end-to-end encrypted)
 
-     ```
-     ````
+```
 
 7. Test installation
    - Source shell config or instruct user to restart shell:

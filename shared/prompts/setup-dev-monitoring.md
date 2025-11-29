@@ -34,15 +34,10 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
 
 ## Workflow
 
-1. Dependency check (Enaible-managed)
-   - !`uv sync --project tools/enaible`
-   - Dry-run tooling verification:
-     ```bash
-     PYTHONPATH=shared \
-       uv run --project tools/enaible python shared/setup/monitoring/install_monitoring_dependencies.py --dry-run
-     ```
-   - If prerequisites are missing, **STOP (skip when @AUTO):** “Install missing core tools: <list>? (y/n)”. On approval, rerun the command without `--dry-run`.
-     - When @AUTO is present, continue immediately, record internally that the confirmation was auto-applied, and rerun the command without `--dry-run`.
+1. Dependency check
+   - Dry-run tooling verification: `enaible setup monitoring-deps --dry-run`
+   - If prerequisites are missing, **STOP (skip when @AUTO):** "Install missing core tools: <list>? (y/n)". On approval, run `enaible setup monitoring-deps` to install.
+     - When @AUTO is present, continue immediately, record internally that the confirmation was auto-applied, and run the install command.
 2. Project component discovery
    - Use `ls`, `glob`, and package manifests to identify runnable services (frontend, backend, workers, databases, build tools).
    - Determine true start commands from scripts, documentation, or framework defaults.
@@ -121,7 +116,11 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
    - Insert or upsert this Development section:
 
      ```md
-     ## Development
+     # When you need to run a dev server or retrieve server logs to monitor status
+
+     If `--make` is in user request or user require requires running of a dev server or retrieval of server logs to check for status/issues, you **must** use make commands
+
+     ## Development commands
 
      | Command         | Description            |
      | --------------- | ---------------------- |
