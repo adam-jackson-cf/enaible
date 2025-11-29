@@ -116,6 +116,7 @@ Notes
 | setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits   |
 | setup-browser-tools      | `/setup-browser-tools`      | Install Chrome DevTools Protocol automation      |
 | setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite          |
+| setup-mgrep              | `/setup-mgrep`              | Install mgrep for semantic code search           |
 | setup-ui-pointer         | `/setup-ui-pointer`         | Install react-grab for element capture           |
 
 ### Project & Feature

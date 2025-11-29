@@ -181,7 +181,9 @@ def prompts_lint(
 
     selected_prompts = _resolve_prompt_ids(catalog, _split_csv(prompts))
     # Collect unique source files for selected prompts
-    files = {catalog[p].source_path.resolve() for p in selected_prompts}
+    files = {
+        (context.repo_root / catalog[p].source_path).resolve() for p in selected_prompts
+    }
 
     # Also lint unmanaged, hand-authored system prompts in systems/*
     GENERATED_SENTINEL = "<!-- generated: enaible -->"

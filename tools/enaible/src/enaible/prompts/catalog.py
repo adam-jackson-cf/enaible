@@ -448,48 +448,6 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "apply-rule-set": PromptDefinition(
-        prompt_id="apply-rule-set",
-        source_path=_repo_path("shared", "prompts", "apply-rule-set.md"),
-        title="apply-rule-set v1.0",
-        systems={
-            "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "claude-code", "commands", "apply-rule-set.md"
-                ),
-                frontmatter={"argument-hint": "<ruleset-name>"},
-            ),
-            "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "apply-rule-set.md"
-                ),
-                metadata={"comment": "codex prompt (frontmatter-free)"},
-            ),
-            "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "copilot",
-                    "prompts",
-                    "apply-rule-set.prompt.md",
-                ),
-                frontmatter={
-                    "description": "Load a named rule set and apply its guidance to the session",
-                    "mode": "agent",
-                    "tools": ["githubRepo", "search/codebase"],
-                },
-            ),
-            "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "cursor", "commands", "apply-rule-set.md"
-                ),
-            ),
-        },
-    ),
     "setup-project": PromptDefinition(
         prompt_id="setup-project",
         source_path=_repo_path("shared", "prompts", "setup-project.md"),
@@ -945,6 +903,52 @@ CATALOG: dict[str, PromptDefinition] = {
                     "cursor",
                     "commands",
                     "setup-command-history.md",
+                ),
+            ),
+        },
+    ),
+    "setup-mgrep": PromptDefinition(
+        prompt_id="setup-mgrep",
+        source_path=_repo_path("shared", "prompts", "setup-mgrep.md"),
+        title="setup-mgrep v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "setup-mgrep.md",
+                ),
+                frontmatter={"argument-hint": "[--auto] [--api-key <key>]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "codex", "prompts", "setup-mgrep.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "setup-mgrep.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Install mgrep for semantic code search",
+                    "mode": "agent",
+                    "tools": ["terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-mgrep.md"
                 ),
             ),
         },
