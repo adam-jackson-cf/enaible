@@ -116,7 +116,11 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
    - Insert or upsert this Development section:
 
      ```md
-     ## Development
+     # When you need to run a dev server or retrieve server logs to monitor status
+
+     If `--make` is in user request or user require requires running of a dev server or retrieval of server logs to check for status/issues, you **must** use make commands
+
+     ## Development commands
 
      | Command         | Description            |
      | --------------- | ---------------------- |
