@@ -49,14 +49,11 @@
 
 ## **CRITICAL** Development workflow tools
 
-### Tmux - Long-Running Task Execution & Defence
+### When you need to execute Long-Running Tasks
 
-- Launch intentional long-running services (Next.js dev server, workers, landing, etc.) inside named tmux sessions so hotswap reloads keep running while the CLI stays responsive.
-  - Start: `tmux new-session -d -s frontend 'make frontend'`
-  - Reattach: `tmux attach -t frontend`
-  - Inspect logs without attaching: `tmux capture-pane -p -S -200 -t frontend`
-  - Stop/cleanup: `tmux kill-session -t frontend`
-- When asked to run an uncertain or potentially long-running command (e.g. large test suites, migrations), prefer wrapping it in tmux to prevent blocking and to make it easy to terminate if it misbehaves.
-- Treat background-process requests the same way: run them in tmux, confirm the session is listed via `tmux list-sessions`, and share the session name with the user so they can monitor or stop it later.
-- Before starting duplicate services, check for existing sessions to avoid port collisions: `tmux list-sessions | grep frontend`.
-- If a command unexpectedly hangs, move it into tmux (`tmux new-session -t rescue`) and gather diagnostics from outside the session while it continues running.
+If `--tmux` is included in a users request or a request requires long runnning execution (like a dev server) or we want to defence against a bash task that may stall, you **must** use tmux.
+ 
+- Run long-running services in named tmux sessions: `tmux new-session -d -s <name> '<command>'`
+- Check existing: `tmux list-sessions`, Attach: `tmux attach -t <name>`, Logs: `tmux capture-pane -p -S -200 -t <name>`
+- Wrap uncertain/long commands in tmux to prevent blocking
+- Kill session: `tmux kill-session -t <name>`

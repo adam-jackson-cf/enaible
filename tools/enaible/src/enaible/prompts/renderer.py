@@ -189,14 +189,25 @@ class PromptRenderer:
 
     @staticmethod
     def _system_relative_output_path(path: Path, system: str) -> Path:
+        # Try standard systems/<system>/ structure
         system_root = Path("systems") / system
         try:
             return path.relative_to(system_root)
         except ValueError:
-            try:
-                return path.relative_to(Path("systems"))
-            except ValueError:
-                return Path(path.name)
+            pass
+
+        # Try .build/rendered/<system>/ structure (used by catalog)
+        rendered_root = Path(".build") / "rendered" / system
+        try:
+            return path.relative_to(rendered_root)
+        except ValueError:
+            pass
+
+        # Try generic systems/ prefix
+        try:
+            return path.relative_to(Path("systems"))
+        except ValueError:
+            return Path(path.name)
 
     _LEGACY_TITLE_RE = re.compile(r"^#\s+.+?\bv\d+(?:\.\d+)*\s*$", re.IGNORECASE)
 

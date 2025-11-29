@@ -64,25 +64,7 @@ Install and configure react-grab to enable ⌘-click element capture for AI-assi
      ```
    - **STOP (skip when @AUTO):** "Add react-grab import to @DETECTED_ENTRY? (y/n)"
    - Write updated file
-6. Update @SYSTEMS.md
-
-   - Add or update React Grab documentation section:
-
-     ```md
-     ### React Grab - Element Context Capture for AI
-
-     React Grab enables you to ⌘-click any element in your React app to capture its component structure, props, and source context—ready to paste into AI coding assistants.
-
-     **Workflow:**
-
-     1. Hold ⌘ (Command) and click any element in your running app
-     2. The component's HTML, React structure, and file source are copied to clipboard
-     3. Paste directly into Claude Code or other AI tools for context-aware assistance
-
-     **Note:** React Grab only runs in development mode and will not affect production builds.
-     ```
-
-7. Validate setup
+6. Validate setup
    - Verify react-grab appears in package.json devDependencies
    - Verify import exists in entry point file
    - Check import guard uses `import.meta.env.DEV` pattern

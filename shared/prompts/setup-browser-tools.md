@@ -20,6 +20,8 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - @REPO_URL = <url> — browser-tools repository URL (https://github.com/badlogic/agent-tools)
 - @TEMP_DIR = <path> — temporary clone directory
 - @SCRIPTS = <list> — browser-\*.js script names to install
+- @SCOPE = <user|project> — installation scope from user choice
+- @SYSTEMS_PATH = <path> — full path to systems file based on scope
 
 ## Instructions
 
@@ -64,44 +66,34 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
    - Check each script is executable and in @INSTALL_DIR
    - Verify scripts can be found via PATH: `command -v browser-start.js`
    - If not found, remind user to add @INSTALL_DIR to PATH
-6. Update @SYSTEMS.md
+6. Update @SYSTEMS.MD
+   - **STOP (skip when @AUTO):** "Document browser tools at project level (./@SYSTEMS.md) or user level ({{ system.user_scope_dir }}/@SYSTEMS.md)?"
+   - Based on user choice, set @SYSTEMS_PATH:
+     - Project: `./@SYSTEMS.md` (repo root)
+     - User: `{{ system.user_scope_dir }}/@SYSTEMS.md`
+   - Add or update Browser Tools documentation section at @SYSTEMS_PATH:
 
-   - Add or update Browser Tools documentation section:
+   ```md
+   ### When you need to perform visual web UI tests
 
-     ````md
-     ### Visual UI Web Testing - Browser Tools
+   If `--browser` is included in a users request or a request requires visual testing of a web ui, you **must** use the below browser tool.
 
-     The browser tools provide Chrome DevTools Protocol-based automation for testing UI changes during feature development. These tools connect to a Chrome instance running with remote debugging enabled on port `:9222`.
+   These tools connect to a Chrome instance running with remote debugging enabled on port `:9222`.
 
-     **Quick Start:**
+   **Available Commands:**
 
-     ```bash
-     # Start Chrome with remote debugging
-     @INSTALL_DIR/browser-start.js              # Fresh profile
-     @INSTALL_DIR/browser-start.js --profile    # Use your Chrome profile (preserves logins)
+   - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
+   - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
+   - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
+   - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
+   - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
+   - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
+   - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
+   - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
 
-     # Navigate to your app
-     @INSTALL_DIR/browser-nav.js http://localhost:3000
+   ```
 
-     # Take a screenshot to verify UI
-     @INSTALL_DIR/browser-screenshot.js
-     ```
-     ````
-
-     **Available Commands:**
-
-     - `@INSTALL_DIR/browser-start.js` — Launch Chrome with remote debugging on `:9222`
-     - `@INSTALL_DIR/browser-nav.js <url>` — Navigate to URLs (use `--new` flag for new tab)
-     - `@INSTALL_DIR/browser-screenshot.js` — Capture current viewport, returns temp file path
-     - `@INSTALL_DIR/browser-eval.js <code>` — Execute JavaScript in active tab for data extraction/inspection
-     - `@INSTALL_DIR/browser-pick.js` — Interactive element selector (returns CSS selectors)
-     - `@INSTALL_DIR/browser-cookies.js` — Display all cookies for debugging auth/sessions
-     - `@INSTALL_DIR/browser-search.js <query>` — Search Google and return results
-     - `@INSTALL_DIR/browser-content.js` — Extract page content as markdown
-
-     ```
-
-     ```
+   ```
 
 7. Test installation
    - **STOP (skip when @AUTO):** "Test browser-start.js to verify Chrome launches? (y/n)"
@@ -126,7 +118,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 - Installation Directory: @INSTALL_DIR
 - Scripts Installed: 8 browser-\*.js tools
 - PATH Status: <accessible|not in PATH - manual configuration required>
-- Documentation: @SYSTEMS.md updated
+- Documentation: @SYSTEMS_PATH updated
 
 ## INSTALLED COMMANDS
 
@@ -150,7 +142,7 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
 1. Start Chrome with debugging: `browser-start.js`
 2. Navigate to your app: `browser-nav.js http://localhost:3000`
 3. Take a screenshot: `browser-screenshot.js`
-4. (Optional) Add shell aliases from @SYSTEMS.md for shorter commands
+4. (Optional) Add shell aliases from @SYSTEMS_PATH for shorter commands
 ```
 
 $ARGUMENTS

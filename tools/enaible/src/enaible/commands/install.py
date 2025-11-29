@@ -221,6 +221,8 @@ def _sync_shared_workspace(
         Path("tools") / "ai_docs_changelog.py",
         Path("setup") / "install_dependencies.py",
         Path("setup") / "requirements.txt",
+        Path("setup") / "monitoring",
+        Path("setup") / "security",
     ]
 
     if not source.exists():
