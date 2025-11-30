@@ -39,4 +39,10 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.cursor",
         description="Cursor IDE",
     ),
+    "gemini": SystemRenderContext(
+        name="gemini",
+        project_scope_dir=".gemini",
+        user_scope_dir="~/.gemini",
+        description="Gemini CLI",
+    ),
 }

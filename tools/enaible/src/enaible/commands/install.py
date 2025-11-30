@@ -32,6 +32,7 @@ SYSTEM_RULES = {
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
     "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
+    "gemini": ("rules/global.gemini.rules.md", "GEMINI.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
@@ -39,6 +40,7 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "codex": ("prompts/", "rules/"),
     "copilot": ("prompts/",),
     "cursor": ("commands/", "rules/"),
+    "gemini": ("commands/",),
 }
 
 

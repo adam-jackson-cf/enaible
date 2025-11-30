@@ -72,6 +72,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "analyze-security.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "analyze-security.toml"
+                ),
+                frontmatter={
+                    "description": "Perform a comprehensive security audit of the repository and dependencies"
+                },
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -121,6 +130,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "commands",
                     "analyze-architecture.md",
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "analyze-architecture.toml",
+                ),
+                frontmatter={
+                    "description": "Evaluate system architecture for scalability, maintainability, and best practices"
+                },
             ),
         },
     ),
@@ -172,6 +194,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "analyze-code-quality.md",
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "analyze-code-quality.toml",
+                ),
+                frontmatter={
+                    "description": "Assess code quality and complexity, and highlight high-value refactors"
+                },
+            ),
         },
     ),
     "analyze-performance": PromptDefinition(
@@ -217,6 +252,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "analyze-performance.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "analyze-performance.toml",
+                ),
+                frontmatter={
+                    "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations"
+                },
             ),
         },
     ),
@@ -264,6 +312,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "analyze-root-cause.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "analyze-root-cause.toml",
+                ),
+                frontmatter={
+                    "description": "Perform root cause analysis for a defect or failure"
+                },
+            ),
         },
     ),
     "plan-refactor": PromptDefinition(
@@ -306,6 +367,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "plan-refactor.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "plan-refactor.toml"
+                ),
+                frontmatter={
+                    "description": "Plan a minimal, high-impact refactor with clear boundaries and tests"
+                },
+            ),
         },
     ),
     "plan-solution": PromptDefinition(
@@ -347,6 +417,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "plan-solution.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "plan-solution.toml"
+                ),
+                frontmatter={
+                    "description": "Develop a solution plan for a technical challenge with constraints and milestones"
+                },
             ),
         },
     ),
@@ -392,6 +471,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "get-codebase-primer.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "get-codebase-primer.toml",
+                ),
+                frontmatter={
+                    "description": "Generate a comprehensive primer for understanding the codebase"
+                },
             ),
         },
     ),
@@ -446,6 +538,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "setup-code-precommit-checks.md",
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "setup-code-precommit-checks.toml",
+                ),
+                frontmatter={
+                    "description": "Set up language-appropriate pre-commit hooks for the repo"
+                },
+            ),
         },
     ),
     "setup-project": PromptDefinition(
@@ -488,6 +593,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "setup-project.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "setup-project.toml"
+                ),
+                frontmatter={
+                    "description": "Scaffold a new project with Better-T-Stack CLI"
+                },
+            ),
         },
     ),
     "create-rule": PromptDefinition(
@@ -525,6 +639,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "create-rule.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "create-rule.toml"
+                ),
+                frontmatter={
+                    "description": "Generate an implementation rule file for a technology"
+                },
             ),
         },
     ),
@@ -575,6 +698,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "create-hand-off.md",
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "create-hand-off.toml"
+                ),
+                frontmatter={
+                    "description": "Generate handoff prompt for next AI session"
+                },
+            ),
         },
     ),
     "plan-ux-prd": PromptDefinition(
@@ -612,6 +744,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "plan-ux-prd.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "plan-ux-prd.toml"
+                ),
+                frontmatter={
+                    "description": "Produce a UX-focused PRD from a product brief"
+                },
             ),
         },
     ),
@@ -661,6 +802,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "commands",
                     "setup-dev-monitoring.md",
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "setup-dev-monitoring.toml",
+                ),
+                frontmatter={
+                    "description": "Configure development monitoring, logging, and orchestration"
+                },
             ),
         },
     ),
@@ -715,6 +869,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "setup-package-monitoring.md",
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "setup-package-monitoring.toml",
+                ),
+                frontmatter={
+                    "description": "Install dependency monitoring with Dependabot and audit triggers"
+                },
+            ),
         },
     ),
     "get-feature-primer": PromptDefinition(
@@ -760,6 +927,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "get-feature-primer.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "get-feature-primer.toml",
+                ),
+                frontmatter={
+                    "description": "Explore the codebase and produce a comprehensive analysis and todo list"
+                },
             ),
         },
     ),
@@ -807,6 +987,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "setup-ui-pointer.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "setup-ui-pointer.toml"
+                ),
+                frontmatter={
+                    "description": "Install and configure react-grab for AI-assisted element capture"
+                },
+            ),
         },
     ),
     "setup-browser-tools": PromptDefinition(
@@ -852,6 +1041,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-browser-tools.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "setup-browser-tools.toml",
+                ),
+                frontmatter={
+                    "description": "Install Chrome DevTools Protocol automation scripts for UI testing"
+                },
             ),
         },
     ),
@@ -905,6 +1107,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "setup-command-history.md",
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "setup-command-history.toml",
+                ),
+                frontmatter={
+                    "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
+                },
+            ),
         },
     ),
     "setup-mgrep": PromptDefinition(
@@ -951,6 +1166,13 @@ CATALOG: dict[str, PromptDefinition] = {
                     ".build", "rendered", "cursor", "commands", "setup-mgrep.md"
                 ),
             ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "setup-mgrep.toml"
+                ),
+                frontmatter={"description": "Install mgrep for semantic code search"},
+            ),
         },
     ),
     "setup-task-lists": PromptDefinition(
@@ -996,6 +1218,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-task-lists.md"
                 ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "setup-task-lists.toml"
+                ),
+                frontmatter={
+                    "description": "Install Beads (bd) for git-backed persistent task tracking"
+                },
             ),
         },
     ),
