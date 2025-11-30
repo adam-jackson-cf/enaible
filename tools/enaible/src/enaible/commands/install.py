@@ -33,6 +33,7 @@ SYSTEM_RULES = {
     "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
     "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
     "gemini": ("rules/global.gemini.rules.md", "GEMINI.md"),
+    "antigravity": ("rules/global.antigravity.rules.md", "GEMINI.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
@@ -41,6 +42,7 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "copilot": ("prompts/",),
     "cursor": ("commands/", "rules/"),
     "gemini": ("commands/",),
+    "antigravity": ("workflows/", "rules/"),
 }
 
 
@@ -417,8 +419,9 @@ def _post_install(
         return
 
     # For claude-code, CLAUDE.md goes in project root (parent of .claude/)
+    # For antigravity, GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/)
     # For codex/copilot, target goes inside their respective directories
-    if system == "claude-code":
+    if system in ("claude-code", "antigravity"):
         target_path = destination_root.parent / target_name
     else:
         target_path = destination_root / target_name
@@ -455,7 +458,7 @@ def _post_install(
     if target_path.exists():
         existing = target_path.read_text(encoding="utf-8")
         if "# AI-Assisted Workflows v" in existing:
-            summary.record_skip(Path(target_name))
+            summary.record("merged", target_path)
             return
         updated = f"{existing.rstrip()}\n\n---\n\n{header}\n\n{rules_body}\n"
     else:

@@ -52,7 +52,7 @@ The principles for this project are designed around the realities of coding with
 - 🪶 **Lightweight** — Minimize context impact, JIT loading, external processes
 - 🎯 **Mitigate LLM Weaknesses** — Repeatability, predictability, duplication prevention
 - ⚙️ **Minimize Structure** — Tools over workflows, flexibility over rigidity
-- 🔄 **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini
+- 🔄 **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini, Antigravity
 - 💻 **Language Support** — Python, TypeScript, Go, Rust, C#
 
 ---
@@ -73,6 +73,14 @@ uv run --project tools/enaible enaible install claude-code --scope user --mode s
 # Copilot (GitHub Copilot)
 uv run --project tools/enaible enaible install copilot --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install copilot --scope project --mode sync
+
+# Gemini CLI
+uv run --project tools/enaible enaible install gemini --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install gemini --scope project --mode sync
+
+# Antigravity (Google Antigravity IDE)
+uv run --project tools/enaible enaible install antigravity --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
 
 # Cursor
 # rules only today (no installer); see systems/cursor/rules

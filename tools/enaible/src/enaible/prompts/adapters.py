@@ -45,4 +45,10 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.gemini",
         description="Gemini CLI",
     ),
+    "antigravity": SystemRenderContext(
+        name="antigravity",
+        project_scope_dir=".agent",
+        user_scope_dir="~/.gemini/antigravity",
+        description="Google Antigravity IDE",
+    ),
 }

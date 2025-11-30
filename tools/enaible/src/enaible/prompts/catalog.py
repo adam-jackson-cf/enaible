@@ -81,6 +81,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Perform a comprehensive security audit of the repository and dependencies"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-security.md",
+                ),
+                frontmatter={
+                    "description": "Perform a comprehensive security audit of the repository and dependencies"
+                },
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -139,6 +152,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "analyze-architecture.toml",
+                ),
+                frontmatter={
+                    "description": "Evaluate system architecture for scalability, maintainability, and best practices"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-architecture.md",
                 ),
                 frontmatter={
                     "description": "Evaluate system architecture for scalability, maintainability, and best practices"
@@ -207,6 +233,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Assess code quality and complexity, and highlight high-value refactors"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-code-quality.md",
+                ),
+                frontmatter={
+                    "description": "Assess code quality and complexity, and highlight high-value refactors"
+                },
+            ),
         },
     ),
     "analyze-performance": PromptDefinition(
@@ -261,6 +300,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "analyze-performance.toml",
+                ),
+                frontmatter={
+                    "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-performance.md",
                 ),
                 frontmatter={
                     "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations"
@@ -325,6 +377,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Perform root cause analysis for a defect or failure"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-root-cause.md",
+                ),
+                frontmatter={
+                    "description": "Perform root cause analysis for a defect or failure"
+                },
+            ),
         },
     ),
     "plan-refactor": PromptDefinition(
@@ -376,6 +441,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Plan a minimal, high-impact refactor with clear boundaries and tests"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "plan-refactor.md",
+                ),
+                frontmatter={
+                    "description": "Plan a minimal, high-impact refactor with clear boundaries and tests"
+                },
+            ),
         },
     ),
     "plan-solution": PromptDefinition(
@@ -422,6 +500,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "plan-solution.toml"
+                ),
+                frontmatter={
+                    "description": "Develop a solution plan for a technical challenge with constraints and milestones"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "plan-solution.md",
                 ),
                 frontmatter={
                     "description": "Develop a solution plan for a technical challenge with constraints and milestones"
@@ -480,6 +571,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "get-codebase-primer.toml",
+                ),
+                frontmatter={
+                    "description": "Generate a comprehensive primer for understanding the codebase"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "get-codebase-primer.md",
                 ),
                 frontmatter={
                     "description": "Generate a comprehensive primer for understanding the codebase"
@@ -551,6 +655,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Set up language-appropriate pre-commit hooks for the repo"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-code-precommit-checks.md",
+                ),
+                frontmatter={
+                    "description": "Set up language-appropriate pre-commit hooks for the repo"
+                },
+            ),
         },
     ),
     "setup-project": PromptDefinition(
@@ -602,6 +719,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Scaffold a new project with Better-T-Stack CLI"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-project.md",
+                ),
+                frontmatter={
+                    "description": "Scaffold a new project with Better-T-Stack CLI"
+                },
+            ),
         },
     ),
     "create-rule": PromptDefinition(
@@ -644,6 +774,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "create-rule.toml"
+                ),
+                frontmatter={
+                    "description": "Generate an implementation rule file for a technology"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "create-rule.md",
                 ),
                 frontmatter={
                     "description": "Generate an implementation rule file for a technology"
@@ -707,6 +850,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Generate handoff prompt for next AI session"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "create-hand-off.md",
+                ),
+                frontmatter={
+                    "description": "Generate handoff prompt for next AI session"
+                },
+            ),
         },
     ),
     "plan-ux-prd": PromptDefinition(
@@ -749,6 +905,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "plan-ux-prd.toml"
+                ),
+                frontmatter={
+                    "description": "Produce a UX-focused PRD from a product brief"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "plan-ux-prd.md",
                 ),
                 frontmatter={
                     "description": "Produce a UX-focused PRD from a product brief"
@@ -811,6 +980,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "setup-dev-monitoring.toml",
+                ),
+                frontmatter={
+                    "description": "Configure development monitoring, logging, and orchestration"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-dev-monitoring.md",
                 ),
                 frontmatter={
                     "description": "Configure development monitoring, logging, and orchestration"
@@ -882,6 +1064,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install dependency monitoring with Dependabot and audit triggers"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-package-monitoring.md",
+                ),
+                frontmatter={
+                    "description": "Install dependency monitoring with Dependabot and audit triggers"
+                },
+            ),
         },
     ),
     "get-feature-primer": PromptDefinition(
@@ -936,6 +1131,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "get-feature-primer.toml",
+                ),
+                frontmatter={
+                    "description": "Explore the codebase and produce a comprehensive analysis and todo list"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "get-feature-primer.md",
                 ),
                 frontmatter={
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list"
@@ -996,6 +1204,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install and configure react-grab for AI-assisted element capture"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-ui-pointer.md",
+                ),
+                frontmatter={
+                    "description": "Install and configure react-grab for AI-assisted element capture"
+                },
+            ),
         },
     ),
     "setup-browser-tools": PromptDefinition(
@@ -1050,6 +1271,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "gemini",
                     "commands",
                     "setup-browser-tools.toml",
+                ),
+                frontmatter={
+                    "description": "Install Chrome DevTools Protocol automation scripts for UI testing"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-browser-tools.md",
                 ),
                 frontmatter={
                     "description": "Install Chrome DevTools Protocol automation scripts for UI testing"
@@ -1120,6 +1354,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
                 },
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-command-history.md",
+                ),
+                frontmatter={
+                    "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
+                },
+            ),
         },
     ),
     "setup-mgrep": PromptDefinition(
@@ -1173,6 +1420,17 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"description": "Install mgrep for semantic code search"},
             ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-mgrep.md",
+                ),
+                frontmatter={"description": "Install mgrep for semantic code search"},
+            ),
         },
     ),
     "setup-task-lists": PromptDefinition(
@@ -1223,6 +1481,19 @@ CATALOG: dict[str, PromptDefinition] = {
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "setup-task-lists.toml"
+                ),
+                frontmatter={
+                    "description": "Install Beads (bd) for git-backed persistent task tracking"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-task-lists.md",
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking"
