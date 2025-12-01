@@ -62,7 +62,7 @@ The principles for this project are designed around the realities of coding with
 Install for your preferred AI dev runtime using the Enaible installer (runs from repo root). Details in docs/installation.md
 
 ```bash
-# Codex CLI (recommended)
+# Codex CLI
 uv run --project tools/enaible enaible install codex --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install codex --scope project --mode sync
 
@@ -70,7 +70,7 @@ uv run --project tools/enaible enaible install codex --scope user --mode sync
 uv run --project tools/enaible enaible install claude-code --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
 
-# Copilot (GitHub Copilot)
+# Copilot
 uv run --project tools/enaible enaible install copilot --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install copilot --scope project --mode sync
 
@@ -78,12 +78,13 @@ uv run --project tools/enaible enaible install copilot --scope user --mode sync
 uv run --project tools/enaible enaible install gemini --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install gemini --scope project --mode sync
 
-# Antigravity (Google Antigravity IDE)
+# Antigravity
 uv run --project tools/enaible enaible install antigravity --scope user --mode sync
 # for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
 
 # Cursor
-# rules only today (no installer); see systems/cursor/rules
+uv run --project tools/enaible enaible install cursor --scope user --mode sync
+# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
 
 ```
 
