@@ -14,6 +14,10 @@ class SystemRenderContext:
     description: str
 
 
+# Special marker for VS Code user directory (resolved at runtime based on OS)
+VSCODE_USER_DIR_MARKER = "VSCODE_USER_DIR"
+
+
 SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
     "claude-code": SystemRenderContext(
         name="claude-code",
@@ -30,7 +34,7 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
     "copilot": SystemRenderContext(
         name="copilot",
         project_scope_dir=".github",
-        user_scope_dir="~/.copilot",
+        user_scope_dir=VSCODE_USER_DIR_MARKER,
         description="GitHub Copilot",
     ),
     "cursor": SystemRenderContext(

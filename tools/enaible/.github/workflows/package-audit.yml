@@ -1,0 +1,80 @@
+name: Package Audit
+
+on:
+  pull_request:
+    paths:
+      - 'package*.json'
+      - '*.lock'
+      - 'pnpm-lock.yaml'
+      - 'bun.lockb'
+  workflow_dispatch:
+    inputs:
+      audit-level:
+        description: 'Audit severity level'
+        required: false
+        default: 'critical'
+        type: choice
+        options:
+          - info
+          - low
+          - moderate
+          - high
+          - critical
+
+jobs:
+  audit-changed-packages:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+
+      - name: Detect changed package files
+        id: changes
+        uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
+        with:
+          filters: |            javascript:
+              - 'package*.json'
+              - '*.lock'
+              - 'pnpm-lock.yaml'
+              - 'bun.lockb'
+
+      - name: Setup Node.js
+        if: steps.changes.outputs.javascript == 'true'
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
+        with:
+          node-version: '20.x'
+
+      - name: Audit JavaScript (if changed)
+        if: steps.changes.outputs.javascript == 'true'
+        env:
+          AUDIT_LEVEL: ${{ inputs.audit-level || 'critical' }}
+        run: |
+          # Detect which package manager and audit with critical level
+          if [[ -f "package-lock.json" ]]; then
+            npm audit --audit-level=$AUDIT_LEVEL
+          elif [[ -f "yarn.lock" ]]; then
+            yarn audit --level $AUDIT_LEVEL
+          elif [[ -f "pnpm-lock.yaml" ]]; then
+            pnpm audit --audit-level $AUDIT_LEVEL
+          elif [[ -f "bun.lockb" ]]; then
+            # Bun uses npm audit as fallback
+            npm audit --audit-level=$AUDIT_LEVEL
+          fi
+
+      - name: Comment on PR if critical issues found
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          AUDIT_LEVEL: ${{ inputs.audit-level || 'critical' }}
+        with:
+          script: |
+            const auditLevel = process.env.AUDIT_LEVEL;
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `⛔ Critical security vulnerabilities detected in dependencies (audit level: ${auditLevel}). Please review and fix before merging.`
+            });
+
+

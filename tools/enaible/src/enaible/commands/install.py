@@ -16,9 +16,14 @@ import typer
 
 from ..app import app
 from ..constants import MANAGED_SENTINEL
-from ..prompts.adapters import SYSTEM_CONTEXTS, SystemRenderContext
+from ..prompts.adapters import (
+    SYSTEM_CONTEXTS,
+    SystemRenderContext,
+    VSCODE_USER_DIR_MARKER,
+)
 from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
+from ..utils.paths import get_vscode_user_dir
 
 SKIP_FILES = {
     "install.sh",
@@ -176,6 +181,7 @@ def _complete_installation(
     system: str,
     source_root: Path,
     destination_root: Path,
+    scope: str,
     sync: bool,
     mode: InstallMode,
     dry_run: bool,
@@ -187,7 +193,8 @@ def _complete_installation(
     if sync:
         _sync_enaible_env(context.repo_root, dry_run, summary)
 
-    _post_install(system, source_root, destination_root, dry_run, summary)
+    _post_install(system, source_root, destination_root, scope, dry_run, summary)
+    _set_claude_status_executable(system, destination_root, dry_run, summary)
     _emit_summary(system, destination_root, mode, summary, dry_run)
 
 
@@ -260,7 +267,7 @@ def install(
     _process_source_files(source_root, destination_root, system, mode, dry_run, summary)
 
     _complete_installation(
-        context, system, source_root, destination_root, sync, mode, dry_run, summary
+        context, system, source_root, destination_root, scope, sync, mode, dry_run, summary
     )
 
 
@@ -353,6 +360,8 @@ def _resolve_destination(
     system_ctx: SystemRenderContext, target: Path, scope: str
 ) -> Path:
     if scope.lower() == "user":
+        if system_ctx.user_scope_dir == VSCODE_USER_DIR_MARKER:
+            return get_vscode_user_dir()
         return Path(system_ctx.user_scope_dir).expanduser()
     if scope.lower() != "project":  # pragma: no cover - input validation
         raise typer.BadParameter("Scope must be either 'project' or 'user'.")
@@ -402,10 +411,33 @@ def _get_system_context(system: str) -> SystemRenderContext:
         ) from exc
 
 
+def _set_claude_status_executable(
+    system: str,
+    destination_root: Path,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    """Set executable permissions on Claude Code status program if installed."""
+    if system != "claude-code":
+        return
+
+    status_file = destination_root / "statusline-worktree"
+    if not status_file.exists():
+        return
+
+    if dry_run:
+        summary.record("chmod", status_file)
+        return
+
+    status_file.chmod(0o755)
+    summary.record("chmod", status_file)
+
+
 def _post_install(
     system: str,
     source_root: Path,
     destination_root: Path,
+    scope: str,
     dry_run: bool,
     summary: InstallSummary,
 ) -> None:
@@ -420,9 +452,14 @@ def _post_install(
 
     # For claude-code, CLAUDE.md goes in project root (parent of .claude/)
     # For antigravity, GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/)
-    # For codex/copilot, target goes inside their respective directories
+    # For codex, target goes inside .codex directory
+    # For copilot, target goes inside .github subdirectory (mirrors project scope pattern)
     if system in ("claude-code", "antigravity"):
         target_path = destination_root.parent / target_name
+    elif system == "copilot" and scope.lower() == "user":
+        # For user-level copilot installs, place AGENTS.md in .github subdirectory
+        # within VS Code user directory to mirror project scope pattern
+        target_path = destination_root / ".github" / target_name
     else:
         target_path = destination_root / target_name
 
@@ -593,16 +630,141 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
     cmd = ["uv", "sync", "--project", str(repo_root / "tools" / "enaible")]
     try:
-        subprocess.run(cmd, check=True, capture_output=True)
-    except (
-        subprocess.CalledProcessError,
-        FileNotFoundError,
-    ) as exc:  # pragma: no cover - passthrough
+        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as exc:
+        stderr = exc.stderr if isinstance(exc.stderr, str) else (exc.stderr.decode("utf-8") if exc.stderr else "")
+        stdout = exc.stdout if isinstance(exc.stdout, str) else (exc.stdout.decode("utf-8") if exc.stdout else "")
+        error_output = stderr + stdout
+
+        # Detect TLS certificate validation errors
+        if any(
+            indicator in error_output.lower()
+            for indicator in [
+                "invalid peer certificate",
+                "unknownissuer",
+                "certificate",
+                "tls",
+                "ssl",
+            ]
+        ):
+            _handle_tls_error(repo_root, exc)
+            return
+
+        raise typer.BadParameter(
+            "Failed to run 'uv sync --project tools/enaible'. Ensure `uv` is installed and accessible."
+        ) from exc
+    except FileNotFoundError as exc:
         raise typer.BadParameter(
             "Failed to run 'uv sync --project tools/enaible'. Ensure `uv` is installed and accessible."
         ) from exc
 
     summary.record("sync", repo_root / "tools" / "enaible")
+
+
+def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessError) -> None:
+    """Handle TLS certificate validation errors with helpful guidance and optional fix."""
+    setup_script = repo_root / "scripts" / "setup-uv-ca.sh"
+
+    # Check if certificate environment variables are set in current shell
+    cert_vars = ["SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "UV_HTTP_CA_BUNDLE"]
+    cert_vars_set = [var for var in cert_vars if os.environ.get(var)]
+
+    typer.secho(
+        "\nTLS certificate validation failed.",
+        fg=typer.colors.RED,
+        bold=True,
+        err=True,
+    )
+    typer.echo("This often occurs on corporate networks.\n", err=True)
+
+    # Check if certs are configured but not loaded in current shell
+    if not cert_vars_set:
+        # Check if they exist in shell profile
+        shell_profile = Path.home() / ".zshrc"
+        if not shell_profile.exists():
+            shell_profile = Path.home() / ".bashrc"
+
+        profile_has_certs = False
+        if shell_profile.exists():
+            try:
+                profile_content = shell_profile.read_text(encoding="utf-8")
+                profile_has_certs = any(var in profile_content for var in cert_vars)
+            except Exception:
+                pass  # Ignore read errors
+
+        if profile_has_certs:
+            typer.secho(
+                "Note: Certificate variables are configured in your shell profile but not loaded in this session.\n"
+                "  → Run: source ~/.zshrc  (or restart your terminal)\n",
+                fg=typer.colors.YELLOW,
+                err=True,
+            )
+
+    # Offer to run setup script automatically
+    if setup_script.exists() and setup_script.is_file():
+        typer.echo(f"Found setup script at: {setup_script}", err=True)
+        if typer.confirm(
+            "\nWould you like to run the certificate setup script now?",
+            default=True,
+        ):
+            typer.echo("\nRunning certificate setup script...", err=True)
+            try:
+                # Run the setup script
+                proc = subprocess.run(
+                    [str(setup_script)],
+                    cwd=repo_root,
+                    check=True,
+                    capture_output=False,
+                )
+                if proc.returncode == 0:
+                    typer.secho(
+                        "\n✓ Certificate setup completed successfully!\n"
+                        "⚠️  IMPORTANT: You must restart your terminal or run 'source ~/.zshrc' "
+                        "for the changes to take effect in this session.\n",
+                        fg=typer.colors.GREEN,
+                        err=True,
+                    )
+                    typer.echo(
+                        "After restarting/sourcing, rerun the install command.\n",
+                        err=True,
+                    )
+                    raise typer.Abort()
+            except subprocess.CalledProcessError as setup_exc:
+                typer.secho(
+                    f"\n✗ Setup script failed with exit code {setup_exc.returncode}",
+                    fg=typer.colors.RED,
+                    err=True,
+                )
+                # Fall through to manual instructions
+
+    # Manual instructions
+    typer.echo("\nManual setup options:", err=True)
+    typer.echo(
+        "  1. Run the setup script (recommended):\n"
+        f"     ./scripts/setup-uv-ca.sh\n"
+        "     Then restart your terminal or run: source ~/.zshrc\n",
+        err=True,
+    )
+    typer.echo(
+        "  2. Set environment variables manually:\n"
+        "     export SSL_CERT_FILE=<path-to-ca-bundle.pem>\n"
+        "     export REQUESTS_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
+        "     export UV_HTTP_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
+        "     Then rerun the install command.\n",
+        err=True,
+    )
+    typer.echo(
+        "  3. Use native TLS (temporary workaround):\n"
+        "     Set ENAIBLE_INSTALL_SKIP_SYNC=1 and run:\n"
+        "     uv sync --native-tls --project tools/enaible\n",
+        err=True,
+    )
+    typer.echo(
+        "See docs/tls-certificate-setup.md for detailed instructions.\n",
+        err=True,
+    )
+
+    raise typer.BadParameter("TLS certificate validation failed. See instructions above.") from original_exc
 
 
 def _backup_destination_folder(

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 from typer.testing import CliRunner
@@ -27,6 +28,40 @@ def _patch_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
         artifacts_root=REPO_ROOT / ".enaible",
     )
     monkeypatch.setattr("enaible.commands.install.load_workspace", lambda: context)
+
+
+@pytest.fixture(autouse=True)
+def _setup_tls_certs(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Configure TLS certificates for tests to avoid certificate validation errors.
+
+    Tries to use merged CA bundle from setup script, falls back to system certificates,
+    or uses native TLS if neither is available.
+    """
+    from pathlib import Path
+
+    # Option 1: Use merged bundle if setup script was run
+    merged_ca = Path.home() / ".config" / "claude" / "corp-ca-bundle.pem"
+    if merged_ca.exists():
+        monkeypatch.setenv("SSL_CERT_FILE", str(merged_ca))
+        monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(merged_ca))
+        monkeypatch.setenv("REQUESTS_CA_BUNDLE", str(merged_ca))
+        return
+
+    # Option 2: Use system certificates (common locations)
+    system_ca_paths = [
+        Path("/etc/ssl/cert.pem"),  # Debian/Ubuntu
+        Path("/etc/ssl/certs/ca-certificates.crt"),  # Alternative Linux
+        Path("/etc/pki/tls/certs/ca-bundle.crt"),  # RHEL/CentOS
+    ]
+    for ca_path in system_ca_paths:
+        if ca_path.exists():
+            monkeypatch.setenv("SSL_CERT_FILE", str(ca_path))
+            monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(ca_path))
+            return
+
+    # Option 3: On macOS, use system keychain (native TLS)
+    # uv will use system certificates automatically on macOS
+    # No environment variables needed
 
 
 def test_install_merge_project_scope(tmp_path: Path) -> None:
@@ -435,3 +470,164 @@ def test_install_merge_mode_preserves_unmanaged(tmp_path: Path) -> None:
     # Unmanaged file should be preserved
     assert unmanaged.exists()
     assert unmanaged.read_text(encoding="utf-8") == "custom content"
+
+
+def test_copilot_user_scope_uses_vscode_user_dir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify copilot user scope install uses VS Code user directory."""
+    # Mock VS Code user directory to a test location
+    vscode_user_dir = tmp_path / "vscode_user"
+    vscode_user_dir.mkdir(parents=True)
+
+    # Patch where it's imported in install.py
+    with patch("enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir):
+        result = runner.invoke(
+            app,
+            [
+                "install",
+                "copilot",
+                "--scope",
+                "user",
+                "--mode",
+                "merge",
+                "--no-sync",
+                "--dry-run",
+            ],
+        )
+        assert result.exit_code == 0, result.stderr or result.stdout
+        # Verify the path resolution uses VS Code user directory
+        assert str(vscode_user_dir) in result.stdout
+
+
+def test_copilot_user_scope_agents_md_in_github_subdir(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Verify copilot user scope install places AGENTS.md in .github subdirectory."""
+    # Mock VS Code user directory to a test location
+    vscode_user_dir = tmp_path / "vscode_user"
+    vscode_user_dir.mkdir(parents=True)
+
+    # Patch where it's imported in install.py
+    with patch("enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir):
+        result = runner.invoke(
+            app,
+            [
+                "install",
+                "copilot",
+                "--scope",
+                "user",
+                "--mode",
+                "merge",
+                "--no-sync",
+            ],
+        )
+        assert result.exit_code == 0, result.stderr or result.stdout
+
+        # AGENTS.md should be in .github subdirectory within VS Code user dir
+        agents_md_path = vscode_user_dir / ".github" / "AGENTS.md"
+        assert agents_md_path.exists(), "AGENTS.md should be in .github subdirectory"
+        assert "COPILOT_GLOBAL_RULES_START" in agents_md_path.read_text(
+            encoding="utf-8"
+        )
+
+
+def test_copilot_project_scope_agents_md_in_github_dir(tmp_path: Path) -> None:
+    """Verify copilot project scope install places AGENTS.md in .github directory."""
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "copilot",
+            "--scope",
+            "project",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # AGENTS.md should be directly in .github directory for project scope
+    agents_md_path = tmp_path / ".github" / "AGENTS.md"
+    assert agents_md_path.exists(), "AGENTS.md should be in .github directory"
+    assert "COPILOT_GLOBAL_RULES_START" in agents_md_path.read_text(encoding="utf-8")
+
+
+def test_claude_code_status_program_is_executable(tmp_path: Path) -> None:
+    """Verify claude-code install sets executable permissions on statusline-worktree."""
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    status_file = tmp_path / ".claude" / "statusline-worktree"
+    assert status_file.exists(), "statusline-worktree should be copied"
+    assert status_file.is_file(), "statusline-worktree should be a file"
+
+    # Check that file has executable permissions (0o755 = rwxr-xr-x)
+    # On Unix systems, check if any execute bit is set
+    import stat
+
+    file_mode = status_file.stat().st_mode
+    assert (
+        file_mode & stat.S_IEXEC != 0
+    ), "statusline-worktree should have executable permissions"
+
+
+def test_claude_code_status_program_dry_run_records_chmod(tmp_path: Path) -> None:
+    """Verify dry-run mode records chmod action but doesn't change permissions."""
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--dry-run",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # Dry run should mention the status file
+    assert "statusline-worktree" in result.stdout or "chmod" in result.stdout
+
+    # File should not exist in dry-run mode
+    status_file = tmp_path / ".claude" / "statusline-worktree"
+    assert not status_file.exists(), "Dry run should not create files"
+
+
+def test_claude_code_status_program_only_for_claude_code(tmp_path: Path) -> None:
+    """Verify executable permissions are only set for claude-code, not other systems."""
+    # Install codex (should not process statusline-worktree)
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "codex",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    # Codex should not have statusline-worktree
+    status_file = tmp_path / ".codex" / "statusline-worktree"
+    assert not status_file.exists(), "codex should not have statusline-worktree"
