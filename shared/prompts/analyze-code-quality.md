@@ -42,13 +42,14 @@ Assess code quality by combining automated metrics with architectural review to 
    - Log applied exclusions for final report
 3. **Run automated analyzers**
 
-   - Execute each Enaible command, storing the JSON output:
+   - Execute each Enaible command, storing the JSON output. Skip the JSCPD step when recon didn’t find Node/JS assets (no `package.json`, lockfiles, or frontend directories):
 
      ```bash
      enaible analyzers run quality:lizard \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/quality-lizard.json"
 
+     # Only run when Node/npm metadata or JS/TS sources were detected
      enaible analyzers run quality:jscpd \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/quality-jscpd.json"
