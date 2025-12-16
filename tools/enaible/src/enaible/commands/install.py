@@ -385,7 +385,7 @@ def _emit_summary(
 ) -> None:
     action_label = "Planned" if dry_run else "Completed"
     typer.echo(
-        f"{action_label} Enaible install for {system} ({mode.value}) → {destination_root}"
+        f"{action_label} Enaible install for {system} ({mode.value}) -> {destination_root}"
     )
     if summary.actions:
         for action, rel_path in summary.actions:
