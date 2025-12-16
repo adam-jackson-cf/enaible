@@ -58,14 +58,20 @@ The principles for this project are designed around the realities of coding with
 
 ---
 
-## Dependencies
+## Prerequisites
 
 - Git (command-line)
 - Python 3.12.x
 - `uv` 0.4 or newer
-- `curl` (macOS/Linux) or PowerShell 7+ (Windows) to download the installer scripts
+- `Node.js` 18+ or newer (needed for JSCPD dupe analysis support across Python, Go, Rust, C#, etc.)
 
-Install these once per workstation; the bootstrap script verifies they exist before proceeding.
+## Further dependencies required per workflow process you wish to use
+
+- [Semgrep](https://semgrep.dev/docs/getting-started/) — required for `security:semgrep` and `performance:semgrep`. Install with `pip install semgrep` so the `semgrep` CLI is on your PATH.
+- [detect-secrets](https://github.com/Yelp/detect-secrets) — used by `security:detect_secrets` to scan for hardcoded credentials. Install with `pip install detect-secrets`.
+- [Lizard](https://github.com/terryyin/lizard) — powers the `quality:lizard` complexity analyzer. Install with `pip install lizard`.
+- [JSCPD](https://github.com/kucherenko/jscpd) — duplicate-code detection for `quality:jscpd`. Requires Node.js; install with `npm install -g jscpd` or run via `npx jscpd`.
+- [ESLint](https://eslint.org/) plus the plugins `@typescript-eslint/parser`, `eslint-plugin-react`, `eslint-plugin-import`, and `eslint-plugin-vue` — referenced by `performance:frontend`. Install globally via npm (`npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue`).
 
 ---
 
@@ -78,18 +84,6 @@ Running either installer script will:
 - Run `enaible install <system>` for each requested adapter (`codex`, `claude-code`, etc.) in the scopes you select
 - Copies prompts/rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
 - Capture a session log in `~/.enaible/install-sessions/` for audit trails.
-
-## Installed dependencies to support workflows
-
-- [Semgrep](https://semgrep.dev/docs/getting-started/) — required for `security:semgrep` and `performance:semgrep`. Install with `pip install semgrep` so the `semgrep` CLI is on your PATH.
-- [detect-secrets](https://github.com/Yelp/detect-secrets) — used by `security:detect_secrets` to scan for hardcoded credentials. Install with `pip install detect-secrets`.
-- [Lizard](https://github.com/terryyin/lizard) — powers the `quality:lizard` complexity analyzer. Install with `pip install lizard`.
-- [JSCPD](https://github.com/kucherenko/jscpd) — duplicate-code detection for `quality:jscpd`. Requires Node.js; install with `npm install -g jscpd` or run via `npx jscpd`.
-- [ESLint](https://eslint.org/) plus the plugins `@typescript-eslint/parser`, `eslint-plugin-react`, `eslint-plugin-import`, and `eslint-plugin-vue` — referenced by `performance:frontend`. Install globally via npm (`npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue`).
-- [Node.js](https://nodejs.org/) and `npm` — prerequisites for JSCPD and ESLint-based analyzers. Ensure Node 18+ is available before running frontend-focused prompts.
-
-The `enaible analyzers run …` commands execute locally via `uv run`, so each CLI above must be installed on your workstation (they are not provisioned automatically by the bootstrap script).
-
 
 ### macOS/Linux
 
@@ -115,13 +109,13 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ### Analysis
 
-| Prompt               | Example                             | Use Case                                              |
-| -------------------- | ----------------------------------- | ----------------------------------------------------- |
-| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          |
-| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    |
-| analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   |
-| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces |
-| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              |
+| Prompt               | Example                             | Use Case                                              | External Dependencies |
+| -------------------- | ----------------------------------- | ----------------------------------------------------- | --------------------- |
+| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          | None (built-in analyzers) |
+| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    | [Lizard](https://github.com/terryyin/lizard); [JSCPD](https://github.com/kucherenko/jscpd) (Node/npm) |
+| analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   | [Ruff](https://docs.astral.sh/ruff/); [Semgrep](https://semgrep.dev/); [ESLint](https://eslint.org/) + TS/React plugins for JS/TS stacks |
+| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces | None (built-in analyzers) |
+| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              | [Semgrep](https://semgrep.dev/); [detect-secrets](https://github.com/Yelp/detect-secrets) |
 
 ### Planning
 
@@ -138,7 +132,7 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 | ------------------------ | --------------------------- | -------------------------------------------------- |
 | setup-dev-monitoring     | `/setup-dev-monitoring`     | Configure Makefile/Procfile with central logging   |
 | setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits     |
-| setup-browser-tools      | `/setup-browser-tools`      | Install Chrome DevTools Protocol automation        |
+| setup-browser-tools      | `/setup-browser-tools`      | Install Non mcp Chrome DevTools Protocol automation|
 | setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite            |
 | setup-mgrep              | `/setup-mgrep`              | Install mgrep for semantic search across code/docs |
 | setup-parallel-ai        | `/setup-parallel-ai`        | Install Parallel AI CLI for web intelligence       |
@@ -176,15 +170,6 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 | Agent                   | Example                    | Specialization                                  |
 | ----------------------- | -------------------------- | ----------------------------------------------- |
 | docs-scraper            | `@docs-scraper`            | Fetch and convert docs to markdown              |
-| docker-expert           | `@docker-expert`           | Advice on Container optimization and deployment |
-| git-action-expert       | `@git-action-expert`       | Advice on GitHub Actions and CI/CD pipelines    |
-| market-analyst          | `@market-analyst`          | Competitive intelligence and research           |
-| python-expert           | `@python-expert`           | Python 3.13+ development planning               |
-| rag-architecture-expert | `@rag-architecture-expert` | RAG system design and implementation            |
-| research-coordinator    | `@research-coordinator`    | Multi-researcher orchestration                  |
-| technical-researcher    | `@technical-researcher`    | Code repo analysis and documentation            |
-| typescript-expert       | `@typescript-expert`       | TypeScript 5.7+ and Bun patterns                |
-| user-researcher         | `@user-researcher`         | Persona development and journey mapping         |
 
 ---
 
