@@ -664,8 +664,8 @@ def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessErr
     setup_script = repo_root / "scripts" / "setup-uv-ca.sh"
 
     # Check if certificate environment variables are set in current shell
-    cert_vars = ["SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "UV_HTTP_CA_BUNDLE"]
-    cert_vars_set = [var for var in cert_vars if os.environ.get(var)]
+    cert_var = "SSL_CERT_FILE"
+    cert_vars_set = [cert_var] if os.environ.get(cert_var) else []
 
     typer.secho(
         "\nTLS certificate validation failed.",
@@ -686,7 +686,7 @@ def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessErr
         if shell_profile.exists():
             try:
                 profile_content = shell_profile.read_text(encoding="utf-8")
-                profile_has_certs = any(var in profile_content for var in cert_vars)
+                profile_has_certs = cert_var in profile_content
             except Exception:
                 pass  # Ignore read errors
 
@@ -698,67 +698,35 @@ def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessErr
                 err=True,
             )
 
-    # Offer to run setup script automatically
-    if setup_script.exists() and setup_script.is_file():
-        typer.echo(f"Found setup script at: {setup_script}", err=True)
-        if typer.confirm(
-            "\nWould you like to run the certificate setup script now?",
-            default=True,
-        ):
-            typer.echo("\nRunning certificate setup script...", err=True)
-            try:
-                # Run the setup script
-                proc = subprocess.run(
-                    [str(setup_script)],
-                    cwd=repo_root,
-                    check=True,
-                    capture_output=False,
-                )
-                if proc.returncode == 0:
-                    typer.secho(
-                        "\n✓ Certificate setup completed successfully!\n"
-                        "⚠️  IMPORTANT: You must restart your terminal or run 'source ~/.zshrc' "
-                        "for the changes to take effect in this session.\n",
-                        fg=typer.colors.GREEN,
-                        err=True,
-                    )
-                    typer.echo(
-                        "After restarting/sourcing, rerun the install command.\n",
-                        err=True,
-                    )
-                    raise typer.Abort()
-            except subprocess.CalledProcessError as setup_exc:
-                typer.secho(
-                    f"\n✗ Setup script failed with exit code {setup_exc.returncode}",
-                    fg=typer.colors.RED,
-                    err=True,
-                )
-                # Fall through to manual instructions
-
-    # Manual instructions
+    # Manual instructions only (install aborts after guidance)
     typer.echo("\nManual setup options:", err=True)
+    script_lines = []
+    if setup_script.exists():
+        script_lines.append(f"     bash: {setup_script}")
+    ps_script = repo_root / "scripts" / "setup-uv-ca.ps1"
+    if ps_script.exists():
+        script_lines.append(f"     pwsh: {ps_script}")
+    if script_lines:
+        typer.echo("  1. Run the certificate setup helper (recommended):", err=True)
+        for line in script_lines:
+            typer.echo(line, err=True)
+        typer.echo("     Restart your shell (or source ~/.zshrc) before rerunning install.\n", err=True)
+    else:
+        typer.echo("  1. Generate a merged CA bundle using your corporate certificate.\n", err=True)
+
     typer.echo(
-        "  1. Run the setup script (recommended):\n"
-        "     ./scripts/setup-uv-ca.sh\n"
-        "     Then restart your terminal or run: source ~/.zshrc\n",
+        "  2. Point your shell at the merged bundle:\n"
+        "     export SSL_CERT_FILE=/path/to/corp-ca-bundle.pem\n"
+        "     PowerShell: Set-Item Env:SSL_CERT_FILE -Value \"C:\\\\path\\\\corp-ca-bundle.pem\"\n",
         err=True,
     )
     typer.echo(
-        "  2. Set environment variables manually:\n"
-        "     export SSL_CERT_FILE=<path-to-ca-bundle.pem>\n"
-        "     export REQUESTS_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
-        "     export UV_HTTP_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
-        "     Then rerun the install command.\n",
+        "  3. (Optional) Persist for uv as well:\n"
+        "     uv config set http.cabundle /path/to/corp-ca-bundle.pem\n",
         err=True,
     )
     typer.echo(
-        "  3. Use native TLS (temporary workaround):\n"
-        "     Set ENAIBLE_INSTALL_SKIP_SYNC=1 and run:\n"
-        "     uv sync --native-tls --project tools/enaible\n",
-        err=True,
-    )
-    typer.echo(
-        "See docs/tls-certificate-setup.md for detailed instructions.\n",
+        "See docs/tls-certificate-setup.md for troubleshooting details.\n",
         err=True,
     )
 

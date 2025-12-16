@@ -9,9 +9,8 @@ Merges the system trust store with a corporate root certificate so uv/openssl-ba
 commands can trust both DigiCert (used by GitHub/Astral) and your organization.
 
 Options:
-  --corp-ca PATH   Explicit path to the corporate CA PEM. Defaults to the first
-                   readable file among $CORP_CA_FILE, $SSL_CERT_FILE,
-                   $REQUESTS_CA_BUNDLE, and $UV_HTTP_CA_BUNDLE.
+  --corp-ca PATH   Explicit path to the corporate CA PEM. Defaults to $SSL_CERT_FILE
+                   when set; otherwise this flag is required.
   --output PATH    Destination path for the merged bundle. Defaults to
                    $HOME/.config/claude/corp-ca-bundle.pem.
   --print-exports  Print ready-to-source export commands pointing at the bundle.
@@ -41,13 +40,10 @@ emit_exports() {
   local bundle_path="$1"
   cat <<EOF
 export SSL_CERT_FILE="$bundle_path"
-export REQUESTS_CA_BUNDLE="$bundle_path"
-export UV_HTTP_CA_BUNDLE="$bundle_path"
-export PIP_CERT="$bundle_path"
 EOF
 }
 
-CORP_CA_FILE="${CORP_CA_FILE:-}"
+CORP_CA_FILE=""
 OUTPUT_BUNDLE=""
 PRINT_EXPORTS=0
 EXPORTS_ONLY=0
@@ -96,16 +92,13 @@ if [[ "$EXPORTS_ONLY" -eq 1 ]]; then
   exit 0
 fi
 
-if [[ -z "$CORP_CA_FILE" || ! -f "$CORP_CA_FILE" ]]; then
-  for candidate in "${SSL_CERT_FILE:-}" "${REQUESTS_CA_BUNDLE:-}" "${UV_HTTP_CA_BUNDLE:-}"; do
-    if [[ -n "$candidate" && -f "$candidate" ]]; then
-      CORP_CA_FILE="$candidate"
-      break
-    fi
-  done
+if [[ -z "$CORP_CA_FILE" ]]; then
+  if [[ -n "${SSL_CERT_FILE:-}" && -f "$SSL_CERT_FILE" ]]; then
+    CORP_CA_FILE="$SSL_CERT_FILE"
+  fi
 fi
 
-[[ -n "$CORP_CA_FILE" ]] || error "Unable to locate a corporate CA file. Pass --corp-ca /path/to/cert.pem"
+[[ -n "$CORP_CA_FILE" ]] || error "Unable to locate a corporate CA file. Pass --corp-ca /path/to/cert.pem or set SSL_CERT_FILE before running."
 [[ -f "$CORP_CA_FILE" ]] || error "Corporate CA file not found: $CORP_CA_FILE"
 CORP_CA_FILE="$(abspath "$CORP_CA_FILE")"
 
@@ -156,16 +149,12 @@ log "Merged CA bundle written to $OUTPUT_BUNDLE"
 
 cat <<EOF
 
-Add the following exports to your shell profile (e.g. ~/.zshrc) so uv, curl, and
+Add the following export to your shell profile (e.g. ~/.zshrc) so uv, curl, and
 requests trust both chains:
 
 export SSL_CERT_FILE="$OUTPUT_BUNDLE"
-export REQUESTS_CA_BUNDLE="$OUTPUT_BUNDLE"
-export UV_HTTP_CA_BUNDLE="$OUTPUT_BUNDLE"
-export PIP_CERT="$OUTPUT_BUNDLE"
 
-Then restart your shell or run 'source ~/.zshrc' before rerunning:
-uv run --project tools/enaible enaible install copilot --mode fresh --scope user
+Then restart your shell or run 'source ~/.zshrc' before rerunning enaible install.
 
 Optional (applies only to uv):
 uv config set http.cabundle "$OUTPUT_BUNDLE"

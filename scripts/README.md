@@ -6,31 +6,46 @@ The Enaible CLI installer uses `uv` to download Astral's standalone CPython buil
 
 ## What the script does
 
-`scripts/setup-uv-ca.sh` combines the stock system trust store (e.g. `/etc/ssl/cert.pem` on macOS) with your corporate root certificate. The merged PEM keeps the corporate inspector while restoring trust in public CAs, so `uv run --project tools/enaible …` can grab Astral's CPython builds without disabling any corporate controls.
+`scripts/setup-uv-ca.sh` (macOS/Linux) and `scripts/setup-uv-ca.ps1` (Windows) combine the stock system trust store with your corporate root certificate. The merged PEM keeps the corporate inspector while restoring trust in public CAs, so `uv run --project tools/enaible …` can grab Astral's CPython builds without disabling any corporate controls.
 
 Steps performed:
 
-1. Detects the corporate CA from `CORP_CA_FILE` or the existing `SSL_CERT_FILE`/`REQUESTS_CA_BUNDLE`/`UV_HTTP_CA_BUNDLE` exports.
-2. Locates the default system CA file via Python's `ssl.get_default_verify_paths()` (falls back to `/etc/ssl/cert.pem`).
-3. Concatenates the two files into `~/.config/claude/corp-ca-bundle.pem` (or the path you pass with `--output`).
-4. Prints the `export SSL_CERT_FILE=…` instructions so the new bundle becomes the default for future shells.
+1. Detect the corporate CA from `--corp-ca PATH` (preferred) or the existing `SSL_CERT_FILE` export.
+2. Locate the default system CA file via Python's `ssl.get_default_verify_paths()` (falls back to platform defaults).
+3. Concatenate the two files into `~/.config/claude/corp-ca-bundle.pem` (or the path you pass with `--output` / `-Output`).
+4. Print the `SSL_CERT_FILE` instructions so the new bundle becomes the default for future shells.
 
 ## How to use it
 
+macOS/Linux:
+
 ```bash
-./scripts/setup-uv-ca.sh
-# optionally specify custom paths
 ./scripts/setup-uv-ca.sh --corp-ca ~/.config/claude/corp-ca.pem --output ~/.config/claude/corp-ca-bundle.pem
+# or rely on $SSL_CERT_FILE if it's already set
+./scripts/setup-uv-ca.sh
 ```
 
-If you already generated the bundle and only need to update your current shell, you can emit the exports directly without a second helper script:
+Windows (PowerShell 7+):
+
+```powershell
+pwsh -File scripts/setup-uv-ca.ps1 -CorpCA C:\certs\corp-root.pem -Output $env:USERPROFILE\.config\claude\corp-ca-bundle.pem
+# or rely on $Env:SSL_CERT_FILE if it's already pointing at the corporate chain
+pwsh -File scripts/setup-uv-ca.ps1
+```
+
+If you already generated the bundle and only need to update your current shell, you can emit the exports directly:
 
 ```bash
 source <(./scripts/setup-uv-ca.sh --exports-only --print-exports)
 # include --output /custom/path if you changed the bundle destination
 ```
 
-After running, add the printed exports to your shell profile (or run them inline) and re-open your terminal before invoking:
+```powershell
+pwsh -File scripts/setup-uv-ca.ps1 -ExportsOnly -PrintExports
+# include -Output C:\custom\bundle.pem if you changed the destination
+```
+
+After running, add the printed export to your shell profile (or run it inline) and re-open your terminal before invoking:
 
 ```bash
 uv run --project tools/enaible enaible install copilot --mode fresh --scope user

@@ -22,21 +22,17 @@ This occurs because `uv` cannot validate SSL certificates when:
 
 ### Option 1: Use the Setup Script (Recommended for Corporate Networks)
 
-The `scripts/setup-uv-ca.sh` script automatically merges system and corporate CA certificates.
+The `scripts/setup-uv-ca.sh` (macOS/Linux) and `scripts/setup-uv-ca.ps1` (Windows) scripts automatically merge system and corporate CA certificates.
 
 **For Live Installs:**
 
 ```bash
-# Run the setup script (one-time setup per machine)
-./scripts/setup-uv-ca.sh
-
-# Follow the instructions to add exports to your shell profile
-# Then restart your shell or source the profile
-source ~/.zshrc  # or ~/.bashrc
-
-# Now uv commands will work
-uv run --project tools/enaible enaible install copilot --scope user
+./scripts/setup-uv-ca.sh   # macOS/Linux
+# or
+pwsh -File scripts/setup-uv-ca.ps1   # Windows PowerShell 7+
 ```
+
+After generating the merged bundle, add the single export shown by the script to your shell profile and restart the terminal before rerunning `uv`.
 
 **Advantages:**
 - ✅ Works for all tools (`uv`, `curl`, `requests`, `pip`)
@@ -107,9 +103,9 @@ uv tool install --native-tls --from tools/enaible enaible
 
 2. **Add to shell profile** (as instructed by script):
    ```bash
-   export SSL_CERT_FILE="$HOME/.config/claude/corp-ca-bundle.pem"
-   export REQUESTS_CA_BUNDLE="$HOME/.config/claude/corp-ca-bundle.pem"
-   export UV_HTTP_CA_BUNDLE="$HOME/.config/claude/corp-ca-bundle.pem"
+   export SSL_CERT_FILE="$HOME/.config/claude/corp-ca-bundle.pem"  # macOS/Linux
+   # PowerShell equivalent:
+   # Set-Item Env:SSL_CERT_FILE -Value "$env:USERPROFILE\.config\claude\corp-ca-bundle.pem"
    ```
 
 3. **Configure uv specifically:**
@@ -118,9 +114,9 @@ uv tool install --native-tls --from tools/enaible enaible
    ```
 
 This provides:
-- ✅ Coverage for all tools (via environment variables)
+- ✅ Coverage for all tools (via the single `SSL_CERT_FILE` export)
 - ✅ Persistent `uv` configuration (via `uv config`)
-- ✅ Works even if environment variables aren't set in a particular session
+- ✅ Works even if the environment variable isn't set in a particular session (thanks to the `uv` config backup)
 
 ### For Test Environments
 
@@ -130,17 +126,15 @@ This provides:
 @pytest.fixture(autouse=True)
 def _setup_tls_certs(monkeypatch: pytest.MonkeyPatch) -> None:
     """Configure TLS certificates for tests."""
-    # Option A: Use system certificates if available
-    system_ca = Path("/etc/ssl/cert.pem")
-    if system_ca.exists():
-        monkeypatch.setenv("SSL_CERT_FILE", str(system_ca))
-        monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(system_ca))
+  # Option A: Use system certificates if available
+  system_ca = Path("/etc/ssl/cert.pem")
+  if system_ca.exists():
+      monkeypatch.setenv("SSL_CERT_FILE", str(system_ca))
 
-    # Option B: Use merged bundle if setup script was run
-    merged_ca = Path.home() / ".config" / "claude" / "corp-ca-bundle.pem"
-    if merged_ca.exists():
-        monkeypatch.setenv("SSL_CERT_FILE", str(merged_ca))
-        monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(merged_ca))
+  # Option B: Use merged bundle if setup script was run
+  merged_ca = Path.home() / ".config" / "claude" / "corp-ca-bundle.pem"
+  if merged_ca.exists():
+      monkeypatch.setenv("SSL_CERT_FILE", str(merged_ca))
 
     # Option C: Skip TLS validation in tests (NOT RECOMMENDED for production)
     # Only use if corporate CA is not available in test environment
@@ -184,10 +178,10 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
 | Scenario | Solution | Command |
 |----------|----------|---------|
-| **Corporate network (one-time)** | Setup script | `./scripts/setup-uv-ca.sh` |
+| **Corporate network (one-time)** | Setup script | `./scripts/setup-uv-ca.sh` or `pwsh -File scripts/setup-uv-ca.ps1` |
 | **uv-only fix** | uv config | `uv config set http.cabundle <path>` |
 | **Quick test** | Native TLS flag | `uv sync --native-tls` |
-| **Test fixtures** | Environment vars | `monkeypatch.setenv("UV_HTTP_CA_BUNDLE", path)` |
+| **Test fixtures** | Environment var | `monkeypatch.setenv("SSL_CERT_FILE", path)` |
 
 ## Troubleshooting
 
@@ -215,5 +209,4 @@ UV_LOG=debug uv sync --project tools/enaible
 export UV_HTTP_CA_BUNDLE="/custom/path/ca-bundle.pem"
 uv sync --project tools/enaible
 ```
-
 
