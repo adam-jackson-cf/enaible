@@ -72,10 +72,33 @@ Install these once per workstation; the bootstrap script verifies they exist bef
 ## Quick Start
 
 Running either installer script will:
-- Clone or update this repository under `~/.enaible/sources/ai-assisted-workflows` (pinned to the ref you specify, default `main`).
+
+- Clone this repository under `~/.enaible/sources/ai-assisted-workflows`.
 - Install or upgrade the Enaible CLI via `uv tool install --from tools/enaible enaible`.
-- Run `enaible install <system>` for each requested adapter (`codex`, `claude-code`, etc.) in the scopes you select, copying prompts/rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
+- Run `enaible install <system>` for each requested adapter (`codex`, `claude-code`, etc.) in the scopes you select
+- Copies prompts/rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
 - Capture a session log in `~/.enaible/install-sessions/` for audit trails.
+
+## Installed dependencies to support workflows
+
+
+- [`uv`](https://github.com/astral-sh/uv) — Python project/package manager we use to install the Enaible CLI and run quality gates.
+- [`bun`](https://bun.sh/) — JavaScript runtime + toolkit powering the React/TanStack starter flows.
+- [`Ultracite`](https://www.ultracite.ai/introduction) — Lint/format preset enforced across TypeScript and Tailwind resources.
+- [`TypeScript`](https://www.typescriptlang.org/) — Strict-mode type checking for all frontend prompts and scaffolds.
+- [`React`](https://react.dev/) and [`React Router`](https://reactrouter.com/) — Core UI stack referenced in Better-T-Stack workflows.
+- [`shadcn/ui`](https://ui.shadcn.com/) on top of [`Radix Primitives`](https://www.radix-ui.com/primitives) — Component baseline for UI tasks.
+- [`Tailwind CSS`](https://tailwindcss.com/) — Utility CSS system backing shadcn styling tokens.
+- [`Zustand`](https://github.com/pmndrs/zustand) — Client-side state management for prompts requiring local stores.
+- [`TanStack Query`](https://tanstack.com/query/latest) — Data fetching/cache layer that our async workflows depend on.
+- [`SQLite`](https://www.sqlite.org/) + [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) — Embedded database runtime for local-first development.
+- [`Drizzle ORM`](https://orm.drizzle.team/) — Schema + migration tooling for SQLite/Postgres targets.
+- [`Convex`](https://docs.convex.dev/) — Realtime collaboration backend we reference for managed deployments.
+- [`PostHog`](https://posthog.com/) — Analytics/experimentation SDK initialised once consent is stored.
+- [`Clerk`](https://clerk.com/) and [`Stripe`](https://stripe.com/) / [`Braintree`](https://www.braintreepayments.com/) — Managed identity and payments providers we wire into production prompts.
+- [`tmux`](https://github.com/tmux/tmux) — Required multiplexer for long-running dev servers launched by automation prompts.
+
+
 
 ### macOS/Linux
 
