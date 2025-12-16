@@ -1,0 +1,53 @@
+name: Installer Smoke Tests
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - scripts/install.sh
+      - scripts/install.ps1
+      - tools/enaible/**
+      - .github/workflows/install-smoke.yml
+  pull_request:
+    paths:
+      - scripts/install.sh
+      - scripts/install.ps1
+      - tools/enaible/**
+      - .github/workflows/install-smoke.yml
+  workflow_dispatch:
+
+jobs:
+  bootstrap:
+    name: "${{ matrix.os }}"
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    env:
+      ENAIBLE_INSTALL_SKIP_SYNC: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv (macOS/Linux)
+        if: runner.os != 'Windows'
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install uv (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          iwr https://astral.sh/uv/install.ps1 -UseBasicParsing | iex
+          "$env:USERPROFILE\.local\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+
+      - name: Run macOS/Linux bootstrapper
+        if: runner.os != 'Windows'
+        run: bash scripts/install.sh --systems codex --scope user
+
+      - name: Run Windows bootstrapper
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: ./scripts/install.ps1 -Systems codex -Scope user

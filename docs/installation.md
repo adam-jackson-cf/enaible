@@ -16,6 +16,30 @@ python --version            # Expect 3.12.x
 uv --version                 # Confirm uv is installed
 ```
 
+## Step 0 — Bootstrap with the installer scripts (recommended)
+
+### macOS/Linux
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
+```
+
+### Windows PowerShell 7+
+
+```powershell
+pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
+```
+
+Both scripts:
+
+- Clone or refresh the repository under `~/.enaible/sources/ai-assisted-workflows` (override via `--clone-dir` / `-CloneDir`).
+- Install the CLI with `uv tool install --from <clone>/tools/enaible enaible`.
+- Run `enaible install <system> --scope user --mode sync` from the cached repo so user-level prompts stay current; pass `--scope project --project /path/to/repo` (or `-Scope project -Project ...` in PowerShell) when you want to hydrate a specific checkout as well.
+- Accept flags such as `--systems codex,claude-code`, `--ref vX.Y.Z`, and `--dry-run` so CI and local machines share the same entry point.
+- Emit a short session log to `~/.enaible/install-sessions/session-<timestamp>.md` for traceability.
+
+If you prefer to manage everything manually, clone the repo, run `uv sync --project tools/enaible`, and use `enaible install` commands yourself (step 2). The scripts simply automate these commands without requiring you to keep a checkout handy.
+
 ## Step 1 — Install Enaible dependencies
 
 The CLI lives in `tools/enaible/` and is packaged with uv. Sync the project environment once to install Typer, Jinja2, Ruff, pytest, and typing stubs used by the CLI tests.
@@ -60,7 +84,7 @@ Repeat the `enaible install` step for `claude-code` when that surface is affecte
 
 ## Step 4 — Validate before publishing
 
-Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates-incremental.yml`:
+Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates-incremental.yml`. When you install via the script, the session log (`~/.enaible/install-sessions/session-<timestamp>.md`) records each command and exit code so you can attach it to tickets or incident reports.
 
 ```bash
 uv run --project tools/enaible ruff check tools/enaible/src

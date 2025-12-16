@@ -59,7 +59,30 @@ The principles for this project are designed around the realities of coding with
 
 ## ⚡ Quick Start
 
-Install for your preferred AI dev runtime using the Enaible installer (runs from repo root). Details in docs/installation.md
+### Bootstrap the CLI (macOS/Linux)
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
+```
+
+### Bootstrap the CLI (Windows PowerShell 7+)
+
+```powershell
+pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
+```
+
+Both scripts:
+
+- Clone or refresh the toolkit under `~/.enaible/sources/ai-assisted-workflows` (or `%USERPROFILE%\.enaible\...`) and run `uv tool install --from <clone>/tools/enaible enaible`.
+- Run `enaible install <system> --scope user` through the freshly cloned repo so `~/.claude`, `~/.codex`, etc. stay up to date.
+- Accept flags such as `--systems codex,claude-code`, `--scope user|project|both`, `--project /path/to/repo`, `--ref vX.Y.Z`, and `--dry-run` so CI and local setups can share the same entry point.
+- Store a short session log in `~/.enaible/install-sessions/` for traceability.
+
+See [docs/installation.md](docs/installation.md) for the complete flag reference and troubleshooting steps.
+
+### Install or Update System Assets Manually
+
+Once the CLI is available (either because you ran the bootstrap script or you cloned the repo yourself), use the `enaible install` command to copy prompts/rules into user or project scopes:
 
 ```bash
 # Codex CLI
