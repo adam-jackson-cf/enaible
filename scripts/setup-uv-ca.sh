@@ -129,7 +129,7 @@ if [[ "$SYSTEM_CA_FILE" == "$CORP_CA_FILE" ]]; then
   if [[ -f /etc/ssl/cert.pem && /etc/ssl/cert.pem != "$CORP_CA_FILE" ]]; then
     SYSTEM_CA_FILE=/etc/ssl/cert.pem
   else
-    error "System CA path resolved to the same file as the corporate CA. Unset SSL_CERT_FILE/REQUESTS_CA_BUNDLE/UV_HTTP_CA_BUNDLE or pass --corp-ca explicitly so both chains can be merged."
+    error "System CA path resolved to the same file as the corporate CA. Unset SSL_CERT_FILE or pass --corp-ca explicitly so both chains can be merged."
   fi
 fi
 
