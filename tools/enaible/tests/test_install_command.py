@@ -101,7 +101,8 @@ def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
     assert agent.exists()
     assert rules.exists()
     assert agent.read_text(encoding="utf-8").startswith("---")
-    assert "Tooling preferences" in rules.read_text(encoding="utf-8")
+    rules_text = rules.read_text(encoding="utf-8")
+    assert "**CRITICAL** Must follow Design Principles" in rules_text
 
 
 def test_install_dry_run_leaves_destination_clean(tmp_path: Path) -> None:

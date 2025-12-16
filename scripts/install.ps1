@@ -159,8 +159,18 @@ function Write-SessionLog {
 }
 
 function Validate-Systems {
-    $current = @($Systems)
-    if ($current.Count -eq 0) {
+    $current = @()
+    if ($null -ne $Systems) {
+        if ($Systems -is [System.Collections.IEnumerable] -and $Systems -isnot [string]) {
+            foreach ($item in $Systems) {
+                $current += ,$item
+            }
+        }
+        else {
+            $current += ,$Systems
+        }
+    }
+    if ($current.Length -eq 0) {
         throw "No systems specified"
     }
     $expanded = @()
@@ -174,7 +184,7 @@ function Validate-Systems {
             $clean += $trimmed
         }
     }
-    if ($clean.Count -eq 0) {
+    if ($clean.Length -eq 0) {
         throw "No systems specified"
     }
     $script:Systems = $clean
