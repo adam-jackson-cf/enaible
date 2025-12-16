@@ -16,7 +16,9 @@ python --version            # Expect 3.12.x
 uv --version                 # Confirm uv is installed
 ```
 
-## Step 0 — Bootstrap with the installer scripts (recommended)
+If `uv sync` fails with `invalid peer certificate` on a corporate network, follow the troubleshooting steps in `docs/tls-certificate-setup.md` before retrying the installer.
+
+## Step 0 — Bootstrap with the installer scripts
 
 ### macOS/Linux
 
@@ -27,18 +29,10 @@ curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/
 ### Windows PowerShell 7+
 
 ```powershell
-pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
+Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
+# NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
 ```
-
-Both scripts:
-
-- Clone or refresh the repository under `~/.enaible/sources/ai-assisted-workflows` (override via `--clone-dir` / `-CloneDir`).
-- Install the CLI with `uv tool install --from <clone>/tools/enaible enaible`.
-- Run `enaible install <system> --scope user --mode sync` from the cached repo so user-level prompts stay current; pass `--scope project --project /path/to/repo` (or `-Scope project -Project ...` in PowerShell) when you want to hydrate a specific checkout as well.
-- Accept flags such as `--systems codex,claude-code`, `--ref vX.Y.Z`, and `--dry-run` so CI and local machines share the same entry point.
-- Emit a short session log to `~/.enaible/install-sessions/session-<timestamp>.md` for traceability.
-
-If you prefer to manage everything manually, clone the repo, run `uv sync --project tools/enaible`, and use `enaible install` commands yourself (step 2). The scripts simply automate these commands without requiring you to keep a checkout handy.
 
 ## Step 1 — Install Enaible dependencies
 

@@ -51,4 +51,11 @@ jobs:
       - name: Run Windows bootstrapper
         if: runner.os == 'Windows'
         shell: pwsh
-        run: ./scripts/install.ps1 -Systems codex -Scope user -Ref $env:INSTALL_REF
+        run: |
+          $uri = "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/${env:INSTALL_REF}/scripts/install.ps1"
+          Write-Host "Downloading bootstrapper from $uri"
+          Invoke-WebRequest $uri -OutFile install.ps1
+          if (Get-Command Unblock-File -ErrorAction SilentlyContinue) {
+            Unblock-File install.ps1
+          }
+          pwsh -NoLogo -File ./install.ps1 -Systems codex -Scope user -Ref $env:INSTALL_REF
