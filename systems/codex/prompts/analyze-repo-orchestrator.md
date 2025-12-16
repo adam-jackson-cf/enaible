@@ -88,7 +88,6 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
       || printf 'ra-quality,failed,%s\n' "$(date -u +%FT%TZ)" >> '@STATUS_LOG'
      ```
    - Code Quality (duplication):
-     - Only spawn this JSCPD session when recon previously flagged Node/npm metadata or JS/TS sources; otherwise record in `@STATUS_LOG` that duplication scanning was skipped (tooling unavailable for the stack).
      - Full-repo JSCPD runs commonly exceed the 300s limit. Instead, scan curated scopes in a single tmux session so each completes quickly:
        ```bash
        tmux new-session -d -s ra-quality-jscpd "\

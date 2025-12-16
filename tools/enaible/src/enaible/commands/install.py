@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
@@ -49,6 +50,76 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "gemini": ("commands/",),
     "antigravity": ("workflows/", "rules/"),
 }
+
+CHECK_DEPENDENCIES_DEFAULT = os.environ.get("ENAIBLE_SKIP_DEPENDENCY_CHECKS") != "1"
+
+
+@dataclass(frozen=True)
+class PromptDependency:
+    name: str
+    check_commands: tuple[str, ...]
+    install_command: tuple[str, ...] | None
+    install_hint: str
+
+
+SEMGRAP_DEP = PromptDependency(
+    name="Semgrep",
+    check_commands=("semgrep",),
+    install_command=(sys.executable, "-m", "pip", "install", "semgrep"),
+    install_hint="pip install semgrep",
+)
+
+DETECT_SECRETS_DEP = PromptDependency(
+    name="detect-secrets",
+    check_commands=("detect-secrets",),
+    install_command=(sys.executable, "-m", "pip", "install", "detect-secrets"),
+    install_hint="pip install detect-secrets",
+)
+
+Ruff_DEP = PromptDependency(
+    name="Ruff",
+    check_commands=("ruff",),
+    install_command=(sys.executable, "-m", "pip", "install", "ruff"),
+    install_hint="pip install ruff",
+)
+
+LIZARD_DEP = PromptDependency(
+    name="Lizard",
+    check_commands=("lizard",),
+    install_command=(sys.executable, "-m", "pip", "install", "lizard"),
+    install_hint="pip install lizard",
+)
+
+JSCPD_DEP = PromptDependency(
+    name="JSCPD",
+    check_commands=("jscpd", "npx"),
+    install_command=("npm", "install", "-g", "jscpd"),
+    install_hint="npm install -g jscpd",
+)
+
+ESLINT_DEP = PromptDependency(
+    name="ESLint + plugins",
+    check_commands=("eslint",),
+    install_command=(
+        "npm",
+        "install",
+        "-g",
+        "eslint",
+        "@typescript-eslint/parser",
+        "eslint-plugin-react",
+        "eslint-plugin-import",
+        "eslint-plugin-vue",
+    ),
+    install_hint="npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue",
+)
+
+PROMPT_DEPENDENCIES: dict[str, tuple[PromptDependency, ...]] = {
+    "analyze-code-quality": (LIZARD_DEP, JSCPD_DEP),
+    "analyze-performance": (Ruff_DEP, SEMGRAP_DEP, ESLINT_DEP),
+    "analyze-security": (SEMGRAP_DEP, DETECT_SECRETS_DEP),
+}
+
+_PROMPT_DEP_CACHE: dict[str, bool] = {}
 
 
 class InstallMode(str, Enum):
@@ -186,9 +257,12 @@ def _complete_installation(
     mode: InstallMode,
     dry_run: bool,
     summary: InstallSummary,
+    enforce_dependencies: bool,
 ) -> None:
     """Complete installation: render prompts, sync, post-install, emit summary."""
-    _render_managed_prompts(context, system, destination_root, mode, dry_run, summary)
+    _render_managed_prompts(
+        context, system, destination_root, mode, dry_run, summary, enforce_dependencies
+    )
 
     if sync:
         _sync_enaible_env(context.repo_root, dry_run, summary)
@@ -243,6 +317,11 @@ def install(
         "--sync-shared/--no-sync-shared",
         help="Copy shared/ workspace files to ~/.enaible/workspace/shared for analyzer execution.",
     ),
+    enforce_dependencies: bool = typer.Option(
+        CHECK_DEPENDENCIES_DEFAULT,
+        "--check-deps/--no-check-deps",
+        help="Verify external analyzer dependencies before installing prompts.",
+    ),
 ) -> None:
     """Install rendered system assets into project or user configuration directories."""
     context = load_workspace()
@@ -267,7 +346,16 @@ def install(
     _process_source_files(source_root, destination_root, system, mode, dry_run, summary)
 
     _complete_installation(
-        context, system, source_root, destination_root, scope, sync, mode, dry_run, summary
+        context,
+        system,
+        source_root,
+        destination_root,
+        scope,
+        sync,
+        mode,
+        dry_run,
+        summary,
+        enforce_dependencies,
     )
 
 
@@ -511,6 +599,7 @@ def _render_managed_prompts(
     mode: InstallMode,
     dry_run: bool,
     summary: InstallSummary,
+    enforce_dependencies: bool,
 ) -> None:
     renderer = PromptRenderer(context)
     definitions = [
@@ -534,6 +623,10 @@ def _render_managed_prompts(
         except ValueError:
             relative = output_path
 
+        if enforce_dependencies and not _prompt_dependencies_ready(result.prompt_id, dry_run):
+            summary.record_skip(relative)
+            continue
+
         if dry_run:
             summary.record("render", output_path)
             continue
@@ -555,7 +648,92 @@ def _render_managed_prompts(
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(result.content, encoding="utf-8")
-        summary.record("render", output_path)
+    summary.record("render", output_path)
+
+
+def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
+    if not prompt_id:
+        return True
+    if prompt_id in _PROMPT_DEP_CACHE:
+        return _PROMPT_DEP_CACHE[prompt_id]
+    deps = PROMPT_DEPENDENCIES.get(prompt_id)
+    if not deps:
+        _PROMPT_DEP_CACHE[prompt_id] = True
+        return True
+    missing = [dep for dep in deps if not _dependency_available(dep)]
+    if not missing:
+        _PROMPT_DEP_CACHE[prompt_id] = True
+        return True
+    dep_names = ", ".join(dep.name for dep in missing)
+    typer.secho(
+        f"Prompt '{prompt_id}' requires {dep_names} which are not installed.",
+        fg=typer.colors.YELLOW,
+    )
+    for dep in missing:
+        typer.echo(f"- {dep.name}: {dep.install_hint}")
+    if dry_run:
+        typer.secho(
+            "Dry-run mode: dependencies not installed, prompt will be skipped.",
+            fg=typer.colors.YELLOW,
+        )
+        _PROMPT_DEP_CACHE[prompt_id] = False
+        return False
+    install = _confirm_install_dependencies()
+    if install:
+        for dep in missing:
+            _install_dependency(dep)
+        missing = [dep for dep in deps if not _dependency_available(dep)]
+    if missing:
+        typer.secho(
+            f"Dependencies still missing for '{prompt_id}'. Prompt will not be installed.",
+            fg=typer.colors.RED,
+        )
+        _PROMPT_DEP_CACHE[prompt_id] = False
+        return False
+    typer.secho(
+        f"All dependencies for '{prompt_id}' detected. Proceeding with install.",
+        fg=typer.colors.GREEN,
+    )
+    _PROMPT_DEP_CACHE[prompt_id] = True
+    return True
+
+
+def _confirm_install_dependencies() -> bool:
+    if not sys.stdin.isatty():
+        typer.secho(
+            "Non-interactive session detected; cannot prompt to install missing dependencies.",
+            fg=typer.colors.YELLOW,
+        )
+        return False
+    return typer.confirm(
+        "Install missing dependencies now? (Administrative privileges may be required)",
+        default=False,
+    )
+
+
+def _install_dependency(dep: PromptDependency) -> None:
+    if not dep.install_command:
+        return
+    typer.secho(
+        f"Installing {dep.name} via: {' '.join(dep.install_command)}",
+        fg=typer.colors.CYAN,
+    )
+    try:
+        subprocess.run(dep.install_command, check=True)
+    except FileNotFoundError:
+        typer.secho(
+            f"Installer command not found while installing {dep.name}. Please install manually: {dep.install_hint}",
+            fg=typer.colors.RED,
+        )
+    except subprocess.CalledProcessError as exc:
+        typer.secho(
+            f"Failed to install {dep.name} (exit code {exc.returncode}). Please install manually.",
+            fg=typer.colors.RED,
+        )
+
+
+def _dependency_available(dep: PromptDependency) -> bool:
+    return any(shutil.which(cmd) for cmd in dep.check_commands)
 
 
 def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:

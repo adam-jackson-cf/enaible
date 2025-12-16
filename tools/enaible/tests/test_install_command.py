@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -12,6 +13,8 @@ from typer.testing import CliRunner
 PACKAGE_ROOT = Path(__file__).resolve().parents[1] / "src"
 if str(PACKAGE_ROOT) not in sys.path:
     sys.path.insert(0, str(PACKAGE_ROOT))
+
+os.environ.setdefault("ENAIBLE_SKIP_DEPENDENCY_CHECKS", "1")
 
 from enaible import app  # noqa: E402
 from enaible.runtime.context import WorkspaceContext  # noqa: E402
@@ -96,7 +99,7 @@ def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
-    agent = tmp_path / ".claude" / "agents" / "user-researcher.md"
+    agent = tmp_path / ".claude" / "agents" / "research-coordinator.md"
     rules = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
     assert agent.exists()
     assert rules.exists()
