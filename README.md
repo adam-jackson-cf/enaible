@@ -81,23 +81,14 @@ Running either installer script will:
 
 ## Installed dependencies to support workflows
 
+- [Semgrep](https://semgrep.dev/docs/getting-started/) — required for `security:semgrep` and `performance:semgrep`. Install with `pip install semgrep` so the `semgrep` CLI is on your PATH.
+- [detect-secrets](https://github.com/Yelp/detect-secrets) — used by `security:detect_secrets` to scan for hardcoded credentials. Install with `pip install detect-secrets`.
+- [Lizard](https://github.com/terryyin/lizard) — powers the `quality:lizard` complexity analyzer. Install with `pip install lizard`.
+- [JSCPD](https://github.com/kucherenko/jscpd) — duplicate-code detection for `quality:jscpd`. Requires Node.js; install with `npm install -g jscpd` or run via `npx jscpd`.
+- [ESLint](https://eslint.org/) plus the plugins `@typescript-eslint/parser`, `eslint-plugin-react`, `eslint-plugin-import`, and `eslint-plugin-vue` — referenced by `performance:frontend`. Install globally via npm (`npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue`).
+- [Node.js](https://nodejs.org/) and `npm` — prerequisites for JSCPD and ESLint-based analyzers. Ensure Node 18+ is available before running frontend-focused prompts.
 
-- [`uv`](https://github.com/astral-sh/uv) — Python project/package manager we use to install the Enaible CLI and run quality gates.
-- [`bun`](https://bun.sh/) — JavaScript runtime + toolkit powering the React/TanStack starter flows.
-- [`Ultracite`](https://www.ultracite.ai/introduction) — Lint/format preset enforced across TypeScript and Tailwind resources.
-- [`TypeScript`](https://www.typescriptlang.org/) — Strict-mode type checking for all frontend prompts and scaffolds.
-- [`React`](https://react.dev/) and [`React Router`](https://reactrouter.com/) — Core UI stack referenced in Better-T-Stack workflows.
-- [`shadcn/ui`](https://ui.shadcn.com/) on top of [`Radix Primitives`](https://www.radix-ui.com/primitives) — Component baseline for UI tasks.
-- [`Tailwind CSS`](https://tailwindcss.com/) — Utility CSS system backing shadcn styling tokens.
-- [`Zustand`](https://github.com/pmndrs/zustand) — Client-side state management for prompts requiring local stores.
-- [`TanStack Query`](https://tanstack.com/query/latest) — Data fetching/cache layer that our async workflows depend on.
-- [`SQLite`](https://www.sqlite.org/) + [`better-sqlite3`](https://github.com/WiseLibs/better-sqlite3) — Embedded database runtime for local-first development.
-- [`Drizzle ORM`](https://orm.drizzle.team/) — Schema + migration tooling for SQLite/Postgres targets.
-- [`Convex`](https://docs.convex.dev/) — Realtime collaboration backend we reference for managed deployments.
-- [`PostHog`](https://posthog.com/) — Analytics/experimentation SDK initialised once consent is stored.
-- [`Clerk`](https://clerk.com/) and [`Stripe`](https://stripe.com/) / [`Braintree`](https://www.braintreepayments.com/) — Managed identity and payments providers we wire into production prompts.
-- [`tmux`](https://github.com/tmux/tmux) — Required multiplexer for long-running dev servers launched by automation prompts.
-
+The `enaible analyzers run …` commands execute locally via `uv run`, so each CLI above must be installed on your workstation (they are not provisioned automatically by the bootstrap script).
 
 
 ### macOS/Linux
