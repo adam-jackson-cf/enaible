@@ -3,7 +3,7 @@
 
 # AI Assisted Workflows
 
-  <img src="https://img.shields.io/badge/🤖_AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
+  <img src="https://img.shields.io/badge/AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
   <br/>
   <br/>
 
@@ -33,38 +33,49 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [🎯 Project Overview](#-project-overview)
-- [⚡ Quick Start](#-quick-start)
-- [💡 Available Prompts & Agents](#-available-prompts--agents)
+- [Project Overview](#project-overview)
+- [Dependencies](#dependencies)
+- [Quick Start](#quick-start)
+- [Available Prompts & Agents](#available-prompts--agents)
   - [Analysis](#analysis) | [Planning](#planning) | [Setup](#setup) | [Project & Feature](#project--feature) | [Utility](#utility)
   - [System-Specific Commands](#system-specific-commands) | [Agents](#agents-claude-code)
 
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
 > **Supporting AI Development Workflows with Core Principles**
 
 The principles for this project are designed around the realities of coding with AI:
 
-- 🪶 **Lightweight** — Minimize context impact, JIT loading, external processes
-- 🎯 **Mitigate LLM Weaknesses** — Repeatability, predictability, duplication prevention
-- ⚙️ **Minimize Structure** — Tools over workflows, flexibility over rigidity
-- 🔄 **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini, Antigravity
-- 💻 **Language Support** — Python, TypeScript, Go, Rust, C#
+- **Lightweight** — Minimize context impact, JIT loading, external processes
+- **Mitigate LLM Weaknesses** — Repeatability, predictability, duplication prevention
+- **Minimize Structure** — Tools over workflows, flexibility over rigidity
+- **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini, Antigravity
+- **Language Support** — Python, TypeScript, Go, Rust, C#
 
 ---
 
-## ⚡ Quick Start
+## Dependencies
+
+- Git (command-line)
+- Python 3.12.x
+- `uv` 0.4 or newer
+- `curl` (macOS/Linux) or PowerShell 7+ (Windows) to download the installer scripts
+
+Install these once per workstation; the bootstrap script verifies they exist before proceeding.
+
+---
+
+## Quick Start
 
 Running either installer script will:
-- Expect Git, Python 3.12, and `uv` 0.4+ to already be available on your PATH (the script checks and aborts if they are missing).
-- Clone or update this repository under `~/.enaible/sources/ai-assisted-workflows` and pin it to the ref you specify (default `main`).
-- Install the Enaible CLI via `uv tool install --from tools/enaible enaible` so the `enaible` command is accessible for future shells.
-- Run `enaible install <system>` for each requested surface (`codex`, `claude-code`, etc.) in user/project scopes, copying prompts, commands, and rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
-- Record a session log in `~/.enaible/install-sessions/` with the exact arguments and exit codes for auditability.
+- Clone or update this repository under `~/.enaible/sources/ai-assisted-workflows` (pinned to the ref you specify, default `main`).
+- Install or upgrade the Enaible CLI via `uv tool install --from tools/enaible enaible`.
+- Run `enaible install <system>` for each requested adapter (`codex`, `claude-code`, etc.) in the scopes you select, copying prompts/rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
+- Capture a session log in `~/.enaible/install-sessions/` for audit trails.
 
 ### macOS/Linux
 
@@ -84,7 +95,7 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ---
 
-## 💡 Available Prompts & Agents
+## Available Prompts & Agents
 
 > Shared prompts work across Claude Code and Codex. System-specific commands are noted below.
 
@@ -163,16 +174,16 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ---
 
-## 📚 Quick Start & Detailed Documentation
+## Quick Start & Detailed Documentation
 
-<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+<div align="right"><a href="#table-of-contents">back to top</a></div>
 
 <div align="center">
 
 |   **Category**    | **Document**                               | **Description**                               |
 | :---------------: | :----------------------------------------- | :-------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
+|   **Setup**       | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
+| **Monitoring**    | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
 
 ---
 
