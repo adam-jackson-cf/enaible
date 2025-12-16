@@ -18,8 +18,8 @@ from ..app import app
 from ..constants import MANAGED_SENTINEL
 from ..prompts.adapters import (
     SYSTEM_CONTEXTS,
-    SystemRenderContext,
     VSCODE_USER_DIR_MARKER,
+    SystemRenderContext,
 )
 from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
@@ -287,9 +287,7 @@ def _install_cli(
         summary.record("install-cli", source)
         return
 
-    proc = subprocess.run(cmd, cwd=repo_root)
-    if proc.returncode != 0:
-        raise typer.Exit(code=proc.returncode)
+    subprocess.run(cmd, cwd=repo_root, check=True)
 
     summary.record("install-cli", source)
 
@@ -630,7 +628,7 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
     cmd = ["uv", "sync", "--project", str(repo_root / "tools" / "enaible")]
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
     except subprocess.CalledProcessError as exc:
         stderr = exc.stderr if isinstance(exc.stderr, str) else (exc.stderr.decode("utf-8") if exc.stderr else "")
         stdout = exc.stdout if isinstance(exc.stdout, str) else (exc.stdout.decode("utf-8") if exc.stdout else "")
@@ -741,7 +739,7 @@ def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessErr
     typer.echo("\nManual setup options:", err=True)
     typer.echo(
         "  1. Run the setup script (recommended):\n"
-        f"     ./scripts/setup-uv-ca.sh\n"
+        "     ./scripts/setup-uv-ca.sh\n"
         "     Then restart your terminal or run: source ~/.zshrc\n",
         err=True,
     )

@@ -159,17 +159,25 @@ function Write-SessionLog {
 }
 
 function Validate-Systems {
-    if (-not $Systems -or $Systems.Count -eq 0) {
+    $current = @($Systems)
+    if ($current.Count -eq 0) {
         throw "No systems specified"
     }
     $expanded = @()
-    foreach ($item in $Systems) {
+    foreach ($item in $current) {
         $expanded += ($item -split ',', [System.StringSplitOptions]::RemoveEmptyEntries)
     }
-    $Systems = $expanded | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
-    if ($Systems.Count -eq 0) {
+    $clean = @()
+    foreach ($entry in $expanded) {
+        $trimmed = $entry.Trim()
+        if ($trimmed) {
+            $clean += $trimmed
+        }
+    }
+    if ($clean.Count -eq 0) {
         throw "No systems specified"
     }
+    $script:Systems = $clean
 }
 
 Validate-Systems
