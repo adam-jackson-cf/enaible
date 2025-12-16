@@ -46,7 +46,9 @@ jobs:
 
       - name: Run macOS/Linux bootstrapper
         if: runner.os != 'Windows'
-        run: bash scripts/install.sh --systems codex --scope user --ref "${INSTALL_REF}"
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/${INSTALL_REF}/scripts/install.sh" \
+            | bash -s -- --systems codex --scope user --ref "${INSTALL_REF}"
 
       - name: Run Windows bootstrapper
         if: runner.os == 'Windows'

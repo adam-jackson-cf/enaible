@@ -59,61 +59,28 @@ The principles for this project are designed around the realities of coding with
 
 ## ⚡ Quick Start
 
-### Bootstrap the CLI (macOS/Linux)
+Running either installer script will:
+- Expect Git, Python 3.12, and `uv` 0.4+ to already be available on your PATH (the script checks and aborts if they are missing).
+- Clone or update this repository under `~/.enaible/sources/ai-assisted-workflows` and pin it to the ref you specify (default `main`).
+- Install the Enaible CLI via `uv tool install --from tools/enaible enaible` so the `enaible` command is accessible for future shells.
+- Run `enaible install <system>` for each requested surface (`codex`, `claude-code`, etc.) in user/project scopes, copying prompts, commands, and rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
+- Record a session log in `~/.enaible/install-sessions/` with the exact arguments and exit codes for auditability.
+
+### macOS/Linux
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
 ```
 
-### Bootstrap the CLI (Windows PowerShell 7+)
+### Windows PowerShell 7+
 
 ```powershell
-pwsh -NoLogo -NoProfile -ExecutionPolicy Bypass -File scripts/install.ps1
+Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
+# NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
 ```
-
-Both scripts:
-
-- Clone or refresh the toolkit under `~/.enaible/sources/ai-assisted-workflows` (or `%USERPROFILE%\.enaible\...`) and run `uv tool install --from <clone>/tools/enaible enaible`.
-- Run `enaible install <system> --scope user` through the freshly cloned repo so `~/.claude`, `~/.codex`, etc. stay up to date.
-- Accept flags such as `--systems codex,claude-code`, `--scope user|project|both`, `--project /path/to/repo`, `--ref vX.Y.Z`, and `--dry-run` so CI and local setups can share the same entry point.
-- Store a short session log in `~/.enaible/install-sessions/` for traceability.
 
 See [docs/installation.md](docs/installation.md) for the complete flag reference and troubleshooting steps.
-
-### Install or Update System Assets Manually
-
-Once the CLI is available (either because you ran the bootstrap script or you cloned the repo yourself), use the `enaible install` command to copy prompts/rules into user or project scopes:
-
-```bash
-# Codex CLI
-uv run --project tools/enaible enaible install codex --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install codex --scope project --mode sync
-
-# Claude Code
-uv run --project tools/enaible enaible install claude-code --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
-
-# Copilot
-uv run --project tools/enaible enaible install copilot --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install copilot --scope project --mode sync
-
-# Gemini CLI
-uv run --project tools/enaible enaible install gemini --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install gemini --scope project --mode sync
-
-# Antigravity
-uv run --project tools/enaible enaible install antigravity --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
-
-# Cursor
-uv run --project tools/enaible enaible install cursor --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
-
-```
-
-Notes
-
-- Programmatic prompts (analysis, security, performance) require Python 3.12.
 
 ---
 
