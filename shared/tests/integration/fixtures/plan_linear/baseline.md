@@ -17,7 +17,7 @@
 
 ## Assumptions
 
-- Juice Shop monorepo is the target codebase `./test_codebase/juice-shop-monorepo`
+- Juice Shop monorepo is the target codebase `./shared/tests/fixture/test_codebase/juice-shop-monorepo`
 - OWASP dependency check baseline exists
 - Existing auth flow supports token injection
 

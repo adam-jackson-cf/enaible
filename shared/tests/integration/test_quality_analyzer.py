@@ -11,7 +11,16 @@ from core.base.analyzer_base import create_analyzer_config
 def test_quality_lizard_analyzer_smoke():
     """Smoke test to ensure quality analyzer returns findings on a known complex project."""
     project_root = Path(__file__).resolve().parents[3]
-    target = project_root / "test_codebase" / "juice-shop-monorepo" / "frontend" / "src"
+    target = (
+        project_root
+        / "shared"
+        / "tests"
+        / "fixture"
+        / "test_codebase"
+        / "juice-shop-monorepo"
+        / "frontend"
+        / "src"
+    )
 
     assert target.is_dir(), f"Expected sample project at {target}"
 

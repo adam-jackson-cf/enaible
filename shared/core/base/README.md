@@ -371,7 +371,7 @@ Use a quick REPL/script to construct the analyzer and call `analyze()`.
 from core.base.analyzer_base import create_analyzer_config
 from analyzers.category.your_analyzer import YourAnalyzer
 
-cfg = create_analyzer_config(target_path="../test_codebase/monorepo", max_files=5)
+cfg = create_analyzer_config(target_path="../shared/tests/fixture/test_codebase/monorepo", max_files=5)
 analyzer = YourAnalyzer(config=cfg)
 result = analyzer.analyze()
 print(result.to_json())
@@ -389,7 +389,7 @@ print(result.to_json())
 
 ```bash
 # Test through integration runner (registry + in-process)
-PYTHONPATH=shared NO_EXTERNAL=true python shared/tests/integration/test_all_analyzers.py test_codebase/juice-shop-monorepo --max-files 2
+PYTHONPATH=shared NO_EXTERNAL=true python shared/tests/integration/test_all_analyzers.py shared/tests/fixture/test_codebase/juice-shop-monorepo --max-files 2
 # Omit NO_EXTERNAL to include analyzers requiring external tools
 ```
 

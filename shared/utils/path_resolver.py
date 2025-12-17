@@ -96,7 +96,7 @@ def get_test_codebase_dir(subdir: str | None = None) -> Path:
     -------
         Path to the test codebase or specific subdirectory
     """
-    test_dir = get_project_root() / "test_codebase"
+    test_dir = get_project_root() / "shared" / "tests" / "fixture" / "test_codebase"
     if subdir:
         return test_dir / subdir
     return test_dir

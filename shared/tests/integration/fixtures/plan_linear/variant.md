@@ -31,7 +31,7 @@
 
 ## Success Criteria
 
-- All OWASP Top 10 vulnerabilities in test_codebase/juice-shop-monorepo are addressed
+- All OWASP Top 10 vulnerabilities in shared/tests/fixture/test_codebase/juice-shop-monorepo are addressed
 - Automated security scans pass with zero high findings
 - Performance regression < 5% for authenticated flows
 

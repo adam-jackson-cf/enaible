@@ -34,8 +34,8 @@ Use the Typer command instead of invoking modules manually:
 
 ```bash
 uv run --project tools/enaible enaible analyzers list
-uv run --project tools/enaible enaible analyzers run quality:lizard --target test_codebase --summary
-uv run --project tools/enaible enaible analyzers run security:semgrep --target test_codebase/test-python --max-files 10 --min-severity medium
+uv run --project tools/enaible enaible analyzers run quality:lizard --target shared/tests/fixture/test_codebase --summary
+uv run --project tools/enaible enaible analyzers run security:semgrep --target shared/tests/fixture/test_codebase/test-python --max-files 10 --min-severity medium
 ```
 
 - `--no-external` sets `ENAIBLE_DISABLE_EXTERNAL=1` for the run.

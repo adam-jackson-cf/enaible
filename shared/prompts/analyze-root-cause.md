@@ -14,7 +14,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - @TARGET_PATH = --target-path — path to analyze; defaults to repo root
 - @VERBOSE = --verbose — enable verbose diagnostics capture
 - @MIN_SEVERITY = --min-severity — defaults to "high"; accepts critical|high|medium|low
-- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., test_codebase/\*\*)
+- @EXCLUDE = --exclude [repeatable] — additional glob patterns to exclude (e.g., shared/tests/fixture/test_codebase/\*\*)
 
 ### Derived (internal)
 

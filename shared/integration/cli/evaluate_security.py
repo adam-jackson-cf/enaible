@@ -388,11 +388,6 @@ def resolve_app_path(app_name: str, expected_findings: dict[str, Any]) -> Path:
     """Determine the filesystem path to a vulnerable app from config data."""
     app_config = expected_findings.get("applications", {}).get(app_name, {})
     app_source = app_config.get("source", f"vulnerable-apps/{app_name}")
-    if app_source.startswith("test_codebase/"):
-        return get_test_codebase_dir().parent / app_source
-    parts = app_source.split("/")
-    if len(parts) > 1:
-        return get_test_codebase_dir(parts[0]) / "/".join(parts[1:])
     return get_test_codebase_dir() / app_source
 
 

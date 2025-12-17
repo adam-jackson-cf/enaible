@@ -11,7 +11,7 @@ def test_all_analyzers_cli_smoke():
 
     from integration.cli.run_all_analyzers import AnalysisRunner
 
-    target = str(Path("test_codebase").resolve())
+    target = str(Path("shared/tests/fixture/test_codebase").resolve())
     runner = AnalysisRunner()
     report = runner.run_all_analyses(
         target_path=target, summary_mode=True, min_severity="low", max_files=20

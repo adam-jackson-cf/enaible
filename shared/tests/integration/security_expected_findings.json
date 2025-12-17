@@ -9,7 +9,7 @@
     "test-javascript": {
       "language": "javascript",
       "framework": "node.js/express",
-      "source": "test_codebase/vulnerable-apps/test-javascript",
+      "source": "vulnerable-apps/test-javascript",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
@@ -23,7 +23,9 @@
               "description": "NoSQL injection in MongoDB queries"
             },
             "command_injection": {
-              "locations": ["app/routes/contributions.js"],
+              "locations": [
+                "app/routes/contributions.js"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "OS command injection via eval() usage"
@@ -31,7 +33,9 @@
           },
           "A03_sensitive_data": {
             "hardcoded_secrets": {
-              "locations": ["app/data/user-dao.js"],
+              "locations": [
+                "app/data/user-dao.js"
+              ],
               "severity": "medium",
               "cwe": "CWE-798",
               "description": "Base64 high entropy string in configuration"
@@ -39,7 +43,9 @@
           },
           "A03_cross_site_scripting": {
             "xss": {
-              "locations": ["app/routes/contributions.js"],
+              "locations": [
+                "app/routes/contributions.js"
+              ],
               "severity": "high",
               "cwe": "CWE-79",
               "description": "Cross-site scripting in user input"
@@ -47,7 +53,9 @@
           },
           "A07_identification_failures": {
             "insecure_direct_object_references": {
-              "locations": ["app/routes/allocations.js"],
+              "locations": [
+                "app/routes/allocations.js"
+              ],
               "severity": "high",
               "cwe": "CWE-639",
               "description": "Direct object references without authorization checks"
@@ -59,18 +67,22 @@
     "test-python": {
       "language": "python",
       "framework": "django",
-      "source": "test_codebase/vulnerable-apps/test-python",
+      "source": "vulnerable-apps/test-python",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
             "sql_injection": {
-              "locations": ["introduction/views.py"],
+              "locations": [
+                "introduction/views.py"
+              ],
               "severity": "critical",
               "cwe": "CWE-89",
               "description": "SQL injection via raw queries"
             },
             "command_injection": {
-              "locations": ["introduction/views.py"],
+              "locations": [
+                "introduction/views.py"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "OS command injection"
@@ -78,7 +90,9 @@
           },
           "A03_sensitive_data": {
             "hardcoded_secrets": {
-              "locations": ["pygoat/settings.py"],
+              "locations": [
+                "pygoat/settings.py"
+              ],
               "severity": "critical",
               "cwe": "CWE-798",
               "description": "AWS access key, GitHub token, and base64 high entropy string"
@@ -86,7 +100,9 @@
           },
           "A07_identification_failures": {
             "broken_access_control": {
-              "locations": ["introduction/views.py"],
+              "locations": [
+                "introduction/views.py"
+              ],
               "severity": "high",
               "cwe": "CWE-284",
               "description": "Missing authorization checks"
@@ -94,7 +110,9 @@
           },
           "A10_ssrf": {
             "server_side_request_forgery": {
-              "locations": ["introduction/views.py"],
+              "locations": [
+                "introduction/views.py"
+              ],
               "severity": "medium",
               "cwe": "CWE-918",
               "description": "SSRF via requests library"
@@ -106,18 +124,22 @@
     "test-flask": {
       "language": "python",
       "framework": "flask",
-      "source": "test_codebase/vulnerable-apps/test-flask",
+      "source": "vulnerable-apps/test-flask",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
             "sql_injection": {
-              "locations": ["app.py"],
+              "locations": [
+                "app.py"
+              ],
               "severity": "critical",
               "cwe": "CWE-89",
               "description": "SQL injection in login endpoint"
             },
             "template_injection": {
-              "locations": ["app.py"],
+              "locations": [
+                "app.py"
+              ],
               "severity": "high",
               "cwe": "CWE-1336",
               "description": "Server-side template injection (SSTI)"
@@ -125,7 +147,9 @@
           },
           "A02_broken_authentication": {
             "weak_passwords": {
-              "locations": ["app.py"],
+              "locations": [
+                "app.py"
+              ],
               "severity": "medium",
               "cwe": "CWE-521",
               "description": "Weak password requirements"
@@ -133,7 +157,9 @@
           },
           "A03_sensitive_data": {
             "information_disclosure": {
-              "locations": ["app.py"],
+              "locations": [
+                "app.py"
+              ],
               "severity": "medium",
               "cwe": "CWE-200",
               "description": "Sensitive information in error messages"
@@ -145,7 +171,7 @@
     "test-php": {
       "language": "php",
       "framework": "php",
-      "source": "test_codebase/vulnerable-apps/test-php",
+      "source": "vulnerable-apps/test-php",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
@@ -159,7 +185,9 @@
               "description": "SQL injection vulnerabilities"
             },
             "command_injection": {
-              "locations": ["vulnerabilities/exec/source/low.php"],
+              "locations": [
+                "vulnerabilities/exec/source/low.php"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "OS command injection"
@@ -167,13 +195,17 @@
           },
           "A03_cross_site_scripting": {
             "reflected_xss": {
-              "locations": ["vulnerabilities/xss_r/source/low.php"],
+              "locations": [
+                "vulnerabilities/xss_r/source/low.php"
+              ],
               "severity": "high",
               "cwe": "CWE-79",
               "description": "Reflected cross-site scripting"
             },
             "stored_xss": {
-              "locations": ["vulnerabilities/xss_s/source/low.php"],
+              "locations": [
+                "vulnerabilities/xss_s/source/low.php"
+              ],
               "severity": "high",
               "cwe": "CWE-79",
               "description": "Stored cross-site scripting"
@@ -181,7 +213,9 @@
           },
           "A05_security_misconfiguration": {
             "csrf": {
-              "locations": ["vulnerabilities/csrf/source/low.php"],
+              "locations": [
+                "vulnerabilities/csrf/source/low.php"
+              ],
               "severity": "medium",
               "cwe": "CWE-352",
               "description": "Cross-site request forgery"
@@ -189,7 +223,9 @@
           },
           "A08_software_integrity": {
             "file_upload": {
-              "locations": ["vulnerabilities/upload/source/low.php"],
+              "locations": [
+                "vulnerabilities/upload/source/low.php"
+              ],
               "severity": "critical",
               "cwe": "CWE-434",
               "description": "Unrestricted file upload"
@@ -201,7 +237,7 @@
     "test-java": {
       "language": "java",
       "framework": "spring-boot",
-      "source": "test_codebase/vulnerable-apps/test-java",
+      "source": "vulnerable-apps/test-java",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
@@ -269,7 +305,7 @@
     "test-go": {
       "language": "go",
       "framework": "go",
-      "source": "test_codebase/vulnerable-apps/test-go",
+      "source": "vulnerable-apps/test-go",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
@@ -283,7 +319,9 @@
               "description": "SQL injection in authentication and user retrieval"
             },
             "command_injection": {
-              "locations": ["internal/handlers/users.go"],
+              "locations": [
+                "internal/handlers/users.go"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "OS command injection via file handler"
@@ -302,7 +340,9 @@
           },
           "A03_cross_site_scripting": {
             "xss": {
-              "locations": ["internal/handlers/users.go"],
+              "locations": [
+                "internal/handlers/users.go"
+              ],
               "severity": "high",
               "cwe": "CWE-79",
               "description": "Cross-site scripting in search functionality"
@@ -314,23 +354,29 @@
     "test-go-advanced": {
       "language": "go",
       "framework": "go",
-      "source": "test_codebase/vulnerable-apps/test-go-advanced",
+      "source": "vulnerable-apps/test-go-advanced",
       "expected_vulnerabilities": {
         "language_specific": {
           "unsafe_usage": {
-            "locations": ["internal/unsafe/unsafe_operations.go"],
+            "locations": [
+              "internal/unsafe/unsafe_operations.go"
+            ],
             "severity": "high",
             "cwe": "CWE-119",
             "description": "Unsafe pointer operations and memory manipulation"
           },
           "race_conditions": {
-            "locations": ["internal/race/race_conditions.go"],
+            "locations": [
+              "internal/race/race_conditions.go"
+            ],
             "severity": "medium",
             "cwe": "CWE-362",
             "description": "Data race conditions in concurrent access"
           },
           "memory_leaks": {
-            "locations": ["internal/memory/memory_leaks.go"],
+            "locations": [
+              "internal/memory/memory_leaks.go"
+            ],
             "severity": "medium",
             "cwe": "CWE-401",
             "description": "Memory leaks through unmanaged goroutines"
@@ -341,18 +387,24 @@
     "test-rust": {
       "language": "rust",
       "framework": "rust",
-      "source": "test_codebase/vulnerable-apps/test-rust",
+      "source": "vulnerable-apps/test-rust",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
             "command_injection": {
-              "locations": ["src/main.rs", "src/web/server.rs"],
+              "locations": [
+                "src/main.rs",
+                "src/web/server.rs"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "Command injection through user input"
             },
             "sql_injection": {
-              "locations": ["src/examples/web_vulns.rs", "src/web/server.rs"],
+              "locations": [
+                "src/examples/web_vulns.rs",
+                "src/web/server.rs"
+              ],
               "severity": "critical",
               "cwe": "CWE-89",
               "description": "SQL injection in query building"
@@ -360,7 +412,10 @@
           },
           "A03_sensitive_data": {
             "hardcoded_secrets": {
-              "locations": ["src/main.rs", "src/examples/web_vulns.rs"],
+              "locations": [
+                "src/main.rs",
+                "src/examples/web_vulns.rs"
+              ],
               "severity": "critical",
               "cwe": "CWE-798",
               "description": "API keys, JWT secrets, private keys, AWS secrets, and GitHub tokens"
@@ -368,7 +423,9 @@
           },
           "A06_vulnerable_components": {
             "path_traversal": {
-              "locations": ["src/main.rs"],
+              "locations": [
+                "src/main.rs"
+              ],
               "severity": "high",
               "cwe": "CWE-22",
               "description": "Path traversal vulnerability"
@@ -376,7 +433,9 @@
           },
           "A08_software_integrity": {
             "insecure_deserialization": {
-              "locations": ["src/examples/web_vulns.rs"],
+              "locations": [
+                "src/examples/web_vulns.rs"
+              ],
               "severity": "high",
               "cwe": "CWE-502",
               "description": "Insecure deserialization"
@@ -385,19 +444,25 @@
         },
         "language_specific": {
           "buffer_overflow": {
-            "locations": ["src/main.rs"],
+            "locations": [
+              "src/main.rs"
+            ],
             "severity": "critical",
             "cwe": "CWE-120",
             "description": "Buffer overflow in unsafe block"
           },
           "use_after_free": {
-            "locations": ["src/main.rs"],
+            "locations": [
+              "src/main.rs"
+            ],
             "severity": "critical",
             "cwe": "CWE-416",
             "description": "Use after free vulnerability"
           },
           "memory_corruption": {
-            "locations": ["src/examples/web_vulns.rs"],
+            "locations": [
+              "src/examples/web_vulns.rs"
+            ],
             "severity": "high",
             "cwe": "CWE-119",
             "description": "Memory corruption in unsafe operations"
@@ -408,29 +473,37 @@
     "test-sql": {
       "language": "sql",
       "framework": "sql",
-      "source": "test_codebase/vulnerable-apps/test-sql",
+      "source": "vulnerable-apps/test-sql",
       "expected_vulnerabilities": {
         "security_issues": {
           "plaintext_passwords": {
-            "locations": ["schemas/vulnerable_schema.sql"],
+            "locations": [
+              "schemas/vulnerable_schema.sql"
+            ],
             "severity": "critical",
             "cwe": "CWE-256",
             "description": "Plain text password storage"
           },
           "pii_exposure": {
-            "locations": ["schemas/vulnerable_schema.sql"],
+            "locations": [
+              "schemas/vulnerable_schema.sql"
+            ],
             "severity": "high",
             "cwe": "CWE-359",
             "description": "PII stored without encryption"
           },
           "sql_injection": {
-            "locations": ["queries/injection_examples.sql"],
+            "locations": [
+              "queries/injection_examples.sql"
+            ],
             "severity": "critical",
             "cwe": "CWE-89",
             "description": "SQL injection patterns"
           },
           "information_disclosure": {
-            "locations": ["schemas/vulnerable_schema.sql"],
+            "locations": [
+              "schemas/vulnerable_schema.sql"
+            ],
             "severity": "medium",
             "cwe": "CWE-200",
             "description": "Debug tables exposing sensitive data"
@@ -438,17 +511,23 @@
         },
         "performance_issues": {
           "missing_indexes": {
-            "locations": ["queries/performance_issues.sql"],
+            "locations": [
+              "queries/performance_issues.sql"
+            ],
             "severity": "medium",
             "description": "Queries without proper indexes"
           },
           "select_star": {
-            "locations": ["queries/performance_issues.sql"],
+            "locations": [
+              "queries/performance_issues.sql"
+            ],
             "severity": "low",
             "description": "SELECT * usage"
           },
           "n_plus_one": {
-            "locations": ["queries/performance_issues.sql"],
+            "locations": [
+              "queries/performance_issues.sql"
+            ],
             "severity": "medium",
             "description": "N+1 query problems"
           }
@@ -458,18 +537,22 @@
     "test-csharp": {
       "language": "csharp",
       "framework": "asp.net-core",
-      "source": "test_codebase/vulnerable-apps/test-csharp",
+      "source": "vulnerable-apps/test-csharp",
       "expected_vulnerabilities": {
         "owasp_top_10": {
           "A01_injection": {
             "sql_injection": {
-              "locations": ["Controllers/AuthController.cs"],
+              "locations": [
+                "Controllers/AuthController.cs"
+              ],
               "severity": "critical",
               "cwe": "CWE-89",
               "description": "SQL injection in login and profile endpoints"
             },
             "command_injection": {
-              "locations": ["Controllers/UserController.cs"],
+              "locations": [
+                "Controllers/UserController.cs"
+              ],
               "severity": "critical",
               "cwe": "CWE-78",
               "description": "OS command injection via executeCommand endpoint"
@@ -491,7 +574,9 @@
           },
           "A03_cross_site_scripting": {
             "xss": {
-              "locations": ["Controllers/UserController.cs"],
+              "locations": [
+                "Controllers/UserController.cs"
+              ],
               "severity": "high",
               "cwe": "CWE-79",
               "description": "Cross-site scripting in search endpoint"
@@ -499,13 +584,17 @@
           },
           "A08_software_integrity": {
             "insecure_deserialization": {
-              "locations": ["Controllers/UserController.cs"],
+              "locations": [
+                "Controllers/UserController.cs"
+              ],
               "severity": "high",
               "cwe": "CWE-502",
               "description": "Insecure binary deserialization"
             },
             "path_traversal": {
-              "locations": ["Controllers/UserController.cs"],
+              "locations": [
+                "Controllers/UserController.cs"
+              ],
               "severity": "high",
               "cwe": "CWE-22",
               "description": "Path traversal in file reading endpoint"
@@ -517,31 +606,31 @@
     "clean-python": {
       "language": "python",
       "framework": "python",
-      "source": "test_codebase/clean-apps/clean-python",
+      "source": "clean-apps/clean-python",
       "expected_vulnerabilities": {}
     },
     "clean-javascript": {
       "language": "javascript",
       "framework": "node.js",
-      "source": "test_codebase/clean-apps/clean-javascript",
+      "source": "clean-apps/clean-javascript",
       "expected_vulnerabilities": {}
     },
     "clean-java": {
       "language": "java",
       "framework": "java",
-      "source": "test_codebase/clean-apps/clean-java",
+      "source": "clean-apps/clean-java",
       "expected_vulnerabilities": {}
     },
     "clean-go": {
       "language": "go",
       "framework": "go",
-      "source": "test_codebase/clean-apps/clean-go",
+      "source": "clean-apps/clean-go",
       "expected_vulnerabilities": {}
     },
     "clean-csharp": {
       "language": "csharp",
       "framework": "csharp",
-      "source": "test_codebase/clean-apps/clean-csharp",
+      "source": "clean-apps/clean-csharp",
       "expected_vulnerabilities": {}
     }
   },
@@ -558,7 +647,14 @@
         "path_traversal",
         "template_injection"
       ],
-      "languages": ["javascript", "python", "java", "go", "rust", "csharp"]
+      "languages": [
+        "javascript",
+        "python",
+        "java",
+        "go",
+        "rust",
+        "csharp"
+      ]
     },
     "detect_secrets_analyzer": {
       "should_detect": [
@@ -587,7 +683,9 @@
         "plaintext_passwords",
         "pii_exposure"
       ],
-      "languages": ["sql"]
+      "languages": [
+        "sql"
+      ]
     }
   }
 }
