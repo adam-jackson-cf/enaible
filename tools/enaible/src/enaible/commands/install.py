@@ -623,7 +623,9 @@ def _render_managed_prompts(
         except ValueError:
             relative = output_path
 
-        if enforce_dependencies and not _prompt_dependencies_ready(result.prompt_id, dry_run):
+        if enforce_dependencies and not _prompt_dependencies_ready(
+            result.prompt_id, dry_run
+        ):
             summary.record_skip(relative)
             continue
 
@@ -701,10 +703,10 @@ def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
 def _confirm_install_dependencies() -> bool:
     if not sys.stdin.isatty():
         typer.secho(
-            "Non-interactive session detected; cannot prompt to install missing dependencies.",
-            fg=typer.colors.YELLOW,
+            "Non-interactive session: auto-attempting dependency install.",
+            fg=typer.colors.CYAN,
         )
-        return False
+        return True
     return typer.confirm(
         "Install missing dependencies now? (Administrative privileges may be required)",
         default=False,

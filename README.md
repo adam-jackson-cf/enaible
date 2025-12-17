@@ -112,12 +112,11 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ### Project & Feature
 
-| Prompt              | Example                                   | Use Case                                          |
-| ------------------- | ----------------------------------------- | ------------------------------------------------- |
-| setup-project       | `/setup-project api --from-todos spec.md` | Scaffold project with Better-T-Stack CLI          |
-| create-rule         | `/create-rule typescript`                 | Add single rule based on topic and best practices |
-| get-codebase-primer | `/get-codebase-primer`                    | Generate project overview with architecture       |
-| get-feature-primer  | `/get-feature-primer "auth flow"`         | Explore codebase for feature-specific context     |
+| Prompt              | Example                           | Use Case                                          |
+| ------------------- | --------------------------------- | ------------------------------------------------- |
+| create-rule         | `/create-rule typescript`         | Add single rule based on topic and best practices |
+| get-codebase-primer | `/get-codebase-primer`            | Generate project overview with architecture       |
+| get-feature-primer  | `/get-feature-primer "auth flow"` | Explore codebase for feature-specific context     |
 
 ### Utility
 
