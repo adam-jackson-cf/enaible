@@ -155,3 +155,162 @@ def test_is_generated_or_vendor_code_missing_file(
 ):
     det = TechStackDetector.from_config(tech_stacks_config_path)
     assert det._is_generated_or_vendor_code(str(tmp_path / "nope.js")) is False  # type: ignore[attr-defined]
+
+
+def test_get_simple_exclusions_stack_with_no_overrides(tmp_path: Path):
+    """Test line 137: continue when detected stack has no overrides entry."""
+    config = tmp_path / "config.json"
+    config.write_text(
+        """{
+        "schema_version": 1,
+        "stacks": {
+            "test_stack": {
+                "name": "Test Stack",
+                "primary_languages": ["python"],
+                "exclude_patterns": [],
+                "dependency_dirs": [],
+                "config_files": ["marker.txt"],
+                "source_patterns": [],
+                "build_artifacts": []
+            }
+        },
+        "exclusions": {
+            "universal": {
+                "directories": ["node_modules"],
+                "files": [".env"],
+                "extensions": [".log"]
+            },
+            "stacks": {}
+        }
+    }""",
+        encoding="utf-8",
+    )
+    (tmp_path / "marker.txt").write_text("marker", encoding="utf-8")
+    det = TechStackDetector.from_config(config)
+    stacks = det.detect_tech_stack(str(tmp_path))
+    assert "test_stack" in stacks
+    excl = det.get_simple_exclusions(str(tmp_path))
+    # Should still have universal exclusions even with no stack overrides
+    assert "node_modules" in excl["directories"]
+
+
+def test_load_exclusion_rules_non_list_value(tmp_path: Path):
+    """Test line 168: return set() when value is not a list."""
+    config = tmp_path / "config.json"
+    config.write_text(
+        """{
+        "schema_version": 1,
+        "stacks": {
+            "test_stack": {
+                "name": "Test",
+                "primary_languages": [],
+                "exclude_patterns": [],
+                "dependency_dirs": [],
+                "config_files": ["marker.txt"],
+                "source_patterns": [],
+                "build_artifacts": []
+            }
+        },
+        "exclusions": {
+            "universal": {
+                "directories": "not_a_list",
+                "files": [],
+                "extensions": []
+            },
+            "stacks": {}
+        }
+    }""",
+        encoding="utf-8",
+    )
+    (tmp_path / "marker.txt").write_text("x", encoding="utf-8")
+    det = TechStackDetector.from_config(config)
+    excl = det.get_simple_exclusions(str(tmp_path))
+    # Non-list directories should result in empty set
+    assert excl["directories"] == set()
+
+
+def test_load_exclusion_rules_non_dict_stack_overrides(tmp_path: Path):
+    """Test line 182: continue when stack overrides is not a dict."""
+    config = tmp_path / "config.json"
+    config.write_text(
+        """{
+        "schema_version": 1,
+        "stacks": {
+            "test_stack": {
+                "name": "Test",
+                "primary_languages": [],
+                "exclude_patterns": [],
+                "dependency_dirs": [],
+                "config_files": ["marker.txt"],
+                "source_patterns": [],
+                "build_artifacts": []
+            }
+        },
+        "exclusions": {
+            "universal": {
+                "directories": ["node_modules"],
+                "files": [],
+                "extensions": []
+            },
+            "stacks": {
+                "test_stack": "not_a_dict"
+            }
+        }
+    }""",
+        encoding="utf-8",
+    )
+    (tmp_path / "marker.txt").write_text("x", encoding="utf-8")
+    det = TechStackDetector.from_config(config)
+    excl = det.get_simple_exclusions(str(tmp_path))
+    # Should still have universal exclusions
+    assert "node_modules" in excl["directories"]
+
+
+def test_should_analyze_file_multi_segment_directory_exclusion(
+    tmp_path: Path, tech_stacks_config_path: Path
+):
+    """Test lines 230-231, 234: multi-segment directory exclusion patterns."""
+    config = tmp_path / "config.json"
+    config.write_text(
+        """{
+        "schema_version": 1,
+        "stacks": {
+            "test_stack": {
+                "name": "Test",
+                "primary_languages": [],
+                "exclude_patterns": [],
+                "dependency_dirs": [],
+                "config_files": ["marker.txt"],
+                "source_patterns": [],
+                "build_artifacts": []
+            }
+        },
+        "exclusions": {
+            "universal": {
+                "directories": ["ios/Pods", "android/build"],
+                "files": [],
+                "extensions": []
+            },
+            "stacks": {}
+        }
+    }""",
+        encoding="utf-8",
+    )
+    (tmp_path / "marker.txt").write_text("x", encoding="utf-8")
+    # Create multi-segment excluded directory
+    ios_pods = tmp_path / "ios" / "Pods"
+    ios_pods.mkdir(parents=True)
+    excluded_file = ios_pods / "SomePod.swift"
+    excluded_file.write_text("// pod file", encoding="utf-8")
+
+    # Create a regular source file
+    src = tmp_path / "src"
+    src.mkdir()
+    allowed_file = src / "app.swift"
+    allowed_file.write_text("// app code", encoding="utf-8")
+
+    det = TechStackDetector.from_config(config)
+    # File in ios/Pods should be excluded (multi-segment match)
+    assert det.should_analyze_file(str(excluded_file), str(tmp_path)) is False
+    # File in src should be allowed
+    assert det.should_analyze_file(str(allowed_file), str(tmp_path)) is True

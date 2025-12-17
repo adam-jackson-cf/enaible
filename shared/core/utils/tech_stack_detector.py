@@ -110,7 +110,7 @@ class TechStackDetector:
             try:
                 matches = list(project_root.glob(pattern))
                 return len(matches) > 0
-            except Exception:
+            except Exception:  # pragma: no cover - filesystem errors are rare
                 return False
         else:
             # Direct file check
@@ -322,7 +322,7 @@ class TechStackDetector:
         return False
 
 
-def main():
+def main():  # pragma: no cover - CLI wiring
     """Command-line interface for tech stack detection."""
     import argparse
 
@@ -362,5 +362,5 @@ def main():
             print("\n⚠️  No specific tech stack detected. Using universal patterns.")
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

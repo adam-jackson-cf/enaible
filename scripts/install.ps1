@@ -91,6 +91,8 @@ function Update-Clone {
     }
     else {
         Write-Log "Cloning $RepoUrl to $CloneDir"
+        # Enable long paths to handle deeply nested test fixtures on Windows
+        Invoke-CommandSafe git @('config', '--global', 'core.longpaths', 'true')
         Invoke-CommandSafe git @('clone', '--branch', $Ref, $RepoUrl, $CloneDir)
     }
 }
