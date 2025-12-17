@@ -19,7 +19,6 @@ from .base import (
 
 # Re-export from utils for convenience
 from .utils import (
-    ArchitecturalPatternDetector,
     CommandExecutor,
     DependencyChecker,
     PathUtils,
@@ -50,7 +49,6 @@ __all__ = [
     "validate_target_directory",
     "validate_git_repository",
     "ValidationError",
-    "ArchitecturalPatternDetector",
     "PlatformDetector",
     "CommandExecutor",
     "PathUtils",

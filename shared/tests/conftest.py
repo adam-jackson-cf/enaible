@@ -13,11 +13,6 @@ if str(_shared_dir) not in sys.path:
 
 
 @pytest.fixture(scope="session")
-def patterns_config_dir() -> Path:
-    return Path(__file__).resolve().parents[1] / "config" / "patterns"
-
-
-@pytest.fixture(scope="session")
 def tech_stacks_config_path() -> Path:
     return (
         Path(__file__).resolve().parents[1]

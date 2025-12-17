@@ -1,12 +1,9 @@
 ## **CRITICAL** Must follow Design Principles
 
-- **ALWAYS** establish a working base project before beginging bespoke configuration and feature development, this means confirmed successful compile and run of the dev server with quality gates established - this is used as the baseline first commit.
-- **ALWAYS** commit to git after the logical conclusion of task steps, use a frequent, atomic commit pattern to establish safe check points of known good implementation that can be reverted to if need.
-- **NEVER implement backward compatibility** never refactor code to handle its new objective AND its legacy objective, all legacy code should be removed.
+- **ALWAYS** use an atomic commit pattern to establish safe reversion points.
+- **NEVER implement backward compatibility** never refactor code to handle its new objective AND its legacy objective.
 - **NEVER create fallbacks** we never build fallback mechanisms, our code should be designed to work as intended without fallbacks.
-- **ALWAY KISS - Keep it simple stupid** only action what the user has requested and no more, never over engineer, if you dont have approval for expanding the scope of a task you must ask the user first.
 - **ALWAYS minimise complexity** keep code Cyclomatic Complexity under 10
-- **ALWAYS prefer established libraries over bespoke code** only produce bespoke code if no established library
 - **ALWAYS use appropriate symbol naming when refactoring code**: When refactoring do not add prefixes/suffixes like "Refactored", "Updated", "New", or "V2" to symbol names to indicate changes.
 - **ALWAYS Align UI style changes to shadcn/Tailwind/Radix patterns and Lucide assets**: For your UI stack implementation avoid bespoke classes and direct style hardcoding to objects.
 

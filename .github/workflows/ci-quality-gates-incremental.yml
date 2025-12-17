@@ -35,9 +35,7 @@ jobs:
         run: |
           pytest -q shared/tests/unit -n auto --dist=loadfile --timeout=60 \
             --cov=core.base.analyzer_registry \
-            --cov=core.base.validation_rules \
             --cov=core.config.loader \
-            --cov=core.utils.architectural_pattern_detector \
             --cov=core.utils.tech_stack_detector \
             --cov-report=term-missing \
             --cov-fail-under=85

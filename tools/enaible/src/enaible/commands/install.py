@@ -650,7 +650,7 @@ def _render_managed_prompts(
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(result.content, encoding="utf-8")
-    summary.record("render", output_path)
+        summary.record("render", output_path)
 
 
 def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:

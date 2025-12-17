@@ -9,7 +9,6 @@ from .analysis_environment import (
     validate_git_repository,
     validate_target_directory,
 )
-from .architectural_pattern_detector import ArchitecturalPatternDetector
 from .cross_platform import (
     CommandExecutor,
     DependencyChecker,
@@ -27,7 +26,6 @@ __all__ = [
     "ValidationError",
     "require_valid_path",
     "require_git_repo",
-    "ArchitecturalPatternDetector",
     "PlatformDetector",
     "CommandExecutor",
     "PathUtils",

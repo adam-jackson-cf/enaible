@@ -34,14 +34,6 @@ from pathlib import Path
 from typing import Any
 
 from .module_base import CIAnalysisModule
-from .validation_rules import (
-    FieldTypesRule,
-    PathAndLineRules,
-    PlaceholderRule,
-    RequiredFieldsRule,
-    SeverityRule,
-    ValidationRule,
-)
 from .vendor_detector import VendorDetector
 
 
@@ -714,84 +706,3 @@ def create_standard_finding(
         "recommendation": recommendation,
         "metadata": metadata or {},
     }
-
-
-def validate_finding(finding: dict[str, Any]) -> bool:
-    """
-    Validate finding has all required fields with proper values.
-
-    This function implements the strict validation that prevents placeholder
-    findings and ensures all analyzer implementations return meaningful results.
-
-    Args:
-        finding: Finding dictionary to validate
-
-    Returns
-    -------
-        True if valid
-
-    Raises
-    ------
-        ValueError: If finding is invalid with specific error message
-
-    Example:
-        try:
-            validate_finding(my_finding)
-        except ValueError as e:
-            logger.error(f"Invalid finding: {e}")
-    """
-    if not isinstance(finding, dict):
-        raise ValueError(f"Finding must be a dictionary, got {type(finding)}")
-
-    rules: list[ValidationRule] = [
-        RequiredFieldsRule(
-            [
-                "title",
-                "description",
-                "severity",
-                "file_path",
-                "line_number",
-                "recommendation",
-            ]
-        ),
-        FieldTypesRule(),
-        SeverityRule(),
-        PlaceholderRule(),
-        PathAndLineRules(),
-    ]
-
-    for rule in rules:
-        rule.validate(finding)
-
-    return True
-
-
-def batch_validate_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """
-    Validate a list of findings and return only valid ones.
-
-    Args:
-        findings: List of finding dictionaries to validate
-
-    Returns
-    -------
-        List of valid findings (invalid ones are filtered out with logging)
-    """
-    import logging
-
-    logger = logging.getLogger(__name__)
-    valid_findings = []
-
-    for i, finding in enumerate(findings):
-        try:
-            validate_finding(finding)
-            valid_findings.append(finding)
-        except ValueError as e:
-            logger.warning(f"Skipping invalid finding {i+1}: {e}")
-
-    if len(valid_findings) != len(findings):
-        logger.info(
-            f"Filtered {len(findings) - len(valid_findings)} invalid findings out of {len(findings)} total"
-        )
-
-    return valid_findings

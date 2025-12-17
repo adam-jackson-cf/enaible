@@ -39,45 +39,6 @@ def load_json_config(path: Path, required_top_keys: Iterable[str]) -> dict[str, 
     return data
 
 
-def load_architectural_pattern_sets(config_dir: Path) -> dict[str, Any]:
-    """Load architectural patterns, antipatterns and language features from config directory.
-
-    Expected files:
-      - architectural_patterns.json
-      - antipatterns.json
-      - language_features.json
-    """
-    required_item_keys = {"indicators", "severity", "description"}
-    required_feature_keys = {"patterns", "languages", "description"}
-
-    arch = load_json_config(
-        config_dir / "architectural_patterns.json", ["patterns"]
-    )  # type: ignore[assignment]
-    anti = load_json_config(config_dir / "antipatterns.json", ["patterns"])  # type: ignore[assignment]
-    lang = load_json_config(
-        config_dir / "language_features.json", ["features"]
-    )  # type: ignore[assignment]
-
-    # Validate item shapes (strict, no fallbacks)
-    def _validate_map(map_obj: dict[str, Any], required: set, label: str) -> None:
-        for name, spec in map_obj.items():
-            if not isinstance(spec, dict):
-                raise ConfigError(f"{label} '{name}' must be an object")
-            missing = required - set(spec.keys())
-            if missing:
-                raise ConfigError(f"{label} '{name}' missing keys: {sorted(missing)}")
-
-    _validate_map(arch["patterns"], required_item_keys, "architectural pattern")
-    _validate_map(anti["patterns"], required_item_keys, "antipattern")
-    _validate_map(lang["features"], required_feature_keys, "language feature")
-
-    return {
-        "architectural_patterns": arch["patterns"],
-        "antipatterns": anti["patterns"],
-        "language_features": lang["features"],
-    }
-
-
 def load_tech_stacks(config_path: Path) -> dict[str, Any]:
     """Load tech stack definitions from a single JSON file.
 

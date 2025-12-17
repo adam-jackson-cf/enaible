@@ -2,7 +2,6 @@
 
 This directory contains declarative pattern definitions consumed by multiple analyzers:
 
-- `architectural_patterns.json`, `antipatterns.json`, `language_features.json` – drive the architectural pattern detector.
 - `error/` – root cause analyzer inputs:
   - `patterns.json` – canonical error categories used across languages.
   - `language_patterns.json` – language/extension specific supplements layered on top of the general set.

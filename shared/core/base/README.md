@@ -138,33 +138,6 @@ def create_standard_finding(
     }
 ```
 
-### **Finding Validator**
-
-```python
-def validate_finding(finding: Dict[str, Any]) -> bool:
-    """
-    Validate finding has all required fields before returning.
-
-    Args:
-        finding: Finding dictionary to validate
-
-    Returns:
-        True if valid, raises ValueError if invalid
-    """
-    required_fields = ["title", "description", "severity", "file_path", "line_number", "recommendation"]
-
-    for field in required_fields:
-        if field not in finding:
-            raise ValueError(f"Missing required field: '{field}'. Available fields: {list(finding.keys())}")
-
-    # Validate severity levels
-    valid_severities = {"critical", "high", "medium", "low", "info"}
-    if finding["severity"] not in valid_severities:
-        raise ValueError(f"Invalid severity '{finding['severity']}'. Must be one of: {valid_severities}")
-
-    return True
-```
-
 ## 🏗️ **Implementation Patterns**
 
 ### **Basic Analyzer Template**
