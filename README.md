@@ -7,27 +7,14 @@
   <br/>
   <br/>
 
-  <!-- Status Badges -->
-
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?style=flat-square)
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg?style=flat-square)
-![Tests](https://img.shields.io/badge/tests-20_analyzers-success?style=flat-square)
-![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen?style=flat-square)
-
   <!-- Platform & Language Support -->
 
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
-![Python](https://img.shields.io/badge/python-3.12-3776ab?style=flat-square&logo=python&logoColor=white)
-![TypeScript](https://img.shields.io/badge/typescript-supported-3178c6?style=flat-square&logo=typescript&logoColor=white)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
   <!-- License & Community -->
 
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
-![Claude Code](https://img.shields.io/badge/Claude_Code-25_Commands-8A2BE2?style=flat-square)
-![Codex Prompts](https://img.shields.io/badge/Codex-21_Prompts-FF69B4?style=flat-square)
-![Copilot Prompts](https://img.shields.io/badge/Copilot-8_Prompts-0080FF?style=flat-square)
-![Claude Agents](<https://img.shields.io/badge/Agents_(Claude)-32_Specialists-ff6b35?style=flat-square>)
 
 </div>
 
@@ -65,13 +52,7 @@ The principles for this project are designed around the realities of coding with
 - `uv` 0.4 or newer
 - `Node.js` 18+ or newer (needed for JSCPD dupe analysis support across Python, Go, Rust, C#, etc.)
 
-## Further dependencies required per workflow process you wish to use
-
-- [Semgrep](https://semgrep.dev/docs/getting-started/) — required for `security:semgrep` and `performance:semgrep`. Install with `pip install semgrep` so the `semgrep` CLI is on your PATH.
-- [detect-secrets](https://github.com/Yelp/detect-secrets) — used by `security:detect_secrets` to scan for hardcoded credentials. Install with `pip install detect-secrets`.
-- [Lizard](https://github.com/terryyin/lizard) — powers the `quality:lizard` complexity analyzer. Install with `pip install lizard`.
-- [JSCPD](https://github.com/kucherenko/jscpd) — duplicate-code detection for `quality:jscpd`. Requires Node.js; install with `npm install -g jscpd` or run via `npx jscpd`.
-- [ESLint](https://eslint.org/) plus the plugins `@typescript-eslint/parser`, `eslint-plugin-react`, `eslint-plugin-import`, and `eslint-plugin-vue` — referenced by `performance:frontend`. Install globally via npm (`npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue`).
+Further dependencies exist per workflow, which can be seen in the analysis tables below
 
 ---
 
