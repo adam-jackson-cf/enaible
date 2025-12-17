@@ -17,7 +17,9 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter, defaultdict
 from collections.abc import Iterable
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -65,8 +67,176 @@ DEFAULT_CONFIG: dict[str, Any] = {
 }
 
 
+def _create_argument_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Extract context from Codex sessions (JSONL events)"
+    )
+    parser.add_argument(
+        "--days", type=int, default=2, help="Number of days to search back"
+    )
+    parser.add_argument("--uuid", help="Filter to specific session UUID")
+    parser.add_argument(
+        "--search-term",
+        help="Search for sessions containing semantically matching content",
+    )
+    parser.add_argument(
+        "--semantic-variations",
+        help="JSON string containing semantic variations dictionary",
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["json", "text"],
+        default="json",
+        help="Output format",
+    )
+    parser.add_argument(
+        "--project-root",
+        help="Absolute path to the project root. Defaults to current working directory.",
+    )
+    parser.add_argument(
+        "--include-all-projects",
+        action="store_true",
+        help="Include sessions from all projects, ignoring project root filtering.",
+    )
+    return parser
+
+
+@dataclass(slots=True)
+class SessionRecord:
+    session_id: str
+    cwd: str | None
+    operations: list[dict[str, Any]]
+
+
 def load_config() -> dict[str, Any]:
     return load_config_with_defaults(DEFAULT_CONFIG)
+
+
+def _collect_session_files(days: int, uuid_filter: str | None) -> list[Path]:
+    root = get_codex_sessions_root()
+    files = list(iter_recent_jsonl_files(root, days))
+    if uuid_filter:
+        files = [p for p in files if uuid_filter in p.name]
+    return sorted(files)
+
+
+def _load_session_records(
+    files: list[Path],
+    *,
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+    uuid_filter: str | None,
+) -> list[SessionRecord]:
+    records: list[SessionRecord] = []
+    for fpath in files:
+        sid, session_cwd, ops = extract_jsonl_operations(
+            fpath,
+            config=config,
+            search_term=search_term,
+            semantic_variations=semantic_variations,
+        )
+        if uuid_filter and uuid_filter not in (sid or ""):
+            continue
+        records.append(
+            SessionRecord(
+                session_id=sid,
+                cwd=session_cwd,
+                operations=ops,
+            )
+        )
+    return records
+
+
+def _filter_session_records(
+    records: list[SessionRecord],
+    project_root: Path,
+    include_all_projects: bool,
+) -> list[SessionRecord]:
+    if include_all_projects:
+        return records
+    return [
+        record
+        for record in records
+        if session_matches_project(record.cwd, project_root)
+    ]
+
+
+def _flatten_session_data(
+    records: list[SessionRecord],
+) -> tuple[list[str], list[dict[str, Any]]]:
+    session_ids: list[str] = []
+    operations: list[dict[str, Any]] = []
+    for record in records:
+        session_ids.append(record.session_id)
+        operations.extend(record.operations)
+    return session_ids, operations
+
+
+def _group_prompts_by_session(
+    prompts: list[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for prompt in prompts:
+        sid = prompt.get("session_id")
+        if sid:
+            grouped[sid].append(prompt)
+    return grouped
+
+
+def _build_session_summaries(
+    records: list[SessionRecord],
+    prompts: list[dict[str, Any]],
+    config: dict[str, Any],
+    project_root: Path,
+    include_all_projects: bool,
+) -> list[dict[str, Any]]:
+    grouped_prompts = _group_prompts_by_session(prompts)
+    ordered_ids: list[str] = []
+    session_ops: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    session_cwds: dict[str, str | None] = {}
+    for record in records:
+        if record.session_id not in ordered_ids:
+            ordered_ids.append(record.session_id)
+        session_ops[record.session_id].extend(record.operations)
+        session_cwds.setdefault(record.session_id, record.cwd)
+
+    summaries: list[dict[str, Any]] = []
+
+    for sid in ordered_ids:
+        cwd = session_cwds.get(sid)
+
+        if not include_all_projects and not session_matches_project(cwd, project_root):
+            continue
+
+        operations = session_ops.get(sid, [])
+        op_counts = Counter(op.get("operation") for op in operations)
+        timestamps = [op.get("timestamp") for op in operations if op.get("timestamp")]
+        date_range = {
+            "earliest": min(timestamps) if timestamps else None,
+            "latest": max(timestamps) if timestamps else None,
+        }
+        user_prompts = [
+            {
+                "timestamp": prompt.get("timestamp"),
+                "text": redact_if_available(prompt.get("text"), config),
+            }
+            for prompt in grouped_prompts.get(sid, [])
+        ]
+        summaries.append(
+            {
+                "id": sid,
+                "cwd": cwd,
+                "date_range": date_range,
+                "counts": {
+                    "user_messages": len(user_prompts),
+                    "operations": len(operations),
+                    **dict(op_counts),
+                },
+                "user_messages": user_prompts,
+            }
+        )
+    return summaries
 
 
 def get_codex_sessions_root() -> Path:
@@ -375,39 +545,8 @@ def extract_jsonl_operations(
 
 
 def capture_codex_context() -> None:
-    parser = argparse.ArgumentParser(
-        description="Extract context from Codex sessions (JSONL events)"
-    )
-    parser.add_argument(
-        "--days", type=int, default=2, help="Number of days to search back"
-    )
-    parser.add_argument("--uuid", help="Filter to specific session UUID")
-    parser.add_argument(
-        "--search-term",
-        help="Search for sessions containing semantically matching content",
-    )
-    parser.add_argument(
-        "--semantic-variations",
-        help="JSON string containing semantic variations dictionary",
-    )
-    parser.add_argument(
-        "--output-format",
-        choices=["json", "text"],
-        default="json",
-        help="Output format",
-    )
-    parser.add_argument(
-        "--project-root",
-        help="Absolute path to the project root. Defaults to current working directory.",
-    )
-    parser.add_argument(
-        "--include-all-projects",
-        action="store_true",
-        help="Include sessions from all projects, ignoring project root filtering.",
-    )
-    args = parser.parse_args()
+    args = _create_argument_parser().parse_args()
 
-    # Parse semantic variations if provided
     try:
         semantic_variations = parse_semantic_variations(args.semantic_variations)
     except ValueError as exc:
@@ -416,93 +555,34 @@ def capture_codex_context() -> None:
 
     try:
         config = load_config()
-        root = get_codex_sessions_root()
-        files = list(iter_recent_jsonl_files(root, args.days))
-
         try:
             project_root = resolve_project_root(args.project_root)
         except ValueError as exc:
             print(str(exc), file=sys.stderr)
             sys.exit(1)
 
-        if args.uuid:
-            files = [p for p in files if args.uuid in p.name]
+        files = _collect_session_files(args.days, args.uuid)
+        records = _load_session_records(
+            files,
+            config=config,
+            search_term=args.search_term,
+            semantic_variations=semantic_variations,
+            uuid_filter=args.uuid,
+        )
+        filtered_records = _filter_session_records(
+            records, project_root, args.include_all_projects
+        )
+        session_ids, all_ops = _flatten_session_data(filtered_records)
 
-        all_ops: list[dict[str, Any]] = []
-        session_ids: list[str] = []
-        for fpath in sorted(files):
-            sid, session_cwd, ops = extract_jsonl_operations(
-                fpath,
-                config=config,
-                search_term=args.search_term,
-                semantic_variations=semantic_variations,
-            )
-            if args.uuid and args.uuid not in (sid or ""):
-                continue
-            if not args.include_all_projects and not session_matches_project(
-                session_cwd, project_root
-            ):
-                continue
-            session_ids.append(sid)
-            all_ops.extend(ops)
-
-        # Build minimal result for backward compatibility
         base = build_result_payload(session_ids, all_ops, args.uuid, args.search_term)
-
-        # Include user prompts per session by default (ways-of-working focus)
         prompts = _iter_user_prompts_recent(get_codex_history_path(), args.days)
-        # Map session cwd by parsing operations once
-        sid_to_cwd: dict[str, str | None] = {}
-        for op in all_ops:
-            if op.get("operation") == "session_meta":
-                sid_to_cwd.setdefault(op.get("session_id"), op.get("cwd"))
-
-        # Filter prompts to project (unless include-all-projects)
-        sessions_out: list[dict[str, Any]] = []
-        seen: set[str] = set()
-        from collections import Counter
-
-        for sid in session_ids:
-            if sid in seen:
-                continue
-            seen.add(sid)
-            cwd = sid_to_cwd.get(sid)
-            if not args.include_all_projects and not session_matches_project(
-                cwd, resolve_project_root(args.project_root)
-            ):
-                continue
-            ops_for_sid = [o for o in all_ops if o.get("session_id") == sid]
-            c = Counter(o.get("operation") for o in ops_for_sid)
-            # attach user messages
-            msgs = [
-                {
-                    "timestamp": p.get("timestamp"),
-                    "text": redact_if_available(p.get("text"), config),
-                }
-                for p in prompts
-                if p.get("session_id") == sid
-            ]
-            ts_values = [t for t in [o.get("timestamp") for o in ops_for_sid] if t]
-            sdr = {
-                "earliest": min(ts_values) if ts_values else None,
-                "latest": max(ts_values) if ts_values else None,
-            }
-            sessions_out.append(
-                {
-                    "id": sid,
-                    "cwd": cwd,
-                    "date_range": sdr,
-                    "counts": {
-                        "user_messages": len(msgs),
-                        "operations": len(ops_for_sid),
-                        **dict(c),
-                    },
-                    "user_messages": msgs,
-                }
-            )
-
-        # Merge enriched sessions into the result (JSON mode consumers can use it)
-        base["sessions"] = sessions_out
+        base["sessions"] = _build_session_summaries(
+            filtered_records,
+            prompts,
+            config,
+            project_root,
+            args.include_all_projects,
+        )
         emit_result(base, args.output_format)
 
     except Exception as e:

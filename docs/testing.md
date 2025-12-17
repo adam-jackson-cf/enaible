@@ -15,6 +15,15 @@ PYTHONPATH=shared pytest shared/tests/unit -v
 
 These suites cover CLI command behaviors, analyzer registry logic, and lower-level utilities.
 
+### Context Utilities
+
+Codex context capture helpers include dedicated tests and lint checks. Run the focused suite alongside the general unit tests:
+
+```bash
+PYTHONPATH=shared pytest shared/tests/unit -k context_bundle_capture_codex -v
+ruff check shared/context
+```
+
 ## Integration Tests
 
 Location: `shared/tests/integration/`

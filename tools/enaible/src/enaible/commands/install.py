@@ -141,6 +141,19 @@ class InstallSummary:
         self.skipped.append(path.as_posix())
 
 
+@dataclass(slots=True)
+class InstallSettings:
+    repo_root: Path
+    install_cli: bool
+    cli_source: Path
+    sync_shared: bool
+    backup: bool
+    destination_root: Path
+    system: str
+    mode: InstallMode
+    dry_run: bool
+
+
 def _setup_installation_context(
     context, system: str, target: Path, scope: str
 ) -> tuple[SystemRenderContext, Path, Path]:
@@ -154,29 +167,22 @@ def _setup_installation_context(
 
 
 def _prepare_installation_environment(
-    context,
-    install_cli: bool,
-    cli_source: Path,
-    sync_shared: bool,
-    backup: bool,
-    destination_root: Path,
-    system: str,
-    mode: InstallMode,
-    dry_run: bool,
-    summary: InstallSummary,
+    settings: InstallSettings, summary: InstallSummary
 ) -> None:
     """Prepare installation environment: CLI, shared workspace, backups."""
-    if install_cli:
-        _install_cli(context.repo_root, cli_source, dry_run, summary)
+    if settings.install_cli:
+        _install_cli(settings.repo_root, settings.cli_source, settings.dry_run, summary)
 
-    if sync_shared:
-        _sync_shared_workspace(context.repo_root, dry_run, summary)
+    if settings.sync_shared:
+        _sync_shared_workspace(settings.repo_root, settings.dry_run, summary)
 
-    if backup:
-        _backup_destination_folder(destination_root, dry_run, summary)
+    if settings.backup:
+        _backup_destination_folder(settings.destination_root, settings.dry_run, summary)
 
-    if mode is InstallMode.FRESH:
-        _clear_destination_for_fresh_install(system, destination_root, dry_run, summary)
+    if settings.mode is InstallMode.FRESH:
+        _clear_destination_for_fresh_install(
+            settings.system, settings.destination_root, settings.dry_run, summary
+        )
 
 
 def _should_skip_file(
@@ -330,18 +336,18 @@ def install(
         context, system, target, scope
     )
 
-    _prepare_installation_environment(
-        context,
-        install_cli,
-        cli_source,
-        sync_shared,
-        backup,
-        destination_root,
-        system,
-        mode,
-        dry_run,
-        summary,
+    settings = InstallSettings(
+        repo_root=context.repo_root,
+        install_cli=install_cli,
+        cli_source=cli_source,
+        sync_shared=sync_shared,
+        backup=backup,
+        destination_root=destination_root,
+        system=system,
+        mode=mode,
+        dry_run=dry_run,
     )
+    _prepare_installation_environment(settings, summary)
 
     _process_source_files(source_root, destination_root, system, mode, dry_run, summary)
 
