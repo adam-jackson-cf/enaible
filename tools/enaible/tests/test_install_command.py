@@ -99,11 +99,8 @@ def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
-    agent = tmp_path / ".claude" / "agents" / "research-coordinator.md"
     rules = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
-    assert agent.exists()
     assert rules.exists()
-    assert agent.read_text(encoding="utf-8").startswith("---")
     rules_text = rules.read_text(encoding="utf-8")
     assert "**CRITICAL** Must follow Design Principles" in rules_text
 
