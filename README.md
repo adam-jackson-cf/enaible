@@ -1,7 +1,7 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
-# Enaible - Engineering workflows
+# Agentic engineering toolkit
 
   <img src="https://img.shields.io/badge/AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
   <br/>
@@ -109,13 +109,13 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ### Analysis
 
-| Prompt               | Example                             | Use Case                                              | External Dependencies |
-| -------------------- | ----------------------------------- | ----------------------------------------------------- | --------------------- |
-| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          | None (built-in analyzers) |
-| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    | [Lizard](https://github.com/terryyin/lizard); [JSCPD](https://github.com/kucherenko/jscpd) (Node/npm) |
+| Prompt               | Example                             | Use Case                                              | External Dependencies                                                                                                                    |
+| -------------------- | ----------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          | None (built-in analyzers)                                                                                                                |
+| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    | [Lizard](https://github.com/terryyin/lizard); [JSCPD](https://github.com/kucherenko/jscpd) (Node/npm)                                    |
 | analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   | [Ruff](https://docs.astral.sh/ruff/); [Semgrep](https://semgrep.dev/); [ESLint](https://eslint.org/) + TS/React plugins for JS/TS stacks |
-| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces | None (built-in analyzers) |
-| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              | [Semgrep](https://semgrep.dev/); [detect-secrets](https://github.com/Yelp/detect-secrets) |
+| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces | None (built-in analyzers)                                                                                                                |
+| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              | [Semgrep](https://semgrep.dev/); [detect-secrets](https://github.com/Yelp/detect-secrets)                                                |
 
 ### Planning
 
@@ -128,16 +128,16 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ### Setup
 
-| Prompt                   | Example                     | Use Case                                           |
-| ------------------------ | --------------------------- | -------------------------------------------------- |
-| setup-dev-monitoring     | `/setup-dev-monitoring`     | Configure Makefile/Procfile with central logging   |
-| setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits     |
-| setup-browser-tools      | `/setup-browser-tools`      | Install Non mcp Chrome DevTools Protocol automation|
-| setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite            |
-| setup-mgrep              | `/setup-mgrep`              | Install mgrep for semantic search across code/docs |
-| setup-parallel-ai        | `/setup-parallel-ai`        | Install Parallel AI CLI for web intelligence       |
-| setup-task-lists         | `/setup-task-lists`         | Initialize Beads (bd) git-backed task tracking     |
-| setup-ui-pointer         | `/setup-ui-pointer`         | Install react-grab for element capture             |
+| Prompt                   | Example                     | Use Case                                            |
+| ------------------------ | --------------------------- | --------------------------------------------------- |
+| setup-dev-monitoring     | `/setup-dev-monitoring`     | Configure Makefile/Procfile with central logging    |
+| setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits      |
+| setup-browser-tools      | `/setup-browser-tools`      | Install Non mcp Chrome DevTools Protocol automation |
+| setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite             |
+| setup-mgrep              | `/setup-mgrep`              | Install mgrep for semantic search across code/docs  |
+| setup-parallel-ai        | `/setup-parallel-ai`        | Install Parallel AI CLI for web intelligence        |
+| setup-task-lists         | `/setup-task-lists`         | Initialize Beads (bd) git-backed task tracking      |
+| setup-ui-pointer         | `/setup-ui-pointer`         | Install react-grab for element capture              |
 
 ### Project & Feature
 
@@ -167,9 +167,9 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 ### Agents (Claude Code)
 
-| Agent                   | Example                    | Specialization                                  |
-| ----------------------- | -------------------------- | ----------------------------------------------- |
-| docs-scraper            | `@docs-scraper`            | Fetch and convert docs to markdown              |
+| Agent        | Example         | Specialization                     |
+| ------------ | --------------- | ---------------------------------- |
+| docs-scraper | `@docs-scraper` | Fetch and convert docs to markdown |
 
 ---
 
@@ -179,10 +179,10 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 <div align="center">
 
-|   **Category**    | **Document**                               | **Description**                               |
-| :---------------: | :----------------------------------------- | :-------------------------------------------- |
-|   **Setup**       | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
-| **Monitoring**    | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
+|  **Category**  | **Document**                               | **Description**                               |
+| :------------: | :----------------------------------------- | :-------------------------------------------- |
+|   **Setup**    | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
+| **Monitoring** | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
 
 ---
 
