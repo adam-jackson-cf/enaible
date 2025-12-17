@@ -1,9 +1,7 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
-# Agentic engineering toolkit
-
-  <img src="https://img.shields.io/badge/AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
+  <img src="https://img.shields.io/badge/Agentic_Engineering-2ea44f?style=for-the-badge" alt="Agentic Engineering" />
   <br/>
   <br/>
 
