@@ -1,7 +1,7 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
-# AI Assisted Workflows
+# Enaible - Engineering workflows
 
   <img src="https://img.shields.io/badge/AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
   <br/>

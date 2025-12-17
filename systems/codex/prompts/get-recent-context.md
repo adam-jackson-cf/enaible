@@ -1,6 +1,4 @@
-# get-recent-context v0.2
-
-## Purpose
+# Purpose
 
 Analyze recent Codex activity from session logs and git history to understand current work and provide quick orientation for continuing development.
 
