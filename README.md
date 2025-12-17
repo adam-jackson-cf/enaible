@@ -1,9 +1,9 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
-# AI Assisted Workflows
+# Enaible - Engineering workflows
 
-  <img src="https://img.shields.io/badge/🤖_AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
+  <img src="https://img.shields.io/badge/AI_Workflows-Production_Ready-2ea44f?style=for-the-badge" alt="AI Workflows" />
   <br/>
   <br/>
 
@@ -33,80 +33,89 @@
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [🎯 Project Overview](#-project-overview)
-- [⚡ Quick Start](#-quick-start)
-- [💡 Available Prompts & Agents](#-available-prompts--agents)
+- [Project Overview](#project-overview)
+- [Dependencies](#dependencies)
+- [Quick Start](#quick-start)
+- [Available Prompts & Agents](#available-prompts--agents)
   - [Analysis](#analysis) | [Planning](#planning) | [Setup](#setup) | [Project & Feature](#project--feature) | [Utility](#utility)
   - [System-Specific Commands](#system-specific-commands) | [Agents](#agents-claude-code)
 
 ---
 
-## 🎯 Project Overview
+## Project Overview
 
 > **Supporting AI Development Workflows with Core Principles**
 
 The principles for this project are designed around the realities of coding with AI:
 
-- 🪶 **Lightweight** — Minimize context impact, JIT loading, external processes
-- 🎯 **Mitigate LLM Weaknesses** — Repeatability, predictability, duplication prevention
-- ⚙️ **Minimize Structure** — Tools over workflows, flexibility over rigidity
-- 🔄 **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini, Antigravity
-- 💻 **Language Support** — Python, TypeScript, Go, Rust, C#
+- **Lightweight** — Minimize context impact, JIT loading, external processes
+- **Mitigate LLM Weaknesses** — Repeatability, predictability, duplication prevention
+- **Minimize Structure** — Tools over workflows, flexibility over rigidity
+- **Tool Agnostic** — Supported tools Codex, Claude Code, Copilot, Cursor, Gemini, Antigravity
+- **Language Support** — Python, TypeScript, Go, Rust, C#
 
 ---
 
-## ⚡ Quick Start
+## Prerequisites
 
-Install for your preferred AI dev runtime using the Enaible installer (runs from repo root). Details in docs/installation.md
+- Git (command-line)
+- Python 3.12.x
+- `uv` 0.4 or newer
+- `Node.js` 18+ or newer (needed for JSCPD dupe analysis support across Python, Go, Rust, C#, etc.)
+
+## Further dependencies required per workflow process you wish to use
+
+- [Semgrep](https://semgrep.dev/docs/getting-started/) — required for `security:semgrep` and `performance:semgrep`. Install with `pip install semgrep` so the `semgrep` CLI is on your PATH.
+- [detect-secrets](https://github.com/Yelp/detect-secrets) — used by `security:detect_secrets` to scan for hardcoded credentials. Install with `pip install detect-secrets`.
+- [Lizard](https://github.com/terryyin/lizard) — powers the `quality:lizard` complexity analyzer. Install with `pip install lizard`.
+- [JSCPD](https://github.com/kucherenko/jscpd) — duplicate-code detection for `quality:jscpd`. Requires Node.js; install with `npm install -g jscpd` or run via `npx jscpd`.
+- [ESLint](https://eslint.org/) plus the plugins `@typescript-eslint/parser`, `eslint-plugin-react`, `eslint-plugin-import`, and `eslint-plugin-vue` — referenced by `performance:frontend`. Install globally via npm (`npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue`).
+
+---
+
+## Quick Start
+
+Running either installer script will:
+
+- Clone this repository under `~/.enaible/sources/ai-assisted-workflows`.
+- Install or upgrade the Enaible CLI via `uv tool install --from tools/enaible enaible`.
+- Run `enaible install <system>` for each requested adapter (`codex`, `claude-code`, etc.) in the scopes you select
+- Copies prompts/rules into `~/.codex`, `~/.claude`, or `<project>/.claude`.
+- Capture a session log in `~/.enaible/install-sessions/` for audit trails.
+
+### macOS/Linux
 
 ```bash
-# Codex CLI
-uv run --project tools/enaible enaible install codex --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install codex --scope project --mode sync
-
-# Claude Code
-uv run --project tools/enaible enaible install claude-code --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install claude-code --scope project --mode sync
-
-# Copilot
-uv run --project tools/enaible enaible install copilot --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install copilot --scope project --mode sync
-
-# Gemini CLI
-uv run --project tools/enaible enaible install gemini --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install gemini --scope project --mode sync
-
-# Antigravity
-uv run --project tools/enaible enaible install antigravity --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
-
-# Cursor
-uv run --project tools/enaible enaible install cursor --scope user --mode sync
-# for project-only install: uv run --project tools/enaible enaible install antigravity --scope project --mode sync
-
+curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
 ```
 
-Notes
+### Windows PowerShell 7+
 
-- Programmatic prompts (analysis, security, performance) require Python 3.12.
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
+# NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
+```
+
+See [docs/installation.md](docs/installation.md) for the complete flag reference and troubleshooting steps.
 
 ---
 
-## 💡 Available Prompts & Agents
+## Available Prompts & Agents
 
 > Shared prompts work across Claude Code and Codex. System-specific commands are noted below.
 
 ### Analysis
 
-| Prompt               | Example                             | Use Case                                              |
-| -------------------- | ----------------------------------- | ----------------------------------------------------- |
-| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          |
-| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    |
-| analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   |
-| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces |
-| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              |
+| Prompt               | Example                             | Use Case                                              | External Dependencies |
+| -------------------- | ----------------------------------- | ----------------------------------------------------- | --------------------- |
+| analyze-architecture | `/analyze-architecture src/`        | Evaluate layering, coupling, and scalability          | None (built-in analyzers) |
+| analyze-code-quality | `/analyze-code-quality src/`        | Assess complexity, maintainability, technical debt    | [Lizard](https://github.com/terryyin/lizard); [JSCPD](https://github.com/kucherenko/jscpd) (Node/npm) |
+| analyze-performance  | `/analyze-performance src/`         | Identify bottlenecks across backend, frontend, data   | [Ruff](https://docs.astral.sh/ruff/); [Semgrep](https://semgrep.dev/); [ESLint](https://eslint.org/) + TS/React plugins for JS/TS stacks |
+| analyze-root-cause   | `/analyze-root-cause "API timeout"` | Investigate incidents through code changes and traces | None (built-in analyzers) |
+| analyze-security     | `/analyze-security src/`            | OWASP-aligned scanning with gap analysis              | [Semgrep](https://semgrep.dev/); [detect-secrets](https://github.com/Yelp/detect-secrets) |
 
 ### Planning
 
@@ -123,7 +132,7 @@ Notes
 | ------------------------ | --------------------------- | -------------------------------------------------- |
 | setup-dev-monitoring     | `/setup-dev-monitoring`     | Configure Makefile/Procfile with central logging   |
 | setup-package-monitoring | `/setup-package-monitoring` | Install Dependabot and CI vulnerability audits     |
-| setup-browser-tools      | `/setup-browser-tools`      | Install Chrome DevTools Protocol automation        |
+| setup-browser-tools      | `/setup-browser-tools`      | Install Non mcp Chrome DevTools Protocol automation|
 | setup-command-history    | `/setup-command-history`    | Install Atuin shell history with SQLite            |
 | setup-mgrep              | `/setup-mgrep`              | Install mgrep for semantic search across code/docs |
 | setup-parallel-ai        | `/setup-parallel-ai`        | Install Parallel AI CLI for web intelligence       |
@@ -161,28 +170,19 @@ Notes
 | Agent                   | Example                    | Specialization                                  |
 | ----------------------- | -------------------------- | ----------------------------------------------- |
 | docs-scraper            | `@docs-scraper`            | Fetch and convert docs to markdown              |
-| docker-expert           | `@docker-expert`           | Advice on Container optimization and deployment |
-| git-action-expert       | `@git-action-expert`       | Advice on GitHub Actions and CI/CD pipelines    |
-| market-analyst          | `@market-analyst`          | Competitive intelligence and research           |
-| python-expert           | `@python-expert`           | Python 3.13+ development planning               |
-| rag-architecture-expert | `@rag-architecture-expert` | RAG system design and implementation            |
-| research-coordinator    | `@research-coordinator`    | Multi-researcher orchestration                  |
-| technical-researcher    | `@technical-researcher`    | Code repo analysis and documentation            |
-| typescript-expert       | `@typescript-expert`       | TypeScript 5.7+ and Bun patterns                |
-| user-researcher         | `@user-researcher`         | Persona development and journey mapping         |
 
 ---
 
-## 📚 Quick Start & Detailed Documentation
+## Quick Start & Detailed Documentation
 
-<div align="right"><a href="#-table-of-contents">↑ back to top</a></div>
+<div align="right"><a href="#table-of-contents">back to top</a></div>
 
 <div align="center">
 
 |   **Category**    | **Document**                               | **Description**                               |
 | :---------------: | :----------------------------------------- | :-------------------------------------------- |
-|   🚀 **Setup**    | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
-| ⚙️ **Monitoring** | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
+|   **Setup**       | [Installation Guide](docs/installation.md) | Complete setup and configuration instructions |
+| **Monitoring**    | [Dev Monitoring](docs/monitoring.md)       | Live monitoring and artifact conventions      |
 
 ---
 

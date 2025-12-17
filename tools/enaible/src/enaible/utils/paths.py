@@ -8,15 +8,17 @@ from pathlib import Path
 
 
 def get_vscode_user_dir() -> Path:
-    """Get VS Code user directory path based on the current operating system.
+    r"""Get VS Code user directory path based on the current operating system.
 
-    Returns:
+    Returns
+    -------
         Path to VS Code user directory:
         - macOS: ~/Library/Application Support/Code/User/
         - Windows: %APPDATA%\\Code\\User\\
         - Linux: ~/.config/Code/User/
 
-    Raises:
+    Raises
+    ------
         RuntimeError: If the operating system is not supported.
     """
     system = platform.system().lower()
@@ -32,5 +34,4 @@ def get_vscode_user_dir() -> Path:
         return Path.home() / ".config" / "Code" / "User"
     else:
         raise RuntimeError(f"Unsupported operating system: {system}")
-
 

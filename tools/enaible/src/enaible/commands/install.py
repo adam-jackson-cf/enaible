@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import shutil
 import subprocess
+import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import datetime
@@ -18,8 +19,8 @@ from ..app import app
 from ..constants import MANAGED_SENTINEL
 from ..prompts.adapters import (
     SYSTEM_CONTEXTS,
-    SystemRenderContext,
     VSCODE_USER_DIR_MARKER,
+    SystemRenderContext,
 )
 from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
@@ -49,6 +50,76 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "gemini": ("commands/",),
     "antigravity": ("workflows/", "rules/"),
 }
+
+CHECK_DEPENDENCIES_DEFAULT = os.environ.get("ENAIBLE_SKIP_DEPENDENCY_CHECKS") != "1"
+
+
+@dataclass(frozen=True)
+class PromptDependency:
+    name: str
+    check_commands: tuple[str, ...]
+    install_command: tuple[str, ...] | None
+    install_hint: str
+
+
+SEMGRAP_DEP = PromptDependency(
+    name="Semgrep",
+    check_commands=("semgrep",),
+    install_command=(sys.executable, "-m", "pip", "install", "semgrep"),
+    install_hint="pip install semgrep",
+)
+
+DETECT_SECRETS_DEP = PromptDependency(
+    name="detect-secrets",
+    check_commands=("detect-secrets",),
+    install_command=(sys.executable, "-m", "pip", "install", "detect-secrets"),
+    install_hint="pip install detect-secrets",
+)
+
+Ruff_DEP = PromptDependency(
+    name="Ruff",
+    check_commands=("ruff",),
+    install_command=(sys.executable, "-m", "pip", "install", "ruff"),
+    install_hint="pip install ruff",
+)
+
+LIZARD_DEP = PromptDependency(
+    name="Lizard",
+    check_commands=("lizard",),
+    install_command=(sys.executable, "-m", "pip", "install", "lizard"),
+    install_hint="pip install lizard",
+)
+
+JSCPD_DEP = PromptDependency(
+    name="JSCPD",
+    check_commands=("jscpd", "npx"),
+    install_command=("npm", "install", "-g", "jscpd"),
+    install_hint="npm install -g jscpd",
+)
+
+ESLINT_DEP = PromptDependency(
+    name="ESLint + plugins",
+    check_commands=("eslint",),
+    install_command=(
+        "npm",
+        "install",
+        "-g",
+        "eslint",
+        "@typescript-eslint/parser",
+        "eslint-plugin-react",
+        "eslint-plugin-import",
+        "eslint-plugin-vue",
+    ),
+    install_hint="npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue",
+)
+
+PROMPT_DEPENDENCIES: dict[str, tuple[PromptDependency, ...]] = {
+    "analyze-code-quality": (LIZARD_DEP, JSCPD_DEP),
+    "analyze-performance": (Ruff_DEP, SEMGRAP_DEP, ESLINT_DEP),
+    "analyze-security": (SEMGRAP_DEP, DETECT_SECRETS_DEP),
+}
+
+_PROMPT_DEP_CACHE: dict[str, bool] = {}
 
 
 class InstallMode(str, Enum):
@@ -186,9 +257,12 @@ def _complete_installation(
     mode: InstallMode,
     dry_run: bool,
     summary: InstallSummary,
+    enforce_dependencies: bool,
 ) -> None:
     """Complete installation: render prompts, sync, post-install, emit summary."""
-    _render_managed_prompts(context, system, destination_root, mode, dry_run, summary)
+    _render_managed_prompts(
+        context, system, destination_root, mode, dry_run, summary, enforce_dependencies
+    )
 
     if sync:
         _sync_enaible_env(context.repo_root, dry_run, summary)
@@ -243,6 +317,11 @@ def install(
         "--sync-shared/--no-sync-shared",
         help="Copy shared/ workspace files to ~/.enaible/workspace/shared for analyzer execution.",
     ),
+    enforce_dependencies: bool = typer.Option(
+        CHECK_DEPENDENCIES_DEFAULT,
+        "--check-deps/--no-check-deps",
+        help="Verify external analyzer dependencies before installing prompts.",
+    ),
 ) -> None:
     """Install rendered system assets into project or user configuration directories."""
     context = load_workspace()
@@ -267,7 +346,16 @@ def install(
     _process_source_files(source_root, destination_root, system, mode, dry_run, summary)
 
     _complete_installation(
-        context, system, source_root, destination_root, scope, sync, mode, dry_run, summary
+        context,
+        system,
+        source_root,
+        destination_root,
+        scope,
+        sync,
+        mode,
+        dry_run,
+        summary,
+        enforce_dependencies,
     )
 
 
@@ -287,9 +375,7 @@ def _install_cli(
         summary.record("install-cli", source)
         return
 
-    proc = subprocess.run(cmd, cwd=repo_root)
-    if proc.returncode != 0:
-        raise typer.Exit(code=proc.returncode)
+    subprocess.run(cmd, cwd=repo_root, check=True)
 
     summary.record("install-cli", source)
 
@@ -387,7 +473,7 @@ def _emit_summary(
 ) -> None:
     action_label = "Planned" if dry_run else "Completed"
     typer.echo(
-        f"{action_label} Enaible install for {system} ({mode.value}) → {destination_root}"
+        f"{action_label} Enaible install for {system} ({mode.value}) -> {destination_root}"
     )
     if summary.actions:
         for action, rel_path in summary.actions:
@@ -513,6 +599,7 @@ def _render_managed_prompts(
     mode: InstallMode,
     dry_run: bool,
     summary: InstallSummary,
+    enforce_dependencies: bool,
 ) -> None:
     renderer = PromptRenderer(context)
     definitions = [
@@ -536,6 +623,10 @@ def _render_managed_prompts(
         except ValueError:
             relative = output_path
 
+        if enforce_dependencies and not _prompt_dependencies_ready(result.prompt_id, dry_run):
+            summary.record_skip(relative)
+            continue
+
         if dry_run:
             summary.record("render", output_path)
             continue
@@ -557,7 +648,92 @@ def _render_managed_prompts(
 
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(result.content, encoding="utf-8")
-        summary.record("render", output_path)
+    summary.record("render", output_path)
+
+
+def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
+    if not prompt_id:
+        return True
+    if prompt_id in _PROMPT_DEP_CACHE:
+        return _PROMPT_DEP_CACHE[prompt_id]
+    deps = PROMPT_DEPENDENCIES.get(prompt_id)
+    if not deps:
+        _PROMPT_DEP_CACHE[prompt_id] = True
+        return True
+    missing = [dep for dep in deps if not _dependency_available(dep)]
+    if not missing:
+        _PROMPT_DEP_CACHE[prompt_id] = True
+        return True
+    dep_names = ", ".join(dep.name for dep in missing)
+    typer.secho(
+        f"Prompt '{prompt_id}' requires {dep_names} which are not installed.",
+        fg=typer.colors.YELLOW,
+    )
+    for dep in missing:
+        typer.echo(f"- {dep.name}: {dep.install_hint}")
+    if dry_run:
+        typer.secho(
+            "Dry-run mode: dependencies not installed, prompt will be skipped.",
+            fg=typer.colors.YELLOW,
+        )
+        _PROMPT_DEP_CACHE[prompt_id] = False
+        return False
+    install = _confirm_install_dependencies()
+    if install:
+        for dep in missing:
+            _install_dependency(dep)
+        missing = [dep for dep in deps if not _dependency_available(dep)]
+    if missing:
+        typer.secho(
+            f"Dependencies still missing for '{prompt_id}'. Prompt will not be installed.",
+            fg=typer.colors.RED,
+        )
+        _PROMPT_DEP_CACHE[prompt_id] = False
+        return False
+    typer.secho(
+        f"All dependencies for '{prompt_id}' detected. Proceeding with install.",
+        fg=typer.colors.GREEN,
+    )
+    _PROMPT_DEP_CACHE[prompt_id] = True
+    return True
+
+
+def _confirm_install_dependencies() -> bool:
+    if not sys.stdin.isatty():
+        typer.secho(
+            "Non-interactive session detected; cannot prompt to install missing dependencies.",
+            fg=typer.colors.YELLOW,
+        )
+        return False
+    return typer.confirm(
+        "Install missing dependencies now? (Administrative privileges may be required)",
+        default=False,
+    )
+
+
+def _install_dependency(dep: PromptDependency) -> None:
+    if not dep.install_command:
+        return
+    typer.secho(
+        f"Installing {dep.name} via: {' '.join(dep.install_command)}",
+        fg=typer.colors.CYAN,
+    )
+    try:
+        subprocess.run(dep.install_command, check=True)
+    except FileNotFoundError:
+        typer.secho(
+            f"Installer command not found while installing {dep.name}. Please install manually: {dep.install_hint}",
+            fg=typer.colors.RED,
+        )
+    except subprocess.CalledProcessError as exc:
+        typer.secho(
+            f"Failed to install {dep.name} (exit code {exc.returncode}). Please install manually.",
+            fg=typer.colors.RED,
+        )
+
+
+def _dependency_available(dep: PromptDependency) -> bool:
+    return any(shutil.which(cmd) for cmd in dep.check_commands)
 
 
 def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:
@@ -630,26 +806,8 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
     cmd = ["uv", "sync", "--project", str(repo_root / "tools" / "enaible")]
     try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr if isinstance(exc.stderr, str) else (exc.stderr.decode("utf-8") if exc.stderr else "")
-        stdout = exc.stdout if isinstance(exc.stdout, str) else (exc.stdout.decode("utf-8") if exc.stdout else "")
-        error_output = stderr + stdout
-
-        # Detect TLS certificate validation errors
-        if any(
-            indicator in error_output.lower()
-            for indicator in [
-                "invalid peer certificate",
-                "unknownissuer",
-                "certificate",
-                "tls",
-                "ssl",
-            ]
-        ):
-            _handle_tls_error(repo_root, exc)
-            return
-
         raise typer.BadParameter(
             "Failed to run 'uv sync --project tools/enaible'. Ensure `uv` is installed and accessible."
         ) from exc
@@ -659,112 +817,6 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
         ) from exc
 
     summary.record("sync", repo_root / "tools" / "enaible")
-
-
-def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessError) -> None:
-    """Handle TLS certificate validation errors with helpful guidance and optional fix."""
-    setup_script = repo_root / "scripts" / "setup-uv-ca.sh"
-
-    # Check if certificate environment variables are set in current shell
-    cert_vars = ["SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "UV_HTTP_CA_BUNDLE"]
-    cert_vars_set = [var for var in cert_vars if os.environ.get(var)]
-
-    typer.secho(
-        "\nTLS certificate validation failed.",
-        fg=typer.colors.RED,
-        bold=True,
-        err=True,
-    )
-    typer.echo("This often occurs on corporate networks.\n", err=True)
-
-    # Check if certs are configured but not loaded in current shell
-    if not cert_vars_set:
-        # Check if they exist in shell profile
-        shell_profile = Path.home() / ".zshrc"
-        if not shell_profile.exists():
-            shell_profile = Path.home() / ".bashrc"
-
-        profile_has_certs = False
-        if shell_profile.exists():
-            try:
-                profile_content = shell_profile.read_text(encoding="utf-8")
-                profile_has_certs = any(var in profile_content for var in cert_vars)
-            except Exception:
-                pass  # Ignore read errors
-
-        if profile_has_certs:
-            typer.secho(
-                "Note: Certificate variables are configured in your shell profile but not loaded in this session.\n"
-                "  → Run: source ~/.zshrc  (or restart your terminal)\n",
-                fg=typer.colors.YELLOW,
-                err=True,
-            )
-
-    # Offer to run setup script automatically
-    if setup_script.exists() and setup_script.is_file():
-        typer.echo(f"Found setup script at: {setup_script}", err=True)
-        if typer.confirm(
-            "\nWould you like to run the certificate setup script now?",
-            default=True,
-        ):
-            typer.echo("\nRunning certificate setup script...", err=True)
-            try:
-                # Run the setup script
-                proc = subprocess.run(
-                    [str(setup_script)],
-                    cwd=repo_root,
-                    check=True,
-                    capture_output=False,
-                )
-                if proc.returncode == 0:
-                    typer.secho(
-                        "\n✓ Certificate setup completed successfully!\n"
-                        "⚠️  IMPORTANT: You must restart your terminal or run 'source ~/.zshrc' "
-                        "for the changes to take effect in this session.\n",
-                        fg=typer.colors.GREEN,
-                        err=True,
-                    )
-                    typer.echo(
-                        "After restarting/sourcing, rerun the install command.\n",
-                        err=True,
-                    )
-                    raise typer.Abort()
-            except subprocess.CalledProcessError as setup_exc:
-                typer.secho(
-                    f"\n✗ Setup script failed with exit code {setup_exc.returncode}",
-                    fg=typer.colors.RED,
-                    err=True,
-                )
-                # Fall through to manual instructions
-
-    # Manual instructions
-    typer.echo("\nManual setup options:", err=True)
-    typer.echo(
-        "  1. Run the setup script (recommended):\n"
-        f"     ./scripts/setup-uv-ca.sh\n"
-        "     Then restart your terminal or run: source ~/.zshrc\n",
-        err=True,
-    )
-    typer.echo(
-        "  2. Set environment variables manually:\n"
-        "     export SSL_CERT_FILE=<path-to-ca-bundle.pem>\n"
-        "     export REQUESTS_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
-        "     export UV_HTTP_CA_BUNDLE=<path-to-ca-bundle.pem>\n"
-        "     Then rerun the install command.\n",
-        err=True,
-    )
-    typer.echo(
-        "  3. Use native TLS (temporary workaround):\n"
-        "     Set ENAIBLE_INSTALL_SKIP_SYNC=1 and run:\n"
-        "     uv sync --native-tls --project tools/enaible\n",
-        err=True,
-    )
-    typer.echo(
-        "See docs/tls-certificate-setup.md for detailed instructions.\n",
-        err=True,
-    )
-
-    raise typer.BadParameter("TLS certificate validation failed. See instructions above.") from original_exc
 
 
 def _backup_destination_folder(

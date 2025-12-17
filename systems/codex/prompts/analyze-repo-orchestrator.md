@@ -1,5 +1,3 @@
-# analyze-repo-orchestrator v1.1
-
 # Purpose
 
 Run a parallel, tmux-based repository analysis that reuses existing deterministic workflows (architecture, code quality, security) and adds quality-gates, tests, and history. The analysis should enable to go from 0 to 1 in the understanding of the tech stack, approach, patterns, strenths and failings of a target codebase. Produce a single 0–10 score per section with attached evidence using the KPI scoring guide. Use the Output section as the final report formatting guide.

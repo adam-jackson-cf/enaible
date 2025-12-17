@@ -41,13 +41,14 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Log applied exclusions for final report
 3. **Run automated analyzers**
 
-   - Execute each Enaible command, storing the JSON output:
+   - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected):
 
      ```bash
      enaible analyzers run performance:ruff \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-ruff.json"
 
+     # Run only when a JS/TS frontend stack was detected during recon (package.json, src/**/*.tsx, Next/Vite configs)
      enaible analyzers run performance:frontend \
        --target "@TARGET_PATH" \
        --out "@ARTIFACT_ROOT/performance-frontend.json"

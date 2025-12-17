@@ -56,13 +56,6 @@ def isolated_env(monkeypatch: pytest.MonkeyPatch, temp_home: Path, temp_workspac
     (temp_home / ".codex" / "sessions").mkdir(parents=True, exist_ok=True)
     (temp_home / ".codex").mkdir(parents=True, exist_ok=True)
 
-    # Set TLS cert env vars if available
-    merged_ca = Path.home() / ".config" / "claude" / "corp-ca-bundle.pem"
-    if merged_ca.exists():
-        env["SSL_CERT_FILE"] = str(merged_ca)
-        env["UV_HTTP_CA_BUNDLE"] = str(merged_ca)
-        env["REQUESTS_CA_BUNDLE"] = str(merged_ca)
-
     return env
 
 

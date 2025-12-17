@@ -16,6 +16,22 @@ python --version            # Expect 3.12.x
 uv --version                 # Confirm uv is installed
 ```
 
+## Step 0 — Bootstrap with the installer scripts
+
+### macOS/Linux
+
+```bash
+curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
+```
+
+### Windows PowerShell 7+
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
+# NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
+```
+
 ## Step 1 — Install Enaible dependencies
 
 The CLI lives in `tools/enaible/` and is packaged with uv. Sync the project environment once to install Typer, Jinja2, Ruff, pytest, and typing stubs used by the CLI tests.
@@ -60,7 +76,7 @@ Repeat the `enaible install` step for `claude-code` when that surface is affecte
 
 ## Step 4 — Validate before publishing
 
-Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates-incremental.yml`:
+Quality gates mirror the CI workflow defined in `.github/workflows/ci-quality-gates-incremental.yml`. When you install via the script, the session log (`~/.enaible/install-sessions/session-<timestamp>.md`) records each command and exit code so you can attach it to tickets or incident reports.
 
 ```bash
 uv run --project tools/enaible ruff check tools/enaible/src
