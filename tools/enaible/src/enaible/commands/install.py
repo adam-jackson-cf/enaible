@@ -806,26 +806,8 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
 
     cmd = ["uv", "sync", "--project", str(repo_root / "tools" / "enaible")]
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as exc:
-        stderr = exc.stderr if isinstance(exc.stderr, str) else (exc.stderr.decode("utf-8") if exc.stderr else "")
-        stdout = exc.stdout if isinstance(exc.stdout, str) else (exc.stdout.decode("utf-8") if exc.stdout else "")
-        error_output = stderr + stdout
-
-        # Detect TLS certificate validation errors
-        if any(
-            indicator in error_output.lower()
-            for indicator in [
-                "invalid peer certificate",
-                "unknownissuer",
-                "certificate",
-                "tls",
-                "ssl",
-            ]
-        ):
-            _handle_tls_error(repo_root, exc)
-            return
-
         raise typer.BadParameter(
             "Failed to run 'uv sync --project tools/enaible'. Ensure `uv` is installed and accessible."
         ) from exc
@@ -835,80 +817,6 @@ def _sync_enaible_env(repo_root: Path, dry_run: bool, summary: InstallSummary) -
         ) from exc
 
     summary.record("sync", repo_root / "tools" / "enaible")
-
-
-def _handle_tls_error(repo_root: Path, original_exc: subprocess.CalledProcessError) -> None:
-    """Handle TLS certificate validation errors with helpful guidance and optional fix."""
-    setup_script = repo_root / "scripts" / "setup-uv-ca.sh"
-
-    # Check if certificate environment variables are set in current shell
-    cert_var = "SSL_CERT_FILE"
-    cert_vars_set = [cert_var] if os.environ.get(cert_var) else []
-
-    typer.secho(
-        "\nTLS certificate validation failed.",
-        fg=typer.colors.RED,
-        bold=True,
-        err=True,
-    )
-    typer.echo("This often occurs on corporate networks.\n", err=True)
-
-    # Check if certs are configured but not loaded in current shell
-    if not cert_vars_set:
-        # Check if they exist in shell profile
-        shell_profile = Path.home() / ".zshrc"
-        if not shell_profile.exists():
-            shell_profile = Path.home() / ".bashrc"
-
-        profile_has_certs = False
-        if shell_profile.exists():
-            try:
-                profile_content = shell_profile.read_text(encoding="utf-8")
-                profile_has_certs = cert_var in profile_content
-            except Exception:
-                pass  # Ignore read errors
-
-        if profile_has_certs:
-            typer.secho(
-                "Note: Certificate variables are configured in your shell profile but not loaded in this session.\n"
-                "  → Run: source ~/.zshrc  (or restart your terminal)\n",
-                fg=typer.colors.YELLOW,
-                err=True,
-            )
-
-    # Manual instructions only (install aborts after guidance)
-    typer.echo("\nManual setup options:", err=True)
-    script_lines = []
-    if setup_script.exists():
-        script_lines.append(f"     bash: {setup_script}")
-    ps_script = repo_root / "scripts" / "setup-uv-ca.ps1"
-    if ps_script.exists():
-        script_lines.append(f"     pwsh: {ps_script}")
-    if script_lines:
-        typer.echo("  1. Run the certificate setup helper (recommended):", err=True)
-        for line in script_lines:
-            typer.echo(line, err=True)
-        typer.echo("     Restart your shell (or source ~/.zshrc) before rerunning install.\n", err=True)
-    else:
-        typer.echo("  1. Generate a merged CA bundle using your corporate certificate.\n", err=True)
-
-    typer.echo(
-        "  2. Point your shell at the merged bundle:\n"
-        "     export SSL_CERT_FILE=/path/to/corp-ca-bundle.pem\n"
-        "     PowerShell: Set-Item Env:SSL_CERT_FILE -Value \"C:\\\\path\\\\corp-ca-bundle.pem\"\n",
-        err=True,
-    )
-    typer.echo(
-        "  3. (Optional) Persist for uv as well:\n"
-        "     uv config set http.cabundle /path/to/corp-ca-bundle.pem\n",
-        err=True,
-    )
-    typer.echo(
-        "See docs/tls-certificate-setup.md for troubleshooting details.\n",
-        err=True,
-    )
-
-    raise typer.BadParameter("TLS certificate validation failed. See instructions above.") from original_exc
 
 
 def _backup_destination_folder(

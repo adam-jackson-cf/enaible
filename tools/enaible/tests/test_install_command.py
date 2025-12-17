@@ -33,39 +33,6 @@ def _patch_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("enaible.commands.install.load_workspace", lambda: context)
 
 
-@pytest.fixture(autouse=True)
-def _setup_tls_certs(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Configure TLS certificates for tests to avoid certificate validation errors.
-
-    Tries to use merged CA bundle from setup script, falls back to system certificates,
-    or uses native TLS if neither is available.
-    """
-    from pathlib import Path
-
-    # Option 1: Use merged bundle if setup script was run
-    merged_ca = Path.home() / ".config" / "claude" / "corp-ca-bundle.pem"
-    if merged_ca.exists():
-        monkeypatch.setenv("SSL_CERT_FILE", str(merged_ca))
-        monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(merged_ca))
-        monkeypatch.setenv("REQUESTS_CA_BUNDLE", str(merged_ca))
-        return
-
-    # Option 2: Use system certificates (common locations)
-    system_ca_paths = [
-        Path("/etc/ssl/cert.pem"),  # Debian/Ubuntu
-        Path("/etc/ssl/certs/ca-certificates.crt"),  # Alternative Linux
-        Path("/etc/pki/tls/certs/ca-bundle.crt"),  # RHEL/CentOS
-    ]
-    for ca_path in system_ca_paths:
-        if ca_path.exists():
-            monkeypatch.setenv("SSL_CERT_FILE", str(ca_path))
-            monkeypatch.setenv("UV_HTTP_CA_BUNDLE", str(ca_path))
-            return
-
-    # Option 3: On macOS, use system keychain (native TLS)
-    # uv will use system certificates automatically on macOS
-    # No environment variables needed
-
 
 def test_install_merge_project_scope(tmp_path: Path) -> None:
     result = runner.invoke(

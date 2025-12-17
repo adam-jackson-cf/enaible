@@ -16,8 +16,6 @@ python --version            # Expect 3.12.x
 uv --version                 # Confirm uv is installed
 ```
 
-If `uv sync` fails with `invalid peer certificate` on a corporate network, follow the troubleshooting steps in `docs/tls-certificate-setup.md` before retrying the installer.
-
 ## Step 0 — Bootstrap with the installer scripts
 
 ### macOS/Linux
