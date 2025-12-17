@@ -1,12 +1,6 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
-  <br/>
-
-  <img src="https://img.shields.io/badge/Agentic_Engineering-2ea44f?style=for-the-badge" alt="Agentic Engineering" />
-  <br/>
-  <br/>
-
   <!-- Platform & Language Support -->
 
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
