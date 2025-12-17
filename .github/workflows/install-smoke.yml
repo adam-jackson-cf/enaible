@@ -47,14 +47,14 @@ jobs:
       - name: Run macOS/Linux bootstrapper
         if: runner.os != 'Windows'
         run: |
-          curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/${INSTALL_REF}/scripts/install.sh" \
+          curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/${INSTALL_REF}/scripts/install.sh" \
             | bash -s -- --systems codex --scope user --ref "${INSTALL_REF}"
 
       - name: Run Windows bootstrapper
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $uri = "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/${env:INSTALL_REF}/scripts/install.ps1"
+          $uri = "https://raw.githubusercontent.com/adam-jackson-cf/enaible/${env:INSTALL_REF}/scripts/install.ps1"
           Write-Host "Downloading bootstrapper from $uri"
           Invoke-WebRequest $uri -OutFile install.ps1
           if (Get-Command Unblock-File -ErrorAction SilentlyContinue) {

@@ -21,13 +21,13 @@ uv --version                 # Confirm uv is installed
 ### macOS/Linux
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
+curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh?$(date +%s)" | bash -s --
 ```
 
 ### Windows PowerShell 7+
 
 ```powershell
-Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+Invoke-WebRequest https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.ps1 -OutFile install.ps1
 pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
 # NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
 ```

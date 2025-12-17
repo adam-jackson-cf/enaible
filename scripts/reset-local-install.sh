@@ -4,7 +4,7 @@ set -euo pipefail
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 REPO_ROOT=$(git rev-parse --show-toplevel)
 PROJECT_DIR="$REPO_ROOT"
-INSTALL_URL="https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/${BRANCH}/scripts/install.sh"
+INSTALL_URL="https://raw.githubusercontent.com/adam-jackson-cf/enaible/${BRANCH}/scripts/install.sh"
 
 log() {
   printf '[reset] %s\n' "$*"

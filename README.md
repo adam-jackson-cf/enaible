@@ -63,13 +63,13 @@ Running either installer script will:
 ### macOS/Linux
 
 ```bash
-curl -fsSL "https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.sh?$(date +%s)" | bash -s --
+curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh?$(date +%s)" | bash -s --
 ```
 
 ### Windows PowerShell 7+
 
 ```powershell
-Invoke-WebRequest https://raw.githubusercontent.com/adam-versed/ai-assisted-workflows/main/scripts/install.ps1 -OutFile install.ps1
+Invoke-WebRequest https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.ps1 -OutFile install.ps1
 pwsh -NoLogo -File .\install.ps1 -Systems codex -Scope user
 # NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
 ```
@@ -163,6 +163,6 @@ See [docs/installation.md](docs/installation.md) for the complete flag reference
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
-[Report Issues](https://github.com/adam-versed/ai-assisted-workflows/issues) • [Request Features](https://github.com/adam-versed/ai-assisted-workflows/discussions)
+[Report Issues](https://github.com/adam-jackson-cf/enaible/issues) • [Request Features](https://github.com/adam-jackson-cf/enaible/discussions)
 
 </div>

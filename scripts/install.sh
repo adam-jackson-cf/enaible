@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-DEFAULT_REPO_URL="https://github.com/adam-versed/ai-assisted-workflows.git"
+DEFAULT_REPO_URL="https://github.com/adam-jackson-cf/enaible"
 DEFAULT_CLONE_DIR="${HOME}/.enaible/sources/ai-assisted-workflows"
 DEFAULT_SYSTEMS="codex,claude-code"
 DEFAULT_SCOPE="user"
@@ -32,6 +32,66 @@ ensure_path_entry() {
         *:"${HOME}/.local/bin":*) ;;
         *) export PATH="${HOME}/.local/bin:${PATH}";;
     esac
+}
+
+prompt_for_systems() {
+    log "Select systems to install (space-separated numbers, e.g., '1 2' for codex and claude-code):"
+    echo "  1) codex"
+    echo "  2) claude-code"
+    echo "  3) copilot"
+    echo "  4) cursor"
+    echo "  5) gemini"
+    echo "  6) antigravity"
+
+    local selected_systems=""
+    while [[ -z "$selected_systems" ]]; do
+        printf "Enter selection (required): "
+        read -r selection
+
+        local systems=()
+        for num in $selection; do
+            case "$num" in
+                1) systems+=("codex") ;;
+                2) systems+=("claude-code") ;;
+                3) systems+=("copilot") ;;
+                4) systems+=("cursor") ;;
+                5) systems+=("gemini") ;;
+                6) systems+=("antigravity") ;;
+                *) log "Invalid selection: $num" ;;
+            esac
+        done
+
+        if [[ ${#systems[@]} -gt 0 ]]; then
+            selected_systems=$(IFS=,; echo "${systems[*]}")
+        else
+            log "ERROR: You must select at least one system"
+        fi
+    done
+
+    SYSTEM_ARG="$selected_systems"
+    log "Selected systems: $selected_systems"
+}
+
+prompt_for_scope() {
+    log "Select installation scope:"
+    echo "  1) user    - Install to user profile only (~/.config)"
+    echo "  2) project - Install to current/specified project only"
+    echo "  3) both    - Install to both user and project"
+
+    printf "Enter selection [1]: "
+    read -r selection
+
+    case "${selection:-1}" in
+        1) SCOPE="user" ;;
+        2) SCOPE="project" ;;
+        3) SCOPE="both" ;;
+        *)
+            log "Invalid selection, defaulting to 'user'"
+            SCOPE="user"
+            ;;
+    esac
+
+    log "Selected scope: $SCOPE"
 }
 
 parse_args() {
@@ -63,10 +123,11 @@ parse_args() {
 Usage: scripts/install.sh [options]
 
 Options:
-  --systems LIST      Comma-separated systems to install (default: codex,claude-code)
-  --scope MODE        user|project|both (default: user)
+  --systems LIST      Comma-separated systems to install (will prompt if not provided)
+                      Available: codex,claude-code,copilot,cursor,gemini,antigravity
+  --scope MODE        user|project|both (will prompt if not provided, default: user)
   --project PATH      Project repo path when installing with project or both scopes
-  --repo-url URL      Git repo to clone (default: official)
+  --repo-url URL      Git repo to clone (default: https://github.com/adam-jackson-cf/enaible)
   --clone-dir PATH    Cache directory for the repo clone (default: ~/.enaible/sources/...)
   --ref REF           Git ref/tag/branch to checkout (default: main)
   --dry-run           Print actions without executing
@@ -180,7 +241,24 @@ write_session_note() {
 }
 
 main() {
+    local systems_from_flag=false
+    local scope_from_flag=false
+
+    for arg in "$@"; do
+        [[ "$arg" == "--systems" ]] && systems_from_flag=true
+        [[ "$arg" == "--scope" ]] && scope_from_flag=true
+    done
+
     parse_args "$@"
+
+    if ! $systems_from_flag; then
+        prompt_for_systems
+    fi
+
+    if ! $scope_from_flag; then
+        prompt_for_scope
+    fi
+
     parse_systems
     ensure_path_entry
     require_cmd git

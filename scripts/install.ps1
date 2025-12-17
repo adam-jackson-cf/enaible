@@ -6,7 +6,7 @@
 
 [CmdletBinding()]
 param(
-    [string]$RepoUrl = "https://github.com/adam-versed/ai-assisted-workflows.git",
+    [string]$RepoUrl = "https://github.com/adam-jackson-cf/enaible",
     [string]$CloneDir = (Join-Path $env:USERPROFILE ".enaible/sources/ai-assisted-workflows"),
     [string[]]$Systems = @("codex", "claude-code"),
     [ValidateSet("user", "project", "both")] [string]$Scope = "user",
@@ -158,6 +158,71 @@ function Write-SessionLog {
     Write-Log "Session log saved to $file"
 }
 
+function Prompt-ForSystems {
+    Write-Log "Select systems to install (space-separated numbers, e.g., '1 2' for codex and claude-code):"
+    Write-Host "  1) codex"
+    Write-Host "  2) claude-code"
+    Write-Host "  3) copilot"
+    Write-Host "  4) cursor"
+    Write-Host "  5) gemini"
+    Write-Host "  6) antigravity"
+
+    $selectedSystems = @()
+    while ($selectedSystems.Length -eq 0) {
+        $selection = Read-Host "Enter selection (required)"
+
+        $systems = @()
+        foreach ($num in $selection -split '\s+') {
+            switch ($num.Trim()) {
+                "1" { $systems += "codex" }
+                "2" { $systems += "claude-code" }
+                "3" { $systems += "copilot" }
+                "4" { $systems += "cursor" }
+                "5" { $systems += "gemini" }
+                "6" { $systems += "antigravity" }
+                default {
+                    if ($num.Trim()) {
+                        Write-Log "Invalid selection: $num"
+                    }
+                }
+            }
+        }
+
+        if ($systems.Length -gt 0) {
+            $selectedSystems = $systems
+        } else {
+            Write-Log "ERROR: You must select at least one system"
+        }
+    }
+
+    $script:Systems = $selectedSystems
+    Write-Log "Selected systems: $($selectedSystems -join ', ')"
+}
+
+function Prompt-ForScope {
+    Write-Log "Select installation scope:"
+    Write-Host "  1) user    - Install to user profile only"
+    Write-Host "  2) project - Install to current/specified project only"
+    Write-Host "  3) both    - Install to both user and project"
+
+    $selection = Read-Host "Enter selection [1]"
+    if ([string]::IsNullOrWhiteSpace($selection)) {
+        $selection = "1"
+    }
+
+    switch ($selection.Trim()) {
+        "1" { $script:Scope = "user" }
+        "2" { $script:Scope = "project" }
+        "3" { $script:Scope = "both" }
+        default {
+            Write-Log "Invalid selection, defaulting to 'user'"
+            $script:Scope = "user"
+        }
+    }
+
+    Write-Log "Selected scope: $Scope"
+}
+
 function Validate-Systems {
     $current = @()
     if ($null -ne $Systems) {
@@ -188,6 +253,14 @@ function Validate-Systems {
         throw "No systems specified"
     }
     $script:Systems = $clean
+}
+
+if (-not $PSBoundParameters.ContainsKey('Systems')) {
+    Prompt-ForSystems
+}
+
+if (-not $PSBoundParameters.ContainsKey('Scope')) {
+    Prompt-ForScope
 }
 
 Validate-Systems
