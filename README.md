@@ -1,6 +1,8 @@
 <div align="center">
   <img src="enaible.png" alt="Enaible Logo" width="400" />
 
+  <br/>
+
   <img src="https://img.shields.io/badge/Agentic_Engineering-2ea44f?style=for-the-badge" alt="Agentic Engineering" />
   <br/>
   <br/>
