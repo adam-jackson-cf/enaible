@@ -182,7 +182,7 @@ Automatically fix missing language tags and formatting issues in markdown files:
 Create `.claude/hooks/markdown_formatter.py` with this content:
 
 ````python
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 Markdown formatter for Claude Code output.
 Fixes missing language tags and spacing issues while preserving code content.
@@ -191,6 +191,9 @@ import json
 import sys
 import re
 import os
+
+if sys.version_info < (3, 9):
+    raise SystemExit("Markdown formatter requires Python 3.9+.")
 
 def detect_language(code):
     """Best-effort language detection from code content."""
@@ -315,7 +318,7 @@ Block edits to sensitive files:
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/']) else 0)\""
+            "command": "PY_BIN=$(command -v python3 || command -v python); if [ -z \"$PY_BIN\" ]; then echo 'python 3 required' >&2; exit 1; fi; \"$PY_BIN\" -c \"import json, sys; data=json.load(sys.stdin); path=data.get('tool_input',{}).get('file_path',''); sys.exit(2 if any(p in path for p in ['.env', 'package-lock.json', '.git/']) else 0)\""
           }
         ]
       }

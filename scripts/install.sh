@@ -20,6 +20,7 @@ SCOPE="$DEFAULT_SCOPE"
 PROJECT_PATH=""
 REF="$DEFAULT_REF"
 DRY_RUN=false
+PYTHON_BIN=""
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
@@ -233,6 +234,16 @@ require_cmd() {
     command -v "$1" >/dev/null 2>&1 || die "Missing required command: $1"
 }
 
+detect_python_bin() {
+    for candidate in python3 python; do
+        if command -v "$candidate" >/dev/null 2>&1; then
+            PYTHON_BIN="$candidate"
+            return
+        fi
+    done
+    die "Missing required command: python3 (or python). Install Python 3.11+ and ensure either 'python3' or 'python' is on your PATH."
+}
+
 ensure_clone() {
     local dir="$CLONE_DIR"
     mkdir -p "$(dirname "$dir")"
@@ -324,8 +335,8 @@ main() {
 
     parse_systems
     ensure_path_entry
+    detect_python_bin
     require_cmd git
-    require_cmd python3
     require_cmd uv
 
     ensure_clone

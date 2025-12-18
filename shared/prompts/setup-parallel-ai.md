@@ -34,7 +34,7 @@ Install and configure the Parallel AI CLI tool for web intelligence operations i
 
 1. Check prerequisites
    - Verify uv is available: `command -v uv`
-   - Check Python version: `python3 --version` (must be 3.12+)
+   - Check Python version: `python3 --version` (or `python --version` on systems without a `python3` shim) — must be 3.12+
    - If prerequisites missing, exit with instructions to install them.
 2. Check API key
    - Look for `PARALLEL_API_KEY` in environment: `echo $PARALLEL_API_KEY`

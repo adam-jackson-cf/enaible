@@ -21,9 +21,9 @@ remove_workspace() {
 
 uninstall_pip_deps() {
   local pybin
-  pybin=$(command -v python3 || true)
+  pybin=$(command -v python3 2>/dev/null || command -v python 2>/dev/null || true)
   if [[ -z "$pybin" ]]; then
-    log "python3 not found; skipping pip uninstall"
+    log "python interpreter not found; skipping pip uninstall"
     return
   fi
   log "Uninstalling pip dependencies (lizard, semgrep, ruff, detect-secrets)"
