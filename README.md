@@ -89,6 +89,8 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 
 ## Quick Reference
 
+```bash
+
 ANALYSIS
 /analyze-architecture [path] [--auto] [--verbose]
 /analyze-code-quality [path] [--auto]
@@ -121,6 +123,7 @@ SETUP TOOLING
 ---
 
 <details>
+
 <summary><strong>Complete Prompt Reference</strong></summary>
 
 ### Analysis
