@@ -33,7 +33,6 @@ def _patch_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("enaible.commands.install.load_workspace", lambda: context)
 
 
-
 def test_install_merge_project_scope(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
@@ -182,9 +181,9 @@ def test_merge_creates_folder_backup_not_per_file(tmp_path: Path) -> None:
     assert backups, "Expected a folder-level backup to be created"
     backup_root = backups[0]
     assert backup_root.is_dir(), "Backup should be a directory"
-    assert (
-        backup_root / "commands" / "analyze-security.md"
-    ).exists(), "Backup should contain original files"
+    assert (backup_root / "commands" / "analyze-security.md").exists(), (
+        "Backup should contain original files"
+    )
 
     # Verify NO per-file .bak siblings were created
     bak_files = list(claude_dir.rglob("*.bak"))
@@ -290,13 +289,13 @@ def test_claude_code_appends_to_existing_claude_md(tmp_path: Path) -> None:
     # CLAUDE.md should contain both original content and merged rules
     content = existing_claude_md.read_text(encoding="utf-8")
     assert "# My Project" in content, "Original content should be preserved"
-    assert (
-        "Custom instructions here." in content
-    ), "Original content should be preserved"
+    assert "Custom instructions here." in content, (
+        "Original content should be preserved"
+    )
     assert "AI-Assisted Workflows" in content, "Merged rules should be appended"
-    assert (
-        "---" in content
-    ), "Separator should be added between original and merged content"
+    assert "---" in content, (
+        "Separator should be added between original and merged content"
+    )
 
 
 def test_install_update_mode_skips_unmanaged_files(tmp_path: Path) -> None:
@@ -449,7 +448,9 @@ def test_copilot_user_scope_uses_vscode_user_dir(
     vscode_user_dir.mkdir(parents=True)
 
     # Patch where it's imported in install.py
-    with patch("enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir):
+    with patch(
+        "enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir
+    ):
         result = runner.invoke(
             app,
             [
@@ -477,7 +478,9 @@ def test_copilot_user_scope_agents_md_in_github_subdir(
     vscode_user_dir.mkdir(parents=True)
 
     # Patch where it's imported in install.py
-    with patch("enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir):
+    with patch(
+        "enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir
+    ):
         result = runner.invoke(
             app,
             [
@@ -549,9 +552,9 @@ def test_claude_code_status_program_is_executable(tmp_path: Path) -> None:
     import stat
 
     file_mode = status_file.stat().st_mode
-    assert (
-        file_mode & stat.S_IEXEC != 0
-    ), "statusline-worktree should have executable permissions"
+    assert file_mode & stat.S_IEXEC != 0, (
+        "statusline-worktree should have executable permissions"
+    )
 
 
 def test_claude_code_status_program_dry_run_records_chmod(tmp_path: Path) -> None:

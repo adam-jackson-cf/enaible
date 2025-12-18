@@ -37,7 +37,9 @@ def test_installation():
 
     print("✅ Installation test completed")
     print(f"Prerequisites: {'✅' if python_ok and pip_ok else '❌'}")
-    print(f"Current packages verified: {'✅' if verified else f'❌ Missing: {missing}'}")
+    print(
+        f"Current packages verified: {'✅' if verified else f'❌ Missing: {missing}'}"
+    )
 
     return True
 

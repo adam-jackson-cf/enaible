@@ -31,12 +31,10 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
 ## Workflow
 
 1. **Scope & Setup**
-
    - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving EXCLUDE_ARG from `.gitignore` (and `.git/info/exclude` when present).
    - Confirm the command operates read-only except for writing the final report to @OUT.
 
 2. **Deep Analysis (LLM + file-driven)**
-
    - Dispatch parallel task agents to review how the project supports @USER_PROMPT across:
      - Architecture & Orchestration
      - Backend Patterns & Practices
@@ -49,7 +47,6 @@ Explore the codebase and produce a feature primer tailored to @USER_PROMPT, cove
    - Capture supporting facts with repository commands (`ls`, `rg`, `git`, `sed`, etc.) and convert them into concise documentation-ready notes.
 
 3. **Git History & Pattern Recognition (last @DAYS days)**
-
    - Run history commands to surface recent themes, key contributors, and churn hotspots:
 
      ```bash

@@ -39,8 +39,9 @@ def test_get_vscode_user_dir_windows_missing_appdata(
 ) -> None:
     """Test VS Code user directory path on Windows when APPDATA is missing."""
     monkeypatch.setattr(platform, "system", lambda: "Windows")
-    with patch.dict(os.environ, {}, clear=True), pytest.raises(
-        RuntimeError, match="APPDATA environment variable"
+    with (
+        patch.dict(os.environ, {}, clear=True),
+        pytest.raises(RuntimeError, match="APPDATA environment variable"),
     ):
         get_vscode_user_dir()
 
@@ -59,4 +60,3 @@ def test_get_vscode_user_dir_unsupported_os(
     monkeypatch.setattr(platform, "system", lambda: "FreeBSD")
     with pytest.raises(RuntimeError, match="Unsupported operating system"):
         get_vscode_user_dir()
-

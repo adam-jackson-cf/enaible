@@ -28,13 +28,11 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 ## Workflow
 
 1. **Read Rules**
-
    - Load both project and user guidance to prevent duplicates:
      - `./AGENTS.md`
      - `~/.codex/AGENTS.md`
 
 2. **Capture Session History**
-
    - Gather Codex sessions within the lookback window, honoring optional filters:
 
      ```bash
@@ -49,23 +47,18 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
    - Treat `sessions[].user_messages[]` as primary signal and retain `operations` (tool_output, bash, file_change, turn.\*) for secondary context.
 
 3. **Build Corpus**
-
    - For each session, order `user_messages` chronologically, append high-signal entries (assistant messages, operations), and chunk to @CHUNK_SIZE until @MAX_CHARS is reached while preserving chronology.
 
 4. **Summarize (Subagent)**
-
    - Transform each chunk into YAML capturing `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes`; store intermediates under `.enaible/codify-history/`.
 
 5. **Consolidate Findings**
-
    - Merge YAML outputs, normalize phrasing, rank items by frequency/clarity, and classify them as Always Reinforce, Prevent, Duplicate, or One-off.
 
 6. **Compare Against Existing Rules**
-
    - Diff the consolidated list with `./AGENTS.md` and `~/.codex/AGENTS.md` to surface overlaps or contradictions.
 
 7. **Cleanup**
-
    - Remove working artifacts:
 
      ```bash
@@ -82,13 +75,11 @@ Codify recurring errors, fixes, and user preferences from recent Codex sessions,
 ## DETAILS
 
 - What changed
-
   - Consolidated standards, preferences, ways_of_working, and approaches (≤ @MAX_CHARS chars).
   - Compared to: ./AGENTS.md, ~/.codex/AGENTS.md.
   - Prepared merge‑ready rule blocks with rationale and evidence.
 
 - Where it changed
-
   - Proposal: printed for copy/paste into AGENTS.md
 
 - How to verify

@@ -102,7 +102,6 @@ Assembly Rules:
 ### Project vs Cycle Detection
 
 1. **Analyze naming patterns** to detect time-boxed efforts:
-
    - Contains "sprint", "iteration", "Q1/Q2/Q3/Q4", "2025", etc.
    - Has timeframe-specific language
    - Indicates bounded scope rather than ongoing product

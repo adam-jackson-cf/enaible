@@ -102,14 +102,18 @@ def temp_coverage_config_dir():
         # Clear caches and patch config directory
         _load_language_config_bundle.cache_clear()
         _load_generic_indicators.cache_clear()
-        with patch(
-            "analyzers.quality.coverage_analysis._COVERAGE_CONFIG_DIR", config_dir
-        ), patch(
-            "analyzers.quality.coverage_analysis._LANGUAGE_CONFIG_PATH",
-            config_dir / "languages.json",
-        ), patch(
-            "analyzers.quality.coverage_analysis._INDICATORS_PATH",
-            config_dir / "indicators.json",
+        with (
+            patch(
+                "analyzers.quality.coverage_analysis._COVERAGE_CONFIG_DIR", config_dir
+            ),
+            patch(
+                "analyzers.quality.coverage_analysis._LANGUAGE_CONFIG_PATH",
+                config_dir / "languages.json",
+            ),
+            patch(
+                "analyzers.quality.coverage_analysis._INDICATORS_PATH",
+                config_dir / "indicators.json",
+            ),
         ):
             yield config_dir
 

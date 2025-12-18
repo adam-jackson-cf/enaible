@@ -59,7 +59,6 @@ Install and configure mgrep for natural-language semantic search across code, do
    - Index respects .gitignore patterns automatically
    - If additional exclusions needed, create `.mgrepignore` file
 6. Update SYSTEMS.md
-
    - Add or update mgrep documentation section:
 
      ```md

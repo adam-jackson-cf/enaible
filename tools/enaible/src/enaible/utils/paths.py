@@ -34,4 +34,3 @@ def get_vscode_user_dir() -> Path:
         return Path.home() / ".config" / "Code" / "User"
     else:
         raise RuntimeError(f"Unsupported operating system: {system}")
-

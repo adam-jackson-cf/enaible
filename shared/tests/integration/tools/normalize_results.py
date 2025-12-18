@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Normalize analyzer JSON outputs by stripping volatile fields and sorting collections."""
+
 from __future__ import annotations
 
 import argparse

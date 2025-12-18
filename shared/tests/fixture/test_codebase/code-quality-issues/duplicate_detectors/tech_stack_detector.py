@@ -539,7 +539,10 @@ class TechStackDetector:
             if any(marker in content_lower for marker in vendor_markers):
                 # Additional check: if it's in a clearly non-vendor location, keep it
                 path_lower = file_path.lower()
-                return not any(dev_dir in path_lower for dev_dir in ["/src/", "/app/", "/components/", "/pages/"])
+                return not any(
+                    dev_dir in path_lower
+                    for dev_dir in ["/src/", "/app/", "/components/", "/pages/"]
+                )
 
         except (OSError, UnicodeDecodeError, PermissionError):
             # If we can't read the file, err on the side of analyzing it

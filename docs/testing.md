@@ -4,7 +4,7 @@ Enaible ships with several layers of automated tests. This guide explains the di
 
 ## CI Quality Gates
 
-Run `scripts/run-ci-quality-gates.sh` to execute the same sequence enforced by `.github/workflows/ci-quality-gates-incremental.yml` (shared unit tests with coverage, Ruff, Mypy, and the Enaible CLI test suite via `uv`). The script is wired into `pre-commit`, so committing without passing the gates will fail locally before CI.
+Run `scripts/run-ci-quality-gates.sh` to execute the same sequence enforced by `.github/workflows/ci-quality-gates-incremental.yml` (shared unit tests with coverage, Ruff, Mypy, Prettier, and the Enaible CLI test suite via `uv`). The git pre-commit hook (`.githooks/pre-commit`) calls the same script with auto-fix support; enable it with `git config core.hooksPath .githooks`.
 
 ## Unit Tests
 

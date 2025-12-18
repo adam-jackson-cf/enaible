@@ -285,7 +285,8 @@ class SemgrepAnalyzer(BaseAnalyzer):
                 # Process Semgrep findings
                 for finding in semgrep_output.get("results", []):
                     processed_finding = self._process_semgrep_finding(
-                        finding, "auto"  # Mark as auto-detected ruleset
+                        finding,
+                        "auto",  # Mark as auto-detected ruleset
                     )
                     if processed_finding:
                         findings.append(processed_finding)

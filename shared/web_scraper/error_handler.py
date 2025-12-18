@@ -103,7 +103,10 @@ class TraditionalCrawlFallback(FallbackStrategy):
 
         # Use traditional crawling with conservative settings
         return await crawl_website_async(
-            url=url, crawl_depth=2, max_pages=max_pages, query=query  # Reduced depth
+            url=url,
+            crawl_depth=2,
+            max_pages=max_pages,
+            query=query,  # Reduced depth
         )
 
 

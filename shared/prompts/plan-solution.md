@@ -37,7 +37,6 @@ Develop and compare solution approaches for a @USER_PROMPT using targeted contex
    - **STOP (skip when @AUTO):** Wait until the user provides answers or grants permission to proceed with assumptions.
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 2. **Conditional** system analysis (only when working against an existing codebase)
-
    - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-solution/$(date -u +%Y%m%dT%H%M%SZ)"` and create the directory.
    - Run the architecture analyzers through Enaible for the relevant target (default `.` unless discovery identifies a subpath):
 

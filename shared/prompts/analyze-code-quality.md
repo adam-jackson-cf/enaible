@@ -41,7 +41,6 @@ Assess code quality by combining automated metrics with architectural review to 
    - Note quality conventions to check based on detected stack (e.g., linter configs, type strictness, documentation standards)
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-
    - Execute each Enaible command, storing the JSON output:
 
      ```bash

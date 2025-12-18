@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Bump prompt versions in catalog.py for modified source files."""
+
 from __future__ import annotations
 
 import re

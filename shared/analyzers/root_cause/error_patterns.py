@@ -54,9 +54,9 @@ class ErrorPatternConfigError(RuntimeError):
 
 
 @lru_cache(maxsize=1)
-def _load_error_pattern_bundle() -> (
-    tuple[dict[str, dict[str, Any]], dict[str, dict[str, Any]]]
-):
+def _load_error_pattern_bundle() -> tuple[
+    dict[str, dict[str, Any]], dict[str, dict[str, Any]]
+]:
     """Load and validate general and language-specific error patterns."""
     try:
         general_raw = json.loads(_ERROR_PATTERNS_PATH.read_text(encoding="utf-8"))

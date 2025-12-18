@@ -83,20 +83,16 @@ Code through hierarchical settings:
 Settings are applied in order of precedence (highest to lowest):
 
 1. **Enterprise managed policies** (`managed-settings.json`)
-
    - Deployed by IT/DevOps
    - Cannot be overridden
 
 2. **Command line arguments**
-
    - Temporary overrides for a specific session
 
 3. **Local project settings** (`.claude/settings.local.json`)
-
    - Personal project-specific settings
 
 4. **Shared project settings** (`.claude/settings.json`)
-
    - Team-shared project settings in source control
 
 5. **User settings** (`~/.claude/settings.json`)

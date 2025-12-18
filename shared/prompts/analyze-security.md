@@ -42,7 +42,6 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Note security-relevant context: auth libraries, secrets management tools, infrastructure-as-code configs
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-
    - Execute each Enaible command, storing the JSON output:
 
      ```bash

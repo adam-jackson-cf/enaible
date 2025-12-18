@@ -1205,10 +1205,10 @@ class PatternAnalysisReport:
 Pattern Classification Summary
 =============================
 
-Total Patterns: {self.stats['total_matches']}
-High Confidence: {self.stats['high_confidence']}
-Average Confidence: {self.stats['avg_confidence']:.2f}
-Files Affected: {len(self.stats['files_affected'])}
+Total Patterns: {self.stats["total_matches"]}
+High Confidence: {self.stats["high_confidence"]}
+Average Confidence: {self.stats["avg_confidence"]:.2f}
+Files Affected: {len(self.stats["files_affected"])}
 
 Patterns by Type:
 """

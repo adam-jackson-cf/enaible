@@ -68,7 +68,6 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
    - Verify scripts can be found via PATH: `command -v browser-start.js`
    - If not found, remind user to add @INSTALL_DIR to PATH
 6. Update @SYSTEMS.MD
-
    - **STOP (skip when @AUTO):** "Document browser tools at project level (./@SYSTEMS.md) or user level ({{ system.user_scope_dir }}/@SYSTEMS.md)?"
    - Based on user choice, set @SYSTEMS_PATH:
      - Project: `./@SYSTEMS.md` (repo root)

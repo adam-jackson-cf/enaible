@@ -249,7 +249,7 @@ While Linear’s native integration handles linking, we supplement with GitHub A
 | Link multiple issues  | `Fixes ENG-1, ENG-2 and ENG-3`                                 |
 | Close via commit      | `Fixes ENG-123` in commit message                              |
 | Ignore branch linkage | Add `ignore ENG-123` to PR description                         |
-| Sync GitHub Issues    | Configure repo ↔ team (one or bi-directional)                 |
+| Sync GitHub Issues    | Configure repo ↔ team (one or bi-directional)                  |
 | Add previews          | Ensure provider comment or markdown link ending with "preview" |
 | Branch automations    | Configure per-team: target branch → status                     |
 

@@ -78,14 +78,16 @@ def temp_error_config_dir():
 
         # Clear caches and patch config directory
         _load_error_pattern_bundle.cache_clear()
-        with patch(
-            "analyzers.root_cause.error_patterns._ERROR_PATTERN_DIR", config_dir
-        ), patch(
-            "analyzers.root_cause.error_patterns._ERROR_PATTERNS_PATH",
-            config_dir / "patterns.json",
-        ), patch(
-            "analyzers.root_cause.error_patterns._LANGUAGE_PATTERNS_PATH",
-            config_dir / "language_patterns.json",
+        with (
+            patch("analyzers.root_cause.error_patterns._ERROR_PATTERN_DIR", config_dir),
+            patch(
+                "analyzers.root_cause.error_patterns._ERROR_PATTERNS_PATH",
+                config_dir / "patterns.json",
+            ),
+            patch(
+                "analyzers.root_cause.error_patterns._LANGUAGE_PATTERNS_PATH",
+                config_dir / "language_patterns.json",
+            ),
         ):
             yield config_dir
 

@@ -39,14 +39,12 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
 ## Workflow
 
 0. **Preflight checks**
-
    - Resolve `@TARGET_ABS=$(cd '@TARGET_PATH' && pwd)`; all analyzer shells must `cd '@TARGET_ABS'` and pass `--target '.'` so findings never mix in the orchestrator repo.
    - Verify required tools: `uv`, `tmux`, `npm`, `npx jscpd`, `git`, `pytest`, `ruff`, `mypy`. If any command is missing, write the failure reason to `@ORCH_ROOT/preflight-error.txt` and exit this workflow instead of launching tmux jobs.
    - Build a reusable exclusion string such as `@EXCLUDE_ARGS="--exclude .git --exclude .venv ..."` plus any user-provided `@EXCLUDE` tokens; keep it in shell variables (no helper files) and apply the same list to every analyzer.
    - Detect the dominant languages/frameworks in `@TARGET_ABS` (e.g., inspect `pyproject.toml`, `package.json`, `Cargo.toml`, `requirements.txt`, `.sql` files) - use this inventory to decide which performance analyzers should run (skip irrelevant ones to save time).
 
 1. **Init artifacts**
-
    - Compute `@ORCH_TS` (UTC `YYYYMMDDTHHMMSSZ`).
    - Create `@ORCH_ROOT = .enaible/artifacts/orchestrator/@ORCH_TS`.
    - Initialize dedicated analyzer roots:
@@ -58,7 +56,6 @@ Run a parallel, tmux-based repository analysis that reuses existing deterministi
    - Declare `@STATUS_LOG=@ORCH_ROOT/session-status.log`. Every tmux job must append `session,status,timestamp` (CSV or JSON) to this log instead of touching `.done/.failed` files. After synthesizing the final report, delete `@STATUS_LOG` to keep the artifact tree clean.
 
 2. **Launch core analyses (parallel via tmux; analyzers only via uv/enaible)**
-
    - Architecture:
      ```bash
      tmux new-session -d -s ra-arch "\

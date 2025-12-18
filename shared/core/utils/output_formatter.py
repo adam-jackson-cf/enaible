@@ -170,9 +170,9 @@ class AnalysisResult:
         if summary_mode and len(filtered_findings) > 10:
             result["summary_mode"] = True
             result["showing_top"] = len(findings_to_include)
-            result[
-                "truncated_note"
-            ] = f"Showing top {len(findings_to_include)} findings out of {len(filtered_findings)} filtered results"
+            result["truncated_note"] = (
+                f"Showing top {len(findings_to_include)} findings out of {len(filtered_findings)} filtered results"
+            )
 
         return result
 

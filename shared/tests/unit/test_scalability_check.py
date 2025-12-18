@@ -209,11 +209,14 @@ def get_user_orders(user_ids):
 """
 
         # Patch metrics high enough to satisfy evaluator thresholds
-        with patch.object(
-            ScalabilityAnalyzer,
-            "_get_lizard_metrics",
-            return_value={"max_ccn": 16, "total_functions": 5},
-        ), tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with (
+            patch.object(
+                ScalabilityAnalyzer,
+                "_get_lizard_metrics",
+                return_value={"max_ccn": 16, "total_functions": 5},
+            ),
+            tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f,
+        ):
             f.write(test_code)
             f.flush()
 
@@ -237,11 +240,14 @@ def inefficient_processing(data):
     return result
 """
 
-        with patch.object(
-            ScalabilityAnalyzer,
-            "_get_lizard_metrics",
-            return_value={"max_ccn": 16, "total_functions": 5},
-        ), tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with (
+            patch.object(
+                ScalabilityAnalyzer,
+                "_get_lizard_metrics",
+                return_value={"max_ccn": 16, "total_functions": 5},
+            ),
+            tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f,
+        ):
             f.write(test_code)
             f.flush()
 
@@ -358,11 +364,14 @@ def processData():
         QUERY = "SELECT * FROM table"
 """
 
-        with patch.object(
-            ScalabilityAnalyzer,
-            "_get_lizard_metrics",
-            return_value={"max_ccn": 16, "total_functions": 5},
-        ), tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with (
+            patch.object(
+                ScalabilityAnalyzer,
+                "_get_lizard_metrics",
+                return_value={"max_ccn": 16, "total_functions": 5},
+            ),
+            tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f,
+        ):
             f.write(test_code)
             f.flush()
 
@@ -387,11 +396,14 @@ def get_data():
         execute_query(query)
 """
 
-        with patch.object(
-            ScalabilityAnalyzer,
-            "_get_lizard_metrics",
-            return_value={"max_ccn": 16, "total_functions": 5},
-        ), tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with (
+            patch.object(
+                ScalabilityAnalyzer,
+                "_get_lizard_metrics",
+                return_value={"max_ccn": 16, "total_functions": 5},
+            ),
+            tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f,
+        ):
             f.write(test_code)
             f.flush()
 
@@ -417,11 +429,14 @@ def line_three():  # Line 4
                 pass
 """
 
-        with patch.object(
-            ScalabilityAnalyzer,
-            "_get_lizard_metrics",
-            return_value={"max_ccn": 16, "total_functions": 5},
-        ), tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f:
+        with (
+            patch.object(
+                ScalabilityAnalyzer,
+                "_get_lizard_metrics",
+                return_value={"max_ccn": 16, "total_functions": 5},
+            ),
+            tempfile.NamedTemporaryFile(mode="w", suffix=".py", delete=False) as f,
+        ):
             f.write(test_code)
             f.flush()
 

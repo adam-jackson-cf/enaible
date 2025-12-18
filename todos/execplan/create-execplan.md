@@ -26,22 +26,18 @@
 ## Workflow
 
 1. **Collect Inputs**
-
    - Load every artifact (spec first, then inspect reports) and capture objectives, constraints, target files, development approach and success criteria summaries.
 
 2. **Clarify Problem Space**
-
    - The feature, fix, or system requirement driving the work.
    - Document known pain points, limitations, and motivating context.
 
 3. **Clarify Technical Constraints**
-
    - Mandated stacks, platforms, infrastructure, and integration requirements.
    - Note compliance, security, or regulatory obligations.
    - Record relevant team skill sets or technology preferences.
 
 4. **Clarify Development Approach**
-
    - Global/project coding and behavior rules explicitly referenced in the artifacts.
    - Document tech stack, implementation patterns and solution design
 

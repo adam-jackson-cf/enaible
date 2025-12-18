@@ -3,16 +3,16 @@ name: Package Audit
 on:
   pull_request:
     paths:
-      - 'package*.json'
-      - '*.lock'
-      - 'pnpm-lock.yaml'
-      - 'bun.lockb'
+      - "package*.json"
+      - "*.lock"
+      - "pnpm-lock.yaml"
+      - "bun.lockb"
   workflow_dispatch:
     inputs:
       audit-level:
-        description: 'Audit severity level'
+        description: "Audit severity level"
         required: false
-        default: 'critical'
+        default: "critical"
         type: choice
         options:
           - info
@@ -33,7 +33,8 @@ jobs:
         id: changes
         uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         with:
-          filters: |            javascript:
+          filters: |
+            javascript:
               - 'package*.json'
               - '*.lock'
               - 'pnpm-lock.yaml'
@@ -43,7 +44,7 @@ jobs:
         if: steps.changes.outputs.javascript == 'true'
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '20.x'
+          node-version: "20.x"
 
       - name: Audit JavaScript (if changed)
         if: steps.changes.outputs.javascript == 'true'
@@ -76,5 +77,3 @@ jobs:
               repo: context.repo.repo,
               body: `⛔ Critical security vulnerabilities detected in dependencies (audit level: ${auditLevel}). Please review and fix before merging.`
             });
-
-

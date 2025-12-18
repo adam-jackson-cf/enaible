@@ -13,7 +13,6 @@ Analyze recent Codex activity from session logs and git history to understand cu
 ## Workflow
 
 1.  **Session Log Analysis**
-
     - Sync Enaible tooling once per checkout and capture Codex sessions with optional UUID/search-term filters:
 
       ```bash
@@ -63,7 +62,6 @@ Analyze recent Codex activity from session logs and git history to understand cu
     - Parse returned JSON and local session logs (`~/.codex/sessions/**`, `~/.codex/history.jsonl`) to surface prompts, operations, and tooling usage. In @VERBOSE mode expand truncated content and spotlight high-signal entries.
 
 2.  **Git Status Review**
-
     - Inspect uncommitted work and categorize modifications before mapping them to session insights:
 
       ```bash
@@ -73,7 +71,6 @@ Analyze recent Codex activity from session logs and git history to understand cu
     - Highlight files intersecting with recent Codex activity.
 
 3.  **Git History Review**
-
     - Build a timeline of recent work, trace file evolution, and mine intent keywords:
 
       ```bash
@@ -87,7 +84,6 @@ Analyze recent Codex activity from session logs and git history to understand cu
     - Record architectural shifts, renames, regressions, and follow-up TODOs captured in the history.
 
 4.  **Contributor & Pattern Mapping**
-
     - Identify ownership and recurring issues:
 
       ```bash

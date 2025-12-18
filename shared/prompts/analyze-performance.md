@@ -40,7 +40,6 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Note performance-relevant context: caching infrastructure, async frameworks, database drivers, bundler configs
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-
    - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected):
 
      ```bash

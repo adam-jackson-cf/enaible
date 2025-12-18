@@ -21,7 +21,6 @@ Analyze recent activity from context bundles and git history to understand curre
 ## Workflow
 
 1. **Context Bundle Analysis**
-
    - Sync dependencies once per checkout to keep the Enaible tooling aligned with the repo:
 
      ```bash
@@ -71,7 +70,6 @@ Analyze recent activity from context bundles and git history to understand curre
    - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In `@VERBOSE` mode expand truncated content and include high-signal assistant replies.
 
 2. **Git Status Review**
-
    - Inspect uncommitted work and note change types before correlating with context bundles:
 
      ```bash
@@ -81,7 +79,6 @@ Analyze recent activity from context bundles and git history to understand curre
    - Highlight files aligning with recent sessions and capture emerging hot spots.
 
 3. **Git History Review**
-
    - Build a timeline of recent work, track file evolution, and mine intent keywords:
 
      ```bash
@@ -95,7 +92,6 @@ Analyze recent activity from context bundles and git history to understand curre
    - Record architectural shifts, renames, regressions, and follow-up TODOs uncovered by these commands.
 
 4. **Contributor & Pattern Mapping**
-
    - Map ownership and recurring issues:
 
      ```bash

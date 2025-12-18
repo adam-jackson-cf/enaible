@@ -34,7 +34,6 @@ Design a staged refactoring plan that reduces technical debt, mitigates risk, an
 1. **Establish artifacts directory**
    - Set `@ARTIFACT_ROOT=".enaible/artifacts/plan-refactor/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Run automated analyzers**
-
    - Execute each Enaible command, storing the JSON output:
 
      ```bash

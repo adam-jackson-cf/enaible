@@ -92,8 +92,7 @@ def prompts_render(
         "--system",
         help="Comma-separated system identifiers or 'all'.",
     ),
-    out: Path
-    | None = typer.Option(
+    out: Path | None = typer.Option(
         None,
         "--out",
         "-o",

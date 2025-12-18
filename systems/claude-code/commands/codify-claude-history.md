@@ -28,7 +28,6 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
 ## Workflow
 
 1. **Capture (7-day default)**
-
    - Collect Claude session history with Enaible and honor optional UUID or search filters:
 
      ```bash
@@ -43,21 +42,17 @@ Derive standards, preferences, ways of working, and approaches from recent Claud
    - Focus on `sessions[].user_messages[]`, `sessions[].assistant_messages[]`, and `operations[]` for downstream analysis.
 
 2. **Build Corpus**
-
    - For each session, order `user_messages` chronologically, append up to two trimmed `assistant_messages`, and record high-signal file paths from `operations`.
    - Chunk content to ~12k tokens per segment while keeping the total corpus ≤ ~200k tokens.
 
 3. **Summarize (Subagent)**
-
    - Use the Task tool to summarize each chunk into YAML containing `standards`, `preferences`, `ways_of_working`, `approaches`, and `notes` (lists only, no prose or code blocks).
 
 4. **Consolidate & Propose**
-
    - Merge YAML outputs, rank items by frequency and clarity, and craft a merge-ready proposal for `~/.claude/CLAUDE.md` under “Personal Workflow Habits”.
    - STOP → "Apply to ~/.claude/CLAUDE.md? (y/n)"
 
 5. **Cleanup**
-
    - Remove temporary artifacts:
 
      ```bash

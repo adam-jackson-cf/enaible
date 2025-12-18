@@ -48,7 +48,6 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Note root-cause-relevant context: logging infrastructure, error tracking services, deployment configs
    - Log applied exclusions for final report
 4. **Run automated analyzers**
-
    - Execute each Enaible command, storing the JSON output:
 
      ```bash

@@ -29,7 +29,6 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
 ## Workflow
 
 1. Information gathering
-
    - Review @USER_PROMPT and clarify missing areas (product concept, target users, platforms, UX/UI requirements, screens).
    - Conduct targeted question sequence covering:
      - Product foundation
@@ -43,7 +42,6 @@ Produce a comprehensive UX-focused Product Requirements Document (PRD) that defi
      - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
 2. PRD generation
-
    - Generate the complete PRD using the Output Contract below. Populate all required sections using the Phase 1 answers. Use stable IDs for cross‑references.
 
    - Feature IDs: `F-001`, `F-002`, ...

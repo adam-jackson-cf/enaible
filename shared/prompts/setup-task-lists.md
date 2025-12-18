@@ -51,7 +51,6 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
    - If not found, **STOP (skip when @AUTO):** "Add .beads/ to .gitignore? (y/n)"
    - Append `.beads/` to `.gitignore`
 5. Update SYSTEMS.md
-
    - Add or update Beads documentation section:
 
      ```md

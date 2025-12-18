@@ -176,9 +176,10 @@ class FileSystemUtils:
                 "algorithm", algorithm, "valid hash algorithm (md5, sha1, sha256, etc.)"
             )
 
-        with CIErrorContext("computing file hash", str(path_obj)), open(
-            path_obj, "rb"
-        ) as f:
+        with (
+            CIErrorContext("computing file hash", str(path_obj)),
+            open(path_obj, "rb") as f,
+        ):
             for chunk in iter(lambda: f.read(4096), b""):
                 hasher.update(chunk)
 

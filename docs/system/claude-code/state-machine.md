@@ -306,19 +306,16 @@ getTaskStateHistory(taskId: string): StateTransition[]
 ## Best Practices
 
 1. **State Hygiene**
-
    - Update states immediately
    - Include transition reasons
    - Maintain accurate timestamps
 
 2. **Failure Management**
-
    - Reset counters on success
    - Preserve failure context
    - Learn from patterns
 
 3. **Timeout Handling**
-
    - Set realistic timeouts
    - Monitor proactively
    - Escalate appropriately

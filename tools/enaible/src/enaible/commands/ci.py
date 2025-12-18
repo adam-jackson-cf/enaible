@@ -34,8 +34,7 @@ def convert_codeclimate(
     artifacts: Path = typer.Argument(
         Path("artifacts"), help="Directory containing analyzer JSON files."
     ),
-    out: Path
-    | None = typer.Option(
+    out: Path | None = typer.Option(
         None, "--out", "-o", help="Optional output path for CodeClimate JSON array."
     ),
 ) -> None:
@@ -54,8 +53,7 @@ def security_markdown(
     artifacts: Path = typer.Argument(
         Path("artifacts"), help="Directory containing security analyzer JSON files."
     ),
-    out: Path
-    | None = typer.Option(
+    out: Path | None = typer.Option(
         None, "--out", "-o", help="Optional output path for Markdown."
     ),
 ) -> None:

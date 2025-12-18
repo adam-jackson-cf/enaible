@@ -60,15 +60,14 @@ def context_capture(
     ),
     days: int = typer.Option(2, help="Number of days to look back."),
     uuid: str | None = typer.Option(None, help="Filter to a specific session UUID."),
-    search_term: str
-    | None = typer.Option(None, help="Search for sessions containing this term."),
-    semantic_variations: str
-    | None = typer.Option(
+    search_term: str | None = typer.Option(
+        None, help="Search for sessions containing this term."
+    ),
+    semantic_variations: str | None = typer.Option(
         None,
         help="JSON string describing semantic variations for search_term.",
     ),
-    project_root: Path
-    | None = typer.Option(
+    project_root: Path | None = typer.Option(
         None,
         help="Absolute path to project root for scoping. Defaults to current directory.",
     ),
@@ -141,8 +140,7 @@ def docs_scrape(
 @app.command("auth_check")
 def auth_check(
     cli: AuthCli = typer.Option(..., "--cli", help="CLI to verify authentication for."),
-    report: Path
-    | None = typer.Option(
+    report: Path | None = typer.Option(
         None, "--report", help="Optional path to append auth status output to."
     ),
 ) -> None:
@@ -192,7 +190,7 @@ def doctor(
         False,
         "--json/--no-json",
         help="Emit diagnostics as JSON instead of human-readable text.",
-    )
+    ),
 ) -> None:
     """Run basic environment diagnostics."""
     from importlib import metadata

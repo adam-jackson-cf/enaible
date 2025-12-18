@@ -118,8 +118,7 @@ def analyzers_run(
         "--json/--no-json",
         help="Emit normalized JSON payload (default).",
     ),
-    out: Path
-    | None = typer.Option(
+    out: Path | None = typer.Option(
         None,
         "--out",
         "-o",
@@ -131,8 +130,7 @@ def analyzers_run(
         help="Minimum severity to include in findings.",
         show_default=True,
     ),
-    max_files: int
-    | None = typer.Option(
+    max_files: int | None = typer.Option(
         None,
         "--max-files",
         help="Limit the number of files processed.",

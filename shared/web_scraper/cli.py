@@ -117,10 +117,10 @@ def crawl(
         for i, page in enumerate(results):
             if page.get("success"):
                 # Generate filename
-                page_url = page.get("url", f"page_{i+1}")
+                page_url = page.get("url", f"page_{i + 1}")
                 title = page.get("title", "")
                 filename_base = (
-                    extract_filename_from_url(page_url, title) or f"page_{i+1}"
+                    extract_filename_from_url(page_url, title) or f"page_{i + 1}"
                 )
 
                 if output_format == "json":
@@ -139,7 +139,7 @@ def crawl(
                 successful_pages += 1
             else:
                 # Save error info for debugging
-                error_file = output / f"error_page_{i+1}.json"
+                error_file = output / f"error_page_{i + 1}.json"
                 error_file.write_text(json.dumps(page, indent=2, ensure_ascii=False))
                 failed_pages += 1
 

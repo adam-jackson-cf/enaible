@@ -121,9 +121,9 @@ def load_workspace(start: Path | None = None) -> WorkspaceContext:
 
     existing_pythonpath = os.environ.get("PYTHONPATH", "")
     if str(shared_root) not in existing_pythonpath.split(os.pathsep):
-        os.environ[
-            "PYTHONPATH"
-        ] = f"{str(shared_root)}{os.pathsep}{existing_pythonpath}".strip(os.pathsep)
+        os.environ["PYTHONPATH"] = (
+            f"{str(shared_root)}{os.pathsep}{existing_pythonpath}".strip(os.pathsep)
+        )
 
     return WorkspaceContext(
         repo_root=repo_root,

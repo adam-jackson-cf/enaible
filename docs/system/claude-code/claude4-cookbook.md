@@ -55,12 +55,10 @@ Claude 4 models respond to certain keywords with enhanced behavior. Using these 
 ### Power keywords
 
 1. **IMPORTANT**: Emphasizes critical instructions that must not be overlooked
-
    - Use once per critical rule instead of repetition
    - Place before the most crucial requirement in a section
 
 2. **Proactively**: Encourages Claude to take initiative and suggest improvements
-
    - Use when you want Claude to go beyond literal instructions
    - Helpful for creative tasks or optimization scenarios
 
@@ -92,12 +90,10 @@ For complex validation logic, think harder about edge cases and potential securi
 ### Common pitfalls to avoid
 
 1. **"Production-ready" code requests**: This vague descriptor often leads to over-engineering
-
    - Instead: Specify exact requirements (error handling, logging, tests)
    - Example: Replace "make it production-ready" with "add error handling for network failures and log all API calls"
 
 2. **Backward compatibility obsession**: Claude tends to preserve old code unnecessarily
-
    - Add "**IMPORTANT**: Avoid backward compatibility unless specifically needed"
    - Be explicit when you do need compatibility: "maintain compatibility with v2.x API"
 
@@ -112,12 +108,10 @@ For complex validation logic, think harder about edge cases and potential securi
 There are a few ways that we have found to be particularly effective in steering output formatting in Claude 4 models:
 
 1. **Tell Claude what to do instead of what not to do**
-
    - Instead of: "Do not use markdown in your response"
    - Try: "Your response should be composed of smoothly flowing prose paragraphs."
 
 2. **Use XML format indicators**
-
    - Try: "Write the prose sections of your response in \<smoothly_flowing_prose_paragraphs> tags."
 
 3. **Match your prompt style to the desired output**

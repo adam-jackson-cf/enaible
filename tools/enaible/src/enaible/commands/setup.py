@@ -77,8 +77,7 @@ def package_monitoring(
         "--branch-protection/--no-branch-protection",
         help="Setup branch protection rules.",
     ),
-    package_file: str
-    | None = typer.Option(
+    package_file: str | None = typer.Option(
         None,
         "--package-file",
         help="Specify package file directly to skip ecosystem detection.",

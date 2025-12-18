@@ -89,7 +89,9 @@ class AnalysisRunner:
         max_files: int = None,
     ) -> dict[str, Any]:
         """Run all analysis scripts and combine results."""
-        print("🚀 AI-Assisted Workflows Analysis - Running All Scripts", file=sys.stderr)
+        print(
+            "🚀 AI-Assisted Workflows Analysis - Running All Scripts", file=sys.stderr
+        )
         print("=" * 60, file=sys.stderr)
 
         start_time = time.time()

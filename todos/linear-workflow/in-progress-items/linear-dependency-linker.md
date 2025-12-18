@@ -65,7 +65,6 @@ Create blocking edges in Linear according to computed dependency graph, ensuring
 ### Tool Access Validation
 
 1. **Validate MCP tool availability** before any operations:
-
    - Verify access to required `mcp__Linear_*` tools
    - Check Linear API connectivity via simple team listing call
    - Validate permissions for issue linking operations

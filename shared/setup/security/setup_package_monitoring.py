@@ -271,9 +271,7 @@ class PackageMonitoringSetup:
 
         if "go" in self.detected_ecosystems:
             filters.append(
-                "            go:\n"
-                "              - 'go.mod'\n"
-                "              - 'go.sum'"
+                "            go:\n              - 'go.mod'\n              - 'go.sum'"
             )
 
         if "rust" in self.detected_ecosystems:

@@ -45,7 +45,6 @@ Analyse the following aspects of the target codebase:
 - Documentation, Global rules files and configs
 
 2. **Git history review**
-
    - Run `git status`, `git log --since="30 days ago"`, and `git shortlog -sn --since="30 days ago"` (adjust window when @TARGET_PATH differs).
    - Capture recent themes, active contributors, and churn hotspots for inclusion in the primer.
 

@@ -60,7 +60,6 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      - When @AUTO is present, follow the documented default (overwrite unless the prompt specifies otherwise) and record internally that the confirmation was auto-applied.
    - Respect choice and create timestamped backups when requested.
 6. Write Makefile (direct content)
-
    - Write a Makefile that defines a timestamped log pipeline, core targets, and one run‑<LABEL> target per component.
    - Content to write (template; expand per component from `$COMPONENTS_JSON`):
 
@@ -113,7 +112,6 @@ Configure development monitoring by generating Makefile and Procfile orchestrati
      ```
    - Always use `./dev.log` for writeability; never `/dev.log`.
 8. Update @SYSTEMS.md (direct content)
-
    - Insert or upsert this Development section:
 
      ```md

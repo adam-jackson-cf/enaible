@@ -14,7 +14,7 @@
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh?$(date +%s)" \
-  | bash -s -- --systems codex --scope user
+  | bash -s --systems codex --scope user
 ```
 
 > Valid `--systems` values: `codex`, `claude-code`, `copilot`, `cursor`, `gemini`, `antigravity` (use comma-separated lists for multiple scopes).
@@ -29,10 +29,8 @@ pwsh -NoLogo -File .\install.ps1 -Systems claude-code -Scope user
 # NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
 ```
 
-> Like the macOS/Linux installer, the PowerShell script prompts only when it has access to the console. Supply `-Systems`
-> (same valid values as above) and `-Scope` explicitly anytime you invoke it via a pipeline or non-interactive shell. For the project scope, run the
-> command from the destination repo or include `-Project 'C:\path\to\repo'` so the installer knows where to copy
-> managed files.
+> Follows same flags as macOS/Linux installer, Supply `-Systems` (same valid values as above) and `-Scope`
+> for project path include `-Project 'C:\path\to\repo'` so the installer can locate the project repo.
 
 See [docs/installation.md](docs/installation.md) for manual install options and complete flag reference.
 
@@ -46,8 +44,17 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 
 ```bash
 /get-codebase-primer                    # Understand architecture, tech stack, commands
-/analyze-architecture src/              # Evaluate layering, coupling, scalability
+/analyze-code-quality                   # Evaluate layering, coupling, scalability and flag improvements
+/analyze-code-architecture
+```
+
+### Coding a feature
+
+```bash
 /get-feature-primer "authentication"    # Deep dive into specific feature areas
+# execute coding loop feature work
+/analyze-code-quality                   # Code review - evaluate layering, coupling, scalability and flag improvements (uses lizard + others)
+/analyze-security                       # Code review - ensure no security issues (uses semgrep)
 ```
 
 ### Planning a New Feature
@@ -55,14 +62,12 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 ```bash
 /get-feature-primer "payments"          # Gather context on related code
 /plan-solution "Add Stripe integration" # Compare Conservative, Balanced, Innovative approaches
-/analyze-security src/payments/         # Security review before implementation
 ```
 
 ### Investigating Production Issues
 
 ```bash
 /analyze-root-cause "API timeout errors"  # Trace through recent code changes
-/analyze-performance src/api/             # Identify bottlenecks and hotspots
 ```
 
 ### Setting Up a New Project
@@ -76,68 +81,42 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 ### Preparing for Code Review / Handoff
 
 ```bash
-/analyze-code-quality src/              # Complexity metrics, technical debt signals
-/create-hand-off                        # Generate context prompt for next session
+/analyze-code-quality src/                    # Complexity metrics, technical debt signals
+/plan-refactor "based on code quality report" # use code quality report to plan out least intrusive refactor
 ```
 
 ---
 
 ## Quick Reference
 
-```
 ANALYSIS
-  /analyze-architecture [path] [--auto] [--verbose]
-  /analyze-code-quality [path] [--auto]
-  /analyze-security [path] [--min-severity critical|high|medium|low]
-  /analyze-performance [path]
-  /analyze-root-cause "description"
+/analyze-architecture [path] [--auto] [--verbose]
+/analyze-code-quality [path] [--auto]
+/analyze-security [path] [--min-severity critical|high|medium|low]
+/analyze-performance [path]
+/analyze-root-cause "description"
 
 PLANNING
-  /plan-solution "problem" [--target-path ./] [--auto]
-  /plan-refactor "module" [--auto]
-  /plan-ux-prd "feature"
-  /create-hand-off
+/plan-solution "problem" [--target-path ./] [--auto]
+/plan-refactor "module" [--auto]
+/plan-ux-prd "feature"
+/create-hand-off
 
 CONTEXT
-  /get-codebase-primer [--target-path ./]
-  /get-feature-primer "feature" [--target-path ./]
-  /create-rule <topic>
+/get-codebase-primer [--target-path ./]
+/get-feature-primer "feature" [--target-path ./]
+/create-rule <topic>
 
-SETUP
-  /setup-dev-monitoring       /setup-browser-tools
-  /setup-code-precommit-checks    /setup-command-history
-  /setup-package-monitoring       /setup-mgrep
-  /setup-task-lists           /setup-parallel-ai
-  /setup-ui-pointer
+SETUP TOOLING
+/setup-dev-monitoring /setup-browser-tools
+/setup-code-precommit-checks /setup-command-history
+/setup-package-monitoring /setup-mgrep
+/setup-task-lists /setup-parallel-ai
+/setup-ui-pointer
+
 ```
 
 > **Tip:** Add `--auto` to skip confirmation prompts. Add `--verbose` for extended output.
-
----
-
-## Dependencies by Workflow
-
-| Workflow              | Required Tools                                                                                        |
-| --------------------- | ----------------------------------------------------------------------------------------------------- |
-| Code Quality Analysis | [Lizard](https://github.com/terryyin/lizard), [JSCPD](https://github.com/kucherenko/jscpd) (Node/npm) |
-| Security Scanning     | [Semgrep](https://semgrep.dev/), [detect-secrets](https://github.com/Yelp/detect-secrets)             |
-| Performance Analysis  | [Ruff](https://docs.astral.sh/ruff/), [ESLint](https://eslint.org/) + TS/React plugins (for JS/TS)    |
-| All Other Prompts     | None (built-in analyzers)                                                                             |
-
-**Prerequisites:** Git, Python 3.12+, [uv](https://docs.astral.sh/uv/) 0.4+, Node.js 18+ (for JSCPD)
-
----
-
-## System-Specific Commands
-
-| Command                   | System | Example                                    | Use Case                                  |
-| ------------------------- | ------ | ------------------------------------------ | ----------------------------------------- |
-| codify-claude-history     | Claude | `/codify-claude-history --days 7`          | Extract workflow standards from sessions  |
-| get-recent-context        | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
-| codify-codex-history      | Codex  | `/codify-codex-history`                    | Mine sessions for recurring patterns      |
-| get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
-| analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
-| todo-background           | Codex  | `/todo-background "refactor auth"`         | Run task in background tmux session       |
 
 ---
 
@@ -191,6 +170,17 @@ SETUP
 | ------------ | ---------------------------------- |
 | docs-scraper | Fetch and convert docs to markdown |
 
+### System-Specific Commands
+
+| Command                   | System | Example                                    | Use Case                                  |
+| ------------------------- | ------ | ------------------------------------------ | ----------------------------------------- |
+| codify-claude-history     | Claude | `/codify-claude-history --days 7`          | Extract workflow standards from sessions  |
+| get-recent-context        | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
+| codify-codex-history      | Codex  | `/codify-codex-history`                    | Mine sessions for recurring patterns      |
+| get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
+| analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
+| todo-background           | Codex  | `/todo-background "refactor auth"`         | Run task in background tmux session       |
+
 </details>
 
 ---
@@ -204,3 +194,4 @@ SETUP
 [Report Issues](https://github.com/adam-jackson-cf/enaible/issues) | [Request Features](https://github.com/adam-jackson-cf/enaible/discussions)
 
 </div>
+```

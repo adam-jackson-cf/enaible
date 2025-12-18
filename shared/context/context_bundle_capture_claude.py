@@ -4,6 +4,7 @@
 Emits a backward-compatible operations[] list and an enriched sessions[] array
 with per-session user and assistant messages to support ways-of-working analysis.
 """
+
 import argparse
 import json
 import sys

@@ -49,7 +49,6 @@ Install and configure the Parallel AI CLI tool for web intelligence operations i
    - Verify all subcommands are available (search, extract, task, findall, status, result)
    - **STOP (skip when @AUTO):** "Parallel AI CLI installed successfully. Continue to documentation? (y/n)"
 5. Update @SYSTEMS.md
-
    - **STOP (skip when @AUTO):** "Document Parallel AI tools at project level (./@SYSTEMS.md) or user level ({{ system.user_scope_dir }}/@SYSTEMS.md)?"
    - Based on user choice, set @SYSTEMS_PATH:
      - Project: `./@SYSTEMS.md` (repo root)
@@ -68,20 +67,16 @@ Install and configure the Parallel AI CLI tool for web intelligence operations i
    **Available Commands:**
 
    - `parallel search <objective>` — Web search with natural language
-
      - Options: `--query/-q` (repeatable), `--max-results N`, `--format json|markdown`
 
    - `parallel extract <url>` — Extract content from URLs to markdown
-
      - Options: `--objective "focus"`, `--full-content`, `--format json|markdown`
 
    - `parallel task <input>` — Create enrichment/research task (async)
-
      - Options: `--schema "output desc"`, `--processor base|core`
      - Returns: run_id (use `parallel result` to get output)
 
    - `parallel findall <objective>` — Discover entities matching criteria (async)
-
      - Options: `--entity type`, `--condition` (repeatable), `--limit N`, `--generator base|core|pro`
      - Returns: findall_id (use `parallel status` to track)
 

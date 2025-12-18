@@ -93,9 +93,9 @@ class RootCauseAnalysisIntegrationTest:
                 test_file = Path(temp_dir) / file_name
                 test_file.write_text(
                     f"""
-// Test file for {scenario['name']}
+// Test file for {scenario["name"]}
 function testFunction() {{
-    // Line {scenario.get('expected_line', 45)}
+    // Line {scenario.get("expected_line", 45)}
     console.log('test line');
     try {{
         // Some code that might fail
@@ -258,7 +258,7 @@ function otherFunction() {
 function errorProneFunction() {{
     try {{
         var user = getUser();
-        return user.name; // Line around {scenario.get('expected_line', 45)}
+        return user.name; // Line around {scenario.get("expected_line", 45)}
     }} catch (error) {{
         console.error('Error:', error);
         throw error;

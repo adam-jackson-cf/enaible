@@ -33,7 +33,9 @@ class LanguageDetector:
     }
 
     @classmethod
-    def detect_from_files(cls, file_paths: list[Path], exclusion_patterns: list[str] | None = None) -> set[str]:
+    def detect_from_files(
+        cls, file_paths: list[Path], exclusion_patterns: list[str] | None = None
+    ) -> set[str]:
         """
         Detect programming languages from a list of files.
 
@@ -58,7 +60,9 @@ class LanguageDetector:
         return languages
 
     @classmethod
-    def detect_from_directory(cls, project_dir: str, exclusion_patterns: list[str] | None = None) -> set[str]:
+    def detect_from_directory(
+        cls, project_dir: str, exclusion_patterns: list[str] | None = None
+    ) -> set[str]:
         """
         Detect programming languages from all files in a directory.
 
@@ -81,7 +85,9 @@ class LanguageDetector:
         return cls.detect_from_files(all_files, exclusion_patterns)
 
     @classmethod
-    def _should_exclude_file(cls, file_path: Path, exclusion_patterns: list[str]) -> bool:
+    def _should_exclude_file(
+        cls, file_path: Path, exclusion_patterns: list[str]
+    ) -> bool:
         """Check if file should be excluded based on exclusion patterns."""
         file_str = str(file_path)
         relative_path = str(file_path.name) if file_path.is_absolute() else file_str
@@ -91,10 +97,16 @@ class LanguageDetector:
             # Handle directory patterns
             if pattern.endswith("/*") or pattern.endswith("/**/*"):
                 dir_pattern = pattern.rstrip("/*").rstrip("*")
-                if f"/{dir_pattern}/" in file_str or file_str.startswith(f"{dir_pattern}/"):
+                if f"/{dir_pattern}/" in file_str or file_str.startswith(
+                    f"{dir_pattern}/"
+                ):
                     return True
             # Handle file patterns
-            elif fnmatch.fnmatch(relative_path, pattern) or fnmatch.fnmatch(file_str, pattern) or pattern in file_str:
+            elif (
+                fnmatch.fnmatch(relative_path, pattern)
+                or fnmatch.fnmatch(file_str, pattern)
+                or pattern in file_str
+            ):
                 return True
 
         return False
@@ -118,10 +130,16 @@ def main():
     """CLI interface for language detection utility."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Detect programming languages in project")
-    parser.add_argument("--project-dir", required=True, help="Project directory to scan")
+    parser = argparse.ArgumentParser(
+        description="Detect programming languages in project"
+    )
+    parser.add_argument(
+        "--project-dir", required=True, help="Project directory to scan"
+    )
     parser.add_argument("--exclude", nargs="*", help="Exclusion patterns")
-    parser.add_argument("--output", choices=["list", "json"], default="list", help="Output format")
+    parser.add_argument(
+        "--output", choices=["list", "json"], default="list", help="Output format"
+    )
 
     args = parser.parse_args()
 
@@ -130,9 +148,12 @@ def main():
 
     if args.output == "json":
         import json
+
         print(json.dumps({"languages": sorted(languages)}, indent=2))
     else:
-        print("Detected languages:", ", ".join(sorted(languages)) if languages else "None")
+        print(
+            "Detected languages:", ", ".join(sorted(languages)) if languages else "None"
+        )
 
 
 if __name__ == "__main__":

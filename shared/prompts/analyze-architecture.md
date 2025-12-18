@@ -42,7 +42,6 @@ Evaluate system architecture quality by combining automated structural analyzers
    - Note architectural patterns to look for based on detected stack (e.g., Rails conventions, Spring layers, React component hierarchy)
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
