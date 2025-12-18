@@ -38,18 +38,20 @@ init_prompt_input() {
     fi
 
     if [[ -r /dev/tty ]]; then
-        exec 3</dev/tty
-        PROMPT_FD=3
-        PROMPT_INPUT_AVAILABLE=true
-        return
+        if exec 3</dev/tty 2>/dev/null; then
+            PROMPT_FD=3
+            PROMPT_INPUT_AVAILABLE=true
+            return
+        fi
     fi
 
     local tty_path
-    if tty_path=$(tty) 2>/dev/null && [[ -n "$tty_path" && -r "$tty_path" ]]; then
-        exec 3<"$tty_path"
-        PROMPT_FD=3
-        PROMPT_INPUT_AVAILABLE=true
-        return
+    if tty_path=$(tty 2>/dev/null) && [[ -n "$tty_path" && -r "$tty_path" ]]; then
+        if exec 3<"$tty_path" 2>/dev/null; then
+            PROMPT_FD=3
+            PROMPT_INPUT_AVAILABLE=true
+            return
+        fi
     fi
 
     PROMPT_INPUT_AVAILABLE=false

@@ -76,7 +76,7 @@ function Read-InteractiveInput {
             $value = Read-Host -Prompt $PromptText
         }
         'Stream' {
-            $label = if ($PromptText.TrimEnd().EndsWith(':')) { $PromptText } else { "$PromptText:" }
+            $label = if ($PromptText.TrimEnd().EndsWith(':')) { $PromptText } else { "${PromptText}:" }
             Write-Host -NoNewline "$label "
             $value = $script:PromptReader.ReadLine()
             if ($null -eq $value) {
