@@ -90,6 +90,8 @@ The repository includes pre-commit hooks (`.pre-commit-config.yaml`) that run au
 
 Install hooks: `pre-commit install`
 
+> **Codex git pushes:** The Codex shell does not inherit Cursor's GUI askpass bridge. Run `unset GIT_ASKPASS` (and `unset SSH_ASKPASS` if set) before pushing so git reuses your stored credentials without Cursor's modal failing in the background.
+
 ## Repository Structure (maintainer view)
 
 ```
