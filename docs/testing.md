@@ -2,6 +2,10 @@
 
 Enaible ships with several layers of automated tests. This guide explains the different suites, how to run them, and the additional setup required for prompt end-to-end validation.
 
+## CI Quality Gates
+
+Run `scripts/run-ci-quality-gates.sh` to execute the same sequence enforced by `.github/workflows/ci-quality-gates-incremental.yml` (shared unit tests with coverage, Ruff, Mypy, and the Enaible CLI test suite via `uv`). The script is wired into `pre-commit`, so committing without passing the gates will fail locally before CI.
+
 ## Unit Tests
 
 Location: `tools/enaible/tests/` and `shared/tests/unit/`

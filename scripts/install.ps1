@@ -9,7 +9,7 @@ param(
     [string]$RepoUrl = "https://github.com/adam-jackson-cf/enaible",
     [string]$CloneDir = (Join-Path $env:USERPROFILE ".enaible/sources/ai-assisted-workflows"),
     [string[]]$Systems = @("codex", "claude-code"),
-    [ValidateSet("user", "project", "both")] [string]$Scope = "user",
+    [ValidateSet("user", "project")] [string]$Scope = "user",
     [string]$Project,
     [string]$Ref = "main",
     [switch]$DryRun
@@ -19,11 +19,80 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $sessionDir = Join-Path $env:USERPROFILE ".enaible/install-sessions"
+$script:PromptReader = $null
+$script:PromptInputMode = 'ReadHost'
+$script:PromptAvailable = $true
 
 function Write-Log {
     param([string]$Message)
     $timestamp = (Get-Date -AsUTC).ToString("yyyy-MM-ddTHH:mm:ssZ")
     Write-Host "[$timestamp] $Message"
+}
+
+function Initialize-PromptInput {
+    $script:PromptInputMode = 'ReadHost'
+    $script:PromptAvailable = $true
+
+    if (-not [System.Environment]::UserInteractive) {
+        $script:PromptAvailable = $false
+        $script:PromptInputMode = 'None'
+        return
+    }
+
+    if (-not [System.Console]::IsInputRedirected) {
+        return
+    }
+
+    $path = if ($IsWindows) { 'CONIN$' } else { '/dev/tty' }
+    try {
+        $stream = [System.IO.FileStream]::new(
+            $path,
+            [System.IO.FileMode]::Open,
+            [System.IO.FileAccess]::Read,
+            [System.IO.FileShare]::ReadWrite
+        )
+        $script:PromptReader = [System.IO.StreamReader]::new($stream)
+        $script:PromptInputMode = 'Stream'
+    }
+    catch {
+        $script:PromptAvailable = $false
+        $script:PromptInputMode = 'None'
+    }
+}
+
+function Read-InteractiveInput {
+    param(
+        [string]$PromptText,
+        [string]$DefaultValue
+    )
+
+    if (-not $script:PromptAvailable) {
+        throw "Interactive input unavailable; provide -Systems and -Scope parameters when running non-interactively."
+    }
+
+    $value = $null
+    switch ($script:PromptInputMode) {
+        'ReadHost' {
+            $value = Read-Host -Prompt $PromptText
+        }
+        'Stream' {
+            $label = if ($PromptText.TrimEnd().EndsWith(':')) { $PromptText } else { "$PromptText:" }
+            Write-Host -NoNewline "$label "
+            $value = $script:PromptReader.ReadLine()
+            if ($null -eq $value) {
+                throw "Failed to read interactive input; rerun with -Systems and -Scope."
+            }
+        }
+        default {
+            throw "Interactive input unavailable; provide -Systems and -Scope parameters."
+        }
+    }
+
+    if ([string]::IsNullOrWhiteSpace($value)) {
+        return $DefaultValue
+    }
+
+    return $value
 }
 
 function Invoke-CommandSafe {
@@ -161,6 +230,9 @@ function Write-SessionLog {
 }
 
 function Prompt-ForSystems {
+    if (-not $script:PromptAvailable) {
+        throw "Interactive input unavailable; provide -Systems to proceed."
+    }
     Write-Log "Select systems to install (space-separated numbers, e.g., '1 2' for codex and claude-code):"
     Write-Host "  1) codex"
     Write-Host "  2) claude-code"
@@ -171,7 +243,7 @@ function Prompt-ForSystems {
 
     $selectedSystems = @()
     while ($selectedSystems.Length -eq 0) {
-        $selection = Read-Host "Enter selection (required)"
+        $selection = Read-InteractiveInput -PromptText "Enter selection (required)"
 
         $systems = @()
         foreach ($num in $selection -split '\s+') {
@@ -202,20 +274,18 @@ function Prompt-ForSystems {
 }
 
 function Prompt-ForScope {
+    if (-not $script:PromptAvailable) {
+        throw "Interactive input unavailable; provide -Scope to proceed."
+    }
     Write-Log "Select installation scope:"
     Write-Host "  1) user    - Install to user profile only"
     Write-Host "  2) project - Install to current/specified project only"
-    Write-Host "  3) both    - Install to both user and project"
 
-    $selection = Read-Host "Enter selection [1]"
-    if ([string]::IsNullOrWhiteSpace($selection)) {
-        $selection = "1"
-    }
+    $selection = Read-InteractiveInput -PromptText "Enter selection [1]" -DefaultValue "1"
 
     switch ($selection.Trim()) {
         "1" { $script:Scope = "user" }
         "2" { $script:Scope = "project" }
-        "3" { $script:Scope = "both" }
         default {
             Write-Log "Invalid selection, defaulting to 'user'"
             $script:Scope = "user"
@@ -257,6 +327,8 @@ function Validate-Systems {
     $script:Systems = $clean
 }
 
+Initialize-PromptInput
+
 if (-not $PSBoundParameters.ContainsKey('Systems')) {
     Prompt-ForSystems
 }
@@ -279,12 +351,11 @@ switch ($Scope) {
         Resolve-ProjectPath
         Install-Scope -ScopeName 'project' -Target $Project
     }
-    'both' {
-        Resolve-ProjectPath
-        Install-Scope -ScopeName 'user' -Target ''
-        Install-Scope -ScopeName 'project' -Target $Project
-    }
 }
 
 Write-SessionLog
 Write-Log "Bootstrap complete. Add %USERPROFILE%\.local\bin (or uv tools path) to PATH for future shells."
+
+if ($null -ne $script:PromptReader) {
+    $script:PromptReader.Dispose()
+}

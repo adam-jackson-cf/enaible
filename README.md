@@ -13,15 +13,28 @@
 ## Quick Install
 
 ```bash
-# macOS/Linux
-curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh" | bash -s --
-
-# Windows PowerShell 7+
-Invoke-WebRequest https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.ps1 -OutFile install.ps1
-pwsh -NoLogo -File .\install.ps1
+curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh?$(date +%s)" \
+  | bash -s -- --systems codex --scope user
 ```
 
-See [docs/installation.md](docs/installation.md) for complete options.
+> Valid `--systems` values: `codex`, `claude-code`, `copilot`, `cursor`, `gemini`, `antigravity` (use comma-separated lists for multiple scopes).
+> Valid `--scope` values: `user` or `project)`
+> If you choose `project`, run the script from the root of the target git repo or supply `--project /absolute/path/to/repo` so the installer can locate the project repo.
+
+### Windows PowerShell 7+
+
+```powershell
+Invoke-WebRequest https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.ps1 -OutFile install.ps1
+pwsh -NoLogo -File .\install.ps1 -Systems claude-code -Scope user
+# NB: if the download is marked as coming from the internet, run `Unblock-File .\install.ps1` before execution.
+```
+
+> Like the macOS/Linux installer, the PowerShell script prompts only when it has access to the console. Supply `-Systems`
+> (same valid values as above) and `-Scope` explicitly anytime you invoke it via a pipeline or non-interactive shell. For the project scope, run the
+> command from the destination repo or include `-Project 'C:\path\to\repo'` so the installer knows where to copy
+> managed files.
+
+See [docs/installation.md](docs/installation.md) for manual install options and complete flag reference.
 
 ---
 

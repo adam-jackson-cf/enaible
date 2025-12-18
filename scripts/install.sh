@@ -10,6 +10,9 @@ DEFAULT_SCOPE="user"
 DEFAULT_REF="main"
 SESSION_DIR="${HOME}/.enaible/install-sessions"
 
+PROMPT_FD=0
+PROMPT_INPUT_AVAILABLE=false
+
 REPO_URL="$DEFAULT_REPO_URL"
 CLONE_DIR="$DEFAULT_CLONE_DIR"
 SYSTEM_ARG="$DEFAULT_SYSTEMS"
@@ -27,6 +30,55 @@ die() {
     exit 1
 }
 
+init_prompt_input() {
+    if [[ -t 0 ]]; then
+        PROMPT_FD=0
+        PROMPT_INPUT_AVAILABLE=true
+        return
+    fi
+
+    if [[ -r /dev/tty ]]; then
+        exec 3</dev/tty
+        PROMPT_FD=3
+        PROMPT_INPUT_AVAILABLE=true
+        return
+    fi
+
+    local tty_path
+    if tty_path=$(tty) 2>/dev/null && [[ -n "$tty_path" && -r "$tty_path" ]]; then
+        exec 3<"$tty_path"
+        PROMPT_FD=3
+        PROMPT_INPUT_AVAILABLE=true
+        return
+    fi
+
+    PROMPT_INPUT_AVAILABLE=false
+}
+
+read_prompt_line() {
+    local __var_name="$1"
+    local __default="${2:-}"
+    local input=""
+    local status=0
+
+    if [[ "$PROMPT_FD" -eq 0 ]]; then
+        IFS= read -r input || status=$?
+    else
+        IFS= read -r -u "$PROMPT_FD" input || status=$?
+    fi
+
+    if [[ $status -ne 0 && -z "$__default" && -z "$input" ]]; then
+        return 1
+    fi
+
+    if [[ -z "$input" && -n "$__default" ]]; then
+        input="$__default"
+    fi
+
+    printf -v "$__var_name" '%s' "$input"
+    return 0
+}
+
 ensure_path_entry() {
     case ":${PATH}:" in
         *:"${HOME}/.local/bin":*) ;;
@@ -35,6 +87,7 @@ ensure_path_entry() {
 }
 
 prompt_for_systems() {
+    $PROMPT_INPUT_AVAILABLE || die "Interactive input unavailable; provide --systems to proceed"
     log "Select systems to install (space-separated numbers, e.g., '1 2' for codex and claude-code):"
     echo "  1) codex"
     echo "  2) claude-code"
@@ -46,7 +99,9 @@ prompt_for_systems() {
     local selected_systems=""
     while [[ -z "$selected_systems" ]]; do
         printf "Enter selection (required): "
-        read -r selection
+        if ! read_prompt_line selection; then
+            die "Failed to read selection; rerun with --systems when piping the installer"
+        fi
 
         local systems=()
         for num in $selection; do
@@ -73,18 +128,19 @@ prompt_for_systems() {
 }
 
 prompt_for_scope() {
+    $PROMPT_INPUT_AVAILABLE || die "Interactive input unavailable; provide --scope to proceed"
     log "Select installation scope:"
     echo "  1) user    - Install to user profile only (~/.config)"
     echo "  2) project - Install to current/specified project only"
-    echo "  3) both    - Install to both user and project"
 
     printf "Enter selection [1]: "
-    read -r selection
+    if ! read_prompt_line selection "1"; then
+        selection="1"
+    fi
 
     case "${selection:-1}" in
         1) SCOPE="user" ;;
         2) SCOPE="project" ;;
-        3) SCOPE="both" ;;
         *)
             log "Invalid selection, defaulting to 'user'"
             SCOPE="user"
@@ -125,8 +181,8 @@ Usage: scripts/install.sh [options]
 Options:
   --systems LIST      Comma-separated systems to install (will prompt if not provided)
                       Available: codex,claude-code,copilot,cursor,gemini,antigravity
-  --scope MODE        user|project|both (will prompt if not provided, default: user)
-  --project PATH      Project repo path when installing with project or both scopes
+  --scope MODE        user|project (will prompt if not provided, default: user)
+  --project PATH      Project repo path when installing with project scope
   --repo-url URL      Git repo to clone (default: https://github.com/adam-jackson-cf/enaible)
   --clone-dir PATH    Cache directory for the repo clone (default: ~/.enaible/sources/...)
   --ref REF           Git ref/tag/branch to checkout (default: main)
@@ -251,6 +307,11 @@ main() {
 
     parse_args "$@"
 
+    init_prompt_input
+    if ! $PROMPT_INPUT_AVAILABLE && { ! $systems_from_flag || ! $scope_from_flag; }; then
+        die "Interactive prompts unavailable (no TTY detected). Provide --systems and --scope flags."
+    fi
+
     if ! $systems_from_flag; then
         prompt_for_systems
     fi
@@ -274,11 +335,6 @@ main() {
             ;;
         project)
             resolve_project_path
-            install_scope "project" "$PROJECT_PATH"
-            ;;
-        both)
-            resolve_project_path
-            install_scope "user" ""
             install_scope "project" "$PROJECT_PATH"
             ;;
         *)
