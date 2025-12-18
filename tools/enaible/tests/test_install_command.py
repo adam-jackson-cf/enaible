@@ -298,6 +298,38 @@ def test_claude_code_appends_to_existing_claude_md(tmp_path: Path) -> None:
     )
 
 
+def test_claude_code_user_scope_places_claude_md_in_dot_claude(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """User-scope installs should merge CLAUDE.md inside ~/.claude."""
+    home = tmp_path / "home"
+    home.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+
+    result = runner.invoke(
+        app,
+        [
+            "install",
+            "claude-code",
+            "--scope",
+            "user",
+            "--target",
+            str(tmp_path),
+            "--mode",
+            "merge",
+            "--no-sync",
+        ],
+    )
+    assert result.exit_code == 0, result.stderr or result.stdout
+
+    claude_dir = home / ".claude"
+    claude_md = claude_dir / "CLAUDE.md"
+    assert claude_md.exists(), "CLAUDE.md should be written inside ~/.claude"
+    assert not (home / "CLAUDE.md").exists(), (
+        "Installer must not place CLAUDE.md at the home directory root"
+    )
+
+
 def test_install_update_mode_skips_unmanaged_files(tmp_path: Path) -> None:
     """Verify UPDATE mode skips files that don't exist or aren't managed."""
     destination = tmp_path / ".claude" / "commands"

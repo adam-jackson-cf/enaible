@@ -542,11 +542,18 @@ def _post_install(
     if not source_rules.exists():
         return
 
-    # For claude-code, CLAUDE.md goes in project root (parent of .claude/)
-    # For antigravity, GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/)
+    # For claude-code user scope, CLAUDE.md lives inside ~/.claude. For project scope
+    # the file belongs at the project root (parent of .claude/). For antigravity,
+    # GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/).
     # For codex, target goes inside .codex directory
     # For copilot, target goes inside .github subdirectory (mirrors project scope pattern)
-    if system in ("claude-code", "antigravity"):
+    if system == "claude-code":
+        target_path = (
+            destination_root.parent / target_name
+            if scope.lower() == "project"
+            else destination_root / target_name
+        )
+    elif system == "antigravity":
         target_path = destination_root.parent / target_name
     elif system == "copilot" and scope.lower() == "user":
         # For user-level copilot installs, place AGENTS.md in .github subdirectory
