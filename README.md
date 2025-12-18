@@ -14,7 +14,7 @@
 
 ```bash
 curl -fsSL "https://raw.githubusercontent.com/adam-jackson-cf/enaible/main/scripts/install.sh?$(date +%s)" \
-  | bash -s --systems codex --scope user
+  | bash -s -- --systems codex --scope user
 ```
 
 > Valid `--systems` values: `codex`, `claude-code`, `copilot`, `cursor`, `gemini`, `antigravity` (use comma-separated lists for multiple scopes).

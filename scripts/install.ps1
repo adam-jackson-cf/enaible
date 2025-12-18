@@ -7,7 +7,7 @@
 [CmdletBinding()]
 param(
     [string]$RepoUrl = "https://github.com/adam-jackson-cf/enaible",
-    [string]$CloneDir = (Join-Path $env:USERPROFILE ".enaible/sources/ai-assisted-workflows"),
+    [string]$CloneDir = (Join-Path $env:USERPROFILE ".enaible/sources/enaible"),
     [string[]]$Systems = @("codex", "claude-code"),
     [ValidateSet("user", "project")] [string]$Scope = "user",
     [string]$Project,

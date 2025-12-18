@@ -4,7 +4,7 @@
 set -euo pipefail
 
 DEFAULT_REPO_URL="https://github.com/adam-jackson-cf/enaible"
-DEFAULT_CLONE_DIR="${HOME}/.enaible/sources/ai-assisted-workflows"
+DEFAULT_CLONE_DIR="${HOME}/.enaible/sources/enaible"
 DEFAULT_SYSTEMS="codex,claude-code"
 DEFAULT_SCOPE="user"
 DEFAULT_REF="main"
