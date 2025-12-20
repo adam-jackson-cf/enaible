@@ -54,6 +54,18 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
 CHECK_DEPENDENCIES_DEFAULT = os.environ.get("ENAIBLE_SKIP_DEPENDENCY_CHECKS") != "1"
 
 
+def _python_install_command(*packages: str) -> tuple[str, ...]:
+    uv = shutil.which("uv")
+    if uv:
+        return (uv, "pip", "install", "--python", sys.executable, *packages)
+    return (sys.executable, "-m", "pip", "install", *packages)
+
+
+def _python_install_hint(*packages: str) -> str:
+    joined = " ".join(packages)
+    return f"uv pip install --python {sys.executable} {joined} (or python -m pip install {joined})"
+
+
 @dataclass(frozen=True)
 class PromptDependency:
     name: str
@@ -65,29 +77,29 @@ class PromptDependency:
 SEMGRAP_DEP = PromptDependency(
     name="Semgrep",
     check_commands=("semgrep",),
-    install_command=(sys.executable, "-m", "pip", "install", "semgrep"),
-    install_hint="pip install semgrep",
+    install_command=_python_install_command("semgrep"),
+    install_hint=_python_install_hint("semgrep"),
 )
 
 DETECT_SECRETS_DEP = PromptDependency(
     name="detect-secrets",
     check_commands=("detect-secrets",),
-    install_command=(sys.executable, "-m", "pip", "install", "detect-secrets"),
-    install_hint="pip install detect-secrets",
+    install_command=_python_install_command("detect-secrets"),
+    install_hint=_python_install_hint("detect-secrets"),
 )
 
 Ruff_DEP = PromptDependency(
     name="Ruff",
     check_commands=("ruff",),
-    install_command=(sys.executable, "-m", "pip", "install", "ruff"),
-    install_hint="pip install ruff",
+    install_command=_python_install_command("ruff"),
+    install_hint=_python_install_hint("ruff"),
 )
 
 LIZARD_DEP = PromptDependency(
     name="Lizard",
     check_commands=("lizard",),
-    install_command=(sys.executable, "-m", "pip", "install", "lizard"),
-    install_hint="pip install lizard",
+    install_command=_python_install_command("lizard"),
+    install_hint=_python_install_hint("lizard"),
 )
 
 JSCPD_DEP = PromptDependency(
