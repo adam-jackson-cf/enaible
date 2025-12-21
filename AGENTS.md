@@ -1,6 +1,6 @@
 # AI-Assisted Workflows Developer Guide
 
-This document is for maintainers of the Enaible toolchain inside the `ai-assisted-workflows` repository. It explains how to extend prompts, analyzers, and installers, as well as the checks required before shipping changes. End-user installation and usage live in `README.md`.
+This document is for maintainers of the Enaible toolchain inside the `enaible` repository. It explains how to extend prompts, analyzers, and installers, as well as the checks required before shipping changes. End-user installation and usage live in `README.md`.
 
 ## Audience & Expectations
 
@@ -90,8 +90,6 @@ The repository includes pre-commit hooks (`.pre-commit-config.yaml`) that run au
 
 Install hooks: `pre-commit install`
 
-> **Codex git pushes:** The Codex shell does not inherit Cursor's GUI askpass bridge. Run `unset GIT_ASKPASS` (and `unset SSH_ASKPASS` if set) before pushing so git reuses your stored credentials without Cursor's modal failing in the background.
-
 ## Repository Structure (maintainer view)
 
 ```
@@ -102,10 +100,12 @@ ai-assisted-workflows/
 │   ├── context/            # Context capture scripts invoked by enaible
 │   └── prompts/            # Source prompt catalog rendered into CLI commands
 ├── systems/
-│   ├── codex/
-│   ├── claude-code/        # Managed outputs (prompts/rules) consumed by respective CLIs
+│   ├── antigravity/        # Managed workflows for the Antigravity runtime
+│   ├── claude-code/        # Managed outputs (prompts/rules) consumed by Claude Code
+│   ├── codex/              # Managed prompts/rules consumed by the Codex CLI
 │   ├── copilot/            # Copilot adapter prompts/rules (rendered from shared sources)
-│   └── cursor/             # Cursor-specific agent/rule overlays
+│   ├── cursor/             # Cursor-specific agent/rule overlays
+│   └── gemini/             # Gemini adapter commands/templates
 ├── tools/enaible/          # uv-packaged Typer CLI providing render/install/run commands
 ├── docs/                   # Maintainer guidance (installation, analysis, monitoring)
 └── todos/                  # Planning notes and exec plans
@@ -113,8 +113,6 @@ ai-assisted-workflows/
 
 For detailed workflows, see:
 
-- `shared/prompts/AGENTS.md` — adding and validating shared prompts
-- `shared/analyzers/AGENTS.md` — analyzer registry rules and tests
-- `shared/context/AGENTS.md` — context capture commands and artifacts
-- `systems/AGENTS.md` — system adapter playbook and managed-file rules
+- `shared/prompts/AGENTS.md` — when you want to add a new shared prompt
+- `systems/AGENTS.md` — when you want to add a new system adapter
 - `docs/testing.md` — active test suites and how to run them

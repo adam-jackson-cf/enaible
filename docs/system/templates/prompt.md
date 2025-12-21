@@ -4,7 +4,7 @@
   - prompt_template is the format to implement.
   - prompt_example shows examples of prompt_template usage.
   - Add preflight checks inside the Workflow section only when supplementary requirements are needed beyond baseline tooling.
-  - Templates may include rule directives using <!-- rule: ... --> comments; render-prompts.sh enforces them when generating command variants.
+  - Templates may include rule directives using <!-- rule: ... --> comments; `uv run --project tools/enaible enaible prompts render ...` enforces them when generating command variants.
 
 -->
 
