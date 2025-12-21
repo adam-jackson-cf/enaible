@@ -16,11 +16,17 @@ This document is for maintainers of the Enaible toolchain inside the `enaible` r
 
 ## Quality Gates
 
-Before merging changes, run all quality gates to ensure code quality and prompt validity:
+Run the consolidated gate harness before every commit:
+
+```bash
+bash scripts/run-ci-quality-gates.sh --fix --stage
+```
+
+That single entry point executes everything listed below—prompt lint + validate, template rendering, Ruff format/check, Prettier, shared analyzer unit tests with coverage, repo-wide mypy, and the Enaible CLI pytest suite—so the same evidence drives both local commits and `.github/workflows/ci-quality-gates-incremental.yml`. Only fall back to the individual commands when you need to debug a specific failure.
 
 ### Prompt Validation
 
-**Lint prompt token usage** (from repository root):
+**Lint prompt token usage** (invoked automatically by the gate script):
 
 ```bash
 ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts lint
@@ -38,7 +44,7 @@ Checks:
 - Unmanaged prompts: `systems/*/commands/*.md`, `systems/*/prompts/*.md`
 - Skips files with `<!-- generated: enaible -->` comment
 
-**Validate rendered prompts match sources** (from repository root):
+**Validate rendered prompts match sources**:
 
 ```bash
 ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts validate
@@ -46,33 +52,13 @@ ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts valida
 
 Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts render` to sync if drift detected.
 
-### Python Quality Checks
+### Python Quality Checks (for debugging individual steps)
 
-**Linting and formatting** (from repository root):
-
-```bash
-# Enaible package
-uv run --directory tools/enaible ruff check .
-
-# Shared analyzers
-PYTHONPATH=shared uv run ruff check shared/
-```
-
-**Type checking** (from repository root):
-
-```bash
-uv run --with mypy mypy --config-file mypy.ini
-```
-
-**Unit tests** (from repository root):
-
-```bash
-# Enaible tests
-uv run --directory tools/enaible pytest tests/
-
-# Shared analyzer tests
-PYTHONPATH=shared pytest shared/tests/unit -v
-```
+- **Ruff format/check** (gate script runs `uv run --directory tools/enaible ruff check .` plus `PYTHONPATH=shared uv run ruff check shared/` using `shared/config/formatters/ruff.toml`).
+- **Mypy** (gate script runs `uv run --with mypy mypy --config-file mypy.ini` which covers both shared analyzers and `tools/enaible/src`).
+- **Tests**
+  - Shared analyzers: `PYTHONPATH=shared pytest shared/tests/unit -v`
+  - Enaible CLI: `uv run --directory tools/enaible pytest tests/`
 
 ### Pre-commit Hooks
 
@@ -107,39 +93,12 @@ ai-assisted-workflows/
 
 ### When you need to track tasks across sessions
 
-     If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
+If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
 
-     **Available Commands:**
+**Available Commands:**
 
-     - `bd ready` — List active tasks at session start
-     - `bd create "<title>"` — Create a new tracked task (returns ID)
-     - `bd show <id>` — View task details
-     - `bd close <id>` — Mark task complete
-     - `bd list --label <name>` — Filter tasks by label
-
-## Landing the Plane (Session Completion)
-
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
-
-**MANDATORY WORKFLOW:**
-
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
-
-**CRITICAL RULES:**
-
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- `bd ready` — List active tasks at session start
+- `bd create "<title>"` — Create a new tracked task (returns ID)
+- `bd show <id>` — View task details
+- `bd close <id>` — Mark task complete
+- `bd list --label <name>` — Filter tasks by label
