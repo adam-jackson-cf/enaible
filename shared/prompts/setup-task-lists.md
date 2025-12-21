@@ -17,7 +17,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
 ### Derived (internal)
 
 - @BD_BINARY_PATH = <path> — resolved bd binary location
-- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
+- @SYSTEMS = <filename> — system instructions file
 
 ## Instructions
 
