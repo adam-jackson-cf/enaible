@@ -6,6 +6,7 @@ line-length = 88
 target-version = "py311"
 fix = true
 output-format = "full"
+respect-gitignore = true
 
 # Exclude common directories
 exclude = [
@@ -22,6 +23,7 @@ exclude = [
     ".pytest_cache",
     ".mypy_cache",
     ".ruff_cache",
+    "shared/tests/fixture/",
 ]
 
 [lint]

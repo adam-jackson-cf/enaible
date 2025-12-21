@@ -17,6 +17,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
 ### Derived (internal)
 
 - @BD_BINARY_PATH = <path> — resolved bd binary location
+- @SYSTEMS = <filename> — system instructions file
 
 ## Instructions
 
@@ -50,15 +51,13 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
    - Search for `.beads/` entry: `grep -q '^\\.beads/' .gitignore`
    - If not found, **STOP (skip when @AUTO):** "Add .beads/ to .gitignore? (y/n)"
    - Append `.beads/` to `.gitignore`
-5. Update SYSTEMS.md
+5. Update @SYSTEMS.md
    - Add or update Beads documentation section:
 
      ```md
-     ### When you need to track tasks across sessions
+     ### When you need to track tasks across sessions (beads, bd)
 
      If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
-
-     **Single-session tasks:** Use TodoWrite only (no bd needed).
 
      **Available Commands:**
 
@@ -87,7 +86,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
 
 - Binary: bd @BD_BINARY_PATH (version: <version>)
 - Database: .beads/ (added to .gitignore)
-- Documentation: SYSTEMS.md updated
+- Documentation: @SYSTEMS.md updated
 
 ## VALIDATION
 

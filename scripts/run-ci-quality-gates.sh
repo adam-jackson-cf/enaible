@@ -81,6 +81,12 @@ cleanup() {
 }
 trap cleanup EXIT
 
+echo "[ci-quality] Prompt lint"
+uv run --project "$ROOT_DIR/tools/enaible" enaible prompts lint
+
+echo "[ci-quality] Prompt validate"
+uv run --project "$ROOT_DIR/tools/enaible" enaible prompts validate
+
 prettier_files=()
 while IFS= read -r -d '' file; do
     case "$file" in
@@ -91,10 +97,10 @@ done < <(git ls-files -z "*.md" "*.yml" "*.yaml")
 
 if [[ "$MODE" == "fix" ]]; then
     echo "[ci-quality] Ruff format (fix)"
-    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml
+    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml --force-exclude
 
     echo "[ci-quality] Ruff lint (fix)"
-    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --fix
+    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --fix --force-exclude
 
     if (( ${#prettier_files[@]} )); then
         echo "[ci-quality] Prettier (fix)"
@@ -107,10 +113,10 @@ if [[ "$MODE" == "fix" ]]; then
     fi
 else
     echo "[ci-quality] Ruff format (check)"
-    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml --check
+    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml --check --force-exclude
 
     echo "[ci-quality] Ruff lint (check)"
-    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --no-fix
+    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --no-fix --force-exclude
 
     if (( ${#prettier_files[@]} )); then
         echo "[ci-quality] Prettier (check)"
@@ -129,7 +135,7 @@ uv_run --with pytest --with pytest-cov --with pytest-xdist --with pytest-timeout
     --cov-fail-under=85
 
 echo "[ci-quality] Mypy type check"
-PYTHONPATH="$PYTHONPATH" uv_run --with mypy mypy --config-file mypy.ini
+uv_run --with mypy mypy --config-file mypy.ini
 
 echo "[ci-quality] Enaible CLI tests (uv)"
 uv sync --project "$ROOT_DIR/tools/enaible" --frozen
