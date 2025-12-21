@@ -16,13 +16,29 @@ This document is for maintainers of the Enaible toolchain inside the `enaible` r
 
 ## Quality Gates
 
-Run the consolidated gate harness before every commit:
+Run the consolidated gate harness before every commit (triggered automatically by pre commit hook, see below):
 
 ```bash
 bash scripts/run-ci-quality-gates.sh --fix --stage
 ```
 
-That single entry point executes everything listed below—prompt lint + validate, template rendering, Ruff format/check, Prettier, shared analyzer unit tests with coverage, repo-wide mypy, and the Enaible CLI pytest suite—so the same evidence drives both local commits and `.github/workflows/ci-quality-gates-incremental.yml`. Only fall back to the individual commands when you need to debug a specific failure.
+That single entry point executes everything listed:
+
+— prompt lint + validate
+- template rendering, 
+- Ruff format/check, 
+- Prettier, 
+- shared analyzer unit tests with coverage, 
+- repo-wide mypy, 
+- Enaible CLI pytest suite
+
+This is so the same evidence drives both local commits and `.github/workflows/ci-quality-gates-incremental.yml`. 
+
+Only fall back to the individual commands when you need to debug a specific failure.
+
+### Pre-commit Hooks
+
+Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned. Do **not** add bespoke git hooks; route all future pre-commit behavior through this central `pre-commit` config so we keep a single source of truth.
 
 ### Prompt Validation
 
@@ -59,10 +75,6 @@ Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_R
 - **Tests**
   - Shared analyzers: `PYTHONPATH=shared pytest shared/tests/unit -v`
   - Enaible CLI: `uv run --directory tools/enaible pytest tests/`
-
-### Pre-commit Hooks
-
-Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned. Do **not** add bespoke git hooks; route all future pre-commit behavior through this central `pre-commit` config so we keep a single source of truth.
 
 ## Repository Structure (maintainer view)
 
