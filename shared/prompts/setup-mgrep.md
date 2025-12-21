@@ -19,6 +19,7 @@ Install and configure mgrep for natural-language semantic search across code, do
 
 - @MGREP_BINARY_PATH = <path> — resolved mgrep binary location
 - @PACKAGE_MANAGER = <manager> — detected package manager (bun, npm, or pnpm)
+- @SYSTEMS = <filename> — system instructions file (CLAUDE.md or AGENTS.md depending on target)
 
 ## Instructions
 
@@ -58,7 +59,7 @@ Install and configure mgrep for natural-language semantic search across code, do
    - Run: `mgrep watch` (performs initial scan and sets up file watchers)
    - Index respects .gitignore patterns automatically
    - If additional exclusions needed, create `.mgrepignore` file
-6. Update SYSTEMS.md
+6. Update @SYSTEMS.md
    - Add or update mgrep documentation section:
 
      ```md
@@ -95,7 +96,7 @@ Install and configure mgrep for natural-language semantic search across code, do
 - Binary: mgrep @MGREP_BINARY_PATH (version: <version>)
 - Package Manager: @PACKAGE_MANAGER
 - Authentication: <browser|api-key>
-- Documentation: SYSTEMS.md updated
+- Documentation: @SYSTEMS.md updated
 
 ## VALIDATION
 
