@@ -99,7 +99,7 @@ ai-assisted-workflows/
 └── todos/                  # Planning notes and exec plans
 ```
 
-For detailed workflows, see:
+### For detailed development workflows for this codebase, see:
 
 - `shared/prompts/AGENTS.md` — when you want to add a new shared prompt
 - `systems/AGENTS.md` — when you want to add a new system adapter
@@ -108,8 +108,6 @@ For detailed workflows, see:
 ### When you need to track tasks across sessions
 
      If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
-
-     **Single-session tasks:** Use TodoWrite only (no bd needed).
 
      **Available Commands:**
 
