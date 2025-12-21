@@ -61,11 +61,7 @@ PYTHONPATH=shared uv run ruff check shared/
 **Type checking** (from repository root):
 
 ```bash
-# Enaible package
-uv run --directory tools/enaible mypy src
-
-# Shared analyzers
-PYTHONPATH=shared uv run mypy shared/
+uv run --with mypy mypy --config-file mypy.ini
 ```
 
 **Unit tests** (from repository root):
@@ -80,15 +76,7 @@ PYTHONPATH=shared pytest shared/tests/unit -v
 
 ### Pre-commit Hooks
 
-The repository includes pre-commit hooks (`.pre-commit-config.yaml`) that run automatically on commit:
-
-- Trailing whitespace removal
-- End-of-file fixer
-- JSON/YAML validation
-- Python: pyupgrade, black, ruff, mypy
-- Prettier for other files
-
-Install hooks: `pre-commit install`
+Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned.
 
 ## Repository Structure (maintainer view)
 
@@ -116,3 +104,43 @@ For detailed workflows, see:
 - `shared/prompts/AGENTS.md` — when you want to add a new shared prompt
 - `systems/AGENTS.md` — when you want to add a new system adapter
 - `docs/testing.md` — active test suites and how to run them
+
+### When you need to track tasks across sessions
+
+     If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
+
+     **Single-session tasks:** Use TodoWrite only (no bd needed).
+
+     **Available Commands:**
+
+     - `bd ready` — List active tasks at session start
+     - `bd create "<title>"` — Create a new tracked task (returns ID)
+     - `bd show <id>` — View task details
+     - `bd close <id>` — Mark task complete
+     - `bd list --label <name>` — Filter tasks by label
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
