@@ -76,7 +76,7 @@ PYTHONPATH=shared pytest shared/tests/unit -v
 
 ### Pre-commit Hooks
 
-Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned.
+Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned. Do **not** add bespoke git hooks; route all future pre-commit behavior through this central `pre-commit` config so we keep a single source of truth.
 
 ## Repository Structure (maintainer view)
 
