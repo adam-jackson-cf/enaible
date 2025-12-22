@@ -92,36 +92,51 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
+            const core = require('@actions/core');
             const { owner, repo } = context.repo;
             const labelName = 'copilot-doc-review';
+            const copilotAssignee = 'copilot-swe-agent[bot]';
             const body = fs.readFileSync(process.env.COPILOT_PROMPT_PATH, 'utf8');
             const title = `Copilot doc review for ${context.sha.slice(0, 7)}`;
 
-            const issues = await github.paginate(github.rest.issues.listForRepo, {
-              owner,
-              repo,
-              labels: labelName,
-              state: 'open'
-            });
-
-            const existing = issues.find(issue => !issue.pull_request);
-
-            if (existing) {
-              await github.rest.issues.update({
+            async function upsertIssue(assignToCopilot = true) {
+              const issues = await github.paginate(github.rest.issues.listForRepo, {
                 owner,
                 repo,
-                issue_number: existing.number,
-                body,
-                title,
-                assignees: ['copilot']
+                labels: labelName,
+                state: 'open'
               });
-            } else {
-              await github.rest.issues.create({
+
+              const existing = issues.find(issue => !issue.pull_request);
+              const basePayload = {
                 owner,
                 repo,
                 title,
                 body,
                 labels: [labelName],
-                assignees: ['copilot']
-              });
+              };
+              if (assignToCopilot) {
+                basePayload.assignees = [copilotAssignee];
+              }
+
+              try {
+                if (existing) {
+                  await github.rest.issues.update({
+                    ...basePayload,
+                    issue_number: existing.number,
+                  });
+                } else {
+                  await github.rest.issues.create(basePayload);
+                }
+              } catch (error) {
+                const isAssignmentError = assignToCopilot && error.status === 422;
+                if (isAssignmentError) {
+                  core.warning(`Unable to assign ${copilotAssignee}. Leaving issue unassigned. Raw error: ${error.message}`);
+                  await upsertIssue(false);
+                  return;
+                }
+                throw error;
+              }
             }
+
+            await upsertIssue();

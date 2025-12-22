@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Render the instructions file used to brief the Copilot coding agent."""
+
 from __future__ import annotations
 
 import argparse
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -61,9 +61,16 @@ def render_prompt(args: argparse.Namespace) -> str:
     event_name = args.event
     pr_number = args.pr_number or "n/a"
     doc_paths = discover_doc_paths()
-    doc_inventory = "\n".join(f"- {path}" for path in doc_paths) or "- (no README.md or AGENTS.md files found)"
+    doc_inventory = (
+        "\n".join(f"- {path}" for path in doc_paths)
+        or "- (no README.md or AGENTS.md files found)"
+    )
     doc_diff = build_diff(args.base, args.head, doc_paths)
-    doc_diff_section = f"```diff\n{doc_diff}\n```" if doc_diff else "_No README.md or AGENTS.md edits detected in this diff; still verify for drift._"
+    doc_diff_section = (
+        f"```diff\n{doc_diff}\n```"
+        if doc_diff
+        else "_No README.md or AGENTS.md edits detected in this diff; still verify for drift._"
+    )
     commit_summary = build_commit_summary(args.base, args.head)
     diff_stat = build_diff_stat(args.base, args.head)
 
@@ -111,7 +118,9 @@ def render_prompt(args: argparse.Namespace) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate Copilot doc review instructions")
+    parser = argparse.ArgumentParser(
+        description="Generate Copilot doc review instructions"
+    )
     parser.add_argument("--base", required=True, help="Base git ref/sha")
     parser.add_argument("--head", required=True, help="Head git ref/sha")
     parser.add_argument("--repo", required=True, help="owner/repo slug")
