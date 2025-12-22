@@ -1,6 +1,4 @@
-# setup-task-lists v0.3
-
-## Purpose
+# Purpose
 
 Install and configure Beads (bd) for git-backed persistent task tracking.
 

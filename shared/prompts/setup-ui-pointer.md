@@ -1,6 +1,4 @@
-# setup-ui-pointer v0.1
-
-## Purpose
+# Purpose
 
 Install and configure react-grab to enable ⌘-click element capture for AI-assisted development workflows.
 
