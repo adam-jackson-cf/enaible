@@ -6,7 +6,7 @@ This note captures what we learned while building the Copilot-powered documentat
 
 - Use `pull_request` for every PR event you want Copilot to inspect (`opened`, `reopened`, `synchronize`, `ready_for_review`), plus `push` on `refs/heads/main` so merged commits still get a doc sweep.
 - Keep push execution tightly scoped. During validation we temporarily allowed a throwaway branch to exercise the push path, but the final workflow only runs pushes on `main`.
-- Guard against Copilot’s own follow-up PRs. Add `if: ${{ github.actor != 'app/copilot-swe-agent' }}` and label only Copilot-authored PRs with `copilot-doc-review` so the workflow can skip those branches without blocking human reruns.
+- Guard against Copilot's own follow-up PRs. The workflow bails out whenever `github.actor == 'app/copilot-swe-agent'` or when the PR has the `copilot-doc-review` label. Label only Copilot-authored PRs with `copilot-doc-review` so the recursion guard can identify them while leaving human PRs unaffected.
 
 ## 2. Preparing the Brief
 
@@ -28,7 +28,7 @@ This note captures what we learned while building the Copilot-powered documentat
 
 - PR leg uses `peter-evans/create-or-update-comment` with `comment-id: copilot-doc-review` so the automation edits a single standing comment instead of spamming every update.
 - Push leg reuses the single issue tagged `copilot-doc-review`. When new commits land, the workflow updates the same issue instead of filing duplicates.
-- Copilot-authored PRs (e.g., branch `copilot/audit-docs-for-changes`) still need human approval to run Actions; expect the yellow “Workflows awaiting approval” banner and have a maintainer press “Approve workflows to run”. Label those PRs automatically so the “skip recursion” guard can identify them while leaving human PRs unaffected.
+- Copilot-authored PRs (e.g., branch `copilot/audit-docs-for-changes`) still need human approval to run Actions; expect the yellow "Workflows awaiting approval" banner and have a maintainer press "Approve workflows to run". The workflow automatically labels those PRs with `copilot-doc-review` so the recursion guard can skip them while leaving human PRs unaffected.
 
 ## 5. Quality Gates & Local Feedback
 
