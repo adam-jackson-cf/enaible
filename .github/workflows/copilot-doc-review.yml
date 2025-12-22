@@ -97,45 +97,38 @@ jobs:
             const copilotAssignee = 'copilot-swe-agent[bot]';
             const body = fs.readFileSync(process.env.COPILOT_PROMPT_PATH, 'utf8');
             const title = `Copilot doc review for ${context.sha.slice(0, 7)}`;
+            const repoSlug = `${owner}/${repo}`;
+            const baseBranch = context.payload.repository?.default_branch || 'main';
 
-            async function upsertIssue(assignToCopilot = true) {
-              const issues = await github.paginate(github.rest.issues.listForRepo, {
-                owner,
-                repo,
-                labels: labelName,
-                state: 'open'
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner,
+              repo,
+              labels: labelName,
+              state: 'open'
+            });
+
+            const existing = issues.find(issue => !issue.pull_request);
+            const agentAssignment = {
+              target_repo: repoSlug,
+              base_branch: baseBranch,
+              custom_instructions: 'Keep README.md end-user focused and AGENTS.md developer/LLM focused. Align documentation with the latest commits and summarize the changes when complete.'
+            };
+
+            const issuePayload = {
+              owner,
+              repo,
+              title,
+              body,
+              labels: [labelName],
+              assignees: [copilotAssignee],
+              agent_assignment: agentAssignment
+            };
+
+            if (existing) {
+              await github.rest.issues.update({
+                ...issuePayload,
+                issue_number: existing.number,
               });
-
-              const existing = issues.find(issue => !issue.pull_request);
-              const basePayload = {
-                owner,
-                repo,
-                title,
-                body,
-                labels: [labelName],
-              };
-              if (assignToCopilot) {
-                basePayload.assignees = [copilotAssignee];
-              }
-
-              try {
-                if (existing) {
-                  await github.rest.issues.update({
-                    ...basePayload,
-                    issue_number: existing.number,
-                  });
-                } else {
-                  await github.rest.issues.create(basePayload);
-                }
-              } catch (error) {
-                const isAssignmentError = assignToCopilot && error.status === 422;
-                if (isAssignmentError) {
-                  core.warning(`Unable to assign ${copilotAssignee}. Leaving issue unassigned. Raw error: ${error.message}`);
-                  await upsertIssue(false);
-                  return;
-                }
-                throw error;
-              }
+            } else {
+              await github.rest.issues.create(issuePayload);
             }
-
-            await upsertIssue();
