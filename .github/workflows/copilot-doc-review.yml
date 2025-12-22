@@ -92,7 +92,6 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require('fs');
-            const core = require('@actions/core');
             const { owner, repo } = context.repo;
             const labelName = 'copilot-doc-review';
             const copilotAssignee = 'copilot-swe-agent[bot]';
