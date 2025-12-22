@@ -120,7 +120,7 @@ If `--tasks` is included in the users request or a request requires persistent t
 
 - `.github/workflows/copilot-doc-review.yml` runs on PR updates, pushes to `main`, and manual dispatch to keep README/AGENTS files aligned with committed code.
 - `.github/workflows/helpers/copilot_doc_review_prompt.py` enumerates those documentation files (skipping fixtures, caches, and `node_modules`), builds a targeted diff, and records run metadata.
-- Pull requests receive a persistent comment mentioning `@copilot` via `peter-evans/create-or-update-comment` and are labeled with `copilot-doc-review`, so the Copilot coding agent can edit docs directly in-branch before merge.
+- Pull requests receive a persistent comment mentioning `@copilot` via `peter-evans/create-or-update-comment`; only Copilot-authored PRs are labeled with `copilot-doc-review` so the recursion guard knows to skip them.
 - Pushes to `main` open or refresh a `copilot-doc-review` issue assigned to `copilot-swe-agent[bot]`, ensuring the agent runs even when changes land outside PR review.
 - GitHub’s current coding-agent settings only expose Claude Sonnet 4.5, Claude Opus 4.5, GPT-5.1-Codex-Max, or Auto. Haiku 4.5 cannot be selected yet; revisit the Copilot settings UI once GitHub adds more model options.
 - The push workflow fails fast unless `COPILOT_ASSIGNMENT_TOKEN` (a repo-scoped PAT stored as an Actions _repository_ secret) exists, because GitHub only accepts `agent_assignment` payloads from user tokens.

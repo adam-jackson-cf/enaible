@@ -63,7 +63,7 @@ jobs:
           comment-id: copilot-doc-review
 
       - name: Label Copilot PRs
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.actor == 'app/copilot-swe-agent'
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
             const labelName = 'copilot-doc-review';
             const { owner, repo } = context.repo;
             const issue_number = context.payload.pull_request.number;
-            
+
             // Ensure label exists
             try {
               await github.rest.issues.getLabel({ owner, repo, name: labelName });
@@ -86,7 +86,7 @@ jobs:
                 });
               }
             }
-            
+
             // Add label to PR
             await github.rest.issues.addLabels({
               owner,
