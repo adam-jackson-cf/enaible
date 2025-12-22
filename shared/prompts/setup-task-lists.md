@@ -46,12 +46,16 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
    - Run `bd init` (will prompt for git hooks and merge drivers)
    - During init, user will be prompted to configure git integration (hooks, merge driver)
    - Capture initialization output for validation
-4. Configure .gitignore
+4. Protect existing pre-commit hooks
+   - Inspect `.pre-commit-config.yaml` if it exists and plan how to preserve every current hook while adding the Beads flush step.
+     - Refactor the hooks process so you retain legacy actions and include the `beads-flush` action, keeping the existing hook order intact and cleaning up any duplicated entries or obsolete files.
+     - When the config is updated, re-run `pre-commit install --install-hooks --overwrite` so Git once again delegates to pre-commit, then run `pre-commit run --all-files` to confirm both the legacy hooks and Beads behavior execute; document any failures for the summary.quality gates migrate into pre-commit instead of competing raw hooks.
+5. Configure .gitignore
    - Check if `.gitignore` exists; create if missing
    - Search for `.beads/` entry: `grep -q '^\\.beads/' .gitignore`
    - If not found, **STOP (skip when @AUTO):** "Add .beads/ to .gitignore? (y/n)"
    - Append `.beads/` to `.gitignore`
-5. Update @SYSTEMS.md
+6. Update @SYSTEMS.md
    - Add or update Beads documentation section:
 
      ```md
@@ -68,7 +72,7 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
      - `bd list --label <name>` — Filter tasks by label
      ```
 
-6. Validate setup
+7. Validate setup
    - Verify bd binary accessible: `bd --version`
    - Check `.beads/` directory exists
    - Verify `.beads/` in `.gitignore`
