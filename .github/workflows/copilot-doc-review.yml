@@ -3,8 +3,6 @@ name: Copilot Documentation Review
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
-  push: {}
-  workflow_dispatch:
 
 env:
   COPILOT_PROMPT_PATH: copilot-doc-review.md
@@ -16,7 +14,7 @@ permissions:
 
 jobs:
   run:
-    if: ${{ github.actor != 'app/copilot-swe-agent' && (github.event_name != 'push' || github.ref == 'refs/heads/main') && (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'copilot-doc-review')) }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'copilot-doc-review') }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -28,19 +26,9 @@ jobs:
         id: refs
         shell: bash
         run: |
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
-            echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
-            echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-          else
-            before="${{ github.event.before }}"
-            if [[ -z "$before" || "$before" == "0000000000000000000000000000000000000000" ]]; then
-              before=$(git rev-list --max-parents=0 HEAD | tail -1)
-            fi
-            echo "base=$before" >> "$GITHUB_OUTPUT"
-            echo "head=${{ github.sha }}" >> "$GITHUB_OUTPUT"
-            echo "pr=" >> "$GITHUB_OUTPUT"
-          fi
+          echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          echo "head=${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+          echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
 
       - name: Render Copilot brief
         run: |
@@ -54,125 +42,9 @@ jobs:
             --pr-number "${{ steps.refs.outputs.pr }}"
 
       - name: Ping Copilot in pull request
-        if: github.event_name == 'pull_request'
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-path: ${{ env.COPILOT_PROMPT_PATH }}
           edit-mode: replace
           comment-id: copilot-doc-review
-
-      - name: Label Copilot PRs
-        if: github.event_name == 'pull_request' && github.actor == 'app/copilot-swe-agent'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const labelName = 'copilot-doc-review';
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
-
-            // Ensure label exists
-            try {
-              await github.rest.issues.getLabel({ owner, repo, name: labelName });
-            } catch (error) {
-              if (error.status === 404) {
-                await github.rest.issues.createLabel({
-                  owner,
-                  repo,
-                  name: labelName,
-                  color: '006b75',
-                  description: 'Auto-created label for Copilot documentation sweeps'
-                });
-              }
-            }
-
-            // Add label to PR
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number,
-              labels: [labelName]
-            });
-
-      - name: Require Copilot assignment token (push)
-        if: github.event_name == 'push'
-        env:
-          COPILOT_ASSIGNMENT_TOKEN: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
-        run: |
-          if [[ -z "$COPILOT_ASSIGNMENT_TOKEN" ]]; then
-            echo "::error::COPILOT_ASSIGNMENT_TOKEN is required for push events so the workflow can call the agent_assignment API."
-            echo "Create a personal access token with repo scope and store it as the COPILOT_ASSIGNMENT_TOKEN repository secret."
-            exit 1
-          fi
-
-      - name: Ensure label exists (push)
-        if: github.event_name == 'push'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const labelName = 'copilot-doc-review';
-            const { owner, repo } = context.repo;
-            try {
-              await github.rest.issues.getLabel({ owner, repo, name: labelName });
-            } catch (error) {
-              if (error.status !== 404) {
-                throw error;
-              }
-              await github.rest.issues.createLabel({
-                owner,
-                repo,
-                name: labelName,
-                color: '006b75',
-                description: 'Auto-created label for Copilot documentation sweeps'
-              });
-            }
-
-      - name: Upsert Copilot issue (push)
-        if: github.event_name == 'push'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
-          script: |
-            const fs = require('fs');
-            const { owner, repo } = context.repo;
-            const labelName = 'copilot-doc-review';
-            const copilotAssignee = 'copilot-swe-agent[bot]';
-            const body = fs.readFileSync(process.env.COPILOT_PROMPT_PATH, 'utf8');
-            const title = `Copilot doc review for ${context.sha.slice(0, 7)}`;
-            const repoSlug = `${owner}/${repo}`;
-            const baseBranch = context.payload.repository?.default_branch || 'main';
-
-            const issues = await github.paginate(github.rest.issues.listForRepo, {
-              owner,
-              repo,
-              labels: labelName,
-              state: 'open'
-            });
-
-            const existing = issues.find(issue => !issue.pull_request);
-            const agentAssignment = {
-              target_repo: repoSlug,
-              base_branch: baseBranch,
-              custom_instructions: 'Keep README.md end-user focused and AGENTS.md developer/LLM focused. Align documentation with the latest commits and summarize the changes when complete.'
-            };
-
-            const issuePayload = {
-              owner,
-              repo,
-              title,
-              body,
-              labels: [labelName],
-              assignees: [copilotAssignee],
-              agent_assignment: agentAssignment
-            };
-
-            if (existing) {
-              await github.rest.issues.update({
-                ...issuePayload,
-                issue_number: existing.number,
-              });
-            } else {
-              await github.rest.issues.create(issuePayload);
-            }
