@@ -114,3 +114,11 @@ If `--tasks` is included in the users request or a request requires persistent t
 - `bd show <id>` — View task details
 - `bd close <id>` — Mark task complete
 - `bd list --label <name>` — Filter tasks by label
+
+## Copilot Documentation Review Automation
+
+- `.github/workflows/copilot-doc-review.yml` runs on PR updates, pushes to `main`, and manual dispatch to keep README/AGENTS files aligned with committed code.
+- `.github/workflows/helpers/copilot_doc_review_prompt.py` enumerates those documentation files (skipping fixtures, caches, and `node_modules`), builds a targeted diff, and records run metadata.
+- Pull requests receive a persistent comment mentioning `@copilot` via `peter-evans/create-or-update-comment`, so the Copilot coding agent can edit docs directly in-branch before merge.
+- Pushes to `main` open or refresh a `copilot-doc-review` issue assigned to `copilot`, ensuring the agent runs even when changes land outside PR review.
+- GitHub’s current coding-agent settings only expose Claude Sonnet 4.5, Claude Opus 4.5, GPT-5.1-Codex-Max, or Auto. Haiku 4.5 cannot be selected yet; revisit the Copilot settings UI once GitHub adds more model options.
