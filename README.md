@@ -111,7 +111,7 @@ CONTEXT
 
 SETUP TOOLING
 /setup-dev-monitoring /setup-browser-tools
-/setup-code-precommit-checks /setup-command-history
+/setup-code-precommit-checks /setup-atuin
 /setup-package-monitoring /setup-mgrep
 /setup-beads /setup-parallel-ai
 /setup-react-grab
@@ -152,7 +152,7 @@ SETUP TOOLING
 | setup-dev-monitoring        | Configure Makefile/Procfile with central logging   |
 | setup-package-monitoring    | Install Dependabot and CI vulnerability audits     |
 | setup-browser-tools         | Install Chrome DevTools Protocol automation        |
-| setup-command-history       | Install Atuin shell history with SQLite            |
+| setup-atuin                 | Install Atuin shell history with SQLite            |
 | setup-mgrep                 | Install mgrep for semantic search across code/docs |
 | setup-parallel-ai           | Install Parallel AI CLI for web intelligence       |
 | setup-beads                 | Initialize Beads (bd) git-backed task tracking     |

@@ -1227,10 +1227,10 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "setup-command-history": PromptDefinition(
-        prompt_id="setup-command-history",
-        source_path=_repo_path("shared", "prompts", "setup-command-history.md"),
-        title="setup-command-history v0.1",
+    "setup-atuin": PromptDefinition(
+        prompt_id="setup-atuin",
+        source_path=_repo_path("shared", "prompts", "setup-atuin.md"),
+        title="setup-atuin v0.1",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -1239,7 +1239,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "claude-code",
                     "commands",
-                    "setup-command-history.md",
+                    "setup-atuin.md",
                 ),
                 frontmatter={
                     "argument-hint": "[--auto] [--register] [--username <user>] [--email <email>]"
@@ -1248,7 +1248,7 @@ CATALOG: dict[str, PromptDefinition] = {
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "setup-command-history.md"
+                    ".build", "rendered", "codex", "prompts", "setup-atuin.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
@@ -1259,7 +1259,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "copilot",
                     "prompts",
-                    "setup-command-history.prompt.md",
+                    "setup-atuin.prompt.md",
                 ),
                 frontmatter={
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync",
@@ -1270,21 +1270,13 @@ CATALOG: dict[str, PromptDefinition] = {
             "cursor": SystemPromptConfig(
                 template="docs/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "cursor",
-                    "commands",
-                    "setup-command-history.md",
+                    ".build", "rendered", "cursor", "commands", "setup-atuin.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "gemini",
-                    "commands",
-                    "setup-command-history.toml",
+                    ".build", "rendered", "gemini", "commands", "setup-atuin.toml"
                 ),
                 frontmatter={
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
@@ -1293,11 +1285,7 @@ CATALOG: dict[str, PromptDefinition] = {
             "antigravity": SystemPromptConfig(
                 template="docs/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "antigravity",
-                    "workflows",
-                    "setup-command-history.md",
+                    ".build", "rendered", "antigravity", "workflows", "setup-atuin.md"
                 ),
                 frontmatter={
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
