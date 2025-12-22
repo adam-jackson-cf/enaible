@@ -2,7 +2,7 @@
 
 1. Author the source prompt in `shared/prompts/<name>.md`. Edit `docs/system/<system>/templates/` only when you need new frontmatter/layout tokens, it forms the layout for to use for the target system.
 
-> **TEST 2025-12-22D:** Temporary marker to trigger the Copilot documentation workflow; remove after validation.
+> **TEST 2025-12-22E:** Temporary marker to trigger the Copilot documentation workflow; remove after validation.
 
 2. Run guards after any edit:
 
