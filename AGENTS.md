@@ -125,4 +125,5 @@ If `--tasks` is included in the users request or a request requires persistent t
 - GitHub’s current coding-agent settings only expose Claude Sonnet 4.5, Claude Opus 4.5, GPT-5.1-Codex-Max, or Auto. Haiku 4.5 cannot be selected yet; revisit the Copilot settings UI once GitHub adds more model options.
 - The push workflow fails fast unless `COPILOT_ASSIGNMENT_TOKEN` (a repo-scoped PAT stored as an Actions _repository_ secret) exists, because GitHub only accepts `agent_assignment` payloads from user tokens.
 - The workflow-level `if` only allows push jobs on `refs/heads/main` plus the temporary `chore/copilot-doc-workflow-refresh` branch so we can validate automation before reverting to main-only.
+- To avoid recursive Copilot PRs triggering new Copilot sweeps, the workflow bails out whenever `github.actor == app/copilot-swe-agent` (only manual/human PRs run the doc review).
 - **TEST 2025-12-22F:** Temporary marker to trigger Copilot doc workflow; remove after validation.
