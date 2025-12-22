@@ -123,3 +123,6 @@ If `--tasks` is included in the users request or a request requires persistent t
 - Pull requests receive a persistent comment mentioning `@copilot` via `peter-evans/create-or-update-comment`, so the Copilot coding agent can edit docs directly in-branch before merge.
 - Pushes to `main` open or refresh a `copilot-doc-review` issue assigned to `copilot-swe-agent[bot]`, ensuring the agent runs even when changes land outside PR review.
 - GitHub’s current coding-agent settings only expose Claude Sonnet 4.5, Claude Opus 4.5, GPT-5.1-Codex-Max, or Auto. Haiku 4.5 cannot be selected yet; revisit the Copilot settings UI once GitHub adds more model options.
+- The push workflow fails fast unless `COPILOT_ASSIGNMENT_TOKEN` (a repo-scoped PAT stored as an Actions _repository_ secret) exists, because GitHub only accepts `agent_assignment` payloads from user tokens.
+- The workflow-level `if` only allows push jobs on `refs/heads/main` plus the temporary `chore/copilot-doc-workflow-refresh` branch so we can validate automation before reverting to main-only.
+- **TEST 2025-12-22F:** Temporary marker to trigger Copilot doc workflow; remove after validation.
