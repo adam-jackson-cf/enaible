@@ -2,6 +2,8 @@
 
 Use this checklist whenever you add support for a brand-new target system (new IDE, agent runtime, etc.) so rendered prompts remain deterministic and installer sync stays safe.
 
+> **TEST 2025-12-22:** Temporary line to trigger Copilot doc workflow validation; remove after confirming automation.
+
 1. **Scaffold folders**
    - Mirror the existing adapter footprint by creating `docs/system/<system>/templates/` for Jinja templates plus system notes, and `systems/<system>/` for managed outputs.
    - Rendered files land under `.build/rendered/<system>/...`; keep that structure parallel to claude-code/codex/cursor so tooling can diff reliably.
