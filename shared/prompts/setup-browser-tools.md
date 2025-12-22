@@ -1,6 +1,4 @@
-# setup-browser-tools v0.1
-
-## Purpose
+# Purpose
 
 Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing and debugging workflows.
 

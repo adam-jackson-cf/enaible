@@ -1,6 +1,4 @@
-# plan-ux-prd v0.3
-
-## Purpose
+# Purpose
 
 Produce a comprehensive UX-focused Product Requirements Document (PRD) that defines personas, scope, screen architecture, flows, and acceptance criteria based on @USER_PROMPT.
 

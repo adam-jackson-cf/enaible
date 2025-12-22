@@ -1,6 +1,4 @@
-# setup-parallel-ai v0.1
-
-## Purpose
+# Purpose
 
 Install and configure the Parallel AI CLI tool for web intelligence operations including search, content extraction, research tasks, and entity discovery.
 

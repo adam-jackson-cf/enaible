@@ -1,6 +1,4 @@
-# setup-dev-monitoring v0.4
-
-## Purpose
+# Purpose
 
 Configure development monitoring by generating Makefile and Procfile orchestration, central logging, and CLAUDE.md updates tailored to the project’s runnable components.
 
