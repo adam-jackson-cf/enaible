@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   run:
-    if: ${{ github.actor != 'app/copilot-swe-agent' && (github.event_name != 'push' || github.ref == 'refs/heads/main') }}
+    if: ${{ github.actor != 'app/copilot-swe-agent' && (github.event_name != 'push' || github.ref == 'refs/heads/main') && (github.event_name != 'pull_request' || !startsWith(github.head_ref, 'copilot/')) }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
