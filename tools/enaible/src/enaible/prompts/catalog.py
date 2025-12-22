@@ -1087,10 +1087,10 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "setup-ui-pointer": PromptDefinition(
-        prompt_id="setup-ui-pointer",
-        source_path=_repo_path("shared", "prompts", "setup-ui-pointer.md"),
-        title="setup-ui-pointer v0.1",
+    "setup-react-grab": PromptDefinition(
+        prompt_id="setup-react-grab",
+        source_path=_repo_path("shared", "prompts", "setup-react-grab.md"),
+        title="setup-react-grab v0.1",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -1099,14 +1099,14 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "claude-code",
                     "commands",
-                    "setup-ui-pointer.md",
+                    "setup-react-grab.md",
                 ),
                 frontmatter={"argument-hint": "[--auto] [--entry-point <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "setup-ui-pointer.md"
+                    ".build", "rendered", "codex", "prompts", "setup-react-grab.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
@@ -1117,7 +1117,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "copilot",
                     "prompts",
-                    "setup-ui-pointer.prompt.md",
+                    "setup-react-grab.prompt.md",
                 ),
                 frontmatter={
                     "description": "Install and configure react-grab for AI-assisted element capture",
@@ -1128,13 +1128,13 @@ CATALOG: dict[str, PromptDefinition] = {
             "cursor": SystemPromptConfig(
                 template="docs/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "cursor", "commands", "setup-ui-pointer.md"
+                    ".build", "rendered", "cursor", "commands", "setup-react-grab.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "gemini", "commands", "setup-ui-pointer.toml"
+                    ".build", "rendered", "gemini", "commands", "setup-react-grab.toml"
                 ),
                 frontmatter={
                     "description": "Install and configure react-grab for AI-assisted element capture"
@@ -1147,7 +1147,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "antigravity",
                     "workflows",
-                    "setup-ui-pointer.md",
+                    "setup-react-grab.md",
                 ),
                 frontmatter={
                     "description": "Install and configure react-grab for AI-assisted element capture"
@@ -1369,10 +1369,10 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "setup-task-lists": PromptDefinition(
-        prompt_id="setup-task-lists",
-        source_path=_repo_path("shared", "prompts", "setup-task-lists.md"),
-        title="setup-task-lists v0.3",
+    "setup-beads": PromptDefinition(
+        prompt_id="setup-beads",
+        source_path=_repo_path("shared", "prompts", "setup-beads.md"),
+        title="setup-beads v0.3",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -1381,14 +1381,14 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "claude-code",
                     "commands",
-                    "setup-task-lists.md",
+                    "setup-beads.md",
                 ),
                 frontmatter={"argument-hint": "[--auto]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "setup-task-lists.md"
+                    ".build", "rendered", "codex", "prompts", "setup-beads.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
@@ -1399,7 +1399,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "copilot",
                     "prompts",
-                    "setup-task-lists.prompt.md",
+                    "setup-beads.prompt.md",
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking",
@@ -1410,13 +1410,13 @@ CATALOG: dict[str, PromptDefinition] = {
             "cursor": SystemPromptConfig(
                 template="docs/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "cursor", "commands", "setup-task-lists.md"
+                    ".build", "rendered", "cursor", "commands", "setup-beads.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
                 template="docs/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "gemini", "commands", "setup-task-lists.toml"
+                    ".build", "rendered", "gemini", "commands", "setup-beads.toml"
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking"
@@ -1429,10 +1429,78 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "antigravity",
                     "workflows",
-                    "setup-task-lists.md",
+                    "setup-beads.md",
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking"
+                },
+            ),
+        },
+    ),
+    "setup-parallel-ai": PromptDefinition(
+        prompt_id="setup-parallel-ai",
+        source_path=_repo_path("shared", "prompts", "setup-parallel-ai.md"),
+        title="setup-parallel-ai v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "setup-parallel-ai.md",
+                ),
+                frontmatter={"argument-hint": "[--auto]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "codex", "prompts", "setup-parallel-ai.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "setup-parallel-ai.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Install and configure the Parallel AI CLI for research workflows",
+                    "mode": "agent",
+                    "tools": ["edit", "search/codebase", "terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "cursor", "commands", "setup-parallel-ai.md"
+                ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "setup-parallel-ai.toml"
+                ),
+                frontmatter={
+                    "description": "Install and configure the Parallel AI CLI for research workflows"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "setup-parallel-ai.md",
+                ),
+                frontmatter={
+                    "description": "Install and configure the Parallel AI CLI for research workflows"
                 },
             ),
         },
