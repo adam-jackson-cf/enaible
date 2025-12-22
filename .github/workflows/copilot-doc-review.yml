@@ -102,11 +102,11 @@ jobs:
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.COPILOT_ASSIGNMENT_TOKEN }}
-        script: |
-          const fs = require('fs');
-          const { owner, repo } = context.repo;
-          const labelName = 'copilot-doc-review';
-          const copilotAssignee = 'copilot-swe-agent[bot]';
+          script: |
+            const fs = require('fs');
+            const { owner, repo } = context.repo;
+            const labelName = 'copilot-doc-review';
+            const copilotAssignee = 'copilot-swe-agent[bot]';
             const body = fs.readFileSync(process.env.COPILOT_PROMPT_PATH, 'utf8');
             const title = `Copilot doc review for ${context.sha.slice(0, 7)}`;
             const repoSlug = `${owner}/${repo}`;
