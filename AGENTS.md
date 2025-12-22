@@ -123,3 +123,4 @@ If `--tasks` is included in the users request or a request requires persistent t
 - Pull requests receive a persistent comment mentioning `@copilot` via `peter-evans/create-or-update-comment`, so the Copilot coding agent can edit docs directly in-branch before merge.
 - Pushes to `main` open or refresh a `copilot-doc-review` issue assigned to `copilot-swe-agent[bot]`, ensuring the agent runs even when changes land outside PR review.
 - GitHub’s current coding-agent settings only expose Claude Sonnet 4.5, Claude Opus 4.5, GPT-5.1-Codex-Max, or Auto. Haiku 4.5 cannot be selected yet; revisit the Copilot settings UI once GitHub adds more model options.
+- **TEST 2025-12-22C:** Temporary marker to trigger the Copilot documentation workflow; remove after validation.
