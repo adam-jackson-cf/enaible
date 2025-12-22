@@ -8,7 +8,6 @@ on:
 
 env:
   COPILOT_PROMPT_PATH: copilot-doc-review.md
-  COPILOT_ALLOWED_PUSH_REFS: '["refs/heads/main","refs/heads/chore/copilot-doc-workflow-refresh"]'
 
 permissions:
   contents: read
@@ -17,7 +16,7 @@ permissions:
 
 jobs:
   run:
-    if: ${{ github.event_name != 'push' || contains(fromJson(env.COPILOT_ALLOWED_PUSH_REFS), github.ref) }}
+    if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/chore/copilot-doc-workflow-refresh' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
