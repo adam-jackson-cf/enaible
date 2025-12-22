@@ -62,39 +62,6 @@ jobs:
           edit-mode: replace
           comment-id: copilot-doc-review
 
-      - name: Label Copilot PRs
-        if: github.event_name == 'pull_request' && github.actor == 'app/copilot-swe-agent'
-        uses: actions/github-script@v7
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            const labelName = 'copilot-doc-review';
-            const { owner, repo } = context.repo;
-            const issue_number = context.payload.pull_request.number;
-
-            // Ensure label exists
-            try {
-              await github.rest.issues.getLabel({ owner, repo, name: labelName });
-            } catch (error) {
-              if (error.status === 404) {
-                await github.rest.issues.createLabel({
-                  owner,
-                  repo,
-                  name: labelName,
-                  color: '006b75',
-                  description: 'Auto-created label for Copilot documentation sweeps'
-                });
-              }
-            }
-
-            // Add label to PR
-            await github.rest.issues.addLabels({
-              owner,
-              repo,
-              issue_number,
-              labels: [labelName]
-            });
-
       - name: Require Copilot assignment token (push)
         if: github.event_name == 'push'
         env:
