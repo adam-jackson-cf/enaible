@@ -1,6 +1,4 @@
-# get-feature-primer v0.3
-
-## Purpose
+# Purpose
 
 Explore the codebase and produce a feature primer tailored to @USER_PROMPT, covering context, risks, and next actions.
 

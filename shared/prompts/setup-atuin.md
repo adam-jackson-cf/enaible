@@ -1,6 +1,4 @@
-# setup-command-history v0.1
-
-## Purpose
+# Purpose
 
 Install Atuin shell history replacement with SQLite storage, fuzzy search, and optional end-to-end encrypted cloud sync.
 

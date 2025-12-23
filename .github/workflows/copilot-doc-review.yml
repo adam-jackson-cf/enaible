@@ -1,0 +1,108 @@
+name: Copilot Documentation Review
+
+on:
+  workflow_dispatch:
+
+env:
+  COPILOT_PROMPT_PATH: copilot-doc-review.md
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  run:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'copilot-doc-review') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch pull request head
+        shell: bash
+        run: |
+          git fetch origin "pull/${{ github.event.pull_request.number }}/head:pr-head"
+
+      - name: Ensure label on Copilot-authored PRs
+        if: github.event.pull_request.user.login == 'copilot-swe-agent[bot]'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const labelName = 'copilot-doc-review';
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: labelName });
+            } catch (error) {
+              if (error.status === 404) {
+                await github.rest.issues.createLabel({
+                  owner,
+                  repo,
+                  name: labelName,
+                  color: '006b75',
+                  description: 'Auto-created label for Copilot documentation sweeps'
+                });
+              } else {
+                throw error;
+              }
+            }
+
+            await github.rest.issues.addLabels({
+              owner,
+              repo,
+              issue_number,
+              labels: [labelName]
+            });
+
+      - name: Resolve comparison refs
+        id: refs
+        shell: bash
+        run: |
+          echo "base=${{ github.event.pull_request.base.sha }}" >> "$GITHUB_OUTPUT"
+          echo "head=pr-head" >> "$GITHUB_OUTPUT"
+          echo "pr=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Check for doc review label
+        id: label_check
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          result-encoding: string
+          script: |
+            const labelName = 'copilot-doc-review';
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const { data: labels } = await github.rest.issues.listLabelsOnIssue({
+              owner,
+              repo,
+              issue_number
+            });
+            const hasLabel = labels.some(label => label.name === labelName);
+            core.setOutput('skip', hasLabel ? 'true' : 'false');
+            return hasLabel ? 'true' : 'false';
+
+      - name: Render Copilot brief
+        if: steps.label_check.outputs.skip != 'true'
+        run: |
+          python3 .github/workflows/helpers/copilot_doc_review_prompt.py \
+            --base "${{ steps.refs.outputs.base }}" \
+            --head "${{ steps.refs.outputs.head }}" \
+            --repo "${{ github.repository }}" \
+            --event "${{ github.event_name }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --output "$COPILOT_PROMPT_PATH" \
+            --pr-number "${{ steps.refs.outputs.pr }}"
+
+      - name: Ping Copilot in pull request
+        if: steps.label_check.outputs.skip != 'true'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-path: ${{ env.COPILOT_PROMPT_PATH }}
+          edit-mode: replace
+          comment-id: copilot-doc-review

@@ -1,6 +1,4 @@
-# setup-mgrep v0.1
-
-## Purpose
+# Purpose
 
 Install and configure mgrep for natural-language semantic search across code, documents, and images.
 

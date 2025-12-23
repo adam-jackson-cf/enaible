@@ -1,6 +1,4 @@
-# get-primer v0.3
-
-## Purpose
+# Purpose
 
 Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
 

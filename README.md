@@ -75,7 +75,7 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 ```bash
 /setup-dev-monitoring                   # Makefile + Procfile with central logging
 /setup-code-precommit-checks            # Git hooks for quality gates
-/setup-task-lists                       # Git-backed task tracking with Beads
+/setup-beads                            # Git-backed task tracking with Beads
 ```
 
 ### Preparing for Code Review / Handoff
@@ -111,10 +111,10 @@ CONTEXT
 
 SETUP TOOLING
 /setup-dev-monitoring /setup-browser-tools
-/setup-code-precommit-checks /setup-command-history
+/setup-code-precommit-checks /setup-atuin
 /setup-package-monitoring /setup-mgrep
-/setup-task-lists /setup-parallel-ai
-/setup-ui-pointer
+/setup-beads /setup-parallel-ai
+/setup-react-grab
 
 ```
 
@@ -152,11 +152,11 @@ SETUP TOOLING
 | setup-dev-monitoring        | Configure Makefile/Procfile with central logging   |
 | setup-package-monitoring    | Install Dependabot and CI vulnerability audits     |
 | setup-browser-tools         | Install Chrome DevTools Protocol automation        |
-| setup-command-history       | Install Atuin shell history with SQLite            |
+| setup-atuin                 | Install Atuin shell history with SQLite            |
 | setup-mgrep                 | Install mgrep for semantic search across code/docs |
 | setup-parallel-ai           | Install Parallel AI CLI for web intelligence       |
-| setup-task-lists            | Initialize Beads (bd) git-backed task tracking     |
-| setup-ui-pointer            | Install react-grab for element capture             |
+| setup-beads                 | Initialize Beads (bd) git-backed task tracking     |
+| setup-react-grab            | Install react-grab for element capture             |
 | setup-code-precommit-checks | Add git hooks for language-specific quality gates  |
 
 ### Project & Feature
