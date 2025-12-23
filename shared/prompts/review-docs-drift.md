@@ -21,10 +21,11 @@ Audit documentation for drift against local workspace changes and update it to r
 
 - Inspect documentation for drift against current staged and unstaged changes.
 - Include README.md and AGENTS.md plus tool instruction files when present:
-  - Claude Code: any `CLAUDE.md` file in the repo, plus user-level CLAUDE.md stored in the user’s home directory.
+  - Claude Code: any `CLAUDE.md` file in the repo, plus user-level `~/.claude/CLAUDE.md`.
   - GitHub Copilot: repository custom instruction files (`copilot-instructions.md` and any `.instructions.md` files), plus agent instruction files (`AGENTS.md`) when used by Copilot, and user-level instructions defined in VS Code user settings (inline text or referenced files).
   - Cursor: project rule files in MDC format (`.mdc`) and legacy `.cursorrules` if present, plus user rules defined in Cursor settings.
   - Gemini CLI: any `GEMINI.md` file in the repo, plus user-level `~/.gemini/GEMINI.md`.
+  - Use each tool’s documented search/scan locations for these files rather than hardcoding repo-specific paths.
 - Keep roles distinct: README.md is end-user guidance; AGENTS.md is developer or LLM rules.
 - Update documentation directly; remove outdated instructions instead of soft-deprecating them.
 - Maintain existing tone and structure; do not add new sections unless required to resolve drift.
