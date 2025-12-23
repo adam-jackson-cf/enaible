@@ -1,8 +1,7 @@
 name: Copilot Documentation Review
 
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, ready_for_review]
+  workflow_dispatch:
 
 env:
   COPILOT_PROMPT_PATH: copilot-doc-review.md
