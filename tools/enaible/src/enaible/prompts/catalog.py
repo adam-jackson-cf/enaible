@@ -861,6 +861,77 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "review-docs-drift": PromptDefinition(
+        prompt_id="review-docs-drift",
+        source_path=_repo_path("shared", "prompts", "review-docs-drift.md"),
+        title="review-docs-drift v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "review-docs-drift.md",
+                ),
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "codex", "prompts", "review-docs-drift.md"
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "review-docs-drift.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Review README.md and AGENTS.md for documentation drift against recent changes",
+                    "mode": "agent",
+                    "tools": ["edit", "githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "cursor",
+                    "commands",
+                    "review-docs-drift.md",
+                ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "gemini", "commands", "review-docs-drift.toml"
+                ),
+                frontmatter={
+                    "description": "Review README.md and AGENTS.md for documentation drift against recent changes"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "review-docs-drift.md",
+                ),
+                frontmatter={
+                    "description": "Review README.md and AGENTS.md for documentation drift against recent changes"
+                },
+            ),
+        },
+    ),
     "setup-dev-monitoring": PromptDefinition(
         prompt_id="setup-dev-monitoring",
         source_path=_repo_path("shared", "prompts", "setup-dev-monitoring.md"),
