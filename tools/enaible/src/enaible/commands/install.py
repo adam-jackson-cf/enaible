@@ -72,6 +72,7 @@ class PromptDependency:
     check_commands: tuple[str, ...]
     install_command: tuple[str, ...] | None
     install_hint: str
+    auto_install_env: str | None = None
 
 
 SEMGRAP_DEP = PromptDependency(
@@ -79,6 +80,7 @@ SEMGRAP_DEP = PromptDependency(
     check_commands=("semgrep",),
     install_command=_python_install_command("semgrep"),
     install_hint=_python_install_hint("semgrep"),
+    auto_install_env="AAW_AUTO_INSTALL_SEMGREP",
 )
 
 DETECT_SECRETS_DEP = PromptDependency(
@@ -86,6 +88,7 @@ DETECT_SECRETS_DEP = PromptDependency(
     check_commands=("detect-secrets",),
     install_command=_python_install_command("detect-secrets"),
     install_hint=_python_install_hint("detect-secrets"),
+    auto_install_env="AAW_AUTO_INSTALL_DETECT_SECRETS",
 )
 
 Ruff_DEP = PromptDependency(
@@ -93,6 +96,7 @@ Ruff_DEP = PromptDependency(
     check_commands=("ruff",),
     install_command=_python_install_command("ruff"),
     install_hint=_python_install_hint("ruff"),
+    auto_install_env="AAW_AUTO_INSTALL_RUFF",
 )
 
 LIZARD_DEP = PromptDependency(
@@ -100,6 +104,7 @@ LIZARD_DEP = PromptDependency(
     check_commands=("lizard",),
     install_command=_python_install_command("lizard"),
     install_hint=_python_install_hint("lizard"),
+    auto_install_env="AAW_AUTO_INSTALL_LIZARD",
 )
 
 JSCPD_DEP = PromptDependency(
@@ -107,6 +112,7 @@ JSCPD_DEP = PromptDependency(
     check_commands=("jscpd", "npx"),
     install_command=("npm", "install", "-g", "jscpd"),
     install_hint="npm install -g jscpd",
+    auto_install_env="AAW_AUTO_INSTALL_JSCPD",
 )
 
 ESLINT_DEP = PromptDependency(
@@ -123,6 +129,7 @@ ESLINT_DEP = PromptDependency(
         "eslint-plugin-vue",
     ),
     install_hint="npm install -g eslint @typescript-eslint/parser eslint-plugin-react eslint-plugin-import eslint-plugin-vue",
+    auto_install_env="AAW_AUTO_INSTALL_ESLINT",
 )
 
 PROMPT_DEPENDENCIES: dict[str, tuple[PromptDependency, ...]] = {
@@ -698,6 +705,8 @@ def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
     )
     for dep in missing:
         typer.echo(f"- {dep.name}: {dep.install_hint}")
+        if dep.auto_install_env:
+            typer.echo(f"  Auto-install: set {dep.auto_install_env}=true")
     if dry_run:
         typer.secho(
             "Dry-run mode: dependencies not installed, prompt will be skipped.",
