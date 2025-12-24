@@ -31,6 +31,7 @@ from typing import Any
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_npm_packages
 
 
 @register_analyzer("performance:frontend")
@@ -120,6 +121,24 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
                 timeout=10,
             )
             if result.returncode != 0:
+                auto_install_npm_packages(
+                    [
+                        "eslint",
+                        "@typescript-eslint/parser",
+                        "eslint-plugin-react",
+                        "eslint-plugin-import",
+                        "eslint-plugin-vue",
+                    ],
+                    "AAW_AUTO_INSTALL_ESLINT",
+                )
+                result = subprocess.run(
+                    ["npx", "eslint", "--version"],
+                    capture_output=True,
+                    text=True,
+                    timeout=10,
+                )
+
+            if result.returncode != 0:
                 print(
                     "ERROR: ESLint is required for accurate frontend analysis but not found.",
                     file=sys.stderr,
@@ -156,6 +175,27 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
                     pass  # npm might not be available, continue anyway
 
         except (subprocess.TimeoutExpired, FileNotFoundError):
+            if auto_install_npm_packages(
+                [
+                    "eslint",
+                    "@typescript-eslint/parser",
+                    "eslint-plugin-react",
+                    "eslint-plugin-import",
+                    "eslint-plugin-vue",
+                ],
+                "AAW_AUTO_INSTALL_ESLINT",
+            ):
+                try:
+                    result = subprocess.run(
+                        ["npx", "eslint", "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=10,
+                    )
+                    if result.returncode == 0:
+                        return
+                except (subprocess.TimeoutExpired, FileNotFoundError):
+                    pass
             print("ERROR: ESLint is required but not available.", file=sys.stderr)
             print("Ensure Node.js and npm are installed, then run:", file=sys.stderr)
             print(

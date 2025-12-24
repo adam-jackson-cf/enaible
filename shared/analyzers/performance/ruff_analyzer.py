@@ -14,6 +14,7 @@ from typing import Any
 
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_python_package
 
 
 @register_analyzer("performance:ruff")
@@ -23,6 +24,9 @@ class RuffPerformanceAnalyzer(BaseAnalyzer):
     def __init__(self, config: AnalyzerConfig | None = None):
         perf_cfg = config or AnalyzerConfig(code_extensions={".py", ".pyi"})
         super().__init__("performance", perf_cfg)
+
+        if not shutil.which("ruff"):
+            auto_install_python_package("ruff", "AAW_AUTO_INSTALL_RUFF")
 
         if not shutil.which("ruff"):
             # We keep a soft failure to allow other analyzers to run

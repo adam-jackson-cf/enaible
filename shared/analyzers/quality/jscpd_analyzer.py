@@ -23,6 +23,7 @@ from typing import Any
 
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_npm_packages
 
 
 def _find_jscpd_binary(install_dir: Path | None = None) -> str | None:
@@ -51,6 +52,10 @@ def _find_jscpd_binary(install_dir: Path | None = None) -> str | None:
         return "npx jscpd"
 
     return None
+
+
+def _auto_install_jscpd() -> bool:
+    return auto_install_npm_packages(["jscpd"], "AAW_AUTO_INSTALL_JSCPD")
 
 
 @register_analyzer("quality:jscpd")
@@ -101,6 +106,11 @@ class JSCPDAnalyzer(BaseAnalyzer):
         jscpd_bin = _find_jscpd_binary(
             self.node_tools_dir if self.node_tools_dir.exists() else None
         )
+        if not jscpd_bin:
+            _auto_install_jscpd()
+            jscpd_bin = _find_jscpd_binary(
+                self.node_tools_dir if self.node_tools_dir.exists() else None
+            )
         if not jscpd_bin:
             result.set_error(
                 "jscpd is not available. Ensure Node is installed and ESLint workspace set up, or run: \n"

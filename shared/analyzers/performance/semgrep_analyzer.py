@@ -10,13 +10,13 @@ via env var AAW_AUTO_INSTALL_SEMGREP=true.
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 from typing import Any
 
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_python_package
 
 
 def _has_semgrep() -> bool:
@@ -24,25 +24,7 @@ def _has_semgrep() -> bool:
 
 
 def _auto_install_semgrep() -> bool:
-    if os.environ.get("AAW_AUTO_INSTALL_SEMGREP", "").lower() not in {
-        "1",
-        "true",
-        "yes",
-    }:
-        return False
-    py = shutil.which("python3") or shutil.which("python")
-    if not py:
-        return False
-    try:
-        r = subprocess.run(
-            [py, "-m", "pip", "install", "--user", "semgrep"],
-            capture_output=True,
-            text=True,
-            timeout=600,
-        )
-        return r.returncode == 0
-    except Exception:
-        return False
+    return auto_install_python_package("semgrep", "AAW_AUTO_INSTALL_SEMGREP")
 
 
 @register_analyzer("performance:semgrep")

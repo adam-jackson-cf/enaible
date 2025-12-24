@@ -28,6 +28,7 @@ from typing import Any
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_python_package
 
 
 @register_analyzer("quality:lizard")
@@ -117,6 +118,9 @@ class LizardComplexityAnalyzer(BaseAnalyzer):
 
     def _check_lizard_availability(self):
         """Check if Lizard is available."""
+        if not self.check_lizard_installed():
+            auto_install_python_package("lizard", "AAW_AUTO_INSTALL_LIZARD")
+
         if not self.check_lizard_installed():
             print(
                 "WARNING: Lizard is required for complexity analysis but not found.",

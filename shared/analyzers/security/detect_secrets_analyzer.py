@@ -23,6 +23,7 @@ REPLACES: detect_secrets.py with bespoke regex patterns
 """
 
 import json
+import shutil
 import subprocess
 import sys
 from functools import lru_cache
@@ -32,6 +33,7 @@ from typing import Any
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_python_package
 
 _DETECT_SECRETS_CONFIG_PATH = (
     Path(__file__).resolve().parents[2] / "config" / "security" / "detect_secrets.json"
@@ -131,6 +133,10 @@ class DetectSecretsAnalyzer(BaseAnalyzer):
 
     def _check_detect_secrets_availability(self):
         """Ensure detect-secrets CLI is available."""
+        if not shutil.which("detect-secrets"):
+            auto_install_python_package(
+                "detect-secrets", "AAW_AUTO_INSTALL_DETECT_SECRETS"
+            )
         try:
             result = subprocess.run(
                 ["detect-secrets", "--version"],

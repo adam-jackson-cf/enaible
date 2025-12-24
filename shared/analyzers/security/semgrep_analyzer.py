@@ -25,6 +25,7 @@ REPLACES: Multiple bespoke analyzers with regex patterns
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -33,6 +34,7 @@ from typing import Any
 # Import base analyzer (package root must be on PYTHONPATH)
 from core.base.analyzer_base import AnalyzerConfig, BaseAnalyzer
 from core.base.analyzer_registry import register_analyzer
+from core.utils.tooling import auto_install_python_package
 
 
 @register_analyzer("security:semgrep")
@@ -154,6 +156,8 @@ class SemgrepAnalyzer(BaseAnalyzer):
 
     def _check_semgrep_availability(self):
         """Check if Semgrep is available."""
+        if not shutil.which("semgrep"):
+            auto_install_python_package("semgrep", "AAW_AUTO_INSTALL_SEMGREP")
         try:
             result = subprocess.run(
                 ["semgrep", "--version"], capture_output=True, text=True, timeout=10
