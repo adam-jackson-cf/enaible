@@ -66,7 +66,7 @@ python scripts/fetch_comments.py \
        --json number,title,author,createdAt,state
      gh api repos/@REPO/pulls/@SAMPLE_PR/comments --jq 'length'
      ```
-   - **STOP** and ask the user to approve before proceeding with full fetch.
+   - **STOP** and @ASK_USER_CONFIRMATION before proceeding with full fetch.
 
 2. **Full fetch**
    - List PRs in range:

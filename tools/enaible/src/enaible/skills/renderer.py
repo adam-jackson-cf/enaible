@@ -36,15 +36,10 @@ class RenderResult:
 
         for resource in self.resources:
             if resource.source.is_dir():
-                shutil.copytree(
-                    resource.source,
-                    resource.destination,
-                    dirs_exist_ok=True,
-                    ignore=_ignore_cache_files,
-                )
+                _copy_resource_dir(resource.source, resource.destination, self.system)
             else:
                 resource.destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy2(resource.source, resource.destination)
+                _copy_resource_file(resource.source, resource.destination, self.system)
 
     def diff(self) -> str:
         if not self.output_path.exists():
@@ -90,7 +85,7 @@ class SkillRenderer:
                     config = self._get_system_config(definition, system)
                 except ValueError:
                     continue
-                content = self._render_skill(definition, config)
+                content = self._render_skill(definition, config, system)
                 output_path = self._resolve_output_path(config, system, output_override)
                 resources = self._collect_resources(definition, output_path.parent)
                 results.append(
@@ -125,11 +120,12 @@ class SkillRenderer:
             ) from exc
 
     def _render_skill(
-        self, definition: SkillDefinition, config: SystemSkillConfig
+        self, definition: SkillDefinition, config: SystemSkillConfig, system: str
     ) -> str:
         source_path = (self.context.repo_root / definition.source_path).resolve()
         raw = source_path.read_text(encoding="utf-8")
         frontmatter, body = split_frontmatter(raw)
+        body = _apply_tool_markers(body, system)
         fields = parse_simple_frontmatter(frontmatter)
         validate_skill_metadata(fields, definition.skill_id)
 
@@ -202,3 +198,38 @@ def _ignore_cache_files(_dir: str, names: list[str]) -> set[str]:
     ignored = {"__pycache__", ".pytest_cache", ".DS_Store"}
     ignored.update({name for name in names if name.endswith((".pyc", ".pyo"))})
     return ignored
+
+
+_ASK_USER_MARKERS = {
+    "claude-code": "request user confirmation using AskUserQuestion, then wait for the response",
+    "codex": "ask the user for confirmation and wait for the response",
+}
+
+
+def _apply_tool_markers(content: str, system: str) -> str:
+    marker = _ASK_USER_MARKERS.get(system)
+    if not marker:
+        return content
+    return content.replace("@ASK_USER_CONFIRMATION", marker)
+
+
+def _copy_resource_dir(source: Path, destination: Path, system: str) -> None:
+    destination.mkdir(parents=True, exist_ok=True)
+    for path in source.rglob("*"):
+        if path.is_dir():
+            continue
+        if path.name in {"__pycache__", ".pytest_cache", ".DS_Store"}:
+            continue
+        rel = path.relative_to(source)
+        target = destination / rel
+        _copy_resource_file(path, target, system)
+
+
+def _copy_resource_file(source: Path, destination: Path, system: str) -> None:
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if source.suffix.lower() == ".md":
+        content = source.read_text(encoding="utf-8")
+        content = _apply_tool_markers(content, system)
+        destination.write_text(content, encoding="utf-8")
+    else:
+        shutil.copy2(source, destination)
