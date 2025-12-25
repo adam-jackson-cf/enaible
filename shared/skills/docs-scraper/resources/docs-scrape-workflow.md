@@ -8,9 +8,9 @@ Use this workflow when converting one or more documentation URLs into clean mark
 - Confirm the output directory (default to current directory if not specified).
 - Determine filenames using kebab-case derived from the URL path or page title.
 
-## 2) Fetch with the Enaible CLI
+## 2) Choose the best CLI call + fetch
 
-For each URL, run the docs scraper command:
+For each URL, decide which CLI invocation best fits the task (single page, multi-page, or batch) based on the CLI reference examples. Then run the docs scraper command:
 
 ```bash
 uv run --project tools/enaible enaible docs_scrape \
