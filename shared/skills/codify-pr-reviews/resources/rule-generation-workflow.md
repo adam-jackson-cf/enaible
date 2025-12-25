@@ -42,7 +42,10 @@ python scripts/generate_rules.py \
 3. **Assign targets**
    - Choose backend/frontend/repository/security instruction file based on pattern category.
 
-4. **Write drafts**
+4. **User approval (Stage 7)**
+   - Pause and @ASK_USER_CONFIRMATION for each draft decision.
+
+5. **Write drafts**
    - Save to @OUTPUT_DIR using `draft-{target}-{action}-{pattern}.md`.
 
 ## Output

@@ -49,7 +49,10 @@ python scripts/analyze_patterns.py \
    - 🟡 Needs strengthening: rule exists but gaps or high frequency.
    - 🔴 New rule: no existing coverage (or red-flag override).
 
-5. **Write output**
+5. **User approval (Stage 5)**
+   - Pause and @ASK_USER_CONFIRMATION for each pattern decision.
+
+6. **Write output**
    - Save patterns + triage metadata to @OUTPUT_PATH.
 
 ## Output

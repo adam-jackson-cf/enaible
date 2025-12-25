@@ -23,15 +23,15 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 
 ## Resources
 
-| Goal                              | Resource                                                                             |
-| --------------------------------- | ------------------------------------------------------------------------------------ |
-| Detect stack + red flags          | [resources/stack-analysis-workflow.md](resources/stack-analysis-workflow.md)         |
-| Fetch PR review comments          | [resources/fetching-workflow.md](resources/fetching-workflow.md)                     |
-| Deduplicate + group comments      | [resources/preprocessing-workflow.md](resources/preprocessing-workflow.md)           |
-| Triage patterns vs existing rules | [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md)     |
-| Run interactive approvals         | [resources/interactive-review-workflow.md](resources/interactive-review-workflow.md) |
-| Generate rule drafts              | [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)       |
-| Troubleshoot issues               | [resources/troubleshooting.md](resources/troubleshooting.md)                         |
+| Goal                              | Resource                                                                         |
+| --------------------------------- | -------------------------------------------------------------------------------- |
+| Detect stack + red flags          | [resources/stack-analysis-workflow.md](resources/stack-analysis-workflow.md)     |
+| Fetch PR review comments          | [resources/fetching-workflow.md](resources/fetching-workflow.md)                 |
+| Deduplicate + group comments      | [resources/preprocessing-workflow.md](resources/preprocessing-workflow.md)       |
+| Triage patterns vs existing rules | [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md) |
+| Generate rule drafts              | [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)   |
+| Apply approved rules              | [resources/apply-rules-workflow.md](resources/apply-rules-workflow.md)           |
+| Troubleshoot issues               | [resources/troubleshooting.md](resources/troubleshooting.md)                     |
 
 ## Scripts
 
