@@ -40,3 +40,11 @@ If `--tmux` is included in a users request or a request requires long runnning e
 - Check existing: `tmux list-sessions`, Attach: `tmux attach -t <name>`, Logs: `tmux capture-pane -p -S -200 -t <name>`
 - Wrap uncertain/long commands in tmux to prevent blocking
 - Kill session: `tmux kill-session -t <name>`
+
+## Shared Skills (Codex)
+
+| Skill             | Path                                       |
+| ----------------- | ------------------------------------------ |
+| codify-pr-reviews | `.codex/skills/codify-pr-reviews/SKILL.md` |
+| docs-scraper      | `.codex/skills/docs-scraper/SKILL.md`      |
+| use-parallel-ai   | `.codex/skills/use-parallel-ai/SKILL.md`   |
