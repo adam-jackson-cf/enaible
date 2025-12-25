@@ -53,7 +53,8 @@ Use `./GEMINI.md` for repository-level rules unless the user explicitly requests
 
 ## Templates
 
-Use the Copilot-specific template when targeting Copilot, and the general template for all other systems:
+A single rule template is provided as a baseline reference:
 
-- [resources/templates/copilot-rule-template.md](resources/templates/copilot-rule-template.md)
 - [resources/templates/rule-template.md](resources/templates/rule-template.md)
+
+Adapt it to the target system format (CLAUDE.md, AGENTS.md, GEMINI.md, or Cursor rules) as needed.

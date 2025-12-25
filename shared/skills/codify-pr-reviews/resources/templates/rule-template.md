@@ -1,38 +1,76 @@
-# Instruction Rule Template
+# Rule Template
 
-Use this template when creating or updating rules for non-Copilot systems (Claude Code, Codex, Cursor, Gemini).
+Use this template when creating new rules.
 
-## Recommended file structure
+## For Copilot Path-Scoped Instruction Files only
 
-````markdown
-# Project Rules
+If creating a new path-scoped instruction file for copilot (`.github/instructions/*.instructions.md`), include frontmatter:
 
-Brief description of the rules in this file.
+```markdown
+---
+applyTo: "**/*.ts"
+---
 
-## Core Directives
+# [Language/Framework] Coding Standards
 
-- ALWAYS [positive directive]
-- NEVER [avoidance directive, if critical]
-- [Additional context or specifics]
+Brief description of what this file defines for Copilot code review.
+```
 
-## Examples
+## Recommended File Structure
+
+For new instruction files, follow this structure:
+
+```markdown
+# [Language/Framework] Coding Standards
+
+Brief description of what this file defines for Copilot code review.
+
+## Naming Conventions
+
+- [Add rules here]
+
+## Code Style
+
+- [Add rules here]
+
+## Error Handling
+
+- [Add rules here]
+
+## Testing
+
+- [Add rules here]
+
+## Security
+
+- [Add rules here]
+
+## Code Examples
 
 ❌ BAD:
-
-```[language]
+\`\`\`[language]
 // Example of incorrect implementation
-```
-````
+\`\`\`
 
 ✅ GOOD:
-
-```[language]
+\`\`\`[language]
 // Example of correct implementation
+\`\`\`
+
+---
+
+## Framework-Specific Rules (Optional)
+
+- [Add any relevant rules for frameworks, libraries, or tooling]
+
+## Advanced Tips & Edge Cases (Optional)
+
+- [Document exceptions, advanced patterns, or important caveats]
 ```
 
-````
-
 ## Individual Rule Template
+
+For adding a single rule to an existing file:
 
 ## Rule Title
 
@@ -41,15 +79,16 @@ Brief description of the rules in this file.
 - [Additional context or specifics]
 
 ❌ BAD:
-```[language]
+\`\`\`[language]
 // Example of incorrect implementation
-````
+// Show the anti-pattern
+\`\`\`
 
 ✅ GOOD:
-
-```[language]
+\`\`\`[language]
 // Example of correct implementation
-```
+// Show the proper pattern
+\`\`\`
 
 **Note**: [Optional additional notes, edge cases, or context]
 
@@ -57,10 +96,52 @@ Brief description of the rules in this file.
 
 ## Guidelines
 
-1. **Positive framing**: Prefer "Do X" over "Don't do Y" when possible.
-2. **Specific**: Include concrete details, not vague advice.
-3. **Examples**: Include both bad and good code where practical.
-4. **Language**: Match the project's tech stack.
-5. **Concise**: 2-3 directives and focused examples per rule.
-6. **File length**: Keep files under 4000 characters; split if needed.
-7. **Unsupported content**: Avoid external links, product behavior changes, or formatting directives.
+1. **Positive framing**: "Use X" not "Don't use Y" - ALWAYS use positive directives
+2. **Specific**: Include concrete details, not vague advice
+3. **Examples**: Always include both bad and good code
+4. **Language**: Match your project's tech stack
+5. **Concise**: 2-3 directives, 1-2 examples each
+6. **File length**: Keep files under 4000 characters for optimal effectiveness
+7. **Unsupported content**: Do NOT include formatting directives, PR Overview changes, product behaviour modifications, vague directives, or external links
+
+## Example
+
+## SQL Injection Prevention
+
+- ALWAYS use parameterized queries or prepared statements
+- Use `?` placeholders for all dynamic values in SQL queries
+- NEVER concatenate user input directly into query strings
+
+❌ BAD:
+\`\`\`typescript
+const query = \`SELECT \* FROM users WHERE id = ${userId}\`;
+db.all(query, callback);
+\`\`\`
+
+✅ GOOD:
+\`\`\`typescript
+const query = \`SELECT \* FROM users WHERE id = ?\`;
+db.all(query, [userId], callback);
+\`\`\`
+
+**Note**: Table and column names cannot be parameterized; validate them separately using a whitelist approach.
+
+---
+
+## Important Warnings
+
+### Unsupported Content
+
+**DO NOT include** in custom instructions:
+
+- Comment formatting directives (font, font size, headers)
+- PR Overview modifications
+- Product behaviour changes (e.g., blocking PRs)
+- Vague, non-specific directives ("be more accurate")
+- External links or references
+
+### File Length
+
+- Keep instruction files under 4000 characters
+- If a file is too long, consider splitting into path-scoped files
+- Prioritise removing redundant content before adding new rules
