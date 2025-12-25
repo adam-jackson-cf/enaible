@@ -23,6 +23,23 @@ Guide for accessing the Parallel AI API via local scripts. Use when the user req
 | Command reference          | [resources/cli-reference.md](resources/cli-reference.md)     |
 | Troubleshooting            | [resources/troubleshooting.md](resources/troubleshooting.md) |
 
+## Orchestration Overview
+
+### Stage 1: Preflight
+
+**Purpose**: Confirm Python command and API access before running scripts.
+**Details**: [resources/setup-workflow.md](resources/setup-workflow.md)
+
+### Stage 2: Execute request
+
+**Purpose**: Run the matching script for the user’s request (search, extract, task, findall).
+**Details**: [resources/cli-reference.md](resources/cli-reference.md)
+
+### Stage 3: Validate results
+
+**Purpose**: Summarize outputs and confirm if follow-up runs are needed.
+**Details**: [resources/troubleshooting.md](resources/troubleshooting.md)
+
 ## Scripts
 
 Command implementations are copied into `scripts/` for reference:

@@ -183,8 +183,37 @@ Recommended sections:
 - Step-by-step instructions
 - Examples of inputs and outputs
 - Common edge cases
+- Orchestration overview (for multi-stage skills)
 
 Note that the agent will load this entire file once it's decided to activate a skill. Consider splitting longer `SKILL.md` content into referenced files.
+
+### Orchestration overview
+
+For multi-stage skills, include an `## Orchestration Overview` section after the Resources list to clarify the sequence of stages and required checkpoints.
+
+Recommended format:
+
+```markdown
+## Orchestration Overview
+
+### Stage 1: <name>
+
+**Purpose**: <one line>
+**Details**: [resources/<file>.md](resources/<file>.md)
+
+### Stage 2: <name>
+
+**Purpose**: <one line>
+**Details**: [resources/<file>.md](resources/<file>.md)
+
+### Stage N: <name>
+
+**Purpose**: <one line>
+
+**MANDATORY CHECKPOINT**: @ASK_USER_CONFIRMATION before proceeding.
+```
+
+Keep each stage concise. Use the checkpoints to indicate where the agent must stop for user input.
 
 ## Optional directories
 
