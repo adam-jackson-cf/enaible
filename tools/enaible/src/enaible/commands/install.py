@@ -192,6 +192,7 @@ def _prepare_installation_environment(
     """Prepare installation environment: CLI, shared workspace, backups."""
     if settings.install_cli:
         _install_cli(settings.repo_root, settings.cli_source, settings.dry_run, summary)
+        _install_playwright_browsers(settings.repo_root, settings.dry_run, summary)
 
     if settings.sync_shared:
         _sync_shared_workspace(settings.repo_root, settings.dry_run, summary)
@@ -407,6 +408,30 @@ def _install_cli(
     summary.record("install-cli", source)
 
 
+def _install_playwright_browsers(
+    repo_root: Path, dry_run: bool, summary: InstallSummary
+) -> None:
+    """Ensure Chromium browser assets are available for the docs scraper."""
+    cmd = [
+        "uv",
+        "run",
+        "--project",
+        str(repo_root / "tools" / "enaible"),
+        "playwright",
+        "install",
+        "chromium",
+    ]
+
+    sentinel = Path("playwright/chromium")
+
+    if dry_run:
+        summary.record("playwright-install", sentinel)
+        return
+
+    subprocess.run(cmd, cwd=repo_root, check=True)
+    summary.record("playwright-install", sentinel)
+
+
 def _sync_shared_workspace(
     repo_root: Path, dry_run: bool, summary: InstallSummary
 ) -> None:
@@ -418,6 +443,7 @@ def _sync_shared_workspace(
         Path("analyzers"),
         Path("config"),
         Path("utils"),
+        Path("web_scraper"),
         Path("tools") / "ai_docs_changelog.py",
         Path("setup") / "install_dependencies.py",
         Path("setup") / "requirements.txt",
