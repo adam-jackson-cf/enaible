@@ -51,13 +51,10 @@ Prefer `./AGENTS.md` for general rules; use `.mdc` or `.cursorrules` only when t
 
 Use `./GEMINI.md` for repository-level rules unless the user explicitly requests user-scope changes.
 
-## How to use in workflows
-
-- Capture the user’s target system during prerequisites.
-- Build `@INSTRUCTION_FILES` from the mapping above.
-- Pass `@INSTRUCTION_FILES` into `scripts/analyze_patterns.py` and `scripts/generate_rules.py`.
-- Apply approved drafts to the same target instruction files in the final stage.
-
 ## Templates
 
-See `resources/templates/` for rule-format examples by system.
+A single rule template is provided as a baseline reference:
+
+- [resources/templates/copilot-rule-template.md](resources/templates/copilot-rule-template.md)
+
+Adapt it to the target system format (CLAUDE.md, AGENTS.md, GEMINI.md, or Cursor rules) as needed.
