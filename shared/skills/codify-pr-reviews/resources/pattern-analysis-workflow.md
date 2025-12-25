@@ -7,7 +7,7 @@ Transform grouped comments into structured patterns and triage them against exis
 ### Required
 
 - @PREPROCESSED_PATH — grouped comments JSON
-- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of existing instruction files to scan (derived from @TARGET_SYSTEM)
 - @OUTPUT_PATH — output JSON for patterns
 

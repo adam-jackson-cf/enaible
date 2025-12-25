@@ -7,7 +7,7 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 ### Required
 
 - @APPROVED_RULES_PATH — approved rules JSON
-- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
 
 ## Instructions

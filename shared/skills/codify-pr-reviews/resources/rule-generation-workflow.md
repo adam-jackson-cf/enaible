@@ -7,7 +7,7 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 ### Required
 
 - @PATTERNS_PATH — approved patterns JSON
-- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
 - @OUTPUT_DIR — directory for draft rule markdown files
 
