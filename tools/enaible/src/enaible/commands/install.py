@@ -24,6 +24,7 @@ from ..prompts.adapters import (
 )
 from ..prompts.renderer import PromptRenderer
 from ..runtime.context import load_workspace
+from ..skills.renderer import SkillRenderer
 from ..utils.paths import get_vscode_user_dir
 
 SKIP_FILES = {
@@ -43,8 +44,8 @@ SYSTEM_RULES = {
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
-    "claude-code": ("commands/", "agents/", "rules/"),
-    "codex": ("prompts/", "rules/"),
+    "claude-code": ("commands/", "agents/", "rules/", "skills/"),
+    "codex": ("prompts/", "rules/", "skills/"),
     "copilot": ("prompts/",),
     "cursor": ("commands/", "rules/"),
     "gemini": ("commands/",),
@@ -288,6 +289,7 @@ def _complete_installation(
     _render_managed_prompts(
         context, system, destination_root, mode, dry_run, summary, enforce_dependencies
     )
+    _render_managed_skills(context, system, destination_root, mode, dry_run, summary)
 
     if sync:
         _sync_enaible_env(context.repo_root, dry_run, summary)
@@ -683,6 +685,61 @@ def _render_managed_prompts(
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(result.content, encoding="utf-8")
         summary.record("render", output_path)
+
+
+def _render_managed_skills(
+    context,
+    system: str,
+    destination_root: Path,
+    mode: InstallMode,
+    dry_run: bool,
+    summary: InstallSummary,
+) -> None:
+    renderer = SkillRenderer(context)
+    definitions = [
+        definition.skill_id
+        for definition in renderer.list_skills()
+        if system in definition.systems
+    ]
+    if not definitions:
+        return
+
+    overrides: dict[str, Path] = {system: destination_root}
+    results = renderer.render(definitions, [system], overrides)
+
+    if not dry_run:
+        destination_root.mkdir(parents=True, exist_ok=True)
+
+    for result in results:
+        output_path = result.output_path
+        try:
+            relative = output_path.relative_to(destination_root)
+        except ValueError:
+            relative = output_path
+
+        if dry_run:
+            summary.record("render", output_path)
+            summary.record("copy", output_path.parent)
+            continue
+
+        dest_exists = output_path.exists()
+        dest_managed = _has_managed_sentinel(output_path) if dest_exists else False
+
+        if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
+            summary.record_skip(relative)
+            continue
+
+        if (
+            mode in {InstallMode.MERGE, InstallMode.SYNC}
+            and dest_exists
+            and not dest_managed
+        ):
+            summary.record_skip(relative)
+            continue
+
+        result.write()
+        summary.record("render", output_path)
+        summary.record("copy", output_path.parent)
 
 
 def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
