@@ -166,12 +166,6 @@ SETUP TOOLING
 | get-codebase-primer | Generate project overview with architecture       |
 | get-feature-primer  | Explore codebase for feature-specific context     |
 
-### Agents (Claude Code)
-
-| Agent        | Specialization                     |
-| ------------ | ---------------------------------- |
-| docs-scraper | Fetch and convert docs to markdown |
-
 ### System-Specific Commands
 
 | Command                   | System | Example                                    | Use Case                                  |

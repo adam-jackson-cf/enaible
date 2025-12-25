@@ -277,7 +277,6 @@
 │ │ ├── rules
 │ │ │ └── global.claude.rules.md _
 │ │ ├── agents
-│ │ │ └── docs-scraper.md
 │ │ ├── commands
 │ │ │ ├── codify-claude-history.md
 │ │ │ └── get-recent-context.md
