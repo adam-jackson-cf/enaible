@@ -7,12 +7,14 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 ### Required
 
 - @PATTERNS_PATH — approved patterns JSON
-- @INSTRUCTION_FILES — mapping of instruction files to update
+- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
 - @OUTPUT_DIR — directory for draft rule markdown files
 
 ## Instructions
 
 - Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
 - Generate drafts with clear directives and examples.
 - Use positive directives (ALWAYS/NEVER) with stack-appropriate code.
 - Keep instruction files under 4000 characters; split if necessary.

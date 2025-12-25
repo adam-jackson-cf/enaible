@@ -19,6 +19,7 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 - `gh` CLI installed and authenticated.
 - Run inside the target git repository (or provide an explicit repo).
 - Instruction files exist or can be created (Copilot, Codex, etc.).
+- User must specify a single target system for rule format: `claude-code` or `codex`.
 - Default settings live in `config/defaults.json`.
 - Set `PYTHON_CMD` to the user-confirmed Python command (must be 3.12+).
 
@@ -32,6 +33,8 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 | Triage patterns vs existing rules | [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md) |
 | Generate rule drafts              | [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)   |
 | Apply approved rules              | [resources/apply-rules-workflow.md](resources/apply-rules-workflow.md)           |
+| Resolve system targets            | [resources/system-targeting.md](resources/system-targeting.md)                   |
+| Rule templates                    | [resources/templates](resources/templates)                                       |
 | Troubleshoot issues               | [resources/troubleshooting.md](resources/troubleshooting.md)                     |
 
 ## Scripts

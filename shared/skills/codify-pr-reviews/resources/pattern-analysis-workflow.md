@@ -7,7 +7,8 @@ Transform grouped comments into structured patterns and triage them against exis
 ### Required
 
 - @PREPROCESSED_PATH — grouped comments JSON
-- @INSTRUCTION_FILES — mapping of existing instruction files to scan
+- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @INSTRUCTION_FILES — mapping of existing instruction files to scan (derived from @TARGET_SYSTEM)
 - @OUTPUT_PATH — output JSON for patterns
 
 ### Optional
@@ -17,6 +18,7 @@ Transform grouped comments into structured patterns and triage them against exis
 ## Instructions
 
 - Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
 - Parse existing instruction files to extract rule titles and examples.
 - For each comment group, generate a pattern with severity and category.
 - Triage each pattern into: already covered, needs strengthening, or new rule.

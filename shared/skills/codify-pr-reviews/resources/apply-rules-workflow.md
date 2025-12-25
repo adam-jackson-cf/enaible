@@ -7,11 +7,13 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 ### Required
 
 - @APPROVED_RULES_PATH — approved rules JSON
-- @INSTRUCTION_FILES — mapping of instruction files to update
+- @TARGET_SYSTEM — target system identifier (`claude-code` or `codex`)
+- @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
 
 ## Instructions
 
 - Load approved rules and map them to target instruction files.
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
 - Pause and @ASK_USER_CONFIRMATION before modifying files.
 - Apply edits and record a summary.
 
