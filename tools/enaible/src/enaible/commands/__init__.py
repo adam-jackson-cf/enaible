@@ -10,6 +10,7 @@ _COMMAND_MODULES: Iterable[str] = (
     "enaible.commands.root",
     "enaible.commands.analyzers",
     "enaible.commands.prompts",
+    "enaible.commands.skills",
     "enaible.commands.install",
     "enaible.commands.ci",
     "enaible.commands.setup",

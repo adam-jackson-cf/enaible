@@ -87,6 +87,20 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 
 ---
 
+## Shared Skills
+
+Shared skills live in `shared/skills/` and are rendered into each supported system during install. Use them by name in your request when you want a multi-step workflow or deterministic tooling.
+
+### Example Skill Usage
+
+```bash
+"Use docs-scraper to save https://react.dev/reference/react into ./docs"
+"Use codify-pr-reviews to create review codex rules from this repo"
+"Use use-parallel-ai to search \"SOC 2 requirements\" and summarize findings"
+```
+
+---
+
 ## Quick Reference
 
 ```bash
@@ -113,8 +127,13 @@ SETUP TOOLING
 /setup-dev-monitoring /setup-browser-tools
 /setup-code-precommit-checks /setup-atuin
 /setup-package-monitoring /setup-mgrep
-/setup-beads /setup-parallel-ai
+/setup-beads
 /setup-react-grab
+
+SKILLS (use by name in your request)
+docs-scraper "save https://react.dev/reference/react into ./docs"
+codify-pr-reviews "create review codex rules from this repo"
+use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 
 ```
 
@@ -154,7 +173,6 @@ SETUP TOOLING
 | setup-browser-tools         | Install Chrome DevTools Protocol automation        |
 | setup-atuin                 | Install Atuin shell history with SQLite            |
 | setup-mgrep                 | Install mgrep for semantic search across code/docs |
-| setup-parallel-ai           | Install Parallel AI CLI for web intelligence       |
 | setup-beads                 | Initialize Beads (bd) git-backed task tracking     |
 | setup-react-grab            | Install react-grab for element capture             |
 | setup-code-precommit-checks | Add git hooks for language-specific quality gates  |
@@ -167,11 +185,13 @@ SETUP TOOLING
 | get-codebase-primer | Generate project overview with architecture       |
 | get-feature-primer  | Explore codebase for feature-specific context     |
 
-### Agents (Claude Code)
+### Shared Skills
 
-| Agent        | Specialization                     |
-| ------------ | ---------------------------------- |
-| docs-scraper | Fetch and convert docs to markdown |
+| Skill             | Use Case                                                     | Example request                                                     |
+| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
+| docs-scraper      | Scrape documentation URLs into clean markdown files          | `Use docs-scraper to save https://react.dev/reference/react`        |
+| codify-pr-reviews | Convert PR review comments into instruction rules            | `Use codify-pr-reviews to create review codex rules from this repo` |
+| use-parallel-ai   | Run Parallel AI searches, extraction, and enrichment scripts | `Use use-parallel-ai to search "SOC 2 requirements"`                |
 
 ### System-Specific Commands
 

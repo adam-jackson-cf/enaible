@@ -6,6 +6,7 @@ This document is for maintainers of the Enaible toolchain inside the `enaible` r
 
 - You are updating prompt source files, analyzer implementations, or system installers.
 - You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `ruff`, `mypy`, `pytest`) before merging.
+- You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `enaible skills lint`, `enaible skills validate`, `ruff`, `mypy`, `pytest`) before merging.
 - You keep managed assets in `.codex/`, `.claude/`, `.github/` synchronized via `enaible install`.
 
 ## Toolchain Requirements
@@ -68,6 +69,28 @@ ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts valida
 ```
 
 Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts render` to sync if drift detected.
+
+### Skill Validation
+
+**Lint skill frontmatter** (invoked automatically by the gate script):
+
+```bash
+ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills lint
+```
+
+Validates:
+
+- Frontmatter includes `name` + `description`
+- `name` matches the parent directory
+- `name` format conforms to the Agent Skills spec
+
+**Validate rendered skills match sources**:
+
+```bash
+ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills validate
+```
+
+Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills render` to sync if drift detected.
 
 ### Python Quality Checks (for debugging individual steps)
 
