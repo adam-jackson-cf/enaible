@@ -6,10 +6,10 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 
 ### Required
 
-- @PATTERNS_PATH — approved patterns JSON
+- @PATTERNS_PATH — approved patterns JSON (`@ARTIFACT_ROOT/patterns.json`)
 - @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
-- @OUTPUT_DIR — directory for draft rule markdown files
+- @OUTPUT_DIR — directory for draft rule markdown files (`@ARTIFACT_ROOT/drafts/`)
 
 ## Instructions
 
@@ -44,7 +44,7 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
    - Pause and @ASK_USER_CONFIRMATION for each draft decision.
 
 4. **Write drafts**
-   - Save to @OUTPUT_DIR using `draft-{target}-{action}-{pattern}.md`.
+   - Save to @OUTPUT_DIR using `draft-{target}-{action}-{pattern}.md` so every draft sits in `.enaible/artifacts/codify-pr-reviews/<timestamp>/drafts/`.
 
 ## Output
 

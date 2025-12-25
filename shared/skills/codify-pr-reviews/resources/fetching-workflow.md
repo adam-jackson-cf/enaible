@@ -8,8 +8,8 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
 
 - @REPO — repository in `owner/name` format (auto-detected from git remote when omitted)
 - @DAYS_BACK — number of days to include
-- @OUTPUT_PATH — output JSON path for fetched comments
-- @RUN_ID — unique run identifier
+- @OUTPUT_PATH — output JSON path for fetched comments (use `@ARTIFACT_ROOT/comments.json`)
+- @RUN_ID — unique run identifier (default to `codify-pr-reviews-<timestamp>`)
 
 ### Optional
 
@@ -38,6 +38,7 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
        --repo "@REPO" \
        --days-back "@DAYS_BACK"
      ```
+   - Capture stdout/stderr to `@ARTIFACT_ROOT/fetch-preflight.log`.
    - **STOP** and @ASK_USER_CONFIRMATION before proceeding with full fetch.
 
 2. **Full fetch**
@@ -52,7 +53,7 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
      ```
 
 3. **Write output**
-   - Save JSON to @OUTPUT_PATH.
+   - Save JSON to @OUTPUT_PATH within `.enaible/artifacts/codify-pr-reviews/<timestamp>/`.
    - Provide summary: PR count, comment count, review vs issue totals.
 
 ## Output

@@ -6,10 +6,10 @@ Transform grouped comments into structured patterns and triage them against exis
 
 ### Required
 
-- @PREPROCESSED_PATH — grouped comments JSON
+- @PREPROCESSED_PATH — grouped comments JSON (`@ARTIFACT_ROOT/preprocessed.json`)
 - @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of existing instruction files to scan (derived from @TARGET_SYSTEM)
-- @OUTPUT_PATH — output JSON for patterns
+- @OUTPUT_PATH — output JSON for patterns (`@ARTIFACT_ROOT/patterns.json`)
 
 ### Optional
 
@@ -48,7 +48,7 @@ Transform grouped comments into structured patterns and triage them against exis
    - Pause and @ASK_USER_CONFIRMATION for each pattern decision.
 
 4. **Write output**
-   - Save patterns + triage metadata to @OUTPUT_PATH.
+   - Save patterns + triage metadata to @OUTPUT_PATH under `.enaible/artifacts/codify-pr-reviews/<timestamp>/` so Stage 5+ reference the exact findings.
 
 ## Output
 

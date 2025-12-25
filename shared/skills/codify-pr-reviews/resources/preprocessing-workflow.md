@@ -6,9 +6,9 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
 
 ### Required
 
-- @INPUT_PATH — fetched comments JSON
-- @RED_FLAGS_PATH — red flags JSON from stack analysis
-- @OUTPUT_PATH — output JSON for grouped comments
+- @INPUT_PATH — fetched comments JSON (set to `@ARTIFACT_ROOT/comments.json`)
+- @RED_FLAGS_PATH — red flags JSON from stack analysis (set to `@ARTIFACT_ROOT/stack-analysis.json`)
+- @OUTPUT_PATH — output JSON for grouped comments (set to `@ARTIFACT_ROOT/preprocessed.json`)
 
 ### Optional
 
@@ -43,7 +43,7 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
    - Confirm input count, output groups, and red-flag retention.
 
 3. **Write output**
-   - Save grouped comments to @OUTPUT_PATH.
+   - Save grouped comments to @OUTPUT_PATH inside `.enaible/artifacts/codify-pr-reviews/<timestamp>/` so downstream steps and auditors can reference the exact payload.
 
 ## Output
 

@@ -7,7 +7,7 @@ Detect the repository technology stack and generate red-flag patterns that must 
 ### Required
 
 - @PROJECT_ROOT — repository root to scan
-- @OUTPUT_PATH — path to write the red-flag JSON file
+- @OUTPUT_PATH — path to write the red-flag JSON file (set to `@ARTIFACT_ROOT/stack-analysis.json`)
 
 ### Optional
 
@@ -35,7 +35,7 @@ Detect the repository technology stack and generate red-flag patterns that must 
    - Confirm detected stack and red-flag count.
 
 3. **Write output**
-   - Save JSON to @OUTPUT_PATH.
+   - Save JSON to @OUTPUT_PATH under `.enaible/artifacts/codify-pr-reviews/<timestamp>/` so future stages can consume it and auditors have a persistent record.
    - If output already exists and @FORCE_REFRESH is false, reuse it.
 
 ## Output
