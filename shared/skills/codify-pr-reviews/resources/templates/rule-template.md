@@ -2,9 +2,9 @@
 
 Use this template when creating new Copilot instruction rules.
 
-## For Path-Scoped Instruction Files
+## For Copilot Path-Scoped Instruction Files only
 
-If creating a new path-scoped instruction file (`.github/instructions/*.instructions.md`), include frontmatter:
+If creating a new path-scoped instruction file for copilot (`.github/instructions/*.instructions.md`), include frontmatter:
 
 ```markdown
 ---
