@@ -17,6 +17,19 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 - Keep instruction files under 4000 characters; split if necessary.
 - Return summary of drafts by target file.
 
+## Defaults
+
+- Instruction file mapping falls back to `config/defaults.json`.
+
+## Deterministic tooling
+
+```bash
+python scripts/generate_rules.py \
+  --patterns-path "@PATTERNS_PATH" \
+  --output-dir "@OUTPUT_DIR" \
+  --repo-root "."
+```
+
 ## Workflow
 
 1. **Load approved patterns**

@@ -20,6 +20,16 @@ Detect the repository technology stack and generate red-flag patterns that must 
 - Cache results at @OUTPUT_PATH and only regenerate when @FORCE_REFRESH is true.
 - Return a concise summary (stack + red-flag count) to the main workflow.
 
+## Deterministic tooling
+
+Run:
+
+```bash
+python scripts/stack_analysis.py \
+  --project-root "@PROJECT_ROOT" \
+  --output-path "@OUTPUT_PATH"
+```
+
 ## Workflow
 
 1. **Locate stack indicators**

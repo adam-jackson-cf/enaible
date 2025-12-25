@@ -6,8 +6,9 @@
    - YAML frontmatter with `name` and `description`.
    - `name` must match the folder name.
    - Keep the body under 500 lines when possible.
+   - Keep the instructions light and concise, details are through progressive disclosure of documents within `resources/`
 
-3. Add supporting files in `resources/`, `scripts/`, or `assets/` as needed.
+3. Add supporting files in `resources/`, `scripts/`, `assets/`, or `config/` as needed.
 
 4. Render skills for supported systems:
 
@@ -25,5 +26,5 @@ uv run --project tools/enaible enaible skills validate --skill all --system all
 
 ```bash
 uv run --project tools/enaible enaible install claude-code --mode sync --scope project
-uv run --project tools/enaible enaible install codex --mode sync --scope project
+uv run --project tools/enaible enaible install codex --mode sync --scope user
 ```

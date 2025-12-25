@@ -23,6 +23,32 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
 - Do not attempt to filter by “resolved”; capture everything in range.
 - Return summary counts after preflight and after full fetch.
 
+## Defaults
+
+- Optional parameters fall back to `config/defaults.json` when omitted.
+
+## Deterministic tooling
+
+Preflight:
+
+```bash
+python scripts/fetch_comments.py \
+  --preflight \
+  --repo "@REPO" \
+  --days-back "@DAYS_BACK"
+```
+
+Full fetch:
+
+```bash
+python scripts/fetch_comments.py \
+  --repo "@REPO" \
+  --days-back "@DAYS_BACK" \
+  --exclude-authors "@EXCLUDE_AUTHORS" \
+  --min-comment-length "@MIN_COMMENT_LENGTH" \
+  --output-path "@OUTPUT_PATH"
+```
+
 ## Workflow
 
 1. **Preflight check (MANDATORY)**

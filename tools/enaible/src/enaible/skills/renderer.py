@@ -152,7 +152,7 @@ class SkillRenderer:
     ) -> list[ResourceCopy]:
         resources: list[ResourceCopy] = []
         source_root = (self.context.repo_root / definition.source_path).resolve().parent
-        for folder in ("resources", "scripts", "assets"):
+        for folder in ("resources", "scripts", "assets", "config"):
             src = source_root / folder
             if not src.exists():
                 continue

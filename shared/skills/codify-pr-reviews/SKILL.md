@@ -19,6 +19,7 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 - `gh` CLI installed and authenticated.
 - Run inside the target git repository (or provide an explicit repo).
 - Instruction files exist or can be created (Copilot, Codex, etc.).
+- Default settings live in `config/defaults.json`.
 
 ## Resources
 
@@ -31,6 +32,16 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 | Run interactive approvals         | [resources/interactive-review-workflow.md](resources/interactive-review-workflow.md) |
 | Generate rule drafts              | [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)       |
 | Troubleshoot issues               | [resources/troubleshooting.md](resources/troubleshooting.md)                         |
+
+## Scripts
+
+The following deterministic helpers live in `scripts/`:
+
+- `scripts/stack_analysis.py`
+- `scripts/fetch_comments.py`
+- `scripts/preprocess_comments.py`
+- `scripts/analyze_patterns.py`
+- `scripts/generate_rules.py`
 
 ## Mandatory checkpoints
 

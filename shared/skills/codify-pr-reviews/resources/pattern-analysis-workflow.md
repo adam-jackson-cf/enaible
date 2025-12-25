@@ -21,6 +21,18 @@ Transform grouped comments into structured patterns and triage them against exis
 - Triage each pattern into: already covered, needs strengthening, or new rule.
 - Save rationale and suggested actions in @OUTPUT_PATH.
 
+## Defaults
+
+- Categories and instruction file paths fall back to `config/defaults.json`.
+
+## Deterministic tooling
+
+```bash
+python scripts/analyze_patterns.py \
+  --input-path "@PREPROCESSED_PATH" \
+  --output-path "@OUTPUT_PATH"
+```
+
 ## Workflow
 
 1. **Load grouped comments**

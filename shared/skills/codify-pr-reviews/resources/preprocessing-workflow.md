@@ -21,6 +21,21 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
 - Always keep red-flag matches even if below @MIN_OCCURRENCES.
 - Return summary: input count, output groups, filtered count.
 
+## Defaults
+
+- Optional parameters fall back to `config/defaults.json` when omitted.
+
+## Deterministic tooling
+
+```bash
+python scripts/preprocess_comments.py \
+  --input-path "@INPUT_PATH" \
+  --red-flags-path "@RED_FLAGS_PATH" \
+  --min-occurrences "@MIN_OCCURRENCES" \
+  --semantic-threshold "@SEMANTIC_THRESHOLD" \
+  --output-path "@OUTPUT_PATH"
+```
+
 ## Workflow
 
 1. **Exact match grouping**
