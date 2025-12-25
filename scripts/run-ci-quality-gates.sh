@@ -87,6 +87,12 @@ uv run --project "$ROOT_DIR/tools/enaible" enaible prompts lint
 echo "[ci-quality] Prompt validate"
 uv run --project "$ROOT_DIR/tools/enaible" enaible prompts validate
 
+echo "[ci-quality] Skills lint"
+uv run --project "$ROOT_DIR/tools/enaible" enaible skills lint
+
+echo "[ci-quality] Skills validate"
+uv run --project "$ROOT_DIR/tools/enaible" enaible skills validate
+
 prettier_files=()
 while IFS= read -r -d '' file; do
     case "$file" in

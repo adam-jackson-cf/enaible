@@ -10,6 +10,7 @@ import typer
 from ..app import app
 from ..runtime.context import load_workspace
 from ..skills.catalog import SkillDefinition
+from ..skills.lint import lint_files
 from ..skills.renderer import SkillRenderer
 
 _skills_app = typer.Typer(help="Render and validate managed skills.")
@@ -159,3 +160,27 @@ def skills_validate(
         if exc.exit_code != 0:
             typer.echo("Skill drift detected. Run `enaible skills render` to update.")
         raise
+
+
+@_skills_app.command("lint")
+def skills_lint(
+    skills: str = typer.Option("all", "--skill"),
+) -> None:
+    """Lint skill sources for frontmatter validity."""
+    context = load_workspace()
+    renderer = SkillRenderer(context)
+    catalog = {definition.skill_id: definition for definition in renderer.list_skills()}
+
+    selected_skills = _resolve_skill_ids(catalog, _split_csv(skills))
+    files = {
+        (context.repo_root / catalog[skill_id].source_path).resolve()
+        for skill_id in selected_skills
+    }
+
+    issues = lint_files(files)
+    if not issues:
+        typer.echo("skills: lint passed")
+        return
+    for issue in issues:
+        typer.echo(f"{issue.path}:{issue.line}: {issue.message}")
+    raise typer.Exit(code=1)
