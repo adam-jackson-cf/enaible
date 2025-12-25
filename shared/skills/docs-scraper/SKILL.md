@@ -34,27 +34,12 @@ Capture documentation from URLs and save it as readable, well-structured markdow
 **Purpose**: Confirm URLs, output directory, and naming expectations.
 **Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
 
-### Stage 2: Fetch URL content
+### Stage 2: Fetch
 
 **Purpose**: Run `enaible docs_scrape` for each URL and validate outputs.
-**Details**: [resources/cli-reference.md](resources/cli-reference.md)
+**Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
 
-### Stage 3: Process + clean
+### Stage 3: Clean + Save
 
-**Purpose**: Reformat content into clean markdown and remove navigation clutter.
-**Details**: [resources/cli-reference.md](resources/cli-reference.md)
-
-### Stage 4: Determine filenames
-
-**Purpose**: Derive kebab-case filenames from the URL path or page title.
-**Details**: [resources/cli-reference.md](resources/cli-reference.md)
-
-### Stage 5: Save documentation
-
-**Purpose**: Write the cleaned markdown to the output directory.
-**Details**: [resources/cli-reference.md](resources/cli-reference.md)
-
-### Stage 6: Verify + report
-
-**Purpose**: Confirm the file exists and summarize what was saved.
-**Details**: [resources/cli-reference.md](resources/cli-reference.md)
+**Purpose**: Normalize markdown, add source attribution, and save files.
+**Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
