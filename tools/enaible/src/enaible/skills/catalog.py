@@ -81,4 +81,32 @@ CATALOG: dict[str, SkillDefinition] = {
             ),
         },
     ),
+    "docs-scraper": SkillDefinition(
+        skill_id="docs-scraper",
+        source_path=_repo_path("shared", "skills", "docs-scraper", "SKILL.md"),
+        systems={
+            "claude-code": SystemSkillConfig(
+                template="docs/system/claude-code/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "skills",
+                    "docs-scraper",
+                    "SKILL.md",
+                ),
+            ),
+            "codex": SystemSkillConfig(
+                template="docs/system/codex/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "skills",
+                    "docs-scraper",
+                    "SKILL.md",
+                ),
+            ),
+        },
+    ),
 }
