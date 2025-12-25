@@ -22,31 +22,26 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 
 - Instruction file mapping falls back to `config/defaults.json`.
 
-## Deterministic tooling
-
-```bash
-"$PYTHON_CMD" scripts/generate_rules.py \
-  --patterns-path "@PATTERNS_PATH" \
-  --output-dir "@OUTPUT_DIR" \
-  --repo-root "."
-```
-
 ## Workflow
 
-1. **Load approved patterns**
-   - Read @PATTERNS_PATH.
+1. **Run deterministic rule generation**
+   - Execute the script to draft new or strengthened rules:
+     ```bash
+     "$PYTHON_CMD" scripts/generate_rules.py \
+       --patterns-path "@PATTERNS_PATH" \
+       --instruction-files "@INSTRUCTION_FILES" \
+       --output-dir "@OUTPUT_DIR" \
+       --repo-root "."
+     ```
 
-2. **Generate drafts**
-   - For `create`: build a complete rule with bad/good examples.
-   - For `strengthen`: generate an addendum for the existing rule.
+2. **Review drafts**
+   - For `create`: ensure a complete rule with bad/good examples.
+   - For `strengthen`: ensure a clear addendum to the existing rule.
 
-3. **Assign targets**
-   - Choose backend/frontend/repository/security instruction file based on pattern category.
-
-4. **User approval (Stage 7)**
+3. **User approval (Stage 7)**
    - Pause and @ASK_USER_CONFIRMATION for each draft decision.
 
-5. **Write drafts**
+4. **Write drafts**
    - Save to @OUTPUT_DIR using `draft-{target}-{action}-{pattern}.md`.
 
 ## Output

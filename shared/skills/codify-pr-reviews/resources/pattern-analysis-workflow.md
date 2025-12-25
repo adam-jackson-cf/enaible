@@ -26,34 +26,26 @@ Transform grouped comments into structured patterns and triage them against exis
 
 - Categories and instruction file paths fall back to `config/defaults.json`.
 
-## Deterministic tooling
-
-```bash
-"$PYTHON_CMD" scripts/analyze_patterns.py \
-  --input-path "@PREPROCESSED_PATH" \
-  --output-path "@OUTPUT_PATH"
-```
-
 ## Workflow
 
-1. **Load grouped comments**
-   - Read @PREPROCESSED_PATH.
+1. **Run deterministic pattern analysis**
+   - Execute the script to parse rules and classify patterns:
+     ```bash
+     "$PYTHON_CMD" scripts/analyze_patterns.py \
+       --input-path "@PREPROCESSED_PATH" \
+       --instruction-files "@INSTRUCTION_FILES" \
+       --output-path "@OUTPUT_PATH"
+     ```
 
-2. **Parse existing rules**
-   - Extract headings, directives, and examples from @INSTRUCTION_FILES.
-
-3. **Generate patterns**
-   - Title, description, severity, category, frequency, examples.
-
-4. **Triage**
+2. **Review triage**
    - 🟢 Already covered: rule exists + frequency within expected adherence.
    - 🟡 Needs strengthening: rule exists but gaps or high frequency.
    - 🔴 New rule: no existing coverage (or red-flag override).
 
-5. **User approval (Stage 5)**
+3. **User approval (Stage 5)**
    - Pause and @ASK_USER_CONFIRMATION for each pattern decision.
 
-6. **Write output**
+4. **Write output**
    - Save patterns + triage metadata to @OUTPUT_PATH.
 
 ## Output

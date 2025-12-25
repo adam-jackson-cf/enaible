@@ -26,35 +26,23 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
 
 - Optional parameters fall back to `config/defaults.json` when omitted.
 
-## Deterministic tooling
-
-```bash
-"$PYTHON_CMD" scripts/preprocess_comments.py \
-  --input-path "@INPUT_PATH" \
-  --red-flags-path "@RED_FLAGS_PATH" \
-  --min-occurrences "@MIN_OCCURRENCES" \
-  --semantic-threshold "@SEMANTIC_THRESHOLD" \
-  --output-path "@OUTPUT_PATH"
-```
-
 ## Workflow
 
-1. **Exact match grouping**
-   - Group identical comment text.
+1. **Run deterministic preprocessing**
+   - Execute the script to dedupe and group comments:
+     ```bash
+     "$PYTHON_CMD" scripts/preprocess_comments.py \
+       --input-path "@INPUT_PATH" \
+       --red-flags-path "@RED_FLAGS_PATH" \
+       --min-occurrences "@MIN_OCCURRENCES" \
+       --semantic-threshold "@SEMANTIC_THRESHOLD" \
+       --output-path "@OUTPUT_PATH"
+     ```
 
-2. **Fuzzy match grouping**
-   - Use simhash or equivalent to group near-duplicates.
+2. **Review summary**
+   - Confirm input count, output groups, and red-flag retention.
 
-3. **Semantic grouping**
-   - For ambiguous leftovers, run a lightweight semantic check.
-
-4. **Frequency filter**
-   - Keep groups with occurrences >= @MIN_OCCURRENCES.
-
-5. **Red-flag override**
-   - Keep any group matching red flags regardless of frequency.
-
-6. **Write output**
+3. **Write output**
    - Save grouped comments to @OUTPUT_PATH.
 
 ## Output

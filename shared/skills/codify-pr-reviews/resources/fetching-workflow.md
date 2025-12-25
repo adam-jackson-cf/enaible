@@ -28,62 +28,28 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
 
 - Optional parameters fall back to `config/defaults.json` when omitted.
 
-## Deterministic tooling
-
-Preflight:
-
-```bash
-"$PYTHON_CMD" scripts/fetch_comments.py \
-  --preflight \
-  --repo "@REPO" \
-  --days-back "@DAYS_BACK"
-```
-
-Full fetch:
-
-```bash
-"$PYTHON_CMD" scripts/fetch_comments.py \
-  --repo "@REPO" \
-  --days-back "@DAYS_BACK" \
-  --exclude-authors "@EXCLUDE_AUTHORS" \
-  --min-comment-length "@MIN_COMMENT_LENGTH" \
-  --output-path "@OUTPUT_PATH"
-```
-
 ## Workflow
 
 1. **Preflight check (MANDATORY)**
-   - Verify gh auth:
+   - Run the deterministic preflight (script performs gh auth + sampling):
      ```bash
-     gh auth status
-     ```
-   - Detect repo:
-     ```bash
-     git remote get-url origin
-     ```
-   - Sample PR list and comment count:
-     ```bash
-     gh pr list --repo "@REPO" --state all --limit 5 \
-       --json number,title,author,createdAt,state
-     gh api repos/@REPO/pulls/@SAMPLE_PR/comments --jq 'length'
+     "$PYTHON_CMD" scripts/fetch_comments.py \
+       --preflight \
+       --repo "@REPO" \
+       --days-back "@DAYS_BACK"
      ```
    - **STOP** and @ASK_USER_CONFIRMATION before proceeding with full fetch.
 
 2. **Full fetch**
-   - List PRs in range:
+   - Run the deterministic fetch (script performs listing + filtering):
      ```bash
-     gh pr list --repo "@REPO" --state all \
-       --search "created:>=${START_DATE}" \
-       --json number,title,author,createdAt,state,mergedAt --limit 1000
+     "$PYTHON_CMD" scripts/fetch_comments.py \
+       --repo "@REPO" \
+       --days-back "@DAYS_BACK" \
+       --exclude-authors "@EXCLUDE_AUTHORS" \
+       --min-comment-length "@MIN_COMMENT_LENGTH" \
+       --output-path "@OUTPUT_PATH"
      ```
-   - For each PR:
-     ```bash
-     gh api repos/@REPO/pulls/@PR_NUMBER/comments
-     gh api repos/@REPO/issues/@PR_NUMBER/comments
-     ```
-   - Filter:
-     - Drop authors in @EXCLUDE_AUTHORS.
-     - Drop comments shorter than @MIN_COMMENT_LENGTH.
 
 3. **Write output**
    - Save JSON to @OUTPUT_PATH.

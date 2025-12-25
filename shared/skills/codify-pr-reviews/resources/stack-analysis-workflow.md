@@ -21,33 +21,20 @@ Detect the repository technology stack and generate red-flag patterns that must 
 - Cache results at @OUTPUT_PATH and only regenerate when @FORCE_REFRESH is true.
 - Return a concise summary (stack + red-flag count) to the main workflow.
 
-## Deterministic tooling
-
-Run:
-
-```bash
-"$PYTHON_CMD" scripts/stack_analysis.py \
-  --project-root "@PROJECT_ROOT" \
-  --output-path "@OUTPUT_PATH"
-```
-
 ## Workflow
 
-1. **Locate stack indicators**
-   - Check `package.json`, `requirements.txt`, `go.mod`, `pom.xml`, `Gemfile`, `Cargo.toml`, `composer.json`.
-   - Scan for framework-specific config (`tsconfig.json`, `vite.config.*`, `.babelrc`, `next.config.*`).
+1. **Run deterministic stack analysis**
+   - Execute the script to detect stack and red flags:
+     ```bash
+     "$PYTHON_CMD" scripts/stack_analysis.py \
+       --project-root "@PROJECT_ROOT" \
+       --output-path "@OUTPUT_PATH"
+     ```
 
-2. **Infer stack**
-   - Backend: Express/Fastify/Nest (Node), FastAPI/Django/Flask (Python), Gin/Echo (Go), Spring (Java).
-   - Frontend: React/Vue/Angular/Svelte plus meta frameworks (Next/Nuxt).
-   - Database: SQLite/Postgres/MySQL/Mongo + ORMs (Prisma/TypeORM/Sequelize).
-   - Language priority: TypeScript > Python > Go > Java > Ruby > C# > JavaScript.
+2. **Review summary**
+   - Confirm detected stack and red-flag count.
 
-3. **Generate red flags**
-   - Stack-specific security patterns (SQL injection variants, bcrypt sync usage, etc.).
-   - Universal red flags (hardcoded credentials, TODO security markers).
-
-4. **Write output**
+3. **Write output**
    - Save JSON to @OUTPUT_PATH.
    - If output already exists and @FORCE_REFRESH is false, reuse it.
 
