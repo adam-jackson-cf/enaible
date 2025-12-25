@@ -113,7 +113,7 @@ SETUP TOOLING
 /setup-dev-monitoring /setup-browser-tools
 /setup-code-precommit-checks /setup-atuin
 /setup-package-monitoring /setup-mgrep
-/setup-beads /setup-parallel-ai
+/setup-beads
 /setup-react-grab
 
 ```
@@ -154,7 +154,6 @@ SETUP TOOLING
 | setup-browser-tools         | Install Chrome DevTools Protocol automation        |
 | setup-atuin                 | Install Atuin shell history with SQLite            |
 | setup-mgrep                 | Install mgrep for semantic search across code/docs |
-| setup-parallel-ai           | Install Parallel AI CLI for web intelligence       |
 | setup-beads                 | Initialize Beads (bd) git-backed task tracking     |
 | setup-react-grab            | Install react-grab for element capture             |
 | setup-code-precommit-checks | Add git hooks for language-specific quality gates  |
