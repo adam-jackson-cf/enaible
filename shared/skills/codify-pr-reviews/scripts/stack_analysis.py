@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Detect stack signals and generate red-flag patterns."""
 
 from __future__ import annotations

@@ -12,6 +12,7 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 
 ## Instructions
 
+- Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
 - Generate drafts with clear directives and examples.
 - Use positive directives (ALWAYS/NEVER) with stack-appropriate code.
 - Keep instruction files under 4000 characters; split if necessary.
@@ -24,7 +25,7 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 ## Deterministic tooling
 
 ```bash
-python scripts/generate_rules.py \
+"$PYTHON_CMD" scripts/generate_rules.py \
   --patterns-path "@PATTERNS_PATH" \
   --output-dir "@OUTPUT_DIR" \
   --repo-root "."

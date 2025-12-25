@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Deduplicate and group PR comments."""
 
 from __future__ import annotations

@@ -18,6 +18,7 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
 
 ## Instructions
 
+- Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
 - Always run the preflight checks first and STOP for user confirmation before full fetch.
 - Fetch both review comments (line-level) and issue comments (general).
 - Do not attempt to filter by “resolved”; capture everything in range.
@@ -32,7 +33,7 @@ Fetch pull request review comments from GitHub using the gh CLI, with a mandator
 Preflight:
 
 ```bash
-python scripts/fetch_comments.py \
+"$PYTHON_CMD" scripts/fetch_comments.py \
   --preflight \
   --repo "@REPO" \
   --days-back "@DAYS_BACK"
@@ -41,7 +42,7 @@ python scripts/fetch_comments.py \
 Full fetch:
 
 ```bash
-python scripts/fetch_comments.py \
+"$PYTHON_CMD" scripts/fetch_comments.py \
   --repo "@REPO" \
   --days-back "@DAYS_BACK" \
   --exclude-authors "@EXCLUDE_AUTHORS" \

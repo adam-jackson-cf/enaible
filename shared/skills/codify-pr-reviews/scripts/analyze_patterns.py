@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Analyze comment groups and triage patterns against existing rules."""
 
 from __future__ import annotations

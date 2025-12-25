@@ -17,6 +17,7 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
 
 ## Instructions
 
+- Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
 - Run exact matching first, then fuzzy (simhash), then semantic checks for edge cases.
 - Always keep red-flag matches even if below @MIN_OCCURRENCES.
 - Return summary: input count, output groups, filtered count.
@@ -28,7 +29,7 @@ Deduplicate and group PR comments with a hybrid exact + fuzzy + semantic approac
 ## Deterministic tooling
 
 ```bash
-python scripts/preprocess_comments.py \
+"$PYTHON_CMD" scripts/preprocess_comments.py \
   --input-path "@INPUT_PATH" \
   --red-flags-path "@RED_FLAGS_PATH" \
   --min-occurrences "@MIN_OCCURRENCES" \

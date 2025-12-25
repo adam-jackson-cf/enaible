@@ -16,6 +16,7 @@ Transform grouped comments into structured patterns and triage them against exis
 
 ## Instructions
 
+- Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
 - Parse existing instruction files to extract rule titles and examples.
 - For each comment group, generate a pattern with severity and category.
 - Triage each pattern into: already covered, needs strengthening, or new rule.
@@ -28,7 +29,7 @@ Transform grouped comments into structured patterns and triage them against exis
 ## Deterministic tooling
 
 ```bash
-python scripts/analyze_patterns.py \
+"$PYTHON_CMD" scripts/analyze_patterns.py \
   --input-path "@PREPROCESSED_PATH" \
   --output-path "@OUTPUT_PATH"
 ```

@@ -1,140 +1,58 @@
-"""Status and result commands for Parallel AI."""
+#!/usr/bin/env python
+"""Check status and results for Parallel AI runs."""
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
-from pathlib import Path
-from typing import Annotated
 
-import typer
-
-_REPO_ROOT = Path(__file__).resolve().parents[4]
-_PARALLEL_SRC = _REPO_ROOT / "tools" / "parallel" / "src"
-if _PARALLEL_SRC.exists() and str(_PARALLEL_SRC) not in sys.path:
-    sys.path.insert(0, str(_PARALLEL_SRC))
-
-from parallel.app import app  # noqa: E402
-from parallel.client import api_request  # noqa: E402
+from parallel_api import FINDALL_BETA_HEADER, api_request
 
 
-@app.command()
-def status(
-    run_id: Annotated[str, typer.Argument(help="Task run_id or FindAll findall_id")],
-    run_type: Annotated[
-        str | None,
-        typer.Option(
-            "--type",
-            "-t",
-            help="Run type: task or findall (auto-detected if not specified)",
-        ),
-    ] = None,
-) -> None:
-    """Check the status of an async operation.
+def build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description="Check status or results.")
+    subparsers = parser.add_subparsers(dest="command", required=True)
 
-    Examples
-    --------
-        parallel status trun_abc123
-        parallel status fa_xyz789 --type findall
-    """
-    # Auto-detect type from ID prefix
-    if run_type is None:
-        if run_id.startswith("trun_"):
-            run_type = "task"
-        elif run_id.startswith("fa_"):
-            run_type = "findall"
-        else:
-            print(
-                "Error: Could not auto-detect run type. Please specify --type task or --type findall"
-            )
-            raise typer.Exit(1)
+    status_parser = subparsers.add_parser("status", help="Check run status")
+    status_parser.add_argument("run_id", help="Task run_id or FindAll findall_id")
+    status_parser.add_argument(
+        "-t",
+        "--type",
+        choices=("task", "findall"),
+        help="Run type (auto-detected if not specified)",
+    )
 
-    try:
-        if run_type == "task":
-            result = api_request("GET", f"/v1/tasks/runs/{run_id}", use_beta=False)
-        else:
-            result = api_request("GET", f"/v1beta/findall/runs/{run_id}")
+    result_parser = subparsers.add_parser("result", help="Fetch run results")
+    result_parser.add_argument("run_id", help="Task run_id or FindAll findall_id")
+    result_parser.add_argument(
+        "-t",
+        "--type",
+        choices=("task", "findall"),
+        help="Run type (auto-detected if not specified)",
+    )
+    result_parser.add_argument("-o", "--output", help="Write results to file")
+    result_parser.add_argument(
+        "--format",
+        choices=("json", "markdown"),
+        default="json",
+        help="Output format",
+    )
 
-        print(json.dumps(result, indent=2))
-
-    except Exception as e:
-        print(f"Error: {e}", file=typer.get_text_stream("stderr"))
-        raise typer.Exit(1) from None
+    return parser
 
 
-@app.command()
-def result(
-    run_id: Annotated[str, typer.Argument(help="Task run_id or FindAll findall_id")],
-    run_type: Annotated[
-        str | None,
-        typer.Option(
-            "--type",
-            "-t",
-            help="Run type: task or findall (auto-detected if not specified)",
-        ),
-    ] = None,
-    output_file: Annotated[
-        str | None,
-        typer.Option("--output", "-o", help="Write results to file"),
-    ] = None,
-    output_format: Annotated[
-        str,
-        typer.Option("--format", help="Output format"),
-    ] = "json",
-) -> None:
-    """Fetch results of a completed async operation.
-
-    For tasks, this blocks until completion and returns the enriched data.
-    For findall, this returns the matched candidates.
-
-    Examples
-    --------
-        parallel result trun_abc123
-        parallel result fa_xyz789 --type findall --output results.json
-    """
-    # Auto-detect type from ID prefix
-    if run_type is None:
-        if run_id.startswith("trun_"):
-            run_type = "task"
-        elif run_id.startswith("fa_"):
-            run_type = "findall"
-        else:
-            print(
-                "Error: Could not auto-detect run type. Please specify --type task or --type findall"
-            )
-            raise typer.Exit(1)
-
-    try:
-        if run_type == "task":
-            # Task result endpoint blocks until completion
-            result = api_request(
-                "GET", f"/v1/tasks/runs/{run_id}/result", use_beta=False
-            )
-        else:
-            # FindAll returns candidates
-            result = api_request("GET", f"/v1beta/findall/runs/{run_id}/candidates")
-
-        output = json.dumps(result, indent=2)
-
-        if output_file:
-            with open(output_file, "w") as f:
-                f.write(output)
-            print(f"Results written to {output_file}")
-        else:
-            if output_format == "markdown" and run_type == "task":
-                _print_task_result_markdown(result)
-            elif output_format == "markdown" and run_type == "findall":
-                _print_findall_result_markdown(result)
-            else:
-                print(output)
-
-    except Exception as e:
-        print(f"Error: {e}", file=typer.get_text_stream("stderr"))
-        raise typer.Exit(1) from None
+def detect_run_type(run_id: str, run_type: str | None) -> str | None:
+    if run_type:
+        return run_type
+    if run_id.startswith("trun_"):
+        return "task"
+    if run_id.startswith("fa_") or run_id.startswith("findall_"):
+        return "findall"
+    return None
 
 
-def _print_task_result_markdown(result: dict) -> None:
-    """Print task results in markdown format."""
+def print_task_result_markdown(result: dict) -> None:
     print("# Task Result\n")
 
     run_info = result.get("run", {})
@@ -165,8 +83,7 @@ def _print_task_result_markdown(result: dict) -> None:
                     print()
 
 
-def _print_findall_result_markdown(result: dict) -> None:
-    """Print findall results in markdown format."""
+def print_findall_result_markdown(result: dict) -> None:
     print("# FindAll Results\n")
 
     candidates = result.get("candidates", [])
@@ -176,12 +93,90 @@ def _print_findall_result_markdown(result: dict) -> None:
 
     print(f"**Total Candidates:** {len(candidates)}\n")
 
-    for i, candidate in enumerate(candidates, 1):
-        name = candidate.get("name", f"Candidate {i}")
-        print(f"## {i}. {name}\n")
+    for index, candidate in enumerate(candidates, 1):
+        name = candidate.get("name", f"Candidate {index}")
+        print(f"## {index}. {name}\n")
 
-        # Print all fields except name
         for key, value in candidate.items():
             if key != "name":
                 print(f"- **{key}:** {value}")
         print()
+
+
+def run_status(run_id: str, run_type: str) -> int:
+    try:
+        if run_type == "task":
+            result = api_request("GET", f"/v1/tasks/runs/{run_id}", beta_header=None)
+        else:
+            result = api_request(
+                "GET",
+                f"/v1beta/findall/runs/{run_id}",
+                beta_header=FINDALL_BETA_HEADER,
+            )
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    print(json.dumps(result, indent=2))
+    return 0
+
+
+def run_result(run_id: str, run_type: str, output: str | None, fmt: str) -> int:
+    try:
+        if run_type == "task":
+            result = api_request(
+                "GET",
+                f"/v1/tasks/runs/{run_id}/result",
+                beta_header=None,
+            )
+        else:
+            result = api_request(
+                "GET",
+                f"/v1beta/findall/runs/{run_id}/result",
+                beta_header=FINDALL_BETA_HEADER,
+            )
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    output_text = json.dumps(result, indent=2)
+
+    if output:
+        with open(output, "w", encoding="utf-8") as handle:
+            handle.write(output_text)
+        print(f"Results written to {output}")
+        return 0
+
+    if fmt == "markdown" and run_type == "task":
+        print_task_result_markdown(result)
+    elif fmt == "markdown" and run_type == "findall":
+        print_findall_result_markdown(result)
+    else:
+        print(output_text)
+
+    return 0
+
+
+def main() -> int:
+    parser = build_parser()
+    args = parser.parse_args()
+
+    run_type = detect_run_type(args.run_id, args.type)
+    if run_type is None:
+        print(
+            "Error: Could not auto-detect run type. Use --type task or --type findall.",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.command == "status":
+        return run_status(args.run_id, run_type)
+    if args.command == "result":
+        return run_result(args.run_id, run_type, args.output, args.format)
+
+    print("Error: Unknown command", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

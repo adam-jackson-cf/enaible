@@ -15,6 +15,7 @@ Detect the repository technology stack and generate red-flag patterns that must 
 
 ## Instructions
 
+- Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
 - Scan dependency and config files to infer backend, frontend, database, and language.
 - Generate stack-specific red flags plus a universal security list.
 - Cache results at @OUTPUT_PATH and only regenerate when @FORCE_REFRESH is true.
@@ -25,7 +26,7 @@ Detect the repository technology stack and generate red-flag patterns that must 
 Run:
 
 ```bash
-python scripts/stack_analysis.py \
+"$PYTHON_CMD" scripts/stack_analysis.py \
   --project-root "@PROJECT_ROOT" \
   --output-path "@OUTPUT_PATH"
 ```

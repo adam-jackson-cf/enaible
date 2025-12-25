@@ -20,6 +20,7 @@ Turn historical PR review comments into actionable instruction rules so repeat f
 - Run inside the target git repository (or provide an explicit repo).
 - Instruction files exist or can be created (Copilot, Codex, etc.).
 - Default settings live in `config/defaults.json`.
+- Set `PYTHON_CMD` to the user-confirmed Python command (must be 3.12+).
 
 ## Resources
 

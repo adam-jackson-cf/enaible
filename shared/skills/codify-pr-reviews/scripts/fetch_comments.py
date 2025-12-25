@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """Fetch PR review comments via gh CLI."""
 
 from __future__ import annotations
