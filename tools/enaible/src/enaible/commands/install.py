@@ -287,13 +287,13 @@ def _complete_installation(
     enforce_dependencies: bool,
 ) -> None:
     """Complete installation: render prompts, sync, post-install, emit summary."""
+    if sync:
+        _sync_enaible_env(context.repo_root, dry_run, summary)
+
     _render_managed_prompts(
         context, system, destination_root, mode, dry_run, summary, enforce_dependencies
     )
     _render_managed_skills(context, system, destination_root, mode, dry_run, summary)
-
-    if sync:
-        _sync_enaible_env(context.repo_root, dry_run, summary)
 
     _post_install(system, source_root, destination_root, scope, dry_run, summary)
     _set_claude_status_executable(system, destination_root, dry_run, summary)
