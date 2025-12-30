@@ -43,9 +43,11 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 3. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), deployment topology indicators
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note root-cause-relevant context: logging infrastructure, error tracking services, deployment configs
+   - Capture deployment topology signals (monolith vs services, build pipeline, infra hints)
    - Log applied exclusions for final report
 4. **Run automated analyzers**
    - Execute each Enaible command, storing the JSON output:
@@ -72,13 +74,15 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Correlate change timelines with error occurrences.
    - Map stack traces to code locations and execution paths.
    - Identify recurring error signatures and environment triggers.
-6. **Perform causal reasoning**
+6. **Reconstruct timeline**
+   - Capture key timestamps (last deploy, first error, last change) to anchor causal reasoning.
+7. **Perform causal reasoning**
    - Apply techniques such as Five Whys, timeline reconstruction, and hypothesis testing.
    - Distinguish primary root causes from contributing factors or unknowns that require follow-up.
-7. **Recommend remediation**
+8. **Recommend remediation**
    - Propose fixes, regression tests, and preventive measures.
    - Surface open questions or missing data that must be resolved before rollout.
-8. **Identify coverage gaps**
+9. **Identify coverage gaps**
    - List what the analyzers checked (traces, recent changes, error patterns) vs. what they cannot check
    - For each gap category:
      - Environmental differences: compare prod vs dev configs, feature flags, dependency versions
@@ -87,9 +91,10 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - If inspectable via code reading: perform targeted review, cite evidence
    - If requires runtime/external info: flag as "requires manual verification"
    - Assign confidence: High (tool + LLM agreement), Medium (LLM inference only), Low (couldn't verify)
-9. **Deliver report**
-   - Summarize evidence, findings, and next actions in a structured format.
-   - Reference analyzer outputs using the artifact paths recorded earlier.
+10. **Deliver report**
+
+- Summarize evidence, findings, and next actions in a structured format.
+- Reference analyzer outputs using the artifact paths recorded earlier.
 
 ## Output
 
@@ -103,6 +108,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## EVIDENCE
@@ -116,6 +122,10 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 
 1. <Primary cause with supporting evidence>
 2. <Contributing factor(s)>
+
+## UNKNOWNS
+
+- <Open question or missing data>
 
 ## REMEDIATION PLAN
 

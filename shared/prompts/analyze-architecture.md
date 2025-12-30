@@ -33,11 +33,12 @@ Evaluate system architecture quality by combining automated structural analyzers
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), framework conventions
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note architectural patterns to look for based on detected stack (e.g., Rails conventions, Spring layers, React component hierarchy)
    - Log applied exclusions for final report
@@ -68,8 +69,10 @@ Evaluate system architecture quality by combining automated structural analyzers
 4. **Synthesize architecture baseline**
    - Identify the primary domains, layers, shared libraries, and external interfaces referenced by architecture:patterns.
    - Note whether observed patterns (CQRS, hexagonal, micro-frontends) align with project standards.
+   - Capture evidence for domain boundaries (top 3 files/dirs that define each boundary).
 5. **Dependency & coupling assessment**
    - Highlight modules with excessive in-degree/out-degree, circular dependencies, or boundary violations surfaced by architecture:dependency and architecture:coupling.
+   - Rank top hotspots by severity or fan-in/out to keep the report actionable.
    - Map findings to concrete files/services and describe user-visible risk (regression blast radius, deployment friction, scalability constraints).
 6. **Scalability evaluation**
    - Review architecture:scalability signals for bottlenecks (synchronous fan-out, global locks, shared state) and capture recommended guardrails or capacity tests.
@@ -98,6 +101,7 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## ARCHITECTURE OVERVIEW

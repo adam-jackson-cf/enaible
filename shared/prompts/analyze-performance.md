@@ -35,12 +35,13 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), runtime environment indicators
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note performance-relevant context: caching infrastructure, async frameworks, database drivers, bundler configs
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-   - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected):
+   - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected; only run `performance:ruff` when Python is detected; only run `performance:sqlglot` when SQL files or migration tooling is detected):
 
      ```bash
      enaible analyzers run performance:ruff \
@@ -68,6 +69,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 4. **Aggregate findings**
    - Parse hotspots across layers: backend N+1 patterns, frontend re-render costs, SQL anti-patterns, lint warnings.
    - Map each issue to system components (API endpoints, React routes, migrations, jobs).
+   - Note likely remediation patterns for common findings (batching, memoization, indexing, async IO).
 5. **Investigate context**
    - Inspect flagged areas for caching gaps, over-fetching, synchronous IO, or configuration constraints.
    - Consider infrastructure contributors (rate limits, autoscaling thresholds, memory footprints).
@@ -97,6 +99,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## BOTTLENECKS

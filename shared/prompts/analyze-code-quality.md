@@ -36,7 +36,8 @@ Assess code quality by combining automated metrics with architectural review to 
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), test framework conventions
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note quality conventions to check based on detected stack (e.g., linter configs, type strictness, documentation standards)
    - Log applied exclusions for final report
@@ -59,6 +60,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 4. **Interpret metrics**
    - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
+   - Prefer documented project thresholds (CONTRIBUTING, lint configs) when they differ from defaults.
    - Cross-reference duplication findings with the impacted components.
 5. **Evaluate qualitative dimensions**
    - Review documentation depth, readability, adherence to SOLID principles, and test coverage signals.
@@ -90,6 +92,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## METRICS

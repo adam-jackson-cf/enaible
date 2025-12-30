@@ -37,7 +37,8 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), auth framework indicators
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note security-relevant context: auth libraries, secrets management tools, infrastructure-as-code configs
    - Log applied exclusions for final report
@@ -49,10 +50,10 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
      enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/detect-secrets.json"
      ```
 
-     - Pass `--summary` to generate quick overviews when triaging large reports.
-     - Add `--verbose` when @VERBOSE is provided to capture analyzer-specific debugging output.
-     - Add `--exclude "<glob>"` or tune `--min-severity` when focusing on specific systems or risk levels.
-     - If an invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
+   - Pass `--summary` to generate quick overviews when triaging large reports.
+   - Add `--verbose` when @VERBOSE is provided to capture analyzer-specific debugging output.
+   - Add `--exclude "<glob>"` or tune `--min-severity` when focusing on specific systems or risk levels.
+   - If an invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
    - **STOP (skip when @AUTO):** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
@@ -61,6 +62,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 4. **Phase 2 — Gap Assessment & Contextual Analysis**
    - List what the analyzers checked (code patterns, hardcoded secrets) vs. what they cannot check
    - Compare analyzer coverage versus OWASP Top 10 and stack-specific concerns.
+   - Note supply-chain coverage gaps (lockfiles, SBOMs, known-vuln checks) and flag as manual verification when not available.
    - Perform targeted manual review for auth, configuration, secrets management, supply chain, and data flow gaps.
    - For each gap category:
      - Business logic authorization: inspect permission checks and role-based access
@@ -76,6 +78,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 5. **Phase 3 — Risk Prioritization & Reporting**
    - Merge automated findings with contextual insights.
    - Assign impact \* likelihood scoring to derive Critical/High/Medium/Low grading.
+   - When `@MIN_SEVERITY` is below high, separate Critical/High from Medium/Low in the report.
    - Build a remediation roadmap with milestone-based sequencing (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening tasks).
    - Snapshot risk posture in `@ARTIFACT_ROOT/risk-summary.md`.
    - **STOP (skip when @AUTO):** "Security analysis complete and validated. Transfer findings to todos.md? (y/n)"
@@ -101,6 +104,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## FINDINGS
