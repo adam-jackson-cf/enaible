@@ -184,6 +184,7 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 | create-rule         | Add single rule based on topic and best practices |
 | get-codebase-primer | Generate project overview with architecture       |
 | get-task-primer     | Explore codebase for task-specific context        |
+| task-background     | Run cli task in background tmux session           |
 
 ### Shared Skills
 
@@ -200,7 +201,6 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 | codify-session-history    | Shared (Codex/Claude) | `/codify-session-history --days 7`         | Extract workflow standards from sessions  |
 | get-recent-context        | Shared (Codex/Claude) | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
 | analyze-repo-orchestrator | Codex                 | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
-| task-background           | Shared                | `/task-background "refactor auth"`         | Run task in background tmux session       |
 
 </details>
 
