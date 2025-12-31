@@ -38,7 +38,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
        `codex exec --model @MODEL_NAME --reasoning @REASONING "Hello world"`
    - Claude models (claude-opus-4-1-20250805, claude-opus-4-20250514, claude-sonnet-4-20250514, claude-3-7-sonnet-20250219, claude-3-5-haiku-20241022):
      `claude --model @MODEL_NAME -p "Hello world"`
-   - Gemini models (gemini-2.5-pro, gemini-2.5-flash, gemini-3-pro-preview):
+   - Gemini models (gemini-2.5-pro, gemini-2.5-flash, gemini-3-pro, gemini-3-flash):
      `gemini --model @MODEL_NAME -p "Hello world"`
    - If the CLI command fails or returns an auth error, report it and exit without launching Codex.
 
