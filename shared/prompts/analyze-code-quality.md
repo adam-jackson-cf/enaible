@@ -47,11 +47,13 @@ Assess code quality by combining automated metrics with architectural review to 
      ```bash
      enaible analyzers run quality:lizard \
        --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-lizard.json"
+       --out "@ARTIFACT_ROOT/quality-lizard.json" \
+       @EXCLUDE
 
      enaible analyzers run quality:jscpd \
        --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-jscpd.json"
+       --out "@ARTIFACT_ROOT/quality-jscpd.json" \
+       @EXCLUDE
      ```
 
    - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
