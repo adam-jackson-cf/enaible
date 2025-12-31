@@ -78,7 +78,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
          ;;
        gemini-*)
          tmux new-session -d -s @SESSION_NAME \
-           "gemini --model @MODEL_NAME -p --approval-mode yolo \
+           "gemini --model @MODEL_NAME -p --approval-mode auto_edit \
              \"@ENHANCED_PROMPT\""
          ;;
        *)
