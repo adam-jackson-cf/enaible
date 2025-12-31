@@ -38,8 +38,10 @@ Codify recurring errors, fixes, and preferences from recent assistant sessions, 
    - Gather sessions within the lookback window, honoring optional filters:
 
      ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
      uv run --project tools/enaible enaible context_capture \
        --platform @PLATFORM \
+       --project-root "$PROJECT_ROOT" \
        ${DAYS:+--days "@DAYS"} \
        ${UUID:+--uuid "@UUID"} \
        ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
