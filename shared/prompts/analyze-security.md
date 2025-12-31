@@ -58,6 +58,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Merge with any user-provided @EXCLUDE patterns
    - Note security-relevant context: auth libraries, secrets management tools, infrastructure-as-code configs
    - Log applied exclusions for final report
+
 3. **Run automated analyzers**
    - Execute each Enaible command, storing the JSON output:
 
@@ -78,10 +79,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Pass `--summary` to generate quick overviews when triaging large reports; keep full artifacts as audit evidence.
    - Add `--verbose` when @VERBOSE is provided to capture analyzer-specific debugging output.
    - If an invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
-
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
-   - **STOP (skip when @AUTO):** “Automated security analysis complete. Proceed with gap assessment? (y/n)”
-     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
 
 4. **Phase 2 — Gap Assessment & Contextual Analysis**
    - List what the analyzers checked (code patterns, hardcoded secrets) vs. what they cannot check
@@ -97,24 +95,21 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Assign confidence: High (tool + LLM agreement), Medium (LLM inference only), Low (couldn't verify)
    - Document technology-specific validations (e.g., Django CSRF, React XSS mitigations, Express headers, Terraform security controls).
    - Capture contextual notes in `@ARTIFACT_ROOT/gap-analysis.md`.
-   - **STOP (skip when @AUTO):** "Gap assessment and contextual analysis complete. Proceed with risk prioritization? (y/n)"
-     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
+
 5. **Phase 3 — Risk Prioritization & Reporting**
    - Merge automated findings with contextual insights.
    - Assign impact \* likelihood scoring to derive Critical/High/Medium/Low grading.
    - When `@MIN_SEVERITY` is below high, separate Critical/High from Medium/Low in the report.
    - Build a remediation roadmap with milestone-based sequencing (Phase 1 critical fixes, Phase 2 high priorities, Phase 3 hardening tasks).
    - Snapshot risk posture in `@ARTIFACT_ROOT/risk-summary.md`.
-   - **STOP (skip when @AUTO):** "Security analysis complete and validated. Transfer findings to todos.md? (y/n)"
-     - When @AUTO is present, continue immediately and record internally that the confirmation was auto-applied.
-6. **Phase 4 — Quality Validation & Task Transfer**
-   - Confirm the following before closure:
-     - OWASP Top 10 categories reviewed with supporting evidence.
-     - Analyzer outputs parsed and cross-referenced.
-     - Technology-specific controls inspected.
-     - Business logic risks evaluated with decision-makers.
-   - When approved (and @AUTO is not set), append actionable remediation tasks to `todos.md` using the roadmap structure. In auto mode, collect tasks in the output summary for manual triage.
-   - Note whether the transfer happened or was deferred, including owner acknowledgements and follow-up triggers.
+
+6. **Phase 4 — Quality Validation & Final Report**
+   - Review your actions and confirm you have carried out the following before output of the final report:
+     - [ ] OWASP Top 10 categories reviewed with supporting evidence.
+     - [ ] Analyzer outputs parsed and cross-referenced.
+     - [ ] Technology-specific controls inspected.
+     - [ ] Business logic risks evaluated with decision-makers.
+   - Deliver the final report using the output template below.
 
 ## Output
 
