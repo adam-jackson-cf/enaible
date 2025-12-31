@@ -48,19 +48,19 @@ See [docs/installation.md](docs/installation.md) for manual install options and 
 /analyze-code-architecture
 ```
 
-### Coding a feature
+### Coding a task
 
 ```bash
-/get-feature-primer "authentication"    # Deep dive into specific feature areas
-# execute coding loop feature work
+/get-task-primer "authentication"       # Deep dive into specific task areas
+# execute coding loop task work
 /analyze-code-quality                   # Code review - evaluate layering, coupling, scalability and flag improvements (uses lizard + others)
 /analyze-security                       # Code review - ensure no security issues (uses semgrep)
 ```
 
-### Planning a New Feature
+### Planning a New Task
 
 ```bash
-/get-feature-primer "payments"          # Gather context on related code
+/get-task-primer "payments"             # Gather context on related code
 /plan-solution "Add Stripe integration" # Compare Conservative, Balanced, Innovative approaches
 ```
 
@@ -120,7 +120,7 @@ PLANNING
 
 CONTEXT
 /get-codebase-primer [--target-path ./]
-/get-feature-primer "feature" [--target-path ./]
+/get-task-primer "task" [--target-path ./]
 /create-rule <topic>
 
 SETUP TOOLING
@@ -177,13 +177,14 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 | setup-react-grab            | Install react-grab for element capture             |
 | setup-code-precommit-checks | Add git hooks for language-specific quality gates  |
 
-### Project & Feature
+### Project & Task
 
 | Prompt              | Use Case                                          |
 | ------------------- | ------------------------------------------------- |
 | create-rule         | Add single rule based on topic and best practices |
 | get-codebase-primer | Generate project overview with architecture       |
-| get-feature-primer  | Explore codebase for feature-specific context     |
+| get-task-primer     | Explore codebase for task-specific context        |
+| task-background     | Run cli task in background tmux session           |
 
 ### Shared Skills
 
@@ -195,14 +196,11 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 
 ### System-Specific Commands
 
-| Command                   | System | Example                                    | Use Case                                  |
-| ------------------------- | ------ | ------------------------------------------ | ----------------------------------------- |
-| codify-claude-history     | Claude | `/codify-claude-history --days 7`          | Extract workflow standards from sessions  |
-| get-recent-context        | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
-| codify-codex-history      | Codex  | `/codify-codex-history`                    | Mine sessions for recurring patterns      |
-| get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
-| analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
-| todo-background           | Codex  | `/todo-background "refactor auth"`         | Run task in background tmux session       |
+| Command                   | System                | Example                                    | Use Case                                  |
+| ------------------------- | --------------------- | ------------------------------------------ | ----------------------------------------- |
+| codify-session-history    | Shared (Codex/Claude) | `/codify-session-history --days 7`         | Extract workflow standards from sessions  |
+| get-recent-context        | Shared (Codex/Claude) | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
+| analyze-repo-orchestrator | Codex                 | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
 
 </details>
 

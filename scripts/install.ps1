@@ -22,6 +22,8 @@ $sessionDir = Join-Path $env:USERPROFILE ".enaible/install-sessions"
 $script:PromptReader = $null
 $script:PromptInputMode = 'ReadHost'
 $script:PromptAvailable = $true
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$defaultRef = "main"
 
 function Write-Log {
     param([string]$Message)
@@ -163,6 +165,32 @@ function Update-Clone {
         # Enable long paths to handle deeply nested test fixtures on Windows
         Invoke-CommandSafe git @('config', '--global', 'core.longpaths', 'true')
         Invoke-CommandSafe git @('clone', '--branch', $Ref, $RepoUrl, $CloneDir)
+    }
+}
+
+function Auto-DetectRef {
+    if ($Ref -ne $defaultRef) {
+        return
+    }
+
+    if ($env:ENAIBLE_INSTALL_REF) {
+        $script:Ref = $env:ENAIBLE_INSTALL_REF
+        Write-Log "Using ref from ENAIBLE_INSTALL_REF: $Ref"
+        return
+    }
+
+    try {
+        $localRef = git -C (Join-Path $scriptDir "..") rev-parse --abbrev-ref HEAD 2>$null
+    }
+    catch {
+        $localRef = $null
+    }
+    if ($localRef) {
+        $localRef = $localRef.Trim()
+        if ($localRef -and $localRef -ne $defaultRef) {
+            $script:Ref = $localRef
+            Write-Log "Detected ref from local script checkout: $Ref"
+        }
     }
 }
 
@@ -341,6 +369,8 @@ Validate-Systems
 Ensure-Command git
 Ensure-Command python
 Ensure-Command uv
+
+Auto-DetectRef
 
 Update-Clone
 Install-Cli

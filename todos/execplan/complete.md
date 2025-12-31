@@ -82,7 +82,7 @@
 │ │ ├── analyze-security.md
 │ │ ├── create-hand-off.md
 │ │ ├── get-codebase-primer.md
-│ │ ├── get-feature-primer.md
+│ │ ├── get-task-primer.md
 │ │ ├── plan-refactor.md
 │ │ ├── plan-solution.md
 │ │ ├── plan-ux-prd.md
@@ -278,7 +278,7 @@
 │ │ │ └── global.claude.rules.md _
 │ │ ├── agents
 │ │ ├── commands
-│ │ │ ├── codify-claude-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ └── get-recent-context.md
 │ │ ├── settings.json
 │ │ └── statusline-worktree
@@ -287,9 +287,9 @@
 │ │ │ └── global.codex.rules.md _
 │ │ ├── prompts
 │ │ │ ├── analyze-repo-orchestrator.md
-│ │ │ ├── codify-codex-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ ├── get-recent-context.md
-│ │ │ └── todo-background.md
+│ │ │ └── task-background.md
 │ │ └── codex-init-helpers.md
 │ ├── copilot
 │ │ └── rules
@@ -4955,10 +4955,10 @@ CATALOG: dict[str, PromptDefinition] = {
          ),
      },
  ),
- "get-feature-primer": PromptDefinition(
-     prompt_id="get-feature-primer",
-     source_path=_repo_path("shared", "prompts", "get-feature-primer.md"),
-     title="get-feature-primer v0.3",
+ "get-task-primer": PromptDefinition(
+     prompt_id="get-task-primer",
+     source_path=_repo_path("shared", "prompts", "get-task-primer.md"),
+     title="get-task-primer v0.3",
      systems={
          "claude-code": SystemPromptConfig(
              template="docs/system/claude-code/templates/command.md.j2",
@@ -4967,14 +4967,14 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "claude-code",
                  "commands",
-                 "get-feature-primer.md",
+                 "get-task-primer.md",
              ),
              frontmatter={"argument-hint": "<task-brief> [--target <path>]"},
          ),
          "codex": SystemPromptConfig(
              template="docs/system/codex/templates/prompt.md.j2",
              output_path=_repo_path(
-                 ".build", "rendered", "codex", "prompts", "get-feature-primer.md"
+                 ".build", "rendered", "codex", "prompts", "get-task-primer.md"
              ),
              metadata={"comment": "codex prompt (frontmatter-free)"},
          ),
@@ -4985,7 +4985,7 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "copilot",
                  "prompts",
-                 "get-feature-primer.prompt.md",
+                 "get-task-primer.prompt.md",
              ),
              frontmatter={
                  "description": "Explore the codebase and produce a comprehensive analysis and todo list",
@@ -4996,7 +4996,7 @@ CATALOG: dict[str, PromptDefinition] = {
          "cursor": SystemPromptConfig(
              template="docs/system/cursor/templates/command.md.j2",
              output_path=_repo_path(
-                 ".build", "rendered", "cursor", "commands", "get-feature-primer.md"
+                 ".build", "rendered", "cursor", "commands", "get-task-primer.md"
              ),
          ),
          "gemini": SystemPromptConfig(
@@ -5006,7 +5006,7 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "gemini",
                  "commands",
-                 "get-feature-primer.toml",
+                 "get-task-primer.toml",
              ),
              frontmatter={
                  "description": "Explore the codebase and produce a comprehensive analysis and todo list"
@@ -5019,7 +5019,7 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "antigravity",
                  "workflows",
-                 "get-feature-primer.md",
+                 "get-task-primer.md",
              ),
              frontmatter={
                  "description": "Explore the codebase and produce a comprehensive analysis and todo list"
@@ -6534,15 +6534,6 @@ class OutputFormat(str, Enum):
  TEXT = "text"
 
 
-class AuthCli(str, Enum):
- """CLI targets for auth verification."""
-
- CLAUDE = "claude"
- CODEX = "codex"
- QWEN = "qwen"
- GEMINI = "gemini"
-
-
 def _env_with_shared(shared_root: Path) -> dict[str, str]:
  """Return environment mapping that ensures shared/ is importable."""
  env = os.environ.copy()
@@ -6638,39 +6629,6 @@ def docs_scrape(
      cmd.extend(["--title", title])
 
  proc = subprocess.run(cmd, env=env)
- raise typer.Exit(code=proc.returncode)
-
-
-@app.command("auth_check")
-def auth_check(
- cli: AuthCli = typer.Option(..., "--cli", help="CLI to verify authentication for."),
- report: Path | None = typer.Option(
-     None, "--report", help="Optional path to append auth status output to."
- ),
-) -> None:
- """Verify that the requested CLI has an active authentication session."""
- workspace = load_workspace()
- script = (
-     workspace.repo_root
-     / "shared"
-     / "tests"
-     / "integration"
-     / "fixtures"
-     / "check-ai-cli-auth.sh"
- )
-
- if not script.exists():
-     typer.echo(
-         "Auth check script not found under shared/tests/integration/fixtures.",
-         err=True,
-     )
-     raise typer.Exit(code=1)
-
- cmd = ["bash", str(script), cli.value]
- if report:
-     cmd.extend(["--report", str(report)])
-
- proc = subprocess.run(cmd)
  raise typer.Exit(code=proc.returncode)
 
 

@@ -801,6 +801,64 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "codify-session-history": PromptDefinition(
+        prompt_id="codify-session-history",
+        source_path=_repo_path("shared", "prompts", "codify-session-history.md"),
+        title="codify-session-history v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "codify-session-history.md",
+                ),
+                frontmatter={"argument-hint": "[--days] [--uuid] [--search-term]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "codify-session-history.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+        },
+    ),
+    "get-recent-context": PromptDefinition(
+        prompt_id="get-recent-context",
+        source_path=_repo_path("shared", "prompts", "get-recent-context.md"),
+        title="get-recent-context v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "get-recent-context.md",
+                ),
+                frontmatter={"argument-hint": "[--uuid] [--verbose] [--search-term]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "get-recent-context.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+        },
+    ),
     "plan-ux-prd": PromptDefinition(
         prompt_id="plan-ux-prd",
         source_path=_repo_path("shared", "prompts", "plan-ux-prd.md"),
@@ -1086,10 +1144,10 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
-    "get-feature-primer": PromptDefinition(
-        prompt_id="get-feature-primer",
-        source_path=_repo_path("shared", "prompts", "get-feature-primer.md"),
-        title="get-feature-primer v0.3",
+    "get-task-primer": PromptDefinition(
+        prompt_id="get-task-primer",
+        source_path=_repo_path("shared", "prompts", "get-task-primer.md"),
+        title="get-task-primer v0.3",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -1098,14 +1156,14 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "claude-code",
                     "commands",
-                    "get-feature-primer.md",
+                    "get-task-primer.md",
                 ),
                 frontmatter={"argument-hint": "<task-brief> [--target <path>]"},
             ),
             "codex": SystemPromptConfig(
                 template="docs/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "get-feature-primer.md"
+                    ".build", "rendered", "codex", "prompts", "get-task-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
@@ -1116,7 +1174,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "copilot",
                     "prompts",
-                    "get-feature-primer.prompt.md",
+                    "get-task-primer.prompt.md",
                 ),
                 frontmatter={
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list",
@@ -1127,7 +1185,7 @@ CATALOG: dict[str, PromptDefinition] = {
             "cursor": SystemPromptConfig(
                 template="docs/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
-                    ".build", "rendered", "cursor", "commands", "get-feature-primer.md"
+                    ".build", "rendered", "cursor", "commands", "get-task-primer.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
@@ -1137,7 +1195,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "gemini",
                     "commands",
-                    "get-feature-primer.toml",
+                    "get-task-primer.toml",
                 ),
                 frontmatter={
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list"
@@ -1150,7 +1208,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "rendered",
                     "antigravity",
                     "workflows",
-                    "get-feature-primer.md",
+                    "get-task-primer.md",
                 ),
                 frontmatter={
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list"
@@ -1492,6 +1550,88 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking"
+                },
+            ),
+        },
+    ),
+    "task-background": PromptDefinition(
+        prompt_id="task-background",
+        source_path=_repo_path("shared", "prompts", "task-background.md"),
+        title="task-background v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "task-background.md",
+                ),
+                frontmatter={
+                    "argument-hint": "[--model <model>] [--reasoning <level>] [--report-file <path>]"
+                },
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "task-background.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "task-background.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting",
+                    "mode": "agent",
+                    "tools": ["terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "cursor",
+                    "commands",
+                    "task-background.md",
+                ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "task-background.toml",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "task-background.md",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting"
                 },
             ),
         },

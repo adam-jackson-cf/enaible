@@ -162,7 +162,7 @@ class PromptRenderer:
         frontmatter = dict(config.frontmatter)
         if argument_hint:
             frontmatter.setdefault("argument-hint", argument_hint)
-        return template.render(
+        rendered = template.render(
             title=definition.title,
             body=body_cleaned.strip() + "\n" if body_cleaned.strip() else "",
             prompt=definition,
@@ -172,6 +172,14 @@ class PromptRenderer:
             variables=variables,
             managed_sentinel=MANAGED_SENTINEL,
         )
+        platform = (
+            "claude"
+            if system.name == "claude-code"
+            else "codex"
+            if system.name == "codex"
+            else system.name
+        )
+        return rendered.replace("@PLATFORM", platform)
 
     def _resolve_output_path(
         self,

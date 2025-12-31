@@ -22,6 +22,9 @@ Assess code quality by combining automated metrics with architectural review to 
 
 - ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
 - Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Correlate quantitative metrics with qualitative observations before recommending remediation.
 - Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
 - Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
@@ -32,11 +35,25 @@ Assess code quality by combining automated metrics with architectural review to 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), test framework conventions
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note quality conventions to check based on detected stack (e.g., linter configs, type strictness, documentation standards)
    - Log applied exclusions for final report
@@ -44,21 +61,28 @@ Assess code quality by combining automated metrics with architectural review to 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     enaible analyzers run quality:lizard \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-lizard.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       --summary-out "$ARTIFACT_ROOT/quality-lizard-summary.json" \
+       @EXCLUDE
 
-     enaible analyzers run quality:jscpd \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-jscpd.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:jscpd \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/quality-jscpd.json" \
+       @EXCLUDE
      ```
 
-   - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
+   - Use the summary report for ingestion and tables; keep the full report as audit evidence.
    - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
    - If either invocation fails, review available flags with `enaible analyzers run --help` before retrying.
+   - If `quality:jscpd` exceeds 5 minutes, rerun it on focused scopes (e.g., `shared/`, `tools/enaible/src/enaible`) and name outputs per scope.
 
 4. **Interpret metrics**
    - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
+   - Prefer documented project thresholds (CONTRIBUTING, lint configs) when they differ from defaults.
    - Cross-reference duplication findings with the impacted components.
 5. **Evaluate qualitative dimensions**
    - Review documentation depth, readability, adherence to SOLID principles, and test coverage signals.
@@ -90,6 +114,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## METRICS
@@ -123,5 +148,6 @@ Assess code quality by combining automated metrics with architectural review to 
 ## ATTACHMENTS
 
 - quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
+- quality:lizard summary → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard-summary.json`
 - quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```

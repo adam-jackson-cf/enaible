@@ -33,6 +33,7 @@ Then exercise any analyzer calls via `enaible analyzers run ...` and keep artifa
    - Reuse an existing `SystemPromptConfig` when possible; if the system needs new arguments or layout tokens, update its template folder first so the registry entry stays declarative.
 4. Run render + drift guards
    - Execute the lint/render/diff trio listed above to regenerate `.build/rendered/<system>/...` outputs and catch token or layout issues early.
+   - Regenerate managed prompts any time `shared/prompts/` or `docs/system/**` is edited to avoid drift across environments.
 5. Validate adapters
    - Reinstall each affected system via `uv run --project tools/enaible enaible install <system> --mode sync --scope project` to confirm the prompt lands under the managed path with `<!-- generated: enaible -->` injected.
    - Exercise downstream workflows (e.g., `enaible analyzers run ...`) using the new prompt, capturing artifacts under `.enaible/artifacts/...` when needed.

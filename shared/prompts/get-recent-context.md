@@ -1,14 +1,6 @@
----
-allowed-tools: Bash(git:*), Bash(gh:*), Bash(ls:*), Read, Glob
-argument-hint: [--uuid] [--verbose] [--search-term]
-description: Summarize recent context from git history and edited files
----
+# Purpose
 
-# get-recent-context v0.1
-
-## Purpose
-
-Analyze recent activity from context bundles and git history to understand current work and provide quick orientation for continuing development.
+Analyze recent assistant activity from context bundles and git history to understand current work and provide quick orientation for continuing development.
 
 ## Variables
 
@@ -18,56 +10,39 @@ Analyze recent activity from context bundles and git history to understand curre
 - @VERBOSE = --verbose — expand truncated content where available
 - @SEARCH_TERM = --search-term — search for semantically matching sessions
 
+### Derived (internal)
+
+- @PLATFORM — context capture platform (rendered per system)
+
 ## Workflow
 
 1. **Context Bundle Analysis**
-   - Sync dependencies once per checkout to keep the Enaible tooling aligned with the repo:
+   - Capture recent activity with Enaible while honoring optional UUID and search-term filters:
 
-     ```bash
-     uv sync --project tools/enaible
-     ```
-
-   - Capture Claude activity with the Enaible CLI while honoring optional UUID and search-term filters:
-
-     ```bash
-     uv run --project tools/enaible enaible context_capture \
-       --platform claude \
-       --days 2 \
-       ${UUID:+--uuid "&UUID"} \
-       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
-       --output-format json
-     ```
+   ```bash
+   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+   enaible context_capture \
+     --platform @PLATFORM \
+     --project-root "$PROJECT_ROOT" \
+     --days 2 \
+     ${UUID:+--uuid "@UUID"} \
+     ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
+     --output-format json
+   ```
 
    - Gather cross-repo history when needed:
 
-     ```bash
-     uv run --project tools/enaible enaible context_capture \
-       --platform claude \
-       --days 2 \
-       --include-all-projects \
-       --output-format json
-     ```
+   ```bash
+   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+   enaible context_capture \
+     --platform @PLATFORM \
+     --project-root "$PROJECT_ROOT" \
+     --days 2 \
+     --include-all-projects \
+     --output-format json
+   ```
 
-   - Expand semantic coverage whenever `@SEARCH_TERM` is present:
-
-     ```bash
-     if [ -n "$SEARCH_TERM" ]; then
-         SEMANTIC_VARIATIONS=$(cat <<EOF
-        {
-            "$(echo "$SEARCH_TERM" | cut -d' ' -f1)": [
-                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)s",
-                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ing",
-                "$(echo "$SEARCH_TERM" | cut -d' ' -f1)ed"
-            ]
-        }
-        EOF
-        )
-     else
-         SEMANTIC_VARIATIONS=""
-     fi
-     ```
-
-   - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In `@VERBOSE` mode expand truncated content and include high-signal assistant replies.
+   - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In @VERBOSE mode expand truncated content and include high-signal assistant replies.
 
 2. **Git Status Review**
    - Inspect uncommitted work and note change types before correlating with context bundles:
@@ -105,7 +80,6 @@ Analyze recent activity from context bundles and git history to understand curre
    - Merge findings from context bundles, git status, and history into a cohesive narrative.
    - Extract file access frequencies, semantic search matches, command usage patterns, and outstanding risks to guide next actions.
    - Recommend follow-up checks (tests, stakeholders) and spotlight the most active files for hand-offs or onboarding.
-   - When `@SEARCH_TERM` is provided, expand the analysis with domain-aware variations (synonyms, verb forms, related technologies) to broaden recall while maintaining chronological order.
 
 ## Output
 
@@ -175,28 +149,20 @@ _Change Patterns_
 
 ```bash
 # Get recent activity summary (default: concise summaries for last 2 days)
-/todo-recent-context
+/get-recent-context
 
 # Analyze specific session with concise summaries
-/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890
+/get-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890
 
 # Get detailed analysis with full conversation content
-/todo-recent-context --verbose
+/get-recent-context --verbose
 
 # Analyze specific session with full detail
-/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --verbose
+/get-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --verbose
 
 # Search for sessions with semantic matching
-/todo-recent-context --search-term "authentication bug"
+/get-recent-context --search-term "authentication bug"
 
 # Search within specific session
-/todo-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
-
-# Enhanced semantic search with LLM-generated variations
-# When searching for "authentication", the LLM might generate:
-{
-    "authentication": ["auth", "login", "signin", "authorize", "security", "verify", "authenticate"],
-    "bug": ["error", "issue", "problem", "fix", "debug", "repair", "resolve"],
-    "performance": ["speed", "fast", "slow", "optimize", "efficiency", "latency"]
-}
+/get-recent-context --uuid a1b2c3d4-e5f6-7890-abcd-ef1234567890 --search-term "refactor"
 ```

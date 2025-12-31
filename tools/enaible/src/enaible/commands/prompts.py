@@ -163,7 +163,9 @@ def prompts_validate(
         prompts_diff(prompts=prompts, systems=systems)
     except typer.Exit as exc:
         if exc.exit_code != 0:
-            typer.echo("Prompt drift detected. Run `enaible prompts render` to update.")
+            typer.echo(
+                "Prompt drift detected. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts render` to update."
+            )
         raise
 
 

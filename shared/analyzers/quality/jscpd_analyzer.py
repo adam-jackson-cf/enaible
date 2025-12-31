@@ -122,13 +122,20 @@ class JSCPDAnalyzer(BaseAnalyzer):
             output_dir = Path(tmp)
             report_path = output_dir / "jscpd-report.json"
             cmd = self._build_jscpd_command(jscpd_bin, analyze_path, output_dir)
+            run_dir = (
+                Path(analyze_path).resolve()
+                if Path(analyze_path).is_dir()
+                else Path(analyze_path).resolve().parent
+            )
 
             try:
+                timeout = self.config.timeout_seconds or 300
                 p = subprocess.run(
                     cmd,
                     capture_output=True,
                     text=True,
-                    timeout=300,
+                    timeout=timeout,
+                    cwd=run_dir,
                 )
             except subprocess.TimeoutExpired as e:
                 result.set_error(f"jscpd timed out: {e}")
@@ -277,9 +284,26 @@ class JSCPDAnalyzer(BaseAnalyzer):
         seen: set[str] = set()
 
         for pattern in getattr(self.config, "exclude_globs", set()):
-            if pattern and pattern not in seen:
-                seen.add(pattern)
-                yield pattern
+            raw = pattern.strip()
+            if not raw:
+                continue
+            if any(token in raw for token in ("*", "?", "[")):
+                if raw not in seen:
+                    seen.add(raw)
+                    yield raw
+                continue
+
+            sanitized = raw.strip("/")
+            candidates = {
+                raw,
+                sanitized,
+                f"**/{sanitized}",
+                f"**/{sanitized}/**",
+            }
+            for candidate in candidates:
+                if candidate and candidate not in seen:
+                    seen.add(candidate)
+                    yield candidate
 
         for skip in self.config.skip_patterns:
             sanitized = skip.strip("/")

@@ -155,7 +155,7 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ ├── analyze-security.md
 │ │ ├── create-hand-off.md
 │ │ ├── get-codebase-primer.md
-│ │ ├── get-feature-primer.md
+│ │ ├── get-task-primer.md
 │ │ ├── plan-refactor.md
 │ │ ├── plan-solution.md
 │ │ ├── plan-ux-prd.md
@@ -351,7 +351,7 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ │ └── global.claude.rules.md _
 │ │ ├── agents
 │ │ ├── commands
-│ │ │ ├── codify-claude-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ └── get-recent-context.md
 │ │ ├── settings.json
 │ │ └── statusline-worktree
@@ -360,9 +360,9 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ │ └── global.codex.rules.md _
 │ │ ├── prompts
 │ │ │ ├── analyze-repo-orchestrator.md
-│ │ │ ├── codify-codex-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ ├── get-recent-context.md
-│ │ │ └── todo-background.md
+│ │ │ └── task-background.md
 │ │ └── codex-init-helpers.md
 │ ├── copilot
 │ │ └── rules

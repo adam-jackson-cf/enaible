@@ -23,6 +23,9 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 - ALWAYS run Enaible analyzers; do not call analyzer modules directly.
 - Persist every analyzer output plus derived notes under @ARTIFACT_ROOT for auditability.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Tie structural findings to concrete files, modules, or layers before recommending action.
 - Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
 - When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.
@@ -33,11 +36,25 @@ Evaluate system architecture quality by combining automated structural analyzers
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), framework conventions
-   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`
+   - Record detected languages and note which analyzers will run or be skipped (with reason)
+   - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
    - Merge with any user-provided @EXCLUDE patterns
    - Note architectural patterns to look for based on detected stack (e.g., Rails conventions, Spring layers, React component hierarchy)
    - Log applied exclusions for final report
@@ -45,31 +62,41 @@ Evaluate system architecture quality by combining automated structural analyzers
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
-     enaible analyzers run architecture:patterns \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-patterns.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:patterns \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:dependency \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-dependency.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:dependency \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-dependency.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:coupling \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-coupling.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:scalability \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-scalability.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:scalability \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-scalability.json" \
+       @EXCLUDE
      ```
 
-   - Add `--min-severity "@MIN_SEVERITY"`, `--exclude "<glob>"`, or `--summary` as needed to control output size; rerun without `--summary` before final delivery.
+   - Add `--summary` as needed to control output size; keep full artifacts as audit evidence.
    - Document any exclusions in the final report.
 
 4. **Synthesize architecture baseline**
    - Identify the primary domains, layers, shared libraries, and external interfaces referenced by architecture:patterns.
    - Note whether observed patterns (CQRS, hexagonal, micro-frontends) align with project standards.
+   - Capture evidence for domain boundaries (top 3 files/dirs that define each boundary).
 5. **Dependency & coupling assessment**
    - Highlight modules with excessive in-degree/out-degree, circular dependencies, or boundary violations surfaced by architecture:dependency and architecture:coupling.
+   - Rank top hotspots by severity or fan-in/out to keep the report actionable.
    - Map findings to concrete files/services and describe user-visible risk (regression blast radius, deployment friction, scalability constraints).
 6. **Scalability evaluation**
    - Review architecture:scalability signals for bottlenecks (synchronous fan-out, global locks, shared state) and capture recommended guardrails or capacity tests.
@@ -98,6 +125,7 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 - Project type: <monorepo|single-project>
 - Primary stack: <languages/frameworks detected>
+- Detected languages: <list>
 - Auto-excluded: <patterns applied>
 
 ## ARCHITECTURE OVERVIEW

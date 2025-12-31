@@ -21,6 +21,10 @@ PROJECT_PATH=""
 REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
@@ -202,6 +206,29 @@ USAGE
     done
 }
 
+auto_detect_ref() {
+    if [[ "$REF" != "$DEFAULT_REF" ]]; then
+        return
+    fi
+
+    if [[ -n "${ENAIBLE_INSTALL_REF:-}" ]]; then
+        REF="$ENAIBLE_INSTALL_REF"
+        log "Using ref from ENAIBLE_INSTALL_REF: $REF"
+        return
+    fi
+
+    if [[ -n "$SCRIPT_DIR" ]]; then
+        if git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
+            local local_ref
+            local_ref="$(git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD)"
+            if [[ -n "$local_ref" && "$local_ref" != "$DEFAULT_REF" ]]; then
+                REF="$local_ref"
+                log "Detected ref from local script checkout: $REF"
+            fi
+        fi
+    fi
+}
+
 run_cmd() {
     if $DRY_RUN; then
         log "DRY-RUN: $*"
@@ -319,6 +346,7 @@ main() {
     done
 
     parse_args "$@"
+    auto_detect_ref
 
     init_prompt_input
     if ! $PROMPT_INPUT_AVAILABLE && { ! $systems_from_flag || ! $scope_from_flag; }; then
