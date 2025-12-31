@@ -10,7 +10,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 ### Optional (derived from @ARGUMENTS)
 
-- @MODEL_SELECTOR = --model — Codex model identifier (default gpt-5.2-codex).
+- @MODEL_NAME = --model — model identifier (default gpt-5.2-codex).
 - @REASONING = --reasoning — reasoning effort (default medium; valid low|medium|high).
 - @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
 
@@ -18,7 +18,6 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 - @SESSION_NAME — unique tmux session name for this background task
 - @TIMESTAMP — UTC timestamp for file naming and session identification
-- @MODEL_NAME — resolved model name from @MODEL_SELECTOR
 - @ENHANCED_PROMPT — user prompt with appended reporting instructions
 - @PROCESS_ID — PID of the tmux pane running Codex
 
@@ -33,7 +32,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 ## Workflow
 
 0. CLI preflight
-   - Determine the CLI to check based on @MODEL_SELECTOR and run a one-line “hello world” prompt to verify both CLI presence and auth:
+   - Determine the CLI to check based on @MODEL_NAME and run a one-line “hello world” prompt to verify both CLI presence and auth:
      - Codex models (gpt-5._ / gpt-5._-codex / gpt-5._-codex-_):
        `codex exec --model @MODEL_NAME --reasoning @REASONING "Hello world"`
    - Claude models (claude-opus-4-1-20250805, claude-opus-4-20250514, claude-sonnet-4-20250514, claude-3-7-sonnet-20250219, claude-3-5-haiku-20241022):
@@ -47,8 +46,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 2. Parse inputs
    - Require @USER_PROMPT; if missing, prompt the operator and stop.
-   - Default @MODEL_SELECTOR to `gpt-5.2-codex` when the selector is absent.
-   - Set @MODEL_NAME to @MODEL_SELECTOR.
+   - Default @MODEL_NAME to `gpt-5.2-codex` when the selector is absent.
    - Default @REASONING to `medium`. Validate it is one of `low`, `medium`, `high`.
 
 3. Prepare reporting path
@@ -63,7 +61,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 4. Launch tmux session
    - Set @SESSION_NAME to `codex-bg-@TIMESTAMP` (or another unique identifier).
    - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
-   - Launch the appropriate CLI inside tmux based on @MODEL_SELECTOR:
+   - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
        gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
