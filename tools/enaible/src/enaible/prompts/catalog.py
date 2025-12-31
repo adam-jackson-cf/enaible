@@ -801,6 +801,35 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "codify-session-history": PromptDefinition(
+        prompt_id="codify-session-history",
+        source_path=_repo_path("shared", "prompts", "codify-session-history.md"),
+        title="codify-session-history v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "codify-session-history.md",
+                ),
+                frontmatter={"argument-hint": "[--days] [--uuid] [--search-term]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "codify-session-history.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+        },
+    ),
     "plan-ux-prd": PromptDefinition(
         prompt_id="plan-ux-prd",
         source_path=_repo_path("shared", "prompts", "plan-ux-prd.md"),

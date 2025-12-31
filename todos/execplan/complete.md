@@ -278,7 +278,7 @@
 │ │ │ └── global.claude.rules.md _
 │ │ ├── agents
 │ │ ├── commands
-│ │ │ ├── codify-claude-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ └── get-recent-context.md
 │ │ ├── settings.json
 │ │ └── statusline-worktree
@@ -287,7 +287,7 @@
 │ │ │ └── global.codex.rules.md _
 │ │ ├── prompts
 │ │ │ ├── analyze-repo-orchestrator.md
-│ │ │ ├── codify-codex-history.md
+│ │ │ ├── codify-session-history.md
 │ │ │ ├── get-recent-context.md
 │ │ │ └── task-background.md
 │ │ └── codex-init-helpers.md
