@@ -24,6 +24,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 - Persist analyzer results under `.enaible/artifacts/analyze-performance/` and cite them in the final report.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Investigate bottlenecks holistically (compute, IO, frontend rendering, data access, configuration).
 - Tie each recommendation to measurable outcomes and validation steps.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.

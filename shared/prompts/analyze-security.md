@@ -28,6 +28,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - When @VERBOSE is provided, include exhaustive vulnerability details, gap tables, and remediation notes.
 - Run reconnaissance before analyzers to detect project context and auto-apply smart exclusions.
 - After synthesis, explicitly identify gaps in deterministic tool coverage and backfill where possible.

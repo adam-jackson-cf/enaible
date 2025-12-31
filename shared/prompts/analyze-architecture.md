@@ -25,6 +25,7 @@ Evaluate system architecture quality by combining automated structural analyzers
 - Persist every analyzer output plus derived notes under @ARTIFACT_ROOT for auditability.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Tie structural findings to concrete files, modules, or layers before recommending action.
 - Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
 - When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.

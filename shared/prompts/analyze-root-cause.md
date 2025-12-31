@@ -28,6 +28,7 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
 - When @VERBOSE is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
