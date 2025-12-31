@@ -63,7 +63,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - List what the analyzers checked (code patterns, hardcoded secrets) vs. what they cannot check
    - Compare analyzer coverage versus OWASP Top 10 and stack-specific concerns.
    - Note supply-chain coverage gaps (lockfiles, SBOMs, known-vuln checks) and flag as manual verification when not available.
-   - Perform targeted manual review for auth, configuration, secrets management, supply chain, and data flow gaps.
+   - Perform targeted manual review for auth, configuration, secrets management, supply-chain, and data flow gaps.
    - For each gap category:
      - Business logic authorization: inspect permission checks and role-based access
      - Implicit trust boundaries: review service-to-service auth and internal API security
