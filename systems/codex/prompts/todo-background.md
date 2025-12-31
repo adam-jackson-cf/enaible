@@ -63,7 +63,11 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
      ```
    - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
 
-5. - Document how to attach to the session (`tmux attach -t @SESSION_NAME`), capture recent output (`tmux capture-pane -p -S -200 -t @SESSION_NAME`), and stop it when work completes (`tmux kill-session -t @SESSION_NAME`).
+5. Configure monitoring
+   - Document how operators can manage the session:
+     - Attach: `tmux attach -t @SESSION_NAME`
+     - Capture output: `tmux capture-pane -p -S -200 -t @SESSION_NAME`
+     - Stop when complete: `tmux kill-session -t @SESSION_NAME`
    - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
 
 6. Report launch status
@@ -88,7 +92,9 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 - File: @REPORT_FILE
 - Monitoring:
   - `tmux attach -t @SESSION_NAME`
+  - `tmux capture-pane -p -S -200 -t @SESSION_NAME`
   - `tail -f @REPORT_FILE`
+  - `tmux kill-session -t @SESSION_NAME`
 
 ## NEXT STEPS
 
