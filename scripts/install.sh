@@ -22,7 +22,15 @@ REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
 INSTALL_SOURCE_URL=""
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$(pwd)}")" && pwd)"
+SOURCE_PATH=""
+if [[ -n "${BASH_SOURCE[0]-}" ]]; then
+    SOURCE_PATH="${BASH_SOURCE[0]}"
+elif [[ -n "${0-}" && "${0}" != "bash" ]]; then
+    SOURCE_PATH="${0}"
+else
+    SOURCE_PATH="$(pwd)/install.sh"
+fi
+SCRIPT_DIR="$(cd "$(dirname "$SOURCE_PATH")" && pwd)"
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
