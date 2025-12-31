@@ -19,24 +19,28 @@ Analyze recent assistant activity from context bundles and git history to unders
 1. **Context Bundle Analysis**
    - Capture recent activity with Enaible while honoring optional UUID and search-term filters:
 
-     ```bash
-     enaible context_capture \
-       --platform @PLATFORM \
-       --days 2 \
-       ${UUID:+--uuid "@UUID"} \
-       ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
-       --output-format json
-     ```
+   ```bash
+   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+   enaible context_capture \
+     --platform @PLATFORM \
+     --project-root "$PROJECT_ROOT" \
+     --days 2 \
+     ${UUID:+--uuid "@UUID"} \
+     ${SEARCH_TERM:+--search-term "@SEARCH_TERM"} \
+     --output-format json
+   ```
 
    - Gather cross-repo history when needed:
 
-     ```bash
-     enaible context_capture \
-       --platform @PLATFORM \
-       --days 2 \
-       --include-all-projects \
-       --output-format json
-     ```
+   ```bash
+   PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+   enaible context_capture \
+     --platform @PLATFORM \
+     --project-root "$PROJECT_ROOT" \
+     --days 2 \
+     --include-all-projects \
+     --output-format json
+   ```
 
    - Parse returned JSON to filter by UUID, surface semantic matches, and build compact summaries (sessions, prompts, operations). In @VERBOSE mode expand truncated content and include high-signal assistant replies.
 
