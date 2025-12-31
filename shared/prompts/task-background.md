@@ -19,14 +19,12 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 - @SESSION_NAME — unique tmux session name for this background task
 - @TIMESTAMP — UTC timestamp for file naming and session identification
 - @TASK_LABEL — human-friendly label used in session + report names
-- @ENHANCED_PROMPT — user prompt with appended reporting instructions
 - @PROCESS_ID — PID of the tmux pane running Codex
 
 ## Instructions
 
 - Capture a timestamp before creating directories or files so report names, tmux sessions, and logs stay aligned.
 - Create the report directory and header before launching Codex to guarantee every background run has a writable log.
-- Append the reporting instructions directly to @USER_PROMPT before passing it to the selected CLI.
 - Always launch the selected CLI inside a dedicated tmux session.
 - Record the tmux session name, model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
 - Do not switch models or reasoning effort during preflight; if the selected CLI check fails, exit.
@@ -143,7 +141,6 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      ```
 
 4. Launch tmux session
-   - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates. When you finish, append a short summary of actions and outcomes to @REPORT_FILE.`
    - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
@@ -151,17 +148,10 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
         tmux new-session -d -s @SESSION_NAME \
           "bash -lc 'cd \"$PROJECT_ROOT\" && \
             STATUS=0; \
-            LAST_FILE=\"$(mktemp -t enaible-bg-last.XXXXXX)\" && \
             codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto --cd \"$PROJECT_ROOT\" \
-              --output-last-message \"$LAST_FILE\" \
-              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+              \"@USER_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
             STATUS=${PIPESTATUS[0]}; \
             printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
-            if [ -f \"$LAST_FILE\" ]; then \
-              printf \"\\n## Final Response\\n\" >> \"$REPORT_FILE\"; \
-              cat \"$LAST_FILE\" >> \"$REPORT_FILE\"; \
-            fi; \
-            rm -f \"$LAST_FILE\"; \
             exit \"$STATUS\"'"
         ;;
        claude-*)
@@ -169,21 +159,21 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
           "bash -lc 'cd \"$PROJECT_ROOT\" && \
             STATUS=0; \
             claude --model @MODEL_NAME -p --permission-mode acceptEdits \
-              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+              \"@USER_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
             STATUS=${PIPESTATUS[0]}; \
             printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
             exit \"$STATUS\"'"
-         ;;
+        ;;
        gemini-*)
          tmux new-session -d -s @SESSION_NAME \
           "bash -lc 'cd \"$PROJECT_ROOT\" && \
             STATUS=0; \
             gemini --model @MODEL_NAME -p --approval-mode auto_edit \
-              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+              \"@USER_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
             STATUS=${PIPESTATUS[0]}; \
             printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
             exit \"$STATUS\"'"
-         ;;
+        ;;
        *)
          echo "Unknown model selector: @MODEL_NAME" >&2
          exit 1
