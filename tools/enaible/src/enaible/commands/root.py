@@ -30,15 +30,6 @@ class OutputFormat(str, Enum):
     TEXT = "text"
 
 
-class AuthCli(str, Enum):
-    """CLI targets for auth verification."""
-
-    CLAUDE = "claude"
-    CODEX = "codex"
-    QWEN = "qwen"
-    GEMINI = "gemini"
-
-
 def _env_with_shared(shared_root: Path) -> dict[str, str]:
     """Return environment mapping that ensures shared/ is importable."""
     env = os.environ.copy()
@@ -134,39 +125,6 @@ def docs_scrape(
         cmd.extend(["--title", title])
 
     proc = subprocess.run(cmd, env=env)
-    raise typer.Exit(code=proc.returncode)
-
-
-@app.command("auth_check")
-def auth_check(
-    cli: AuthCli = typer.Option(..., "--cli", help="CLI to verify authentication for."),
-    report: Path | None = typer.Option(
-        None, "--report", help="Optional path to append auth status output to."
-    ),
-) -> None:
-    """Verify that the requested CLI has an active authentication session."""
-    workspace = load_workspace()
-    script = (
-        workspace.repo_root
-        / "shared"
-        / "tests"
-        / "integration"
-        / "fixtures"
-        / "check-ai-cli-auth.sh"
-    )
-
-    if not script.exists():
-        typer.echo(
-            "Auth check script not found under shared/tests/integration/fixtures.",
-            err=True,
-        )
-        raise typer.Exit(code=1)
-
-    cmd = ["bash", str(script), cli.value]
-    if report:
-        cmd.extend(["--report", str(report)])
-
-    proc = subprocess.run(cmd)
     raise typer.Exit(code=proc.returncode)
 
 
