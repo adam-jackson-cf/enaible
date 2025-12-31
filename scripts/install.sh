@@ -21,7 +21,10 @@ PROJECT_PATH=""
 REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR=""
+if [[ -n "${BASH_SOURCE[0]-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
@@ -214,12 +217,14 @@ auto_detect_ref() {
         return
     fi
 
-    if git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
-        local local_ref
-        local_ref="$(git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD)"
-        if [[ -n "$local_ref" && "$local_ref" != "$DEFAULT_REF" ]]; then
-            REF="$local_ref"
-            log "Detected ref from local script checkout: $REF"
+    if [[ -n "$SCRIPT_DIR" ]]; then
+        if git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
+            local local_ref
+            local_ref="$(git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD)"
+            if [[ -n "$local_ref" && "$local_ref" != "$DEFAULT_REF" ]]; then
+                REF="$local_ref"
+                log "Detected ref from local script checkout: $REF"
+            fi
         fi
     fi
 }
