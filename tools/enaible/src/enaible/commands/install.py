@@ -52,11 +52,6 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "antigravity": ("workflows/", "rules/"),
 }
 
-LEGACY_MANAGED_PROMPTS: dict[str, set[str]] = {
-    "claude-code": {"commands/get-recent-context.md"},
-    "codex": {"prompts/get-recent-context.md"},
-}
-
 CHECK_DEPENDENCIES_DEFAULT = os.environ.get("ENAIBLE_SKIP_DEPENDENCY_CHECKS") != "1"
 
 
@@ -700,9 +695,6 @@ def _render_managed_prompts(
 
         dest_exists = output_path.exists()
         dest_managed = _has_managed_sentinel(output_path) if dest_exists else False
-        legacy_paths = LEGACY_MANAGED_PROMPTS.get(system, set())
-        if relative.as_posix() in legacy_paths:
-            dest_managed = True
 
         if mode is InstallMode.UPDATE and (not dest_exists or not dest_managed):
             summary.record_skip(relative)
