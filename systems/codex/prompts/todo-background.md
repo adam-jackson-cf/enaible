@@ -10,7 +10,8 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 ### Optional (derived from @ARGUMENTS)
 
-- @MODEL_SELECTOR = --model — Codex model identifier (default codex-medium).
+- @MODEL_SELECTOR = --model — Codex model identifier (default gpt-5.2-codex).
+- @REASONING = --reasoning — reasoning effort (default medium; valid low|medium|high).
 - @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
 
 ### Derived (internal)
@@ -27,7 +28,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 - Create the report directory and header before launching Codex to guarantee every background run has a writable log.
 - Pass @USER_PROMPT verbatim to Codex after prepending the reporting instructions (Codex lacks an append-system-prompt flag).
 - Always launch Codex inside a dedicated tmux session.
-- Record the tmux session name, Codex model, PID, and report path so operators can monitor or terminate the run later.
+- Record the tmux session name, Codex model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
 
 ## Workflow
 
@@ -39,7 +40,8 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 2. Parse inputs
    - Require @USER_PROMPT; if missing, prompt the operator and stop.
-   - Split @MODEL_SELECTOR on `:` to derive @MODEL_NAME. Default to `codex-medium` when the selector is absent.
+   - Default @MODEL_SELECTOR to `gpt-5.2-codex` when the selector is absent.
+   - Default @REASONING to `medium`. Validate it is one of `low`, `medium`, `high`.
 
 3. Prepare reporting path
    - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided.
@@ -56,17 +58,16 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
    - Launch Codex inside tmux:
      ```bash
      tmux new-session -d -s @SESSION_NAME \
-       "cdx-exec --model @MODEL_NAME \\
+       "codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto \\
          \"@ENHANCED_PROMPT\""
      ```
    - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
 
-5. Configure monitoring
-   - Document how to attach to the session (`tmux attach -t @SESSION_NAME`), capture recent output (`tmux capture-pane -p -S -200 -t @SESSION_NAME`), and stop it (`tmux kill-session -t @SESSION_NAME`).
+5. - Document how to attach to the session (`tmux attach -t @SESSION_NAME`), capture recent output (`tmux capture-pane -p -S -200 -t @SESSION_NAME`), and stop it when work completes (`tmux kill-session -t @SESSION_NAME`).
    - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
 
 6. Report launch status
-   - Summarize Codex model, tmux session, PID, and report path.
+   - Summarize Codex model, reasoning effort, tmux session, PID, and report path.
    - Provide explicit monitoring and termination guidance so operators can manage the background task without guessing.
 
 ## Output
@@ -74,13 +75,13 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 ```md
 # RESULT
 
-- Summary: Codex background task launched (@MODEL_NAME) inside tmux session @SESSION_NAME.
+- Summary: Codex background task launched (@MODEL_NAME, @REASONING) inside tmux session @SESSION_NAME.
 
 ## PROCESS
 
 - tmux session: @SESSION_NAME
 - PID: @PROCESS_ID
-- Command: tmux new-session -d -s @SESSION_NAME 'cdx-exec --model @MODEL_NAME "@ENHANCED_PROMPT"'
+- Command: tmux new-session -d -s @SESSION_NAME 'codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto "@ENHANCED_PROMPT"'
 
 ## REPORT
 
@@ -102,5 +103,5 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 /todo-background "Analyze the codebase for performance issues"
 
 # Custom Codex model with explicit report path
-/todo-background "Refactor the authentication module" codex:codex-large ./.enaible/agents/background/auth-refactor.md
+/todo-background "Refactor the authentication module" --model gpt-5.1-codex-max --reasoning high ./.enaible/agents/background/auth-refactor.md
 ```
