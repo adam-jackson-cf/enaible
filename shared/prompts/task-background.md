@@ -12,7 +12,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 
 - @MODEL_NAME = --model — model identifier (default gpt-5.2-codex).
 - @REASONING = --reasoning — reasoning effort (default medium; valid minimal|low|medium|high|xhigh).
-- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
+- @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/<TASK_LABEL>-<TIMESTAMP>.md).
 
 ### Derived (internal)
 
@@ -122,7 +122,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      SESSION_NAME="bg-${TASK_LABEL}-${TIMESTAMP}"
      REPORT_FILE="@REPORT_FILE"
      if [ -z "$REPORT_FILE" ]; then
-       REPORT_FILE="$PROJECT_ROOT/.enaible/agents/background/background-report-${TASK_LABEL}-${TIMESTAMP}.md"
+       REPORT_FILE="$PROJECT_ROOT/.enaible/agents/background/${TASK_LABEL}-${TIMESTAMP}.md"
      elif [ "${REPORT_FILE#/}" = "$REPORT_FILE" ]; then
        REPORT_FILE="$PROJECT_ROOT/$REPORT_FILE"
      fi
@@ -187,13 +187,9 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      - If listed, report that the background task is running and provide the monitoring commands.
      - If not listed, check @REPORT_FILE for completion output or errors and report the most likely outcome.
    - Do not loop or continually re-check; this is a background task.
-   - Use a safe session check that cannot treat the session name as a flag:
+   - Use a safe one-liner so shell evaluation never trips on newlines:
      ```bash
-     if tmux list-sessions -F '#S' 2>/dev/null | grep -Fx -- "$SESSION_NAME" >/dev/null; then
-       echo "Session is running"
-     else
-       echo "Session not found"
-     fi
+     tmux list-sessions -F '#S' 2>/dev/null | grep -Fx -- "$SESSION_NAME" >/dev/null && echo "Session is running" || echo "Session not found"
      ```
 
 6. Configure monitoring
