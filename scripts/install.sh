@@ -21,16 +21,7 @@ PROJECT_PATH=""
 REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
-INSTALL_SOURCE_URL=""
-SOURCE_PATH=""
-if [[ -n "${BASH_SOURCE[0]-}" ]]; then
-    SOURCE_PATH="${BASH_SOURCE[0]}"
-elif [[ -n "${0-}" && "${0}" != "bash" ]]; then
-    SOURCE_PATH="${0}"
-else
-    SOURCE_PATH="$(pwd)/install.sh"
-fi
-SCRIPT_DIR="$(cd "$(dirname "$SOURCE_PATH")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
@@ -184,9 +175,6 @@ parse_args() {
             --ref)
                 REF="${2:-$REF}"; shift;
                 ;;
-            --source-url)
-                INSTALL_SOURCE_URL="${2:-}"; shift;
-                ;;
             --dry-run)
                 DRY_RUN=true
                 ;;
@@ -202,7 +190,6 @@ Options:
   --repo-url URL      Git repo to clone (default: https://github.com/adam-jackson-cf/enaible)
   --clone-dir PATH    Cache directory for the repo clone (default: ~/.enaible/sources/...)
   --ref REF           Git ref/tag/branch to checkout (default: main)
-  --source-url URL    Installer source URL (used to auto-detect ref)
   --dry-run           Print actions without executing
   --help              Show this help
 USAGE
@@ -216,21 +203,6 @@ USAGE
     done
 }
 
-detect_ref_from_url() {
-    local url="$1"
-    local ref=""
-    if [[ -z "$url" ]]; then
-        echo ""
-        return
-    fi
-    if [[ "$url" =~ raw\.githubusercontent\.com/.+?/enaible/([^/]+)/scripts/install\.sh ]]; then
-        ref="${BASH_REMATCH[1]}"
-    elif [[ "$url" =~ github\.com/.+?/enaible/(blob|raw)/([^/]+)/scripts/install\.sh ]]; then
-        ref="${BASH_REMATCH[2]}"
-    fi
-    echo "$ref"
-}
-
 auto_detect_ref() {
     if [[ "$REF" != "$DEFAULT_REF" ]]; then
         return
@@ -239,16 +211,6 @@ auto_detect_ref() {
     if [[ -n "${ENAIBLE_INSTALL_REF:-}" ]]; then
         REF="$ENAIBLE_INSTALL_REF"
         log "Using ref from ENAIBLE_INSTALL_REF: $REF"
-        return
-    fi
-
-    local ref_from_url=""
-    if [[ -n "${INSTALL_SOURCE_URL:-}" ]]; then
-        ref_from_url="$(detect_ref_from_url "$INSTALL_SOURCE_URL")"
-    fi
-    if [[ -n "$ref_from_url" && "$ref_from_url" != "$DEFAULT_REF" ]]; then
-        REF="$ref_from_url"
-        log "Detected ref from installer URL: $REF"
         return
     fi
 
