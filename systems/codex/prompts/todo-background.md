@@ -63,11 +63,29 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 4. Launch tmux session
    - Set @SESSION_NAME to `codex-bg-@TIMESTAMP` (or another unique identifier).
    - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
-   - Launch Codex inside tmux:
+   - Launch the appropriate CLI inside tmux based on @MODEL_SELECTOR:
      ```bash
-     tmux new-session -d -s @SESSION_NAME \
-       "codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto \\
-         \"@ENHANCED_PROMPT\""
+     case "@MODEL_NAME" in
+       gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
+         tmux new-session -d -s @SESSION_NAME \
+           "codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto \
+             \"@ENHANCED_PROMPT\""
+         ;;
+       claude-*)
+         tmux new-session -d -s @SESSION_NAME \
+           "claude --model @MODEL_NAME -p --permission-mode acceptEdits --dangerously-skip-permissions \
+             \"@ENHANCED_PROMPT\""
+         ;;
+       gemini-*)
+         tmux new-session -d -s @SESSION_NAME \
+           "gemini --model @MODEL_NAME -p --approval-mode yolo \
+             \"@ENHANCED_PROMPT\""
+         ;;
+       *)
+         echo "Unknown model selector: @MODEL_NAME" >&2
+         exit 1
+         ;;
+     esac
      ```
    - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
 
