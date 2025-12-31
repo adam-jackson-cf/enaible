@@ -187,6 +187,14 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      - If listed, report that the background task is running and provide the monitoring commands.
      - If not listed, check @REPORT_FILE for completion output or errors and report the most likely outcome.
    - Do not loop or continually re-check; this is a background task.
+   - Use a safe session check that cannot treat the session name as a flag:
+     ```bash
+     if tmux list-sessions -F '#S' 2>/dev/null | grep -Fx -- "$SESSION_NAME" >/dev/null; then
+       echo "Session is running"
+     else
+       echo "Session not found"
+     fi
+     ```
 
 6. Configure monitoring
    - Document how operators can manage the session:
