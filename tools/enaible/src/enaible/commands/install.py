@@ -441,6 +441,7 @@ def _sync_shared_workspace(
     allowed_paths = [
         Path("core"),
         Path("analyzers"),
+        Path("context"),
         Path("config"),
         Path("utils"),
         Path("web_scraper"),
