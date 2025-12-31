@@ -21,6 +21,8 @@ PROJECT_PATH=""
 REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
+INSTALL_SOURCE_URL=""
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
@@ -174,6 +176,9 @@ parse_args() {
             --ref)
                 REF="${2:-$REF}"; shift;
                 ;;
+            --source-url)
+                INSTALL_SOURCE_URL="${2:-}"; shift;
+                ;;
             --dry-run)
                 DRY_RUN=true
                 ;;
@@ -189,6 +194,7 @@ Options:
   --repo-url URL      Git repo to clone (default: https://github.com/adam-jackson-cf/enaible)
   --clone-dir PATH    Cache directory for the repo clone (default: ~/.enaible/sources/...)
   --ref REF           Git ref/tag/branch to checkout (default: main)
+  --source-url URL    Installer source URL (used to auto-detect ref)
   --dry-run           Print actions without executing
   --help              Show this help
 USAGE
@@ -200,6 +206,52 @@ USAGE
         esac
         shift || true
     done
+}
+
+detect_ref_from_url() {
+    local url="$1"
+    local ref=""
+    if [[ -z "$url" ]]; then
+        echo ""
+        return
+    fi
+    if [[ "$url" =~ raw\.githubusercontent\.com/.+?/enaible/([^/]+)/scripts/install\.sh ]]; then
+        ref="${BASH_REMATCH[1]}"
+    elif [[ "$url" =~ github\.com/.+?/enaible/(blob|raw)/([^/]+)/scripts/install\.sh ]]; then
+        ref="${BASH_REMATCH[2]}"
+    fi
+    echo "$ref"
+}
+
+auto_detect_ref() {
+    if [[ "$REF" != "$DEFAULT_REF" ]]; then
+        return
+    fi
+
+    if [[ -n "${ENAIBLE_INSTALL_REF:-}" ]]; then
+        REF="$ENAIBLE_INSTALL_REF"
+        log "Using ref from ENAIBLE_INSTALL_REF: $REF"
+        return
+    fi
+
+    local ref_from_url=""
+    if [[ -n "${INSTALL_SOURCE_URL:-}" ]]; then
+        ref_from_url="$(detect_ref_from_url "$INSTALL_SOURCE_URL")"
+    fi
+    if [[ -n "$ref_from_url" && "$ref_from_url" != "$DEFAULT_REF" ]]; then
+        REF="$ref_from_url"
+        log "Detected ref from installer URL: $REF"
+        return
+    fi
+
+    if git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD >/dev/null 2>&1; then
+        local local_ref
+        local_ref="$(git -C "$SCRIPT_DIR/.." rev-parse --abbrev-ref HEAD)"
+        if [[ -n "$local_ref" && "$local_ref" != "$DEFAULT_REF" ]]; then
+            REF="$local_ref"
+            log "Detected ref from local script checkout: $REF"
+        fi
+    fi
 }
 
 run_cmd() {
@@ -319,6 +371,7 @@ main() {
     done
 
     parse_args "$@"
+    auto_detect_ref
 
     init_prompt_input
     if ! $PROMPT_INPUT_AVAILABLE && { ! $systems_from_flag || ! $scope_from_flag; }; then
