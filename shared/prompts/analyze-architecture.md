@@ -23,6 +23,8 @@ Evaluate system architecture quality by combining automated structural analyzers
 
 - ALWAYS run Enaible analyzers; do not call analyzer modules directly.
 - Persist every analyzer output plus derived notes under @ARTIFACT_ROOT for auditability.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
 - Tie structural findings to concrete files, modules, or layers before recommending action.
 - Highlight architectural decisions (patterns, contracts, boundaries) and verify they align with documented system intents.
 - When @VERBOSE is provided, include extended metadata (dependency lists, hop counts, pattern scores) inside the final report.
@@ -33,7 +35,20 @@ Evaluate system architecture quality by combining automated structural analyzers
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-architecture/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), framework conventions
@@ -46,24 +61,32 @@ Evaluate system architecture quality by combining automated structural analyzers
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
-     enaible analyzers run architecture:patterns \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-patterns.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:patterns \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:dependency \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-dependency.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:dependency \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-dependency.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:coupling \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-coupling.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json" \
+       @EXCLUDE
 
-     enaible analyzers run architecture:scalability \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/architecture-scalability.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:scalability \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/architecture-scalability.json" \
+       @EXCLUDE
      ```
 
-   - Add `--min-severity "@MIN_SEVERITY"`, `--exclude "<glob>"`, or `--summary` as needed to control output size; rerun without `--summary` before final delivery.
+   - Add `--summary` as needed to control output size; keep full artifacts as audit evidence.
    - Document any exclusions in the final report.
 
 4. **Synthesize architecture baseline**

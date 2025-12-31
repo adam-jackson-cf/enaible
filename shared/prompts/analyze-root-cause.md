@@ -26,6 +26,8 @@ Discover the fundamental cause of an incident or defect through evidence-based i
 - Validate @TARGET_PATH (default `.`) exists and is readable before executing analyzers.
 - Use Enaible analyzers exclusively—do not probe for scripts or import modules manually.
 - Persist artifacts under `.enaible/artifacts/analyze-root-cause/` for traceability.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
 - Correlate findings across recent changes, error patterns, and traces; clearly separate hypotheses from confirmed evidence.
 - When @VERBOSE is provided, gather extended diagnostics (logs, stack traces) and document how they influence the conclusion.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
@@ -39,7 +41,20 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Resolve @TARGET_PATH (default `.`) and ensure it is readable.
    - Note whether @VERBOSE is enabled.
 2. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-root-cause/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 3. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), deployment topology indicators
@@ -53,21 +68,26 @@ Discover the fundamental cause of an incident or defect through evidence-based i
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     enaible analyzers run root_cause:trace_execution \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/root-cause-trace.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run root_cause:trace_execution \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/root-cause-trace.json" \
+       @EXCLUDE
 
-     enaible analyzers run root_cause:recent_changes \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/root-cause-recent-changes.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run root_cause:recent_changes \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/root-cause-recent-changes.json" \
+       @EXCLUDE
 
-     enaible analyzers run root_cause:error_patterns \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/root-cause-error-patterns.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run root_cause:error_patterns \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/root-cause-error-patterns.json" \
+       @EXCLUDE
      ```
 
    - When @VERBOSE is provided, capture additional evidence (stack traces, logs) and note their locations inside `ARTIFACT_ROOT`.
-   - Add `--exclude "<glob>"` or adjust `--min-severity` to limit noise while focusing on the suspected components.
    - If any invocation fails, review options with `enaible analyzers run --help` before retrying.
 
 5. **Analyze results**

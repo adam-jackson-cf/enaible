@@ -22,6 +22,8 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 
 - ALWAYS leverage Enaible analyzers; avoid manual script path discovery.
 - Persist analyzer results under `.enaible/artifacts/analyze-performance/` and cite them in the final report.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
 - Investigate bottlenecks holistically (compute, IO, frontend rendering, data access, configuration).
 - Tie each recommendation to measurable outcomes and validation steps.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
@@ -31,7 +33,20 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-performance/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), runtime environment indicators
@@ -44,26 +59,33 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected; only run `performance:ruff` when Python is detected; only run `performance:sqlglot` when SQL files or migration tooling is detected):
 
      ```bash
-     enaible analyzers run performance:ruff \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/performance-ruff.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:ruff \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-ruff.json" \
+       @EXCLUDE
 
      # Run only when a JS/TS frontend stack was detected during recon (package.json, src/**/*.tsx, Next/Vite configs)
-     enaible analyzers run performance:frontend \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/performance-frontend.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:frontend \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-frontend.json" \
+       @EXCLUDE
 
-     enaible analyzers run performance:sqlglot \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/performance-sqlglot.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:sqlglot \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-sqlglot.json" \
+       @EXCLUDE
 
-     enaible analyzers run performance:semgrep \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/performance-semgrep.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:semgrep \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-semgrep.json" \
+       @EXCLUDE
      ```
 
-   - Append `--summary` when triaging large repositories; rerun full reports before publishing.
-   - Add `--exclude "<glob>"` or refine `--min-severity` to focus on relevant subsystems.
+   - Append `--summary` when triaging large repositories; keep full artifacts as audit evidence.
    - If any invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
 
 4. **Aggregate findings**

@@ -26,6 +26,8 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 - Map findings to OWASP Top 10 categories, business impact, and exploitability.
 - Store raw analyzer JSON, command transcripts, and severity scoring inside `.enaible/artifacts/` so evidence is immutable.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
 - When @VERBOSE is provided, include exhaustive vulnerability details, gap tables, and remediation notes.
 - Run reconnaissance before analyzers to detect project context and auto-apply smart exclusions.
 - After synthesis, explicitly identify gaps in deterministic tool coverage and backfill where possible.
@@ -33,7 +35,20 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-security/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), auth framework indicators
@@ -46,13 +61,21 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     enaible analyzers run security:semgrep --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/semgrep.json"
-     enaible analyzers run security:detect_secrets --target "@TARGET_PATH" --out "@ARTIFACT_ROOT/detect-secrets.json"
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run security:semgrep \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/semgrep.json" \
+       @EXCLUDE
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run security:detect_secrets \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/detect-secrets.json" \
+       @EXCLUDE
      ```
 
-   - Pass `--summary` to generate quick overviews when triaging large reports.
+   - Pass `--summary` to generate quick overviews when triaging large reports; keep full artifacts as audit evidence.
    - Add `--verbose` when @VERBOSE is provided to capture analyzer-specific debugging output.
-   - Add `--exclude "<glob>"` or tune `--min-severity` when focusing on specific systems or risk levels.
    - If an invocation fails, inspect supported options with `enaible analyzers run --help` before retrying.
 
    - Normalize analyzer metadata into a working table (id, severity, location, source analyzer, notes).
