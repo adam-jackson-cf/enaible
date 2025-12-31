@@ -22,6 +22,7 @@ Assess code quality by combining automated metrics with architectural review to 
 
 - ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
 - Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
+- Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Correlate quantitative metrics with qualitative observations before recommending remediation.
 - Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
 - Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
@@ -78,6 +79,7 @@ Assess code quality by combining automated metrics with architectural review to 
    - Use the summary report for ingestion and tables; keep the full report as audit evidence.
    - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
    - If either invocation fails, review available flags with `enaible analyzers run --help` before retrying.
+   - If `quality:jscpd` exceeds 5 minutes, rerun it on focused scopes (e.g., `shared/`, `tools/enaible/src/enaible`) and name outputs per scope.
 
 4. **Interpret metrics**
    - Highlight hotspots exceeding thresholds (cyclomatic complexity > 10, function length > 80 lines, parameter count > 5).
