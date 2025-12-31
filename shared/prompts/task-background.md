@@ -143,7 +143,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      ```
 
 4. Launch tmux session
-   - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
+   - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates. When you finish, append a short summary of actions and outcomes to @REPORT_FILE.`
    - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
