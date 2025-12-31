@@ -28,6 +28,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 - Append the reporting instructions directly to @USER_PROMPT before passing it to the selected CLI.
 - Always launch the selected CLI inside a dedicated tmux session.
 - Record the tmux session name, model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
+- Do not switch models or reasoning effort during preflight; if the selected CLI check fails, exit.
 
 ## Workflow
 
@@ -42,7 +43,13 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
    - If the CLI command fails or returns an auth error, report it and exit without launching the background task.
 
 1. Prepare reporting directory
-   - Execute `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`. Abort immediately if the directory cannot be created or is not writable.
+   - Resolve the project root and ensure the reporting directory exists and is writable:
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     mkdir -p "$PROJECT_ROOT/.enaible/agents/background"
+     test -w "$PROJECT_ROOT/.enaible/agents/background"
+     ```
+   - Abort immediately if the directory cannot be created or is not writable.
 
 2. Parse inputs
    - Require @USER_PROMPT; if missing, prompt the operator and stop.
@@ -50,7 +57,16 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
    - Default @REASONING to `medium`. Validate it is one of `minimal`, `low`, `medium`, `high`, `xhigh`.
 
 3. Prepare reporting path
-   - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided.
+   - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided; ensure @REPORT_FILE is absolute:
+     ```bash
+     TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+     REPORT_FILE="@REPORT_FILE"
+     if [ -z "$REPORT_FILE" ]; then
+       REPORT_FILE="$PROJECT_ROOT/.enaible/agents/background/background-report-${TIMESTAMP}.md"
+     elif [ "${REPORT_FILE#/}" = "$REPORT_FILE" ]; then
+       REPORT_FILE="$PROJECT_ROOT/$REPORT_FILE"
+     fi
+     ```
    - Create parent directories and initialize the markdown header:
      ```
      # Background Task Report - <human-readable date>
@@ -64,20 +80,20 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
    - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
-      gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
-        tmux new-session -d -s @SESSION_NAME \
-          "codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto \
-            \"@ENHANCED_PROMPT\""
-        ;;
+       gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
+         tmux new-session -d -s @SESSION_NAME \
+          "bash -lc 'cd \"$PROJECT_ROOT\" && codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto --cd \"$PROJECT_ROOT\" \
+            \"@ENHANCED_PROMPT\"'"
+         ;;
        claude-*)
          tmux new-session -d -s @SESSION_NAME \
-           "claude --model @MODEL_NAME -p --permission-mode acceptEdits \
-             \"@ENHANCED_PROMPT\""
+          "bash -lc 'cd \"$PROJECT_ROOT\" && claude --model @MODEL_NAME -p --permission-mode acceptEdits \
+            \"@ENHANCED_PROMPT\"'"
          ;;
        gemini-*)
          tmux new-session -d -s @SESSION_NAME \
-           "gemini --model @MODEL_NAME -p --approval-mode auto_edit \
-             \"@ENHANCED_PROMPT\""
+          "bash -lc 'cd \"$PROJECT_ROOT\" && gemini --model @MODEL_NAME -p --approval-mode auto_edit \
+            \"@ENHANCED_PROMPT\"'"
          ;;
        *)
          echo "Unknown model selector: @MODEL_NAME" >&2
