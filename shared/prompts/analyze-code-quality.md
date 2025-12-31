@@ -23,6 +23,7 @@ Assess code quality by combining automated metrics with architectural review to 
 - ALWAYS run the Enaible analyzers; never probe or invoke module scripts directly.
 - Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
 - Correlate quantitative metrics with qualitative observations before recommending remediation.
 - Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
 - Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
