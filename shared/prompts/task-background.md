@@ -18,6 +18,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 
 - @SESSION_NAME — unique tmux session name for this background task
 - @TIMESTAMP — UTC timestamp for file naming and session identification
+- @TASK_LABEL — human-friendly label used in session + report names
 - @ENHANCED_PROMPT — user prompt with appended reporting instructions
 - @PROCESS_ID — PID of the tmux pane running Codex
 
@@ -29,6 +30,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 - Always launch the selected CLI inside a dedicated tmux session.
 - Record the tmux session name, model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
 - Do not switch models or reasoning effort during preflight; if the selected CLI check fails, exit.
+- Use `bash -lc` inside tmux so the CLI runs with the expected shell environment and working directory.
 
 ## Workflow
 
@@ -55,14 +57,74 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
    - Require @USER_PROMPT; if missing, prompt the operator and stop.
    - Default @MODEL_NAME to `gpt-5.2-codex` when the selector is absent.
    - Default @REASONING to `medium`. Validate it is one of `minimal`, `low`, `medium`, `high`, `xhigh`.
+   - Use the following lists to pick a random adjective + noun for @TASK_LABEL:
+
+     ```
+     const ADJECTIVES = [
+       'amber',
+       'brave',
+       'calm',
+       'clever',
+       'ember',
+       'frost',
+       'gentle',
+       'golden',
+       'hidden',
+       'iron',
+       'juniper',
+       'lunar',
+       'mellow',
+       'navy',
+       'olive',
+       'quiet',
+       'rapid',
+       'silver',
+       'solid',
+       'tender',
+       'ultra',
+       'vivid',
+       'wild',
+       'young',
+     ];
+
+     const NOUNS = [
+       'badger',
+       'beacon',
+       'canyon',
+       'cedar',
+       'comet',
+       'falcon',
+       'forest',
+       'harbor',
+       'meadow',
+       'mountain',
+       'nebula',
+       'ocean',
+       'orchard',
+       'pine',
+       'raven',
+       'river',
+       'shadow',
+       'signal',
+       'summit',
+       'thunder',
+       'valley',
+       'willow',
+       'zephyr',
+       'mesa',
+     ];
+     ```
+
+   - Pick one adjective and one noun at random and set `@TASK_LABEL="<adjective>-<noun>"`.
 
 3. Prepare reporting path
-   - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided; ensure @REPORT_FILE is absolute:
+   - Compute @TIMESTAMP and @SESSION_NAME, then the default @REPORT_FILE if none was provided; ensure @REPORT_FILE is absolute:
      ```bash
      TIMESTAMP="$(date -u +%Y%m%dT%H%M%SZ)"
+     SESSION_NAME="bg-${TASK_LABEL}-${TIMESTAMP}"
      REPORT_FILE="@REPORT_FILE"
      if [ -z "$REPORT_FILE" ]; then
-       REPORT_FILE="$PROJECT_ROOT/.enaible/agents/background/background-report-${TIMESTAMP}.md"
+       REPORT_FILE="$PROJECT_ROOT/.enaible/agents/background/background-report-${TASK_LABEL}-${TIMESTAMP}.md"
      elif [ "${REPORT_FILE#/}" = "$REPORT_FILE" ]; then
        REPORT_FILE="$PROJECT_ROOT/$REPORT_FILE"
      fi
@@ -71,29 +133,54 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      ```
      # Background Task Report - <human-readable date>
      ## Task: @USER_PROMPT
+     ## Session: @SESSION_NAME
      ## Started: <date time>
+     ## Monitor
+     - tmux attach -t @SESSION_NAME
+     - tmux capture-pane -p -S -200 -t @SESSION_NAME
+     - tmux kill-session -t @SESSION_NAME
+     - tail -f @REPORT_FILE
      ```
 
 4. Launch tmux session
-   - Set @SESSION_NAME to `codex-bg-@TIMESTAMP` (or another unique identifier).
    - Build @ENHANCED_PROMPT by appending reporting instructions: `@USER_PROMPT IMPORTANT: Report all progress and results to: @REPORT_FILE. Use the Write tool to append updates.`
    - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
        gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
          tmux new-session -d -s @SESSION_NAME \
-          "bash -lc 'cd \"$PROJECT_ROOT\" && codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto --cd \"$PROJECT_ROOT\" \
-            \"@ENHANCED_PROMPT\"'"
+          "bash -lc 'cd \"$PROJECT_ROOT\" && \
+            STATUS=0; \
+            codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto --cd \"$PROJECT_ROOT\" \
+              --output-last-message \"$REPORT_FILE.last\" \
+              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+            STATUS=${PIPESTATUS[0]}; \
+            printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
+            if [ -f \"$REPORT_FILE.last\" ]; then \
+              printf \"\\n## Final Response\\n\" >> \"$REPORT_FILE\"; \
+              cat \"$REPORT_FILE.last\" >> \"$REPORT_FILE\"; \
+            fi; \
+            exit \"$STATUS\"'"
          ;;
        claude-*)
          tmux new-session -d -s @SESSION_NAME \
-          "bash -lc 'cd \"$PROJECT_ROOT\" && claude --model @MODEL_NAME -p --permission-mode acceptEdits \
-            \"@ENHANCED_PROMPT\"'"
+          "bash -lc 'cd \"$PROJECT_ROOT\" && \
+            STATUS=0; \
+            claude --model @MODEL_NAME -p --permission-mode acceptEdits \
+              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+            STATUS=${PIPESTATUS[0]}; \
+            printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
+            exit \"$STATUS\"'"
          ;;
        gemini-*)
          tmux new-session -d -s @SESSION_NAME \
-          "bash -lc 'cd \"$PROJECT_ROOT\" && gemini --model @MODEL_NAME -p --approval-mode auto_edit \
-            \"@ENHANCED_PROMPT\"'"
+          "bash -lc 'cd \"$PROJECT_ROOT\" && \
+            STATUS=0; \
+            gemini --model @MODEL_NAME -p --approval-mode auto_edit \
+              \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
+            STATUS=${PIPESTATUS[0]}; \
+            printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
+            exit \"$STATUS\"'"
          ;;
        *)
          echo "Unknown model selector: @MODEL_NAME" >&2
