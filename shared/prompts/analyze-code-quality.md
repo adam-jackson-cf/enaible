@@ -24,6 +24,7 @@ Assess code quality by combining automated metrics with architectural review to 
 - Store raw analyzer reports under `.enaible/artifacts/analyze-code-quality/`; treat JSON outputs as audit evidence.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
 - Respect `@MIN_SEVERITY` for reporting; do not rerun at lower severity. If lower-severity findings exist, direct users to the JSON artifacts instead of re-running.
+- Run analyzers concurrently where feasible to reduce total execution time; ensure each writes to its own artifact file.
 - Correlate quantitative metrics with qualitative observations before recommending remediation.
 - Prioritize recommendations by impact and implementation effort, citing exact files and symbols.
 - Capture follow-up questions or unknowns so they can be resolved before refactor work begins.
@@ -62,17 +63,14 @@ Assess code quality by combining automated metrics with architectural review to 
      ```bash
      ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
        --target "$TARGET_PATH" \
-       --summary \
-       --out "$ARTIFACT_ROOT/quality-lizard-summary.json" \
-       @EXCLUDE
-
-     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
-       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       --summary-out "$ARTIFACT_ROOT/quality-lizard-summary.json" \
        @EXCLUDE
 
      ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:jscpd \
        --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-jscpd.json" \
        @EXCLUDE
      ```

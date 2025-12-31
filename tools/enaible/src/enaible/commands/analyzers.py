@@ -124,6 +124,11 @@ def analyzers_run(
         "-o",
         help="Optional file to write result JSON to.",
     ),
+    summary_out: Path | None = typer.Option(
+        None,
+        "--summary-out",
+        help="Optional file to write a summary-only JSON payload to.",
+    ),
     min_severity: str = typer.Option(
         "high",
         "--min-severity",
@@ -212,6 +217,12 @@ def analyzers_run(
         # Analyzer handles console output internally; only write JSON when requested.
         if out is not None:
             _emit_json(payload, out)
+
+    if summary_out is not None:
+        summary_payload = dict(payload)
+        summary_payload["findings"] = []
+        summary_payload["raw"] = {"summary": summary_payload.get("summary", {})}
+        _emit_json(summary_payload, summary_out)
 
     if len(response.findings) >= 200:
         tip = (
