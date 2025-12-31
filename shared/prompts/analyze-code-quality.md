@@ -32,7 +32,20 @@ Assess code quality by combining automated metrics with architectural review to 
 ## Workflow
 
 1. **Establish artifacts directory**
-   - Set `@ARTIFACT_ROOT=".enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"` and create it.
+   - Resolve the repo root and target path, then create the artifacts directory:
+
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/analyze-code-quality/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     ```
+
 2. **Reconnaissance**
    - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
    - Detect layout: monorepo vs single-project, primary language(s), test framework conventions
@@ -45,18 +58,24 @@ Assess code quality by combining automated metrics with architectural review to 
    - Execute each Enaible command, storing the JSON output:
 
      ```bash
-     enaible analyzers run quality:lizard \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-lizard.json" \
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+       --target "$TARGET_PATH" \
+       --summary \
+       --out "$ARTIFACT_ROOT/quality-lizard-summary.json" \
        @EXCLUDE
 
-     enaible analyzers run quality:jscpd \
-       --target "@TARGET_PATH" \
-       --out "@ARTIFACT_ROOT/quality-jscpd.json" \
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       @EXCLUDE
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:jscpd \
+       --target "$TARGET_PATH" \
+       --out "$ARTIFACT_ROOT/quality-jscpd.json" \
        @EXCLUDE
      ```
 
-   - Use `--summary` for quick triage when dealing with very large reports; rerun without it before final delivery.
+   - Use the summary report for ingestion and tables; keep the full report as audit evidence.
    - Add `--exclude "<glob>"` or adjust `--min-severity` when you need to tune scope or noise levels.
    - If either invocation fails, review available flags with `enaible analyzers run --help` before retrying.
 
@@ -128,5 +147,6 @@ Assess code quality by combining automated metrics with architectural review to 
 ## ATTACHMENTS
 
 - quality:lizard report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard.json`
+- quality:lizard summary → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-lizard-summary.json`
 - quality:jscpd report → `.enaible/artifacts/analyze-code-quality/<timestamp>/quality-jscpd.json`
 ```
