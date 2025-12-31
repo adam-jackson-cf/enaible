@@ -12,7 +12,6 @@ param(
     [ValidateSet("user", "project")] [string]$Scope = "user",
     [string]$Project,
     [string]$Ref = "main",
-    [string]$SourceUrl = "",
     [switch]$DryRun
 )
 
@@ -169,24 +168,6 @@ function Update-Clone {
     }
 }
 
-function Get-RefFromUrl {
-    param([string]$Url)
-    if ([string]::IsNullOrWhiteSpace($Url)) {
-        return ""
-    }
-    $rawPattern = [regex]::new('raw\.githubusercontent\.com/.+?/enaible/([^/]+)/scripts/install\.sh')
-    $blobPattern = [regex]::new('github\.com/.+?/enaible/(?:blob|raw)/([^/]+)/scripts/install\.sh')
-    $rawMatch = $rawPattern.Match($Url)
-    if ($rawMatch.Success) {
-        return $rawMatch.Groups[1].Value
-    }
-    $blobMatch = $blobPattern.Match($Url)
-    if ($blobMatch.Success) {
-        return $blobMatch.Groups[1].Value
-    }
-    return ""
-}
-
 function Auto-DetectRef {
     if ($Ref -ne $defaultRef) {
         return
@@ -195,13 +176,6 @@ function Auto-DetectRef {
     if ($env:ENAIBLE_INSTALL_REF) {
         $script:Ref = $env:ENAIBLE_INSTALL_REF
         Write-Log "Using ref from ENAIBLE_INSTALL_REF: $Ref"
-        return
-    }
-
-    $refFromUrl = Get-RefFromUrl -Url $SourceUrl
-    if ($refFromUrl -and $refFromUrl -ne $defaultRef) {
-        $script:Ref = $refFromUrl
-        Write-Log "Detected ref from installer URL: $Ref"
         return
     }
 
