@@ -362,7 +362,7 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ │ ├── analyze-repo-orchestrator.md
 │ │ │ ├── codify-codex-history.md
 │ │ │ ├── get-recent-context.md
-│ │ │ └── todo-background.md
+│ │ │ └── task-background.md
 │ │ └── codex-init-helpers.md
 │ ├── copilot
 │ │ └── rules

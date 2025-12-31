@@ -1,6 +1,6 @@
 # Purpose
 
-Run a single Codex CLI workflow inside a named tmux session so it can keep working in the background while progress is logged to a timestamped report file.
+Run a single CLI workflow inside a named tmux session so it can keep working in the background while progress is logged to a timestamped report file.
 
 ## Variables
 
@@ -25,9 +25,9 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 
 - Capture a timestamp before creating directories or files so report names, tmux sessions, and logs stay aligned.
 - Create the report directory and header before launching Codex to guarantee every background run has a writable log.
-- Pass @USER_PROMPT verbatim to Codex after prepending the reporting instructions (Codex lacks an append-system-prompt flag).
-- Always launch Codex inside a dedicated tmux session.
-- Record the tmux session name, Codex model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
+- Append the reporting instructions directly to @USER_PROMPT before passing it to the selected CLI.
+- Always launch the selected CLI inside a dedicated tmux session.
+- Record the tmux session name, model, reasoning effort, PID, and report path so operators can monitor or terminate the run later.
 
 ## Workflow
 
@@ -39,7 +39,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
      `claude --model @MODEL_NAME -p "Hello world"`
    - Gemini models (gemini-2.5-pro, gemini-2.5-flash, gemini-3-pro, gemini-3-flash):
      `gemini --model @MODEL_NAME -p "Hello world"`
-   - If the CLI command fails or returns an auth error, report it and exit without launching Codex.
+   - If the CLI command fails or returns an auth error, report it and exit without launching the background task.
 
 1. Prepare reporting directory
    - Execute `mkdir -p ./.enaible/agents/background && test -w ./.enaible/agents/background`. Abort immediately if the directory cannot be created or is not writable.
@@ -71,7 +71,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
          ;;
        claude-*)
          tmux new-session -d -s @SESSION_NAME \
-           "claude --model @MODEL_NAME -p --permission-mode acceptEdits --dangerously-skip-permissions \
+           "claude --model @MODEL_NAME -p --permission-mode acceptEdits \
              \"@ENHANCED_PROMPT\""
          ;;
        gemini-*)
@@ -95,7 +95,7 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
    - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
 
 6. Report launch status
-   - Summarize Codex model, reasoning effort, tmux session, PID, and report path.
+   - Summarize model, reasoning effort, tmux session, PID, and report path.
    - Provide explicit monitoring and termination guidance so operators can manage the background task without guessing.
 
 ## Output
@@ -103,13 +103,13 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 ```md
 # RESULT
 
-- Summary: Codex background task launched (@MODEL_NAME, @REASONING) inside tmux session @SESSION_NAME.
+- Summary: Background task launched (@MODEL_NAME, @REASONING) inside tmux session @SESSION_NAME.
 
 ## PROCESS
 
 - tmux session: @SESSION_NAME
 - PID: @PROCESS_ID
-- Command: tmux new-session -d -s @SESSION_NAME 'codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto "@ENHANCED_PROMPT"'
+- Command: tmux new-session -d -s @SESSION_NAME '<CLI command from Step 4 based on @MODEL_NAME>'
 
 ## REPORT
 
@@ -129,9 +129,9 @@ Run a single Codex CLI workflow inside a named tmux session so it can keep worki
 ## Examples
 
 ```bash
-# Default Codex background task
-/todo-background "Analyze the codebase for performance issues"
+# Default background task
+/task-background "Analyze the codebase for performance issues"
 
-# Custom Codex model with explicit report path
-/todo-background "Refactor the authentication module" --model gpt-5.1-codex-max --reasoning high ./.enaible/agents/background/auth-refactor.md
+# Custom model with explicit report path
+/task-background "Refactor the authentication module" --model gpt-5.1-codex-max --reasoning high ./.enaible/agents/background/auth-refactor.md
 ```

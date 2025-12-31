@@ -202,7 +202,7 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 | codify-codex-history      | Codex  | `/codify-codex-history`                    | Mine sessions for recurring patterns      |
 | get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
 | analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
-| todo-background           | Codex  | `/todo-background "refactor auth"`         | Run task in background tmux session       |
+| task-background           | Shared | `/task-background "refactor auth"`         | Run task in background tmux session       |
 
 </details>
 

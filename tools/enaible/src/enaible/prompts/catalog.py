@@ -1496,6 +1496,88 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "task-background": PromptDefinition(
+        prompt_id="task-background",
+        source_path=_repo_path("shared", "prompts", "task-background.md"),
+        title="task-background v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "task-background.md",
+                ),
+                frontmatter={
+                    "argument-hint": "[--model <model>] [--reasoning <level>] [--report-file <path>]"
+                },
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "task-background.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "task-background.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting",
+                    "mode": "agent",
+                    "tools": ["terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "cursor",
+                    "commands",
+                    "task-background.md",
+                ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "task-background.toml",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "task-background.md",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting"
+                },
+            ),
+        },
+    ),
 }
 
 
