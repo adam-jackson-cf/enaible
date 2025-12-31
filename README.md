@@ -195,14 +195,12 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 
 ### System-Specific Commands
 
-| Command                   | System | Example                                    | Use Case                                  |
-| ------------------------- | ------ | ------------------------------------------ | ----------------------------------------- |
-| codify-session-history    | Claude | `/codify-session-history --days 7`         | Extract workflow standards from sessions  |
-| get-recent-context        | Claude | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
-| codify-session-history    | Codex  | `/codify-session-history`                  | Mine sessions for recurring patterns      |
-| get-recent-context        | Codex  | `/get-recent-context --days 3`             | Analyze Codex session logs                |
-| analyze-repo-orchestrator | Codex  | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
-| task-background           | Shared | `/task-background "refactor auth"`         | Run task in background tmux session       |
+| Command                   | System                | Example                                    | Use Case                                  |
+| ------------------------- | --------------------- | ------------------------------------------ | ----------------------------------------- |
+| codify-session-history    | Shared (Codex/Claude) | `/codify-session-history --days 7`         | Extract workflow standards from sessions  |
+| get-recent-context        | Shared (Codex/Claude) | `/get-recent-context --search-term "auth"` | Orient on recent activity and git history |
+| analyze-repo-orchestrator | Codex                 | `/analyze-repo-orchestrator`               | Parallel repo analysis with KPI scoring   |
+| task-background           | Shared                | `/task-background "refactor auth"`         | Run task in background tmux session       |
 
 </details>
 
