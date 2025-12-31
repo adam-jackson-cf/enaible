@@ -148,20 +148,22 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      ```bash
      case "@MODEL_NAME" in
        gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
-         tmux new-session -d -s @SESSION_NAME \
+        tmux new-session -d -s @SESSION_NAME \
           "bash -lc 'cd \"$PROJECT_ROOT\" && \
             STATUS=0; \
+            LAST_FILE=\"$(mktemp -t enaible-bg-last.XXXXXX)\" && \
             codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto --cd \"$PROJECT_ROOT\" \
-              --output-last-message \"$REPORT_FILE.last\" \
+              --output-last-message \"$LAST_FILE\" \
               \"@ENHANCED_PROMPT\" 2>&1 | tee -a \"$REPORT_FILE\"; \
             STATUS=${PIPESTATUS[0]}; \
             printf \"\\n## Completed: %s (exit %s)\\n\" \"$(date -u)\" \"$STATUS\" >> \"$REPORT_FILE\"; \
-            if [ -f \"$REPORT_FILE.last\" ]; then \
+            if [ -f \"$LAST_FILE\" ]; then \
               printf \"\\n## Final Response\\n\" >> \"$REPORT_FILE\"; \
-              cat \"$REPORT_FILE.last\" >> \"$REPORT_FILE\"; \
+              cat \"$LAST_FILE\" >> \"$REPORT_FILE\"; \
             fi; \
+            rm -f \"$LAST_FILE\"; \
             exit \"$STATUS\"'"
-         ;;
+        ;;
        claude-*)
          tmux new-session -d -s @SESSION_NAME \
           "bash -lc 'cd \"$PROJECT_ROOT\" && \
