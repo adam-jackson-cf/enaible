@@ -830,6 +830,35 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "get-recent-context": PromptDefinition(
+        prompt_id="get-recent-context",
+        source_path=_repo_path("shared", "prompts", "get-recent-context.md"),
+        title="get-recent-context v0.1",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "get-recent-context.md",
+                ),
+                frontmatter={"argument-hint": "[--uuid] [--verbose] [--search-term]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "get-recent-context.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+        },
+    ),
     "plan-ux-prd": PromptDefinition(
         prompt_id="plan-ux-prd",
         source_path=_repo_path("shared", "prompts", "plan-ux-prd.md"),
