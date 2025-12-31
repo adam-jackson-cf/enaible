@@ -1,6 +1,6 @@
 # Purpose
 
-Explore the codebase and produce a feature primer tailored to @USER_PROMPT, covering context, risks, and next actions.
+Explore the codebase and produce a task primer tailored to @USER_PROMPT, covering context, risks, and next actions.
 
 ## Variables
 

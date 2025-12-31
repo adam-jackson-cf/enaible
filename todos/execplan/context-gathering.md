@@ -155,7 +155,7 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ ├── analyze-security.md
 │ │ ├── create-hand-off.md
 │ │ ├── get-codebase-primer.md
-│ │ ├── get-feature-primer.md
+│ │ ├── get-task-primer.md
 │ │ ├── plan-refactor.md
 │ │ ├── plan-solution.md
 │ │ ├── plan-ux-prd.md
