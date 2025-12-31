@@ -11,7 +11,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 ### Optional (derived from @ARGUMENTS)
 
 - @MODEL_NAME = --model — model identifier (default gpt-5.2-codex).
-- @REASONING = --reasoning — reasoning effort (default medium; valid low|medium|high).
+- @REASONING = --reasoning — reasoning effort (default medium; valid minimal|low|medium|high|xhigh).
 - @REPORT_FILE = --report-file — destination report file (default ./.enaible/agents/background/background-report-<TIMESTAMP>.md).
 
 ### Derived (internal)
@@ -34,7 +34,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 0. CLI preflight
    - Determine the CLI to check based on @MODEL_NAME and run a one-line “hello world” prompt to verify both CLI presence and auth:
      - Codex models (gpt-5._ / gpt-5._-codex / gpt-5._-codex-_):
-       `codex exec --model @MODEL_NAME --reasoning @REASONING "Hello world"`
+       `codex exec --model @MODEL_NAME --config model_reasoning_effort="@REASONING" "Hello world"`
    - Claude models (claude-opus-4-1-20250805, claude-opus-4-20250514, claude-sonnet-4-20250514, claude-3-7-sonnet-20250219, claude-3-5-haiku-20241022):
      `claude --model @MODEL_NAME -p "Hello world"`
    - Gemini models (gemini-2.5-pro, gemini-2.5-flash, gemini-3-pro, gemini-3-flash):
@@ -47,7 +47,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
 2. Parse inputs
    - Require @USER_PROMPT; if missing, prompt the operator and stop.
    - Default @MODEL_NAME to `gpt-5.2-codex` when the selector is absent.
-   - Default @REASONING to `medium`. Validate it is one of `low`, `medium`, `high`.
+   - Default @REASONING to `medium`. Validate it is one of `minimal`, `low`, `medium`, `high`, `xhigh`.
 
 3. Prepare reporting path
    - Compute @TIMESTAMP and the default @REPORT_FILE if none was provided.
@@ -64,11 +64,11 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
    - Launch the appropriate CLI inside tmux based on @MODEL_NAME:
      ```bash
      case "@MODEL_NAME" in
-       gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
-         tmux new-session -d -s @SESSION_NAME \
-           "codex exec --model @MODEL_NAME --reasoning @REASONING --full-auto \
-             \"@ENHANCED_PROMPT\""
-         ;;
+      gpt-5.*|gpt-5.*-codex|gpt-5.*-codex-*)
+        tmux new-session -d -s @SESSION_NAME \
+          "codex exec --model @MODEL_NAME --config model_reasoning_effort=\"@REASONING\" --full-auto \
+            \"@ENHANCED_PROMPT\""
+        ;;
        claude-*)
          tmux new-session -d -s @SESSION_NAME \
            "claude --model @MODEL_NAME -p --permission-mode acceptEdits \
