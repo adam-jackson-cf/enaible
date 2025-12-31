@@ -188,7 +188,7 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
          ;;
      esac
      ```
-   - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
+   - Capture @PROCESS_ID via `tmux display-message -t @SESSION_NAME:0 -p '#{pane_pid}'` and store it with the session metadata.
 
 5. Confirm launch status (single check)
    - Check once whether the tmux session exists:
