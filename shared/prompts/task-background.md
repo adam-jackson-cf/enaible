@@ -190,14 +190,20 @@ Run a single CLI workflow inside a named tmux session so it can keep working in 
      ```
    - Capture @PROCESS_ID via `tmux display-message -p '#{pane_pid}' -t @SESSION_NAME:0` and store it with the session metadata.
 
-5. Configure monitoring
+5. Confirm launch status (single check)
+   - Check once whether the tmux session exists:
+     - If listed, report that the background task is running and provide the monitoring commands.
+     - If not listed, check @REPORT_FILE for completion output or errors and report the most likely outcome.
+   - Do not loop or continually re-check; this is a background task.
+
+6. Configure monitoring
    - Document how operators can manage the session:
      - Attach: `tmux attach -t @SESSION_NAME`
      - Capture output: `tmux capture-pane -p -S -200 -t @SESSION_NAME`
      - Stop when complete: `tmux kill-session -t @SESSION_NAME`
    - Note that progress is continuously appended to @REPORT_FILE for non-interactive monitoring (`tail -f @REPORT_FILE`).
 
-6. Report launch status
+7. Report launch status
    - Summarize model, reasoning effort, tmux session, PID, and report path.
    - Provide explicit monitoring and termination guidance so operators can manage the background task without guessing.
 
