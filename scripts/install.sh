@@ -22,7 +22,7 @@ REF="$DEFAULT_REF"
 DRY_RUN=false
 PYTHON_BIN=""
 INSTALL_SOURCE_URL=""
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$(pwd)}")" && pwd)"
 
 log() {
     printf '[%s] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"
