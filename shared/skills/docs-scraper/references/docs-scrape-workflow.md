@@ -14,8 +14,8 @@ For each URL, decide which CLI invocation best fits the task (single page, multi
 
 ```bash
 uv run --project tools/enaible enaible docs_scrape \
-  --url "$URL" \
-  --out "$OUTPUT_DIR/$FILENAME.md" \
+  "$URL" \
+  "$OUTPUT_DIR/$FILENAME.md" \
   --title "$TITLE"
 ```
 
