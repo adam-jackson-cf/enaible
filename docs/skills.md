@@ -2,24 +2,22 @@
 
 > The complete format specification for Agent Skills.
 
-This document defines the Agent Skills format.
+This document defines the Agent Skills format for shared skills in this repository and the generated adapters we ship.
 
-## Directory structure
+## Directory + naming rules
 
-A skill is a directory containing at minimum a `SKILL.md` file:
-
-```
-skill-name/
-└── SKILL.md          # Required
-```
+1. Author shared skills under `shared/skills/<skill-name>/`. Rendered artifacts land under `systems/<adapter>/skills/...`; downstream runtimes install them under their own managed tree (e.g., `~/<system-folder>/skills/<skill-name>/`).
+2. The folder name must match the `name` frontmatter field exactly. Names use lowercase letters, numbers, and single hyphens only; no leading, trailing, or consecutive hyphens.
+3. Minimum contents: a single `SKILL.md`. Optional siblings—`scripts/`, `references/`, `assets/`—must stay inside the skill directory. Skills must never rely on files outside their own tree.
+4. Keep every skill self-contained so it can be copied verbatim into another runtime without missing assets.
 
 <Tip>
-  You can optionally include [additional directories](#optional-directories) such as `scripts/`, `references/`, and `assets/` to support your skill.
+  Treat each skill directory as a portable package: anything an agent needs (templates, scripts, examples) should live alongside `SKILL.md`.
 </Tip>
 
 ## SKILL.md format
 
-The `SKILL.md` file must contain YAML frontmatter followed by Markdown content.
+The `SKILL.md` file must contain YAML frontmatter followed by Markdown instructions.
 
 ### Frontmatter (required)
 
@@ -35,32 +33,32 @@ With optional fields:
 ```yaml theme={null}
 ---
 name: pdf-processing
-description: Extract text and tables from PDF files, fill forms, merge documents.
+description: Extract text and tables from PDF files. USE WHEN the user needs PDF parsing, form fill, or merges.
+compatibility: Requires Python 3.12+, git, and internet access.
 license: Apache-2.0
 metadata:
   author: example-org
   version: "1.0"
+allowed-tools: Bash(git:*) Bash(jq:*) Read
 ---
 ```
 
 | Field           | Required | Constraints                                                                                                       |
 | --------------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
-| `name`          | Yes      | Max 64 characters. Lowercase letters, numbers, and hyphens only. Must not start or end with a hyphen.             |
-| `description`   | Yes      | Max 1024 characters. Non-empty. Describes what the skill does and when to use it.                                 |
-| `license`       | No       | License name or reference to a bundled license file.                                                              |
-| `compatibility` | No       | Max 500 characters. Indicates environment requirements (intended product, system packages, network access, etc.). |
-| `metadata`      | No       | Arbitrary key-value mapping for additional metadata.                                                              |
-| `allowed-tools` | No       | Space-delimited list of pre-approved tools the skill may use. (Experimental)                                      |
+| `name`          | Yes      | 1-64 chars. Lowercase letters, numbers, single hyphens. Matches folder name; no leading/trailing/consecutive `-`. |
+| `description`   | Yes      | 1-1024 chars. Describe what the skill does **and** when to use it. Include an explicit `USE WHEN ...` clause.     |
+| `license`       | No       | License identifier or reference to a bundled license file.                                                        |
+| `compatibility` | No       | ≤500 chars. List environment requirements (product, runtimes, packages, network, API keys).                       |
+| `metadata`      | No       | Map of string keys/values for implementation-specific metadata.                                                   |
+| `allowed-tools` | No       | Space-delimited list of tools pre-approved for this skill (experimental; support varies by adapter).              |
 
 #### `name` field
 
-The required `name` field:
-
 - Must be 1-64 characters
-- May only contain unicode lowercase alphanumeric characters and hyphens (`a-z` and `-`)
-- Must not start or end with `-`
-- Must not contain consecutive hyphens (`--`)
-- Must match the parent directory name
+- Only lowercase letters, digits, and single hyphens (`a-z`, `0-9`, `-`)
+- Cannot start or end with `-`
+- Cannot contain `--`
+- Must match the parent directory name exactly
 
 Valid examples:
 
@@ -72,36 +70,30 @@ name: pdf-processing
 name: data-analysis
 ```
 
-```yaml theme={null}
-name: code-review
-```
-
 Invalid examples:
 
 ```yaml theme={null}
-name: PDF-Processing # uppercase not allowed
+name: PDF-Processing
 ```
 
 ```yaml theme={null}
-name: -pdf # cannot start with hyphen
+name: -pdf
 ```
 
 ```yaml theme={null}
-name: pdf--processing # consecutive hyphens not allowed
+name: pdf--processing
 ```
 
 #### `description` field
 
-The required `description` field:
-
-- Must be 1-1024 characters
-- Should describe both what the skill does and when to use it
-- Should include specific keywords that help agents identify relevant tasks
+- 1-1024 characters
+- Describe capabilities plus triggers ("USE WHEN ...") so the dispatcher knows when to route to the skill
+- Include keywords that match likely user phrasing
 
 Good example:
 
 ```yaml theme={null}
-description: Extracts text and tables from PDF files, fills PDF forms, and merges multiple PDFs. Use when working with PDF documents or when the user mentions PDFs, forms, or document extraction.
+description: Extracts text and tables from PDFs, fills PDF forms, and merges files. USE WHEN users mention PDFs, forms, or document extraction workflows.
 ```
 
 Poor example:
@@ -112,171 +104,124 @@ description: Helps with PDFs.
 
 #### `license` field
 
-The optional `license` field:
-
-- Specifies the license applied to the skill
-- We recommend keeping it short (either the name of a license or the name of a bundled license file)
-
-Example:
-
-```yaml theme={null}
-license: Proprietary. LICENSE.txt has complete terms
-```
+- Optional license identifier or reference to a bundled file (e.g., `LICENSE.txt`)
+- Keep it short; details belong in a dedicated file if needed
 
 #### `compatibility` field
 
-The optional `compatibility` field:
-
-- Must be 1-500 characters if provided
-- Should only be included if your skill has specific environment requirements
-- Can indicate intended product, required system packages, network access needs, etc.
-
-Examples:
-
-```yaml theme={null}
-compatibility: Designed for Claude Code (or similar products)
-```
-
-```yaml theme={null}
-compatibility: Requires git, docker, jq, and access to the internet
-```
-
-<Note>
-  Most skills do not need the `compatibility` field.
-</Note>
+- Optional, 1-500 characters
+- Describe only the environment requirements that are **not** bundled with the skill (e.g., runtimes, packages, network access, API keys, adapter-specific constraints)
+- Skip internal assets that ship with the skill (e.g., scripts inside `scripts/`) and anything already guaranteed by the base repo setup
+- Mention adapters explicitly when relevant ("Designed for Claude Code")
 
 #### `metadata` field
 
-The optional `metadata` field:
-
-- A map from string keys to string values
-- Clients can use this to store additional properties not defined by the Agent Skills spec
-- We recommend making your key names reasonably unique to avoid accidental conflicts
-
-Example:
-
-```yaml theme={null}
-metadata:
-  author: example-org
-  version: "1.0"
-```
+- Optional map from string keys to string values
+- Useful for author info, versions, feature flags, or migration metadata
+- Keep keys namespaced enough to avoid collisions (`enaible-author`, `enaible-version`)
 
 #### `allowed-tools` field
 
-The optional `allowed-tools` field:
-
-- A space-delimited list of tools that are pre-approved to run
-- Experimental. Support for this field may vary between agent implementations
+- Optional space-delimited list describing pre-approved tool invocations (tool names and scopes are adapter specific)
+- Format: `ToolName(arg-scope)` or bare tool name depending on adapter support
+- Use sparingly; most skills rely on the global tool policy instead of whitelists
+- Reference tools via the shared tokens (e.g., `@BASH`, `@READ`, `@WRITE`) instead of hardcoding system names. The renderer swaps these tokens for each adapter’s tool identifiers. See [docs/system/allowed-tools.md](./system/allowed-tools.md) for the canonical token list and per-system mappings.
 
 Example:
 
-```yaml theme={null}
-allowed-tools: Bash(git:*) Bash(jq:*) Read
+```yaml
+allowed-tools: @BASH(git:*) @READ(./path|glob) @WRITE
 ```
 
 ### Body content
 
-The Markdown body after the frontmatter contains the skill instructions. There are no format restrictions. Write whatever helps agents perform the task effectively.
+The Markdown body after the frontmatter is the skill’s operational guide. Agents load the entire file when activating the skill, so prioritize clarity and brevity.
 
-Recommended sections:
+#### Body structure guidance
 
-- Step-by-step instructions
-- Examples of inputs and outputs
-- Common edge cases
-- Orchestration overview (for multi-stage skills)
+1. **Title block**: Begin with `# <skill-name>` followed by a short paragraph describing the mission, then a bulleted list of primary use cases.
+2. **Optional quick-reference table**: Add a `## Need to...? Read This` section mapping common goals to reference files or scripts when the skill has multiple sub-workflows.
+3. **Workflow**: Present the core flow as `## Workflow` with numbered `### Step N: <title>` subsections. Each step should include:
+   - **Purpose** sentence
+   - **When** to run (if conditional)
+   - Bullet list of actions
+   - Links to supporting reference files or scripts
+4. **Step 0 (preflight)**: Include only if prerequisites exist beyond the default repo/toolchain state. State how to fail fast when prerequisites are missing.
+5. Keep `SKILL.md` under ~500 lines. Move deeper, step-by-step instructions (including any checkpoint or approval requirements) into files inside `references/` or `assets/` to preserve context budget.
 
-Note that the agent will load this entire file once it's decided to activate a skill. Consider splitting longer `SKILL.md` content into referenced files.
+Document at a high level in `SKILL.md` when human approval is required, but reserve the detailed checkpoint flow for the referenced files that describe each step.
 
-### Orchestration overview
-
-For multi-stage skills, include an `## Orchestration Overview` section after the Resources list to clarify the sequence of stages and required checkpoints.
-
-Recommended format:
+#### Workflow example (abbreviated)
 
 ```markdown
-## Orchestration Overview
+# Codify PR Reviews
 
-### Stage 1: <name>
+- You want to codify recurring feedback into instruction rules.
+- You need human approval before rules change.
 
-**Purpose**: <one line>
-**Details**: [resources/<file>.md](resources/<file>.md)
+## Workflow
 
-### Stage 2: <name>
+### Step 0: Preflight checks
 
-**Purpose**: <one line>
-**Details**: [resources/<file>.md](resources/<file>.md)
+**Purpose**: Ensure required inputs exist before any processing.
 
-### Stage N: <name>
+### Step 1: Establish run directories
 
-**Purpose**: <one line>
-
-**MANDATORY CHECKPOINT**: @ASK_USER_CONFIRMATION before proceeding.
+**Purpose**: Create deterministic artifact roots.
 ```
 
-Keep each stage concise. Use the checkpoints to indicate where the agent must stop for user input.
+Adopt this pattern for every shared skill so adapters render consistent experiences.
 
 ## Optional directories
 
 ### scripts/
 
-Contains executable code that agents can run. Scripts should:
+Executable helpers the skill can invoke. Scripts should:
 
-- Be self-contained or clearly document dependencies
-- Include helpful error messages
-- Handle edge cases gracefully
-
-Supported languages depend on the agent implementation. Common options include Python, Bash, and JavaScript.
+- Be self-contained or describe dependencies explicitly
+- Provide clear error messages and exit codes
+- Target portable runtimes (Python, Bash, Node) supported by all adapters that ship the skill
 
 ### references/
 
-Contains additional documentation that agents can read when needed:
+Supplemental documentation loaded on demand:
 
-- `REFERENCE.md` - Detailed technical reference
-- `FORMS.md` - Form templates or structured data formats
-- Domain-specific files (`finance.md`, `legal.md`, etc.)
-
-Keep individual [reference files](#file-references) focused. Agents load these on demand, so smaller files mean less use of context.
+- Deep workflows, troubleshooting, templates, or forms
+- Keep files focused and under control; agents fetch them individually
+- Document success criteria, examples, and any mandatory checkpoint instructions in these files using markers like `@ASK_USER_CONFIRMATION`
 
 ### assets/
 
-Contains static resources:
-
-- Templates (document templates, configuration templates)
-- Images (diagrams, examples)
-- Data files (lookup tables, schemas)
+Static resources and templates (images, JSON schemas, lookup tables). Reference them with relative paths from `SKILL.md`.
 
 ## Progressive disclosure
 
-Skills should be structured for efficient use of context:
+Design every skill for staged loading:
 
-1. **Metadata** (\~100 tokens): The `name` and `description` fields are loaded at startup for all skills
-2. **Instructions** (\< 5000 tokens recommended): The full `SKILL.md` body is loaded when the skill is activated
-3. **Resources** (as needed): Files (e.g. those in `scripts/`, `references/`, or `assets/`) are loaded only when required
-
-Keep your main `SKILL.md` under 500 lines. Move detailed reference material to separate files.
+1. **Metadata (~100 tokens)**: `name` + `description` let dispatchers decide whether to activate the skill.
+2. **Instructions (< 500 lines)**: The full `SKILL.md` body provides the high-level workflow and pointers to deeper references.
+3. **References (as needed)**: Agents load files from `scripts/`, `references/`, or `assets/` only when a workflow step calls for them.
+4. **Reference depth**: Detailed references should declare success criteria, common pitfalls, examples, and any approval checkpoints so agents can verify outcomes without reopening `SKILL.md` repeatedly.
 
 ## File references
 
-When referencing other files in your skill, use relative paths from the skill root:
+Reference supporting files with relative links from the skill root:
 
 ```markdown theme={null}
-See [the reference guide](references/REFERENCE.md) for details.
-
-Run the extraction script:
-scripts/extract.py
+See [stack analysis workflow](references/stack-analysis.md) before Step 2.
+Run `scripts/extract.py` to gather evidence.
 ```
 
-Keep file references one level deep from `SKILL.md`. Avoid deeply nested reference chains.
+Keep reference chains shallow—`SKILL.md` → reference file → (optional) asset. Avoid multi-hop nesting. Place checkpoint requirements or expected outputs inside the referenced document.
 
 ## Validation
 
-Use the [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) reference library to validate your skills:
+Use `enaible skills lint` to confirm your skill meets the standard:
 
 ```bash theme={null}
-skills-ref validate ./my-skill
+uv run --project tools/enaible enaible skills lint
+uv run --project tools/enaible enaible skills validate
 ```
-
-This checks that your `SKILL.md` frontmatter is valid and follows all naming conventions.
 
 ---
 

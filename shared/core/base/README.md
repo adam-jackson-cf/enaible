@@ -362,7 +362,7 @@ print(result.to_json())
 
 ```bash
 # Test through integration runner (registry + in-process)
-PYTHONPATH=shared NO_EXTERNAL=true python shared/tests/integration/test_all_analyzers.py shared/tests/fixture/test_codebase/juice-shop-monorepo --max-files 2
+NO_EXTERNAL=true uv run --project tools/enaible python shared/tests/integration/test_all_analyzers.py shared/tests/fixture/test_codebase/juice-shop-monorepo --max-files 2
 # Omit NO_EXTERNAL to include analyzers requiring external tools
 ```
 

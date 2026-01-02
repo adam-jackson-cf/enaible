@@ -25,10 +25,11 @@ uv run --project tools/enaible enaible install codex --mode sync --scope user
    - Start from `docs/skills.md` for frontmatter rules and conventions.
    - For each target adapter, inspect the existing Jinja template under `docs/system/<system>/templates/*.j2` (for example `docs/system/codex/templates/skill.md.j2`). If no suitable template exists, add one by copying the base skill template and keeping token names aligned with the shared skill frontmatter.
 2. Draft the shared skill
-   - Create `shared/skills/<skill-name>/SKILL.md` with required frontmatter fields and a concise body. Keep long guidance in `resources/` via progressive disclosure.
+   - Create `shared/skills/<skill-name>/SKILL.md` with required frontmatter fields and a concise body. Follow `docs/skills.md`: frontmatter `description` must include an explicit `USE WHEN ...` clause, the body starts with a mission paragraph plus bulleted use cases, and workflows are expressed as `## Workflow` with numbered `### Step N` sections.
+   - Keep long-form, step-by-step instructions (including checkpoint specifics) in `references/` files so the main `SKILL.md` stays under ~500 lines.
    - Avoid system-specific language; rendered artifacts inherit system metadata from adapter templates.
 3. Add supporting assets
-   - Put executable helpers in `scripts/` and references in `resources/`. Keep scripts self-contained and document required environment setup in the resources.
+   - Put executable helpers in `scripts/` and documentation in `references/` (legacy `resources/` directories should be renamed). Keep scripts self-contained and document required environment setup in the reference files.
 4. Map the skill in the registry
    - Register the new skill ID in `tools/enaible/src/enaible/skills/catalog.py`. Reference the shared source path and list each target system with its `template` and `output_path`.
 5. Run render + drift guards
@@ -42,4 +43,5 @@ uv run --project tools/enaible enaible install codex --mode sync --scope user
 - Frontmatter: must satisfy `docs/skills.md` rules; `name` must match the folder name.
 - Managed sentinel: don’t add it manually—the renderer injects `<!-- generated: enaible -->` into system outputs.
 - Tool markers: use `@ASK_USER_CONFIRMATION` in skill resources where user approval is required; renderers replace it per system.
-- Keep `SKILL.md` concise; use `resources/` for detailed workflows and `scripts/` for deterministic helpers.
+- Allowed tool tokens: express `allowed-tools` with the shared tokens (`@BASH`, `@READ`, `@WRITE`, etc.) defined in [docs/system/allowed-tools.md](../../docs/system/allowed-tools.md); the renderer swaps them for each adapter’s tool names.
+- Keep `SKILL.md` concise; use `references/` for detailed workflows (with `@ASK_USER_CONFIRMATION` markers where approvals are needed) and `scripts/` for deterministic helpers.

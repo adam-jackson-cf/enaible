@@ -1,30 +1,39 @@
 {%- macro map_claude_tools_to_copilot(allowed_tools) -%}
 {%- set copilot_tools = [] -%}
 {%- if allowed_tools -%}
-  {%- set tool_list = allowed_tools.split(',') if allowed_tools is string else allowed_tools -%}
+  {%- if allowed_tools is string -%}
+    {%- set normalized = allowed_tools.replace(',', ' ').replace(';', ' ') -%}
+    {%- set tool_list = normalized.split() -%}
+  {%- else -%}
+    {%- set tool_list = allowed_tools -%}
+  {%- endif -%}
   {%- for tool in tool_list -%}
     {%- set tool_clean = tool.strip() -%}
-    {%- if 'Read' in tool_clean or 'Glob' in tool_clean or 'LS' in tool_clean or 'serena__get_symbols' in tool_clean or 'serena__list_dir' in tool_clean or 'serena__find_file' in tool_clean -%}
+    {%- if not tool_clean -%}
+      {%- continue -%}
+    {%- endif -%}
+    {%- set base_name = tool_clean.split('(', 1)[0].strip().lower() -%}
+    {%- if base_name in ['read', 'glob', 'ls', 'notebookread'] -%}
       {%- if 'read' not in copilot_tools -%}
         {%- set _ = copilot_tools.append('read') -%}
       {%- endif -%}
     {%- endif -%}
-    {%- if 'Grep' in tool_clean or 'serena__search_for_pattern' in tool_clean or 'serena__find_symbol' in tool_clean or 'serena__find_referencing_symbols' in tool_clean -%}
+    {%- if base_name in ['grep'] -%}
       {%- if 'search' not in copilot_tools -%}
         {%- set _ = copilot_tools.append('search') -%}
       {%- endif -%}
     {%- endif -%}
-    {%- if 'Write' in tool_clean or 'Edit' in tool_clean or 'NotebookEdit' in tool_clean -%}
+    {%- if base_name in ['write', 'edit', 'multiedit', 'notebookedit'] -%}
       {%- if 'edit' not in copilot_tools -%}
         {%- set _ = copilot_tools.append('edit') -%}
       {%- endif -%}
     {%- endif -%}
-    {%- if 'Bash' in tool_clean or 'BashOutput' in tool_clean or 'KillShell' in tool_clean -%}
+    {%- if base_name in ['bash', 'bashoutput', 'killshell'] -%}
       {%- if 'terminal' not in copilot_tools -%}
         {%- set _ = copilot_tools.append('terminal') -%}
       {%- endif -%}
     {%- endif -%}
-    {%- if 'WebSearch' in tool_clean or 'WebFetch' in tool_clean -%}
+    {%- if base_name in ['websearch', 'webfetch'] -%}
       {%- if 'web' not in copilot_tools -%}
         {%- set _ = copilot_tools.append('web') -%}
       {%- endif -%}

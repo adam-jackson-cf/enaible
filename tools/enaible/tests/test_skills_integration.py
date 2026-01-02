@@ -28,20 +28,21 @@ def test_codify_pr_reviews_render(tmp_path: Path, monkeypatch) -> None:
     content = output_path.read_text(encoding="utf-8")
     assert "<!-- generated: enaible -->" in content
 
-    resources_dir = tmp_path / "skills" / "codify-pr-reviews" / "resources"
+    references_dir = tmp_path / "skills" / "codify-pr-reviews" / "references"
     scripts_dir = tmp_path / "skills" / "codify-pr-reviews" / "scripts"
     config_dir = tmp_path / "skills" / "codify-pr-reviews" / "config"
 
-    assert resources_dir.exists()
+    assert references_dir.exists()
     assert scripts_dir.exists()
     assert config_dir.exists()
 
-    fetching = resources_dir / "fetching-workflow.md"
+    fetching = references_dir / "fetching-workflow.md"
     assert fetching.exists()
     text = fetching.read_text(encoding="utf-8")
     assert "@ASK_USER_CONFIRMATION" not in text
     assert "AskUserQuestion" in text
 
-    assert not (resources_dir / "interactive-review-workflow.md").exists()
+    assert "@BASH" not in content
+    assert not (references_dir / "interactive-review-workflow.md").exists()
 
     monkeypatch.delenv("ENAIBLE_REPO_ROOT", raising=False)

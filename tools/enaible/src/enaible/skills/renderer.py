@@ -125,7 +125,8 @@ class SkillRenderer:
         source_path = (self.context.repo_root / definition.source_path).resolve()
         raw = source_path.read_text(encoding="utf-8")
         frontmatter, body = split_frontmatter(raw)
-        body = _apply_tool_markers(body, system)
+        frontmatter = _apply_system_tokens(frontmatter, system)
+        body = _apply_system_tokens(body, system)
         fields = parse_simple_frontmatter(frontmatter)
         validate_skill_metadata(fields, definition.skill_id)
 
@@ -148,7 +149,7 @@ class SkillRenderer:
     ) -> list[ResourceCopy]:
         resources: list[ResourceCopy] = []
         source_root = (self.context.repo_root / definition.source_path).resolve().parent
-        for folder in ("resources", "scripts", "assets", "config"):
+        for folder in ("references", "resources", "scripts", "assets", "config"):
             src = source_root / folder
             if not src.exists():
                 continue
@@ -205,12 +206,40 @@ _ASK_USER_MARKERS = {
     "codex": "ask the user for confirmation and wait for the response",
 }
 
+_TOOL_TOKEN_MAP = {
+    "@BASH": {"default": "Bash"},
+    "@BASH_OUTPUT": {"default": "BashOutput"},
+    "@KILL_SHELL": {"default": "KillShell"},
+    "@READ": {"default": "Read"},
+    "@WRITE": {"default": "Write"},
+    "@EDIT": {"default": "Edit"},
+    "@MULTI_EDIT": {"default": "MultiEdit"},
+    "@NOTEBOOK_READ": {"default": "NotebookRead"},
+    "@NOTEBOOK_EDIT": {"default": "NotebookEdit"},
+    "@GREP": {"default": "Grep"},
+    "@GLOB": {"default": "Glob"},
+    "@WEB_SEARCH": {"default": "WebSearch"},
+    "@WEB_FETCH": {"default": "WebFetch"},
+    "@TASK": {"default": "Task"},
+    "@TODO_WRITE": {"default": "TodoWrite"},
+}
 
-def _apply_tool_markers(content: str, system: str) -> str:
-    marker = _ASK_USER_MARKERS.get(system)
-    if not marker:
-        return content
-    return content.replace("@ASK_USER_CONFIRMATION", marker)
+
+def _apply_system_tokens(content: str, system: str) -> str:
+    replacements: dict[str, str] = {}
+    ask_marker = _ASK_USER_MARKERS.get(system)
+    if ask_marker:
+        replacements["@ASK_USER_CONFIRMATION"] = ask_marker
+
+    for token, mapping in _TOOL_TOKEN_MAP.items():
+        replacement = mapping.get(system, mapping.get("default"))
+        if replacement:
+            replacements[token] = replacement
+
+    # Replace tokens longest-first to prevent partial matches (e.g., @BASH before @BASH_OUTPUT)
+    for token in sorted(replacements.keys(), key=len, reverse=True):
+        content = content.replace(token, replacements[token])
+    return content
 
 
 def _copy_resource_dir(source: Path, destination: Path, system: str) -> None:
@@ -229,7 +258,7 @@ def _copy_resource_file(source: Path, destination: Path, system: str) -> None:
     destination.parent.mkdir(parents=True, exist_ok=True)
     if source.suffix.lower() == ".md":
         content = source.read_text(encoding="utf-8")
-        content = _apply_tool_markers(content, system)
+        content = _apply_system_tokens(content, system)
         destination.write_text(content, encoding="utf-8")
     else:
         shutil.copy2(source, destination)

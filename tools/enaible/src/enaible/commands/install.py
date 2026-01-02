@@ -46,7 +46,7 @@ SYSTEM_RULES = {
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "claude-code": ("commands/", "agents/", "rules/", "skills/"),
     "codex": ("prompts/", "rules/", "skills/"),
-    "copilot": ("prompts/",),
+    "copilot": ("prompts/", "skills/"),
     "cursor": ("commands/", "rules/"),
     "gemini": ("commands/",),
     "antigravity": ("workflows/", "rules/"),
