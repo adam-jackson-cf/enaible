@@ -96,7 +96,6 @@ Shared skills live in `shared/skills/` and are rendered into each supported syst
 ```bash
 "Use docs-scraper to save https://react.dev/reference/react into ./docs"
 "Use codify-pr-reviews to create review codex rules from this repo"
-"Use use-parallel-ai to search \"SOC 2 requirements\" and summarize findings"
 ```
 
 ---
@@ -133,7 +132,6 @@ SETUP TOOLING
 SKILLS (use by name in your request)
 docs-scraper "save https://react.dev/reference/react into ./docs"
 codify-pr-reviews "create review codex rules from this repo"
-use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 
 ```
 
@@ -188,11 +186,10 @@ use-parallel-ai "search \"SOC 2 requirements\" and summarize"
 
 ### Shared Skills
 
-| Skill             | Use Case                                                     | Example request                                                     |
-| ----------------- | ------------------------------------------------------------ | ------------------------------------------------------------------- |
-| docs-scraper      | Scrape documentation URLs into clean markdown files          | `Use docs-scraper to save https://react.dev/reference/react`        |
-| codify-pr-reviews | Convert PR review comments into instruction rules            | `Use codify-pr-reviews to create review codex rules from this repo` |
-| use-parallel-ai   | Run Parallel AI searches, extraction, and enrichment scripts | `Use use-parallel-ai to search "SOC 2 requirements"`                |
+| Skill             | Use Case                                            | Example request                                                     |
+| ----------------- | --------------------------------------------------- | ------------------------------------------------------------------- |
+| docs-scraper      | Scrape documentation URLs into clean markdown files | `Use docs-scraper to save https://react.dev/reference/react`        |
+| codify-pr-reviews | Convert PR review comments into instruction rules   | `Use codify-pr-reviews to create review codex rules from this repo` |
 
 ### System-Specific Commands
 

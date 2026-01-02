@@ -64,45 +64,6 @@ CATALOG: dict[str, SkillDefinition] = {
             ),
         },
     ),
-    "use-parallel-ai": SkillDefinition(
-        skill_id="use-parallel-ai",
-        source_path=_repo_path("shared", "skills", "use-parallel-ai", "SKILL.md"),
-        systems={
-            "claude-code": SystemSkillConfig(
-                template="docs/system/claude-code/templates/skill.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "claude-code",
-                    "skills",
-                    "use-parallel-ai",
-                    "SKILL.md",
-                ),
-            ),
-            "codex": SystemSkillConfig(
-                template="docs/system/codex/templates/skill.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "codex",
-                    "skills",
-                    "use-parallel-ai",
-                    "SKILL.md",
-                ),
-            ),
-            "copilot": SystemSkillConfig(
-                template="docs/system/copilot/templates/skill.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "copilot",
-                    "skills",
-                    "use-parallel-ai",
-                    "SKILL.md",
-                ),
-            ),
-        },
-    ),
     "docs-scraper": SkillDefinition(
         skill_id="docs-scraper",
         source_path=_repo_path("shared", "skills", "docs-scraper", "SKILL.md"),

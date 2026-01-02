@@ -45,8 +45,7 @@ If `--tmux` is included in a users request or a request requires long runnning e
 
 When you see the below skills mentioned use the referenced workflow skill file.
 
-| Skill             | Path                                       | Semantic trigger                                                     |
-| ----------------- | ------------------------------------------ | -------------------------------------------------------------------- |
-| codify-pr-reviews | `.codex/skills/codify-pr-reviews/SKILL.md` | User wants to turn PR review feedback into rules or reduce repeats   |
-| docs-scraper      | `.codex/skills/docs-scraper/SKILL.md`      | User asks to scrape/save docs from URLs into markdown                |
-| use-parallel-ai   | `.codex/skills/use-parallel-ai/SKILL.md`   | User requests Parallel AI search, extraction, enrichment, or findall |
+| Skill             | Path                                       | Semantic trigger                                                   |
+| ----------------- | ------------------------------------------ | ------------------------------------------------------------------ |
+| codify-pr-reviews | `.codex/skills/codify-pr-reviews/SKILL.md` | User wants to turn PR review feedback into rules or reduce repeats |
+| docs-scraper      | `.codex/skills/docs-scraper/SKILL.md`      | User asks to scrape/save docs from URLs into markdown              |
