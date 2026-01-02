@@ -138,3 +138,98 @@ If `--tasks` is included in the users request or a request requires persistent t
 - `bd show <id>` — View task details
 - `bd close <id>` — Mark task complete
 - `bd list --label <name>` — Filter tasks by label
+
+## Codified PR Review Standards
+
+The following rules are derived from recurring PR review feedback. Follow these patterns to avoid common issues.
+
+### Secret Exposure Prevention
+
+- NEVER echo, print, or log API keys, tokens, passwords, or secrets in command output or transcripts
+- ALWAYS use presence checks instead of value printing when verifying environment variables
+- ALWAYS mask sensitive values if display is required (show first/last 4 chars only)
+
+❌ BAD:
+
+```bash
+echo $PARALLEL_API_KEY
+echo "Token is: $SECRET_TOKEN"
+```
+
+✅ GOOD:
+
+```bash
+if [ -n "$PARALLEL_API_KEY" ]; then echo "PARALLEL_API_KEY is set"; else echo "PARALLEL_API_KEY is not set"; fi
+```
+
+### YAML and Markdown Formatting
+
+- ALWAYS maintain consistent indentation within YAML files (2 spaces per level)
+- ALWAYS place YAML keys under their parent `with:` block at correct indentation
+- ALWAYS use consistent sub-bullet indentation in markdown numbered lists
+- NEVER mix indentation styles within the same file
+
+❌ BAD:
+
+```yaml
+- uses: actions/github-script@v6
+  with:
+    github-token: ${{ secrets.TOKEN }}
+  script: | # Wrong: script is sibling of with, not child
+```
+
+✅ GOOD:
+
+```yaml
+- uses: actions/github-script@v6
+  with:
+    github-token: ${{ secrets.TOKEN }}
+    script: | # Correct: script is child of with
+```
+
+### Subprocess Error Handling
+
+- ALWAYS wrap subprocess.run calls in try-except when user feedback is needed on failure
+- ALWAYS provide meaningful error messages that help users diagnose the issue
+- ALWAYS catch both FileNotFoundError (missing command) and CalledProcessError (failed execution)
+
+❌ BAD:
+
+```python
+subprocess.run(cmd, check=True)  # Raises uncaught exception on failure
+```
+
+✅ GOOD:
+
+```python
+try:
+    subprocess.run(cmd, check=True)
+except FileNotFoundError:
+    typer.echo("Error: Required command not found. Ensure it is installed.", err=True)
+    raise typer.Exit(1)
+except subprocess.CalledProcessError as exc:
+    typer.echo(f"Error: Command failed with exit code {exc.returncode}", err=True)
+    raise typer.Exit(exc.returncode or 1)
+```
+
+### String/Token Replacement Ordering
+
+- ALWAYS replace longer tokens before shorter ones when tokens share common prefixes
+- NEVER use simple iteration order for token replacement if prefix collisions exist
+
+❌ BAD:
+
+```python
+# @BASH replaces before @BASH_OUTPUT, corrupting "@BASH_OUTPUT" to "Bash_OUTPUT"
+for token, replacement in {"@BASH": "Bash", "@BASH_OUTPUT": "BashOutput"}.items():
+    text = text.replace(token, replacement)
+```
+
+✅ GOOD:
+
+```python
+# Sort by length descending to replace longer tokens first
+tokens = sorted(token_map.items(), key=lambda x: len(x[0]), reverse=True)
+for token, replacement in tokens:
+    text = text.replace(token, replacement)
+```
