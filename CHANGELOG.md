@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 2026-01-02
+
+- feat: add research skill for multi-domain investigations
+- docs: sync README with v0.3.0
+- docs: enforce online research requirements in research skill
+
 ## [0.3.0] - 2026-01-02
 
 - feat: add new analyzers and fixtures for parity
