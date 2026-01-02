@@ -21,8 +21,9 @@ Standardize the intake process to ensure complete research briefs before investi
 ## Instructions
 
 - Verify ALL minimum requirements are provided before proceeding
+- Confirm online research expectations: allowed domains/APIs, required search engines, and any restrictions on external data collection
 - If requirements are missing, request clarification using the template below
-- Establish artifact directory for all research outputs
+- Establish artifact directory for all research outputs and note approved web-research channels
 
 ## Minimum Information Checklist
 
@@ -32,6 +33,7 @@ Standardize the intake process to ensure complete research briefs before investi
 2. **Scope and Boundaries**: Geographic, temporal, or domain-specific limits?
 3. **Output Format**: Executive brief, detailed report, competitive matrix, or other?
 4. **Decision Context**: What decisions will be informed by this research?
+5. **Online Research Permissions**: Approved domains/search engines, compliance guardrails, and freshness expectations
 
 **HELPFUL CONTEXT (not blocking):**
 
@@ -39,6 +41,7 @@ Standardize the intake process to ensure complete research briefs before investi
 - Preferred source types (academic, industry, user-generated)
 - Budget or time constraints
 - Existing knowledge or hypotheses to validate
+- Known embargoed domains or data sources to avoid
 
 ## Clarification Request Template
 

@@ -85,13 +85,13 @@ For each competitor, gather:
 
 ## Source Prioritization
 
-1. **Industry reports**: Gartner, Forrester, McKinsey, IBISWorld
-2. **Financial data**: SEC filings, earnings calls, investor presentations
-3. **Trade publications**: Industry-specific news and analysis
-4. **Government data**: Census, regulatory filings, trade statistics
-5. **Company sources**: Websites, press releases, job postings
-6. **Professional networks**: LinkedIn, industry forums
-7. **Patent databases**: R&D direction indicators
+1. **Industry reports**: Gartner, Forrester, McKinsey, IBISWorld (confirm latest publication date; rerun searches if older than 12 months)
+2. **Financial data**: SEC filings, earnings calls, investor presentations (monitor EDGAR, press wires, and investor sites for new releases)
+3. **Trade publications**: Industry-specific news and analysis (use @WEB_SEARCH to track breaking stories)
+4. **Government data**: Census, regulatory filings, trade statistics (record query endpoints and retrieval timestamps)
+5. **Company sources**: Websites, press releases, job postings (subscribe to newsroom RSS or automate crawl windows)
+6. **Professional networks**: LinkedIn, industry forums (capture post URLs and dates for citation)
+7. **Patent databases**: R&D direction indicators (log USPTO/EPO query parameters)
 
 ## Output Structure
 

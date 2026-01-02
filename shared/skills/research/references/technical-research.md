@@ -6,18 +6,18 @@ Research technical topics, analyze implementations, and evaluate solutions using
 
 ### Source Priority Order
 
-1. **Official documentation**: Creator/maintainer docs, API references
-2. **GitHub repositories**: High-star repos, recent activity, good maintenance
-3. **Technical blogs**: Recognized industry experts, engineering blogs from established companies
-4. **Academic sources**: Conference papers, technical books
-5. **Community resources**: Stack Overflow, Reddit (supplementary)
+1. **Official documentation**: Creator/maintainer docs, API references (check release notes or changelog to confirm recency; run @WEB_FETCH where needed)
+2. **GitHub repositories**: High-star repos, recent activity, good maintenance (record commit hashes and retrieval dates)
+3. **Technical blogs**: Recognized industry experts, engineering blogs from established companies (verify publish date; refresh searches for anything >12 months old unless foundational)
+4. **Academic sources**: Conference papers, technical books (note conference year or edition)
+5. **Community resources**: Stack Overflow, Reddit (supplementary; capture thread URLs and timestamps)
 
 ### Documentation Assessment
 
 For each source, evaluate:
 
 - Completeness of coverage
-- Currency (last update date)
+- Currency (last update date) and whether fresh searches uncovered newer revisions
 - Quality of examples
 - Community contributions and corrections
 - Known gaps or outdated sections

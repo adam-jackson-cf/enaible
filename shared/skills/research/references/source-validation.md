@@ -32,16 +32,16 @@ Ensure research quality through rigorous source assessment and cross-validation.
 
 ### Minimum Source Counts
 
-- **Key findings**: 3+ independent sources required
+- **Key findings**: 3+ independent sources required (at least one gathered via current online research during this engagement)
 - **Supporting claims**: 2+ sources preferred
 - **Background context**: 1 authoritative source acceptable
 
 ### Validation Process
 
 1. Identify core claims requiring validation
-2. Search for independent corroboration
+2. Run fresh online searches (unless explicitly disallowed) to locate independent corroboration
 3. Note alignment or conflict between sources
-4. Document validation status for each claim
+4. Document validation status for each claim along with search terms, engines/APIs, and access dates
 
 ### Conflict Resolution
 

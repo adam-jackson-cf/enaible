@@ -35,6 +35,7 @@ Orchestrate thorough research investigations across market, technical, and user 
 - Identify scope boundaries (geographic, temporal, domain-specific)
 - Establish output format requirements and decision context
 - Determine applicable research domains (market, technical, user, or combination)
+- Plan required online research channels (search engines, documentation portals, APIs) and confirm @WEB_SEARCH/@WEB_FETCH access is available
 - Create artifact directory at `.enaible/artifacts/research/<timestamp>/`
 
 See [references/requirement-gathering.md](references/requirement-gathering.md) for the intake checklist.
@@ -60,7 +61,8 @@ See [references/requirement-gathering.md](references/requirement-gathering.md) f
 **Purpose**: Conduct domain-specific research following established methodologies.
 
 - Apply the appropriate research framework for each domain
-- Gather minimum 3 sources per key finding
+- Execute fresh online research for each question using @WEB_SEARCH/@WEB_FETCH (or equivalent live data sources) unless the user explicitly prohibits external access
+- Gather minimum 3 sources per key finding, ensuring at least one comes from online research conducted during this engagement
 - Document source URLs, access dates, and relevance scores
 - Capture conflicting information for synthesis
 
@@ -101,9 +103,10 @@ See [references/report-structure.md](references/report-structure.md) for output 
 
 ### Source Requirements
 
-- Minimum 3 sources per key finding, must include citatiions direct to referenced material
+- Minimum 3 sources per key finding, must include citations direct to referenced material
 - Diverse source types (primary data, industry reports, documentation)
-- Recency appropriate to topic (prefer last 12 months for market data)
+- Recency appropriate to topic (prefer last 12 months for market data); rerun online searches or seek updated sources whenever findings rely on older material
+- Record search terms, engines/APIs queried, and timestamps for every online research action to prove recency
 
 ### Citation Format
 
