@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -205,7 +205,7 @@ def main() -> int:
     red_flags = build_red_flags(stack)
 
     payload: dict[str, Any] = {
-        "generatedAt": datetime.utcnow().isoformat() + "Z",
+        "generatedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "projectRoot": str(project_root),
         "stack": stack,
         "redFlags": red_flags,

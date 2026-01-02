@@ -7,7 +7,7 @@ import argparse
 import json
 import re
 from collections import defaultdict
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -137,7 +137,7 @@ def main() -> int:
         )
 
     output = {
-        "processedAt": datetime.utcnow().isoformat() + "Z",
+        "processedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "inputComments": len(comments),
         "outputGroups": len(comment_groups),
         "keptComments": kept,

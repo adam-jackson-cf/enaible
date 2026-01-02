@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -96,7 +96,7 @@ def main() -> int:
     min_length = args.min_comment_length or defaults.get("defaultMinCommentLength", 20)
 
     repo = args.repo or parse_repo()
-    start_date = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    start_date = (datetime.now(UTC) - timedelta(days=days_back)).strftime("%Y-%m-%d")
 
     prs = load_prs(repo, start_date)
     if args.preflight:
@@ -174,11 +174,11 @@ def main() -> int:
             total_comments += len(comments)
 
     payload = {
-        "fetchedAt": datetime.utcnow().isoformat() + "Z",
+        "fetchedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "repository": repo,
         "dateRange": {
             "start": start_date,
-            "end": datetime.utcnow().strftime("%Y-%m-%d"),
+            "end": datetime.now(UTC).strftime("%Y-%m-%d"),
         },
         "totalPRs": len(prs),
         "totalComments": total_comments,

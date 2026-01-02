@@ -6,7 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -121,7 +121,14 @@ def main() -> int:
     categories = defaults.get("categories", [])
     instruction_files = defaults.get("instructionFiles", {})
     if args.instruction_files:
-        instruction_files = json.loads(args.instruction_files)
+        try:
+            instruction_files = json.loads(args.instruction_files)
+        except json.JSONDecodeError as e:
+            raise SystemExit(
+                f"Error: --instruction-files must be valid JSON.\n"
+                f"Got: {args.instruction_files}\n"
+                f"Parse error: {e}"
+            ) from None
 
     rules: list[dict[str, Any]] = []
     for path_str in instruction_files.values():
@@ -181,7 +188,7 @@ def main() -> int:
         )
 
     output = {
-        "analyzedAt": datetime.utcnow().isoformat() + "Z",
+        "analyzedAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
         "summary": {
             "totalPatterns": len(patterns),
             **summary,
