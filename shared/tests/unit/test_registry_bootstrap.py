@@ -9,9 +9,13 @@ def test_bootstrap_registers_some_analyzers():
     for key in [
         "security:detect_secrets",
         "security:semgrep",
+        "security:osv",
         "quality:lizard",
         "architecture:dependency",
         "performance:frontend",
+        "performance:golangci-lint",
+        "performance:clippy",
+        "performance:dotnet",
         "root_cause:error_patterns",
     ]:
         cls = AnalyzerRegistry.get(key)

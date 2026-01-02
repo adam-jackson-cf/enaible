@@ -51,7 +51,7 @@ Evaluate system architecture quality by combining automated structural analyzers
      ```
 
 2. **Reconnaissance**
-   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `*.sln`, `*.csproj`
    - Detect layout: monorepo vs single-project, primary language(s), framework conventions
    - Record detected languages and note which analyzers will run or be skipped (with reason)
    - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`

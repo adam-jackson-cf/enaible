@@ -203,6 +203,9 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"__instance\s*=\s*None",  # Python singleton (simplified)
                     r"private\s+static\s+\w+\s+instance",  # Java/C# singleton
                     r"getInstance\(\)",  # Common getInstance method
+                    r"static\s+readonly\s+\w+\s+Instance",  # C# singleton instance
+                    r"sync\.Once",  # Go singleton guard
+                    r"lazy_static!",  # Rust singleton via lazy_static
                 ],
                 "severity": "medium",
                 "description": "Singleton pattern detected",
@@ -212,6 +215,8 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"def\s+create_\w+\(",  # Python factory methods
                     r"class\s+\w*Factory\w*",  # Factory class names
                     r"def\s+\w*factory\w*\(",  # Factory function names
+                    r"func\s+New\w+\s*\(",  # Go constructor-style factories
+                    r"fn\s+new\s*\(",  # Rust constructor-style factories
                 ],
                 "severity": "low",
                 "description": "Factory pattern detected",
@@ -222,6 +227,7 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"def\s+subscribe\(",  # Subscription methods
                     r"def\s+add_listener\(",  # Event listener patterns
                     r"class\s+\w*Observer\w*",  # Observer class names
+                    r"event\s+\w+\s*:",  # C# event declarations
                 ],
                 "severity": "low",
                 "description": "Observer pattern detected",
@@ -231,6 +237,7 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"def\s+execute\(",  # Strategy execute methods
                     r"class\s+\w*Strategy\w*",  # Strategy class names
                     r"def\s+algorithm\(",  # Algorithm methods
+                    r"trait\s+\w*Strategy\w*",  # Rust strategy traits
                 ],
                 "severity": "low",
                 "description": "Strategy pattern detected",
@@ -240,6 +247,7 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"@\w+\s*\n\s*def\s+",  # Python decorators before functions
                     r"@\w+\s*\n\s*class\s+",  # Python decorators before classes
                     r"class\s+\w*Decorator\w*",  # Decorator class names
+                    r"\[\w+Attribute\]",  # C# attributes
                 ],
                 "severity": "low",
                 "description": "Decorator pattern detected",
@@ -298,6 +306,9 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"class\s+\w*Repository\w*",  # Repository classes
                     r"def\s+find_by_\w+\(",  # Repository query methods
                     r"def\s+save\(",  # Repository save methods
+                    r"type\s+\w*Repository\s+struct",  # Go repository structs
+                    r"struct\s+\w*Repository",  # Rust repository structs
+                    r"interface\s+I\w*Repository",  # C# repository interfaces
                 ],
                 "severity": "low",
                 "description": "Repository pattern detected",
@@ -307,6 +318,9 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"class\s+\w*Service\w*",  # Service classes
                     r"@service",  # Service decorators
                     r"def\s+process\w*\(",  # Service processing methods
+                    r"type\s+\w*Service\s+struct",  # Go service structs
+                    r"struct\s+\w*Service",  # Rust service structs
+                    r"interface\s+I\w*Service",  # C# service interfaces
                 ],
                 "severity": "low",
                 "description": "Service Layer pattern detected",
@@ -316,6 +330,7 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     r"@inject",  # Dependency injection decorators
                     r"def\s+__init__\(self,.*:\s*\w+\)",  # Type-hinted constructors
                     r"container\.",  # DI container usage
+                    r"\[Inject\]",  # C# DI attribute
                 ],
                 "severity": "low",
                 "description": "Dependency Injection pattern detected",
@@ -339,6 +354,21 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                 "method_pattern": r"(?:public|private|protected|static|final)?\s*\w+\s+(\w+)\s*\(",
                 "class_pattern": r"(?:public\s+)?class\s+(\w+)",
                 "import_pattern": r"^import\s+",
+            },
+            "go": {
+                "method_pattern": r"func\s+(\w+)\s*\(",
+                "class_pattern": r"type\s+(\w+)\s+struct",
+                "import_pattern": r"^import\s+",
+            },
+            "rust": {
+                "method_pattern": r"fn\s+(\w+)\s*\(",
+                "class_pattern": r"struct\s+(\w+)",
+                "import_pattern": r"^use\s+",
+            },
+            "csharp": {
+                "method_pattern": r"(?:public|private|protected|internal|static|async|virtual|override|sealed|partial)\s+[\w<>,\s]+\s+(\w+)\s*\(",
+                "class_pattern": r"(?:public|private|internal|protected)?\s*(?:class|interface|record|struct)\s+(\w+)",
+                "import_pattern": r"^using\s+",
             },
         }
 

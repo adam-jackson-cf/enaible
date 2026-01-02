@@ -86,13 +86,43 @@ class ExecutionTraceAnalyzer(BaseAnalyzer):
 
         # Simple patterns for basic component identification
         self.patterns = {
-            "main_functions": [r"def main\(", r'if __name__ == ["\']__main__["\']'],
-            "classes": [r"class \w+"],
-            "functions": [r"def \w+\("],
-            "imports": [r"import \w+", r"from \w+ import"],
-            "try_blocks": [r"try:"],
+            "main_functions": [
+                r"def main\(",
+                r'if __name__ == ["\']__main__["\']',
+                r"func main\(",
+                r"fn main\(",
+                r"static void Main\(",
+            ],
+            "classes": [
+                r"class \w+",
+                r"type \w+ struct",
+                r"struct \w+",
+                r"(?:class|interface|record|struct) \w+",
+            ],
+            "functions": [
+                r"def \w+\(",
+                r"func \w+\(",
+                r"fn \w+\(",
+                r"(?:public|private|protected|internal|static|async)\s+\w+\s+\w+\(",
+            ],
+            "imports": [
+                r"import \w+",
+                r"from \w+ import",
+                r"using \w+",
+                r"use \w+",
+            ],
+            "try_blocks": [r"try:", r"try\s*\{"],
             "for_loops": [r"for \w+ in"],
-            "api_routes": [r"@app\.route", r"app\.(get|post|put|delete)"],
+            "api_routes": [
+                r"@app\.route",
+                r"app\.(get|post|put|delete)",
+                r"http\.HandleFunc",
+                r"router\.(Get|Post|Put|Delete)",
+                r"\[Http(Get|Post|Put|Delete)\]",
+                r"app\.Map(Get|Post|Put|Delete)",
+                r"actix_web::",
+                r"tokio::main",
+            ],
         }
 
     def get_analyzer_metadata(self) -> dict[str, Any]:

@@ -49,7 +49,7 @@ Identify performance bottlenecks across backend, frontend, and data layers using
      ```
 
 2. **Reconnaissance**
-   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `*.sln`, `*.csproj`
    - Detect layout: monorepo vs single-project, primary language(s), runtime environment indicators
    - Record detected languages and note which analyzers will run or be skipped (with reason)
    - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
@@ -57,13 +57,34 @@ Identify performance bottlenecks across backend, frontend, and data layers using
    - Note performance-relevant context: caching infrastructure, async frameworks, database drivers, bundler configs
    - Log applied exclusions for final report
 3. **Run automated analyzers**
-   - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected; only run `performance:ruff` when Python is detected; only run `performance:sqlglot` when SQL files or migration tooling is detected):
+   - Execute each Enaible command, storing the JSON output. Skip stack-specific tools when recon found no matching footprint (e.g., only run `performance:frontend` if `package.json`, Vite/Next configs, or `src/**/*.tsx` files were detected; only run `performance:ruff` when Python is detected; only run `performance:golangci-lint` when `go.mod` or `*.go` files are present; only run `performance:clippy` when `Cargo.toml` is detected; only run `performance:dotnet` when `*.sln` or `*.csproj` files are detected; only run `performance:sqlglot` when SQL files or migration tooling is detected):
 
      ```bash
      ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:ruff \
        --target "$TARGET_PATH" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/performance-ruff.json" \
+       @EXCLUDE
+
+     # Run only when a Go stack was detected (go.mod or *.go files)
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:golangci-lint \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-golangci-lint.json" \
+       @EXCLUDE
+
+     # Run only when a Rust stack was detected (Cargo.toml)
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:clippy \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-clippy.json" \
+       @EXCLUDE
+
+     # Run only when a C# stack was detected (*.sln or *.csproj)
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run performance:dotnet \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/performance-dotnet.json" \
        @EXCLUDE
 
      # Run only when a JS/TS frontend stack was detected during recon (package.json, src/**/*.tsx, Next/Vite configs)
@@ -154,6 +175,9 @@ Identify performance bottlenecks across backend, frontend, and data layers using
 ## ATTACHMENTS
 
 - performance:ruff → `.enaible/artifacts/analyze-performance/<timestamp>/performance-ruff.json`
+- performance:golangci-lint → `.enaible/artifacts/analyze-performance/<timestamp>/performance-golangci-lint.json`
+- performance:clippy → `.enaible/artifacts/analyze-performance/<timestamp>/performance-clippy.json`
+- performance:dotnet → `.enaible/artifacts/analyze-performance/<timestamp>/performance-dotnet.json`
 - performance:frontend → `.enaible/artifacts/analyze-performance/<timestamp>/performance-frontend.json`
 - performance:sqlglot → `.enaible/artifacts/analyze-performance/<timestamp>/performance-sqlglot.json`
 - performance:semgrep → `.enaible/artifacts/analyze-performance/<timestamp>/performance-semgrep.json`

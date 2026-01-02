@@ -25,6 +25,31 @@
         "eval\\s*\\("
       ],
       "severity": "medium"
+    },
+    ".go": {
+      "patterns": [
+        "panic\\s*\\(",
+        "log\\.Fatal\\s*\\(",
+        "\\.Must\\s*\\("
+      ],
+      "severity": "medium"
+    },
+    ".rs": {
+      "patterns": [
+        "unwrap\\s*\\(",
+        "expect\\s*\\(",
+        "panic!\\s*\\("
+      ],
+      "severity": "medium"
+    },
+    ".cs": {
+      "patterns": [
+        "async\\s+void\\s+\\w+\\s*\\(",
+        "NullReferenceException",
+        "\\.Result\\b",
+        "\\.Wait\\s*\\("
+      ],
+      "severity": "medium"
     }
   }
 }

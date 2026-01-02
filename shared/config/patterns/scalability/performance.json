@@ -6,7 +6,9 @@
       "indicators": [
         "\\.sort\\(\\).*\\.sort\\(\\)",
         "in\\s+range\\(len\\(",
-        "list\\(.*\\)\\[0\\]"
+        "list\\(.*\\)\\[0\\]",
+        "sort\\.Slice\\(",
+        "Vec::sort"
       ],
       "severity": "medium"
     },
@@ -15,7 +17,9 @@
       "indicators": [
         "global\\s+\\w+.*=.*\\[\\]",
         "while\\s+True:.*append\\(",
-        "cache\\s*=\\s*\\{\\}"
+        "cache\\s*=\\s*\\{\\}",
+        "static\\s+\\w+\\s+\\w+\\s*=\\s*new",
+        "Box::leak"
       ],
       "severity": "high"
     },
@@ -35,7 +39,15 @@
         "httplib\\.",
         "open\\(.*['\\\"]r['\\\"]",
         "sleep\\(",
-        "time\\.sleep\\("
+        "time\\.sleep\\(",
+        "http\\.Get\\(",
+        "os\\.Open\\(",
+        "std::fs::read_to_string",
+        "std::fs::File::open",
+        "File\\.ReadAllText",
+        "File\\.WriteAllText",
+        "\\.Result",
+        "\\.Wait\\("
       ],
       "severity": "high"
     }

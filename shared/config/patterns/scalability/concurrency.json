@@ -8,7 +8,10 @@
         "\\.wait\\(\\)",
         "input\\(\\)",
         "raw_input\\(\\)",
-        "time\\.sleep\\("
+        "time\\.sleep\\(",
+        "Thread\\.Sleep\\(",
+        "std::thread::sleep",
+        "time\\.Sleep\\("
       ],
       "severity": "medium"
     },
@@ -19,7 +22,14 @@
         "Lock\\(\\)",
         "RLock\\(\\)",
         "Semaphore\\(",
-        "mutex"
+        "mutex",
+        "sync\\.Mutex",
+        "sync\\.RWMutex",
+        "Mutex<",
+        "RwLock<",
+        "SemaphoreSlim",
+        "Monitor\\.Enter",
+        "lock\\s*\\("
       ],
       "severity": "medium"
     },
@@ -29,7 +39,10 @@
         "global\\s+\\w+",
         "class\\s+\\w+.*:\\s*\\n.*\\w+\\s*=\\s*\\[\\]",
         "threading\\.Thread",
-        "multiprocessing\\."
+        "multiprocessing\\.",
+        "static\\s+\\w+\\s+\\w+\\s*=",
+        "go\\s+func\\s*\\(",
+        "tokio::spawn"
       ],
       "severity": "high"
     }

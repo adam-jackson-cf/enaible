@@ -51,7 +51,7 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
      ```
 
 2. **Reconnaissance**
-   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`
+   - Glob for project markers: `package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `pom.xml`, `*.sln`, `*.csproj`
    - Detect layout: monorepo vs single-project, primary language(s), auth framework indicators
    - Record detected languages and note which analyzers will run or be skipped (with reason)
    - Auto-apply exclusions for generated/vendor directories: `dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`
@@ -73,6 +73,12 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
        --target "$TARGET_PATH" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/detect-secrets.json" \
+       @EXCLUDE
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run security:osv \
+       --target "$TARGET_PATH" \
+       --min-severity "@MIN_SEVERITY" \
+       --out "$ARTIFACT_ROOT/osv.json" \
        @EXCLUDE
      ```
 
@@ -166,5 +172,6 @@ Execute a comprehensive security assessment that blends automated OWASP-aligned 
 
 - security:semgrep → `.enaible/artifacts/analyze-security/<timestamp>/semgrep.json`
 - security:detect_secrets → `.enaible/artifacts/analyze-security/<timestamp>/detect-secrets.json`
+- security:osv → `.enaible/artifacts/analyze-security/<timestamp>/osv.json`
 - Gap Analysis Notes → `.enaible/artifacts/analyze-security/<timestamp>/gap-analysis.md`
 ```

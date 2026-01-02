@@ -16,6 +16,9 @@ from analyzers.architecture import (
 # Performance analyzers
 from analyzers.performance import (
     analyze_frontend as _pf,  # noqa: F401
+    clippy_analyzer as _pcl,  # noqa: F401
+    dotnet_analyzer as _pdn,  # noqa: F401
+    golangci_lint_analyzer as _pgo,  # noqa: F401
     performance_baseline as _pb,  # noqa: F401
     profile_code as _pc,  # noqa: F401
     ruff_analyzer as _pr,  # noqa: F401
@@ -40,5 +43,6 @@ from analyzers.root_cause import (
 )
 from analyzers.security import (
     detect_secrets_analyzer as _ds,  # noqa: F401
+    osv_scanner as _os,  # noqa: F401
     semgrep_analyzer as _sg,  # noqa: F401
 )

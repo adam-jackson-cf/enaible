@@ -22,6 +22,7 @@ EXTENDS: BaseAnalyzer for common analyzer infrastructure
 
 import json
 import re
+import xml.etree.ElementTree as ET
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -51,6 +52,8 @@ class DependencyAnalyzer(BaseAnalyzer):
                 ".cfg",  # setup.cfg
                 ".ini",  # pip.conf
                 ".conf",  # pip.conf
+                ".csproj",  # .NET projects
+                ".props",  # Directory.Packages.props
                 # Source files for usage analysis
                 ".py",
                 ".js",
@@ -127,6 +130,19 @@ class DependencyAnalyzer(BaseAnalyzer):
                 "language": "javascript",
                 "parser": self._parse_package_json,
                 "sections": ["dependencies", "devDependencies"],
+            },
+            # C# / .NET (NuGet)
+            "*.csproj": {
+                "language": "csharp",
+                "parser": self._parse_csproj,
+            },
+            "packages.config": {
+                "language": "csharp",
+                "parser": self._parse_packages_config,
+            },
+            "Directory.Packages.props": {
+                "language": "csharp",
+                "parser": self._parse_directory_packages_props,
             },
             # Java
             "pom.xml": {
@@ -248,7 +264,7 @@ class DependencyAnalyzer(BaseAnalyzer):
 
         if file_path.is_file():
             # Analyze single file if it's a dependency file
-            if file_path.name in self.dependency_files:
+            if self._get_dependency_config(file_path):
                 findings = self._analyze_dependency_file(file_path)
                 all_findings.extend(findings)
             # Or check for imports/usage
@@ -288,7 +304,7 @@ class DependencyAnalyzer(BaseAnalyzer):
     def _analyze_dependency_file(self, file_path: Path) -> list[dict[str, Any]]:
         """Analyze a specific dependency file."""
         findings = []
-        file_config = self.dependency_files.get(file_path.name, {})
+        file_config = self._get_dependency_config(file_path) or {}
 
         if not file_config:
             return findings
@@ -337,6 +353,20 @@ class DependencyAnalyzer(BaseAnalyzer):
 
         return findings
 
+    def _get_dependency_config(self, file_path: Path) -> dict[str, Any] | None:
+        """Resolve dependency file config by exact name or glob pattern."""
+        direct = self.dependency_files.get(file_path.name)
+        if direct:
+            return direct
+
+        for pattern, config in self.dependency_files.items():
+            if any(ch in pattern for ch in "*?[]") and (
+                file_path.match(pattern) or file_path.name == pattern
+            ):
+                return config
+
+        return None
+
     def _parse_requirements_txt(self, file_path: Path) -> dict[str, str]:
         """Parse Python requirements.txt file."""
         dependencies = {}
@@ -368,6 +398,63 @@ class DependencyAnalyzer(BaseAnalyzer):
                 for dep_type in ["dependencies", "devDependencies"]:
                     if dep_type in data:
                         dependencies.update(data[dep_type])
+        except Exception:
+            pass
+        return dependencies
+
+    def _parse_csproj(self, file_path: Path) -> dict[str, str]:
+        """Parse .csproj file for PackageReference entries."""
+        dependencies: dict[str, str] = {}
+        try:
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+            for elem in root.iter():
+                if elem.tag.endswith("PackageReference"):
+                    package = elem.attrib.get("Include") or elem.attrib.get("Update")
+                    if not package:
+                        continue
+                    version = elem.attrib.get("Version") or ""
+                    if not version:
+                        version_node = elem.find("./Version")
+                        if version_node is not None and version_node.text:
+                            version = version_node.text.strip()
+                    dependencies[package] = version
+        except Exception:
+            pass
+        return dependencies
+
+    def _parse_packages_config(self, file_path: Path) -> dict[str, str]:
+        """Parse packages.config for NuGet dependencies."""
+        dependencies: dict[str, str] = {}
+        try:
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+            for pkg in root.findall(".//package"):
+                package = pkg.attrib.get("id")
+                version = pkg.attrib.get("version", "")
+                if package:
+                    dependencies[package] = version
+        except Exception:
+            pass
+        return dependencies
+
+    def _parse_directory_packages_props(self, file_path: Path) -> dict[str, str]:
+        """Parse Directory.Packages.props for PackageVersion entries."""
+        dependencies: dict[str, str] = {}
+        try:
+            tree = ET.parse(file_path)
+            root = tree.getroot()
+            for elem in root.iter():
+                if elem.tag.endswith("PackageVersion"):
+                    package = elem.attrib.get("Include") or elem.attrib.get("Update")
+                    if not package:
+                        continue
+                    version = elem.attrib.get("Version") or ""
+                    if not version:
+                        version_node = elem.find("./Version")
+                        if version_node is not None and version_node.text:
+                            version = version_node.text.strip()
+                    dependencies[package] = version
         except Exception:
             pass
         return dependencies
