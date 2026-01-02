@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.2.0] - 2026-01-02
+
+- feat: add automated changelog and version bumping
+- feat: add pi coding agent system support
+- docs: consolidate system documentation into single READMEs
+- chore: added todos
+- chore: updated readme table
+- Fix token replacement order and standardize uv run usage
+- Remove use-parallel-ai skill
+- Fix datetime deprecation and JSON error handling in codify-pr-reviews
+- Add codified PR review standards to AGENTS.md
+- Fix docs-scraper CLI syntax to use positional arguments
+- Standardize skills documentation and assets
+- Add onboarding todo brief
+- Simplify background report naming
+- Update Claude model list
+- Harden tmux session check
+- Stream background output only
+- Avoid persistent codex last-message files
+- Fix tmux pid lookup syntax
+- Limit background launch checks
+- Clarify background task reporting
+- Add friendly task labels and richer reports
+- Harden task-background launch flow
+- Fix codex reasoning config in task-background
+- Add analysis improvement reports
+- Render analyze-security prompt updates
+- Recommend parallel analyzer execution
+- Emit summary artifacts without re-running analyzers
+- Align analyze prompts with artifact and severity guidance
+- Enforce severity threshold guidance in analyze-code-quality
+- Clarify absolute artifact paths and jscpd scoping
+- Stabilize analyze-code-quality artifacts and summaries
+- Harden jscpd excludes and prompt exclusions
+- Remove source URL ref detection from PowerShell installer
+- Sync context scripts in workspace install
+- Add project root to codify session history
+- Pass project root to context_capture in get-recent-context
+- Revert legacy get-recent-context install handling
+- Treat get-recent-context as managed legacy prompt
+- Handle curl installs without BASH_SOURCE
+- Require explicit ref for curl installer
+- Handle missing BASH_SOURCE in installer
+- Fix installer when BASH_SOURCE is unset
+- Allow PowerShell installer to target non-main refs
+- Allow installer to target non-main refs
+- Fix analyze-root-cause list indentation
+- Update README for shared prompt moves
+- Move get-recent-context to shared prompt
+- Unify session history codify prompt
+- Rename get-feature-primer to get-task-primer
+- Move task background prompt to shared catalog
+
 ## [0.1.1] - 2026-01-02
 
 - feat: add pi coding agent system support
