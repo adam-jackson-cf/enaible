@@ -7,13 +7,12 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
-### v0.1.1 | Recent Changes
-
+### v0.2.0 | Recent Changes
+- feat: add automated changelog and version bumping
 - feat: add pi coding agent system support
-- fix: token replacement order and standardize uv run usage
-- fix: datetime deprecation and JSON error handling in codify-pr-reviews
-- fix: docs-scraper CLI syntax to use positional arguments
+- docs: consolidate system documentation into single READMEs
 - chore: added todos
+- chore: updated readme table
 
 [Full Changelog](CHANGELOG.md)
 
