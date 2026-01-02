@@ -14,7 +14,7 @@ Run both Python unit suites locally:
 
 ```bash
 uv run --project tools/enaible pytest tools/enaible/tests -v
-PYTHONPATH=shared pytest shared/tests/unit -v
+uv run --project tools/enaible pytest shared/tests/unit -v
 ```
 
 These suites cover CLI command behaviors, analyzer registry logic, and lower-level utilities.
@@ -24,7 +24,7 @@ These suites cover CLI command behaviors, analyzer registry logic, and lower-lev
 Codex context capture helpers include dedicated tests and lint checks. Run the focused suite alongside the general unit tests:
 
 ```bash
-PYTHONPATH=shared pytest shared/tests/unit -k context_bundle_capture_codex -v
+uv run --project tools/enaible pytest shared/tests/unit -k context_bundle_capture_codex -v
 ruff check shared/context
 ```
 

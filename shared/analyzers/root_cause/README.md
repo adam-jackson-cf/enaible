@@ -84,27 +84,27 @@ export SKIP_LARGE_FILES=true     # Skip files over size limit
 
 ```bash
 # Analyze current directory
-python trace_execution.py
-python error_patterns.py
-python recent_changes.py
+uv run python trace_execution.py
+uv run python error_patterns.py
+uv run python recent_changes.py
 
 # Analyze specific directory
-python trace_execution.py /path/to/codebase
-python error_patterns.py /path/to/codebase
-python recent_changes.py /path/to/git/repo
+uv run python trace_execution.py /path/to/codebase
+uv run python error_patterns.py /path/to/codebase
+uv run python recent_changes.py /path/to/git/repo
 ```
 
 ### With Configuration
 
 ```bash
 # Fast analysis with limits
-MAX_FILES=20 MAX_FILE_SIZE=500000 python error_patterns.py /large/codebase
+MAX_FILES=20 MAX_FILE_SIZE=500000 uv run python error_patterns.py /large/codebase
 
 # Extended git analysis
-DAYS_BACK=90 MAX_COMMITS=200 python recent_changes.py /repo
+DAYS_BACK=90 MAX_COMMITS=200 uv run python recent_changes.py /repo
 
 # Debug mode
-ENABLE_DEBUG=true python trace_execution.py /codebase
+ENABLE_DEBUG=true uv run python trace_execution.py /codebase
 ```
 
 ### Integration with Root Cause Workflow

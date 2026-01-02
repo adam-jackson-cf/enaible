@@ -236,8 +236,9 @@ def _apply_system_tokens(content: str, system: str) -> str:
         if replacement:
             replacements[token] = replacement
 
-    for token, replacement in replacements.items():
-        content = content.replace(token, replacement)
+    # Replace tokens longest-first to prevent partial matches (e.g., @BASH before @BASH_OUTPUT)
+    for token in sorted(replacements.keys(), key=len, reverse=True):
+        content = content.replace(token, replacements[token])
     return content
 
 
