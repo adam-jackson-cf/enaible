@@ -42,6 +42,44 @@ Only fall back to the individual commands when you need to debug a specific fail
 
 Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned. Do **not** add bespoke git hooks; route all future pre-commit behavior through this central `pre-commit` config so we keep a single source of truth.
 
+### Commit Message Convention
+
+Use [Conventional Commits](https://www.conventionalcommits.org/) format for all commits. The `version-changelog.yml` workflow uses commit prefixes to auto-bump the version in `tools/enaible/pyproject.toml` and generate changelog entries.
+
+**Format:** `<type>: <description>`
+
+| Prefix      | Version Bump          | When to Use                          |
+| ----------- | --------------------- | ------------------------------------ |
+| `feat:`     | Minor (0.1.0 → 0.2.0) | New feature or capability            |
+| `fix:`      | Patch (0.1.0 → 0.1.1) | Bug fix                              |
+| `perf:`     | Patch                 | Performance improvement              |
+| `chore:`    | None                  | Maintenance, deps, configs           |
+| `docs:`     | None                  | Documentation only                   |
+| `refactor:` | None                  | Code restructure, no behavior change |
+| `test:`     | None                  | Adding or updating tests             |
+
+**Breaking changes:** Include `BREAKING CHANGE` in commit body for major bumps (0.x.x → 1.0.0).
+
+**Examples:**
+
+```bash
+# Minor bump - new feature
+git commit -m "feat: add pi coding agent system support"
+
+# Patch bump - bug fix
+git commit -m "fix: correct token replacement order in renderer"
+
+# No bump - maintenance
+git commit -m "chore: update dependencies"
+
+# Major bump - breaking change
+git commit -m "feat: redesign analyzer API
+
+BREAKING CHANGE: Analyzer.run() now returns Result instead of dict"
+```
+
+The workflow runs on push to `main`, updates version/changelog/README, and commits with `[skip ci]` to prevent loops.
+
 ### Prompt Validation
 
 **Lint prompt token usage** (invoked automatically by the gate script):
