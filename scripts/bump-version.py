@@ -185,7 +185,7 @@ def update_changelog(entry: str) -> None:
 
 
 def get_recent_changes(limit: int = 5) -> list[str]:
-    """Extract recent changes from changelog."""
+    """Extract recent feature and breaking changes from changelog."""
     content = CHANGELOG_PATH.read_text()
     lines = content.split("\n")
 
@@ -196,7 +196,12 @@ def get_recent_changes(limit: int = 5) -> list[str]:
         if line.startswith("## ["):
             in_version = True
             continue
-        if in_version and line.startswith("- "):
+        # Only include features and breaking changes
+        if (
+            in_version
+            and line.startswith("- ")
+            and ("- feat:" in line or "BREAKING CHANGE" in line.upper())
+        ):
             changes.append(line)
             if len(changes) >= limit:
                 break

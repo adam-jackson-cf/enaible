@@ -8,11 +8,12 @@
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
 ### v0.4.0 | Recent Changes
+
 - feat: add research skill for multi-domain investigations
-- docs: sync README with v0.3.0
-- docs: enforce online research requirements in research skill
 - feat: add new analyzers and fixtures for parity
-- docs: add analysis gaps implementation plan
+- feat: add automated changelog and version bumping
+- feat: add pi coding agent system support
+- feat: add friendly task labels and richer reports
 
 [Full Changelog](CHANGELOG.md)
 
