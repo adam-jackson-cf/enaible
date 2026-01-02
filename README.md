@@ -8,6 +8,7 @@
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
 ### v0.3.0 | Recent Changes
+
 - feat: add new analyzers and fixtures for parity
 - docs: add analysis gaps implementation plan
 - chore: added todos for design, bid proposal and solution analysis skills

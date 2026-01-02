@@ -125,4 +125,54 @@ CATALOG: dict[str, SkillDefinition] = {
             ),
         },
     ),
+    "research": SkillDefinition(
+        skill_id="research",
+        source_path=_repo_path("shared", "skills", "research", "SKILL.md"),
+        systems={
+            "claude-code": SystemSkillConfig(
+                template="docs/system/claude-code/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "skills",
+                    "research",
+                    "SKILL.md",
+                ),
+            ),
+            "codex": SystemSkillConfig(
+                template="docs/system/codex/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "skills",
+                    "research",
+                    "SKILL.md",
+                ),
+            ),
+            "copilot": SystemSkillConfig(
+                template="docs/system/copilot/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "skills",
+                    "research",
+                    "SKILL.md",
+                ),
+            ),
+            "pi": SystemSkillConfig(
+                template="docs/system/pi/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "pi",
+                    "skills",
+                    "research",
+                    "SKILL.md",
+                ),
+            ),
+        },
+    ),
 }
