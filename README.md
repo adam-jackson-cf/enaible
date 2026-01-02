@@ -7,13 +7,12 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
-### v0.4.0 | Recent Changes
-
+### v1.0.0 | Recent Changes
+- feat: filter README recent changes to features and breaking changes
 - feat: add research skill for multi-domain investigations
 - feat: add new analyzers and fixtures for parity
 - feat: add automated changelog and version bumping
 - feat: add pi coding agent system support
-- feat: add friendly task labels and richer reports
 
 [Full Changelog](CHANGELOG.md)
 

@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-01-02
+
+- feat: filter README recent changes to features and breaking changes
+
 ## [0.4.0] - 2026-01-02
 
 - feat: add research skill for multi-domain investigations
