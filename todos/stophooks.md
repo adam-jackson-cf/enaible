@@ -1,0 +1,1 @@
+- add global stop hooks that force llm to fix and quality gate issues its left

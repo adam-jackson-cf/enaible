@@ -1,0 +1,2 @@
+- extract agentic readiness into its own analysis prompt
+- make analyze-repo a shared skill or prompt that actions all of them
