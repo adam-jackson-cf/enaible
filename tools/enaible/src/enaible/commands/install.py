@@ -41,6 +41,7 @@ SYSTEM_RULES = {
     "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
     "gemini": ("rules/global.gemini.rules.md", "GEMINI.md"),
     "antigravity": ("rules/global.antigravity.rules.md", "GEMINI.md"),
+    "pi": ("rules/global.pi.rules.md", "AGENTS.md"),
 }
 
 ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
@@ -50,6 +51,7 @@ ALWAYS_MANAGED_PREFIXES: dict[str, tuple[str, ...]] = {
     "cursor": ("commands/", "rules/"),
     "gemini": ("commands/",),
     "antigravity": ("workflows/", "rules/"),
+    "pi": ("commands/", "rules/", "skills/"),
 }
 
 CHECK_DEPENDENCIES_DEFAULT = os.environ.get("ENAIBLE_SKIP_DEPENDENCY_CHECKS") != "1"
@@ -624,6 +626,11 @@ def _post_install(
         summary.record("merge", target_path)
         return
 
+    if system == "pi":
+        _merge_pi_agents(target_path, source_rules)
+        summary.record("merge", target_path)
+        return
+
     if system == "cursor":
         _create_cursor_user_rules(target_path, source_rules)
         summary.record("write", target_path)
@@ -880,6 +887,26 @@ def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
     start_marker = "<!-- COPILOT_GLOBAL_RULES_START -->"
     end_marker = "<!-- COPILOT_GLOBAL_RULES_END -->"
     header = f"# AI-Assisted Workflows (Copilot Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
+    body = source_rules.read_text(encoding="utf-8").strip()
+    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+
+    existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
+
+    if start_marker in existing and end_marker in existing:
+        start = existing.index(start_marker)
+        end = existing.index(end_marker) + len(end_marker)
+        updated = existing[:start] + block + existing[end:]
+    else:
+        updated = (existing.rstrip() + "\n\n" if existing.strip() else "") + block
+
+    target_path.parent.mkdir(parents=True, exist_ok=True)
+    target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
+
+
+def _merge_pi_agents(target_path: Path, source_rules: Path) -> None:
+    start_marker = "<!-- PI_GLOBAL_RULES_START -->"
+    end_marker = "<!-- PI_GLOBAL_RULES_END -->"
+    header = f"# AI-Assisted Workflows (Pi Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
     body = source_rules.read_text(encoding="utf-8").strip()
     block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
 

@@ -268,6 +268,7 @@ function Prompt-ForSystems {
     Write-Host "  4) cursor"
     Write-Host "  5) gemini"
     Write-Host "  6) antigravity"
+    Write-Host "  7) pi"
 
     $selectedSystems = @()
     while ($selectedSystems.Length -eq 0) {
@@ -282,6 +283,7 @@ function Prompt-ForSystems {
                 "4" { $systems += "cursor" }
                 "5" { $systems += "gemini" }
                 "6" { $systems += "antigravity" }
+                "7" { $systems += "pi" }
                 default {
                     if ($num.Trim()) {
                         Write-Log "Invalid selection: $num"

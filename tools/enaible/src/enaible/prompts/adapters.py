@@ -55,4 +55,10 @@ SYSTEM_CONTEXTS: Mapping[str, SystemRenderContext] = {
         user_scope_dir="~/.gemini/antigravity",
         description="Google Antigravity IDE",
     ),
+    "pi": SystemRenderContext(
+        name="pi",
+        project_scope_dir=".pi",
+        user_scope_dir="~/.pi/agent",
+        description="Pi Coding Agent",
+    ),
 }

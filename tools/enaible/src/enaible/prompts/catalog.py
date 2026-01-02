@@ -94,6 +94,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Perform a comprehensive security audit of the repository and dependencies"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "analyze-security.md"
+                ),
+                frontmatter={
+                    "description": "Perform a comprehensive security audit of the repository and dependencies"
+                },
+            ),
         },
     ),
     "analyze-architecture": PromptDefinition(
@@ -165,6 +174,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "analyze-architecture.md",
+                ),
+                frontmatter={
+                    "description": "Evaluate system architecture for scalability, maintainability, and best practices"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "analyze-architecture.md"
                 ),
                 frontmatter={
                     "description": "Evaluate system architecture for scalability, maintainability, and best practices"
@@ -246,6 +264,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Assess code quality and complexity, and highlight high-value refactors"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "analyze-code-quality.md"
+                ),
+                frontmatter={
+                    "description": "Assess code quality and complexity, and highlight high-value refactors"
+                },
+            ),
         },
     ),
     "analyze-performance": PromptDefinition(
@@ -313,6 +340,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "analyze-performance.md",
+                ),
+                frontmatter={
+                    "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "analyze-performance.md"
                 ),
                 frontmatter={
                     "description": "Identify performance bottlenecks and propose minimal, high-impact optimizations"
@@ -390,6 +426,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Perform root cause analysis for a defect or failure"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "analyze-root-cause.md"
+                ),
+                frontmatter={
+                    "description": "Perform root cause analysis for a defect or failure"
+                },
+            ),
         },
     ),
     "plan-refactor": PromptDefinition(
@@ -454,6 +499,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Plan a minimal, high-impact refactor with clear boundaries and tests"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "plan-refactor.md"
+                ),
+                frontmatter={
+                    "description": "Plan a minimal, high-impact refactor with clear boundaries and tests"
+                },
+            ),
         },
     ),
     "plan-solution": PromptDefinition(
@@ -513,6 +567,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "plan-solution.md",
+                ),
+                frontmatter={
+                    "description": "Develop a solution plan for a technical challenge with constraints and milestones"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "plan-solution.md"
                 ),
                 frontmatter={
                     "description": "Develop a solution plan for a technical challenge with constraints and milestones"
@@ -584,6 +647,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "get-codebase-primer.md",
+                ),
+                frontmatter={
+                    "description": "Generate a comprehensive primer for understanding the codebase"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "get-codebase-primer.md"
                 ),
                 frontmatter={
                     "description": "Generate a comprehensive primer for understanding the codebase"
@@ -668,6 +740,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Set up language-appropriate pre-commit hooks for the repo"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "pi",
+                    "commands",
+                    "setup-code-precommit-checks.md",
+                ),
+                frontmatter={
+                    "description": "Set up language-appropriate pre-commit hooks for the repo"
+                },
+            ),
         },
     ),
     "create-rule": PromptDefinition(
@@ -723,6 +808,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "create-rule.md",
+                ),
+                frontmatter={
+                    "description": "Generate an implementation rule file for a technology"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "create-rule.md"
                 ),
                 frontmatter={
                     "description": "Generate an implementation rule file for a technology"
@@ -799,6 +893,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Generate handoff prompt for next AI session"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "create-hand-off.md"
+                ),
+                frontmatter={
+                    "description": "Generate handoff prompt for next AI session"
+                },
+            ),
         },
     ),
     "codify-session-history": PromptDefinition(
@@ -828,6 +931,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "codify-session-history.md"
+                ),
+                frontmatter={
+                    "description": "Extract patterns from session history into rules or documentation"
+                },
+            ),
         },
     ),
     "get-recent-context": PromptDefinition(
@@ -856,6 +968,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "get-recent-context.md",
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "get-recent-context.md"
+                ),
+                frontmatter={
+                    "description": "Retrieve recent session context for continuity"
+                },
             ),
         },
     ),
@@ -912,6 +1033,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "plan-ux-prd.md",
+                ),
+                frontmatter={
+                    "description": "Produce a UX-focused PRD from a product brief"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "plan-ux-prd.md"
                 ),
                 frontmatter={
                     "description": "Produce a UX-focused PRD from a product brief"
@@ -988,6 +1118,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Review README.md and AGENTS.md for documentation drift against recent changes"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "review-docs-drift.md"
+                ),
+                frontmatter={
+                    "description": "Review README.md and AGENTS.md for documentation drift against recent changes"
+                },
+            ),
         },
     ),
     "setup-dev-monitoring": PromptDefinition(
@@ -1058,6 +1197,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "setup-dev-monitoring.md",
+                ),
+                frontmatter={
+                    "description": "Configure development monitoring, logging, and orchestration"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-dev-monitoring.md"
                 ),
                 frontmatter={
                     "description": "Configure development monitoring, logging, and orchestration"
@@ -1142,6 +1290,19 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install dependency monitoring with Dependabot and audit triggers"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "pi",
+                    "commands",
+                    "setup-package-monitoring.md",
+                ),
+                frontmatter={
+                    "description": "Install dependency monitoring with Dependabot and audit triggers"
+                },
+            ),
         },
     ),
     "get-task-primer": PromptDefinition(
@@ -1214,6 +1375,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Explore the codebase and produce a comprehensive analysis and todo list"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "get-task-primer.md"
+                ),
+                frontmatter={
+                    "description": "Explore the codebase and produce a comprehensive analysis and todo list"
+                },
+            ),
         },
     ),
     "setup-react-grab": PromptDefinition(
@@ -1277,6 +1447,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "setup-react-grab.md",
+                ),
+                frontmatter={
+                    "description": "Install and configure react-grab for AI-assisted element capture"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-react-grab.md"
                 ),
                 frontmatter={
                     "description": "Install and configure react-grab for AI-assisted element capture"
@@ -1354,6 +1533,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "description": "Install Chrome DevTools Protocol automation scripts for UI testing"
                 },
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-browser-tools.md"
+                ),
+                frontmatter={
+                    "description": "Install Chrome DevTools Protocol automation scripts for UI testing"
+                },
+            ),
         },
     ),
     "setup-atuin": PromptDefinition(
@@ -1415,6 +1603,15 @@ CATALOG: dict[str, PromptDefinition] = {
                 template="docs/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "antigravity", "workflows", "setup-atuin.md"
+                ),
+                frontmatter={
+                    "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-atuin.md"
                 ),
                 frontmatter={
                     "description": "Install Atuin shell history with SQLite storage and optional cloud sync"
@@ -1484,6 +1681,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
                 frontmatter={"description": "Install mgrep for semantic code search"},
             ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-mgrep.md"
+                ),
+                frontmatter={"description": "Install mgrep for semantic code search"},
+            ),
         },
     ),
     "setup-beads": PromptDefinition(
@@ -1547,6 +1751,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "setup-beads.md",
+                ),
+                frontmatter={
+                    "description": "Install Beads (bd) for git-backed persistent task tracking"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "setup-beads.md"
                 ),
                 frontmatter={
                     "description": "Install Beads (bd) for git-backed persistent task tracking"
@@ -1629,6 +1842,15 @@ CATALOG: dict[str, PromptDefinition] = {
                     "antigravity",
                     "workflows",
                     "task-background.md",
+                ),
+                frontmatter={
+                    "description": "Run a background task in tmux with progress reporting"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build", "rendered", "pi", "commands", "task-background.md"
                 ),
                 frontmatter={
                     "description": "Run a background task in tmux with progress reporting"

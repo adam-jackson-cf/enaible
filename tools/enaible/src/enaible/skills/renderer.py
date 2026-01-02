@@ -204,6 +204,7 @@ def _ignore_cache_files(_dir: str, names: list[str]) -> set[str]:
 _ASK_USER_MARKERS = {
     "claude-code": "request user confirmation using AskUserQuestion, then wait for the response",
     "codex": "ask the user for confirmation and wait for the response",
+    "pi": "ask the user for confirmation using pi.sendMessage() and wait for the response",
 }
 
 _TOOL_TOKEN_MAP = {

@@ -102,6 +102,7 @@ prompt_for_systems() {
     echo "  4) cursor"
     echo "  5) gemini"
     echo "  6) antigravity"
+    echo "  7) pi"
 
     local selected_systems=""
     while [[ -z "$selected_systems" ]]; do
@@ -119,6 +120,7 @@ prompt_for_systems() {
                 4) systems+=("cursor") ;;
                 5) systems+=("gemini") ;;
                 6) systems+=("antigravity") ;;
+                7) systems+=("pi") ;;
                 *) log "Invalid selection: $num" ;;
             esac
         done
