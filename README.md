@@ -7,13 +7,12 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
-### v0.2.0 | Recent Changes
-
+### v0.3.0 | Recent Changes
+- feat: add new analyzers and fixtures for parity
+- docs: add analysis gaps implementation plan
+- chore: added todos for design, bid proposal and solution analysis skills
 - feat: add automated changelog and version bumping
 - feat: add pi coding agent system support
-- docs: consolidate system documentation into single READMEs
-- chore: added todos
-- chore: updated readme table
 
 [Full Changelog](CHANGELOG.md)
 
