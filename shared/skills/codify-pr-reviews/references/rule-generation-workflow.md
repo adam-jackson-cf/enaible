@@ -14,7 +14,7 @@ Generate instruction rule drafts (new or strengthen) from approved patterns.
 ## Instructions
 
 - Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
-- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `references/system-targeting.md`.
 - Generate drafts with clear directives and examples.
 - Use positive directives (ALWAYS/NEVER) with stack-appropriate code.
 - Keep instruction files under 4000 characters; split if necessary.

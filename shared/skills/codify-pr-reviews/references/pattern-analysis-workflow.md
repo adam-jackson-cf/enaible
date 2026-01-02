@@ -18,7 +18,7 @@ Transform grouped comments into structured patterns and triage them against exis
 ## Instructions
 
 - Ask the user to confirm the Python command and set `PYTHON_CMD` (must be 3.12+).
-- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `references/system-targeting.md`.
 - Parse existing instruction files to extract rule titles and examples.
 - For each comment group, generate a pattern with severity and category.
 - Triage each pattern into: already covered, needs strengthening, or new rule.

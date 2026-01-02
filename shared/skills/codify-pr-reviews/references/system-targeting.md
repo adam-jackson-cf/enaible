@@ -55,6 +55,6 @@ Use `./GEMINI.md` for repository-level rules unless the user explicitly requests
 
 A single rule template is provided as a baseline reference:
 
-- [resources/templates/rule-template.md](resources/templates/rule-template.md)
+- [references/rule-template.md](references/rule-template.md)
 
 Adapt it to the target system format (CLAUDE.md, AGENTS.md, GEMINI.md, or Cursor rules) as needed.

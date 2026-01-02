@@ -13,7 +13,7 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 ## Instructions
 
 - Load approved rules and map them to target instruction files.
-- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `resources/system-targeting.md`.
+- Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `references/system-targeting.md`.
 - Pause and @ASK_USER_CONFIRMATION before modifying files.
 - Apply edits and record a summary.
 - Persist the change log at `@ARTIFACT_ROOT/apply-summary.json` (or `.md`) alongside any supporting diffs.

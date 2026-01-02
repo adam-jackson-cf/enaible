@@ -1,45 +1,48 @@
 ---
 name: docs-scraper
-description: Fetch documentation from URLs and save clean markdown files for offline reference; use when the user wants docs scraped, archived, or analyzed from web sources.
-compatibility: Requires network access plus uv and the Enaible CLI available in the workspace.
-allowed-tools: Bash Read Write
+description: Fetch documentation from URLs and save clean markdown files for offline reference. USE WHEN the user asks to scrape, archive, or analyze docs from the web.
+compatibility: Requires network access, `uv`, and the Enaible CLI with write access to the desired output directory.
+allowed-tools: @BASH @READ @WRITE
 ---
 
 # Docs Scraper
 
 Capture documentation from URLs and save it as readable, well-structured markdown for offline use.
 
-## When to use
+- The user wants one or more URLs scraped or archived for later reference.
+- You need deterministic markdown output for local analysis or sharing.
+- You must enrich captures with metadata (sources, timestamps) for auditing.
 
-- The user asks to scrape, archive, or capture documentation from one or more URLs.
-- The user wants documentation converted to markdown for local analysis or sharing.
+## Need to...? Read This
 
-## Prerequisites
+| Goal                         | Reference                                                                |
+| ---------------------------- | ------------------------------------------------------------------------ |
+| End-to-end workflow          | [references/docs-scrape-workflow.md](references/docs-scrape-workflow.md) |
+| Command reference + examples | [references/cli-reference.md](references/cli-reference.md)               |
 
-- List of source URLs.
-- Write access to the output directory.
-- `uv` and the Enaible CLI available in the workspace.
+## Workflow
 
-## Resources
+Detailed commands and success criteria live in the reference files. Use this overview to stay aligned with the standard skill structure.
 
-| Goal                         | Resource                                                               |
-| ---------------------------- | ---------------------------------------------------------------------- |
-| End-to-end workflow          | [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md) |
-| Command reference + examples | [resources/cli-reference.md](resources/cli-reference.md)               |
+### Step 0: Intake
 
-## Orchestration Overview
+**Purpose**: Confirm URLs, environment readiness, and storage targets before running scripts.
 
-### Stage 1: Intake
+- Validate provided URLs, deduplicate, and capture any authentication requirements.
+- Confirm `uv` + the Enaible CLI are available, you have write access to the destination directory, and the naming pattern is agreed upon.
+- Record the destination folder, filename pattern, and any required metadata tags.
 
-**Purpose**: Confirm URLs, output directory, and naming expectations.
-**Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
+### Step 1: Fetch
 
-### Stage 2: Fetch
+**Purpose**: Run `enaible docs_scrape` (via `uv run` if needed) for each URL and validate outputs.
 
-**Purpose**: Run `enaible docs_scrape` for each URL and validate outputs.
-**Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
+- Generate markdown captures plus raw artifacts, storing them under the designated output directory.
+- Follow fetch + verification instructions in [references/docs-scrape-workflow.md](references/docs-scrape-workflow.md).
 
-### Stage 3: Clean + Save
+### Step 2: Clean + Save
 
 **Purpose**: Normalize markdown, add source attribution, and save files.
-**Details**: [resources/docs-scrape-workflow.md](resources/docs-scrape-workflow.md)
+
+- Apply any post-processing (frontmatter, link rewrites) described in the workflow reference.
+- Summarize results for the user and highlight manual follow-ups.
+- Consult [references/cli-reference.md](references/cli-reference.md) for command variants and examples.

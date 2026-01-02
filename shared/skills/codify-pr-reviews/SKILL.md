@@ -1,113 +1,99 @@
 ---
 name: codify-pr-reviews
-description: Analyze GitHub pull request review comments to identify recurring review patterns and convert them into code review instruction rules; use when you want to reduce repetitive PR feedback.
-compatibility: Requires gh CLI authentication and a git repository with PR history.
-allowed-tools: Bash Read Write
+description: Analyze GitHub pull request review comments to identify recurring review patterns and convert them into code review instruction rules. USE WHEN you need to reduce repetitive PR feedback or transform historical comments into enforceable rules.
+compatibility: Requires gh CLI authentication, Python 3.12+ via `PYTHON_CMD`, and a git repository with PR history.
+allowed-tools: @BASH @READ @WRITE
 ---
 
 # Codify PR Reviews
 
 Turn historical PR review comments into actionable instruction rules so repeat feedback becomes automated guidance.
 
-## When to use
+- You want to codify recurring PR feedback into enforceable instruction rules.
+- You need a deterministic workflow with human approval gates before rules change.
+- You must keep artifacts for auditability across analyzers and adapters.
 
-- You want to codify recurring review feedback into instruction rules.
-- You want a repeatable workflow with human approval checkpoints before rules change.
+## Need to...? Read This
 
-## Prerequisites
+| Goal                              | Reference                                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| Detect stack + red flags          | [references/stack-analysis-workflow.md](references/stack-analysis-workflow.md)     |
+| Fetch PR review comments          | [references/fetching-workflow.md](references/fetching-workflow.md)                 |
+| Deduplicate + group comments      | [references/preprocessing-workflow.md](references/preprocessing-workflow.md)       |
+| Triage patterns vs existing rules | [references/pattern-analysis-workflow.md](references/pattern-analysis-workflow.md) |
+| Generate rule drafts              | [references/rule-generation-workflow.md](references/rule-generation-workflow.md)   |
+| Apply approved rules              | [references/apply-rules-workflow.md](references/apply-rules-workflow.md)           |
+| Resolve system targets            | [references/system-targeting.md](references/system-targeting.md)                   |
+| Rule template                     | [references/rule-template.md](references/rule-template.md)                         |
+| Troubleshoot issues               | [references/troubleshooting.md](references/troubleshooting.md)                     |
 
-- `gh` CLI installed and authenticated.
-- Run inside the target git repository (or provide an explicit repo).
-- Instruction files exist or can be created (Copilot, Codex, etc.).
-- User must specify a single target system for rule format: `claude-code`, `codex`, `copilot`, `cursor`, or `gemini`.
-- Default settings live in `config/defaults.json`.
-- Set `PYTHON_CMD` to the system Python command (must be 3.12+).
-- Set a timestamped artifacts root under `.enaible/artifacts/codify-pr-reviews/$(date -u +%Y%m%dT%H%M%SZ)` before running any stage.
-- Export `RUN_ID="codify-pr-reviews-$(date -u +%Y%m%dT%H%M%SZ)"` for traceability across scripts.
+## Workflow
 
-### Derived directories
+Detailed instructions, artifacts, and checkpoint prompts live in the `references/*.md` files. This section summarizes the high-level flow.
 
-- `@ARTIFACT_ROOT = .enaible/artifacts/codify-pr-reviews/<timestamp>` — persistent evidence (stack analysis, fetched comments, grouped comments, patterns, approved rules).
+### Step 0: Preflight + establish run directories
 
-## Resources
+**Purpose**: Confirm environment readiness and guarantee deterministic storage before any analyzers run.
 
-| Goal                              | Resource                                                                         |
-| --------------------------------- | -------------------------------------------------------------------------------- |
-| Detect stack + red flags          | [resources/stack-analysis-workflow.md](resources/stack-analysis-workflow.md)     |
-| Fetch PR review comments          | [resources/fetching-workflow.md](resources/fetching-workflow.md)                 |
-| Deduplicate + group comments      | [resources/preprocessing-workflow.md](resources/preprocessing-workflow.md)       |
-| Triage patterns vs existing rules | [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md) |
-| Generate rule drafts              | [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)   |
-| Apply approved rules              | [resources/apply-rules-workflow.md](resources/apply-rules-workflow.md)           |
-| Resolve system targets            | [resources/system-targeting.md](resources/system-targeting.md)                   |
-| Rule template                     | [resources/templates/rule-template.md](resources/templates/rule-template.md)     |
-| Troubleshoot issues               | [resources/troubleshooting.md](resources/troubleshooting.md)                     |
-
-## Orchestration Overview
-
-### Stage 0: Establish run directories
-
-**Purpose**: Guarantee deterministic storage just like other Enaible analyzers.
-
-- Capture the UTC timestamp, create `.enaible/artifacts/codify-pr-reviews/<timestamp>`, and export `@ARTIFACT_ROOT` plus `RUN_ID`.
+- Verify `gh` CLI is installed/authenticated, you are inside the target git repo (or pass `--repo`).
+- Ensure `PYTHON_CMD` points to Python 3.12+, export any tokens required by helper scripts, and confirm write access to `.enaible/artifacts/`.
+- Capture the UTC timestamp, create `.enaible/artifacts/codify-pr-reviews/<timestamp>`, set `@ARTIFACT_ROOT`, and export `RUN_ID="codify-pr-reviews-$(date -u +%Y%m%dT%H%M%SZ)"`.
 - Store all evidence (JSON, markdown, logs) under `@ARTIFACT_ROOT` for auditability.
 
-### Stage 1: Stack Analysis
+### Step 1: Stack analysis
 
-**Purpose**: Detect tech stack and generate security red flags.
-**When**: First run or with `@FORCE_REFRESH`.
-**Details**: [resources/stack-analysis-workflow.md](resources/stack-analysis-workflow.md)
+**Purpose**: Detect the tech stack and generate security red flags.
 
-- Artifacts: `@ARTIFACT_ROOT/stack-analysis.json`.
+- Run the stack analysis helper; refresh when `@FORCE_REFRESH` is set.
+- Output `@ARTIFACT_ROOT/stack-analysis.json`.
+- Workflow + success criteria: [references/stack-analysis-workflow.md](references/stack-analysis-workflow.md).
 
-### Stage 2: Fetch PR Comments
+### Step 2: Fetch PR comments
 
-**Purpose**: Retrieve PR comments via the deterministic fetch script.
+**Purpose**: Retrieve PR review comments via the deterministic fetch script.
 
-**Details**: [resources/fetching-workflow.md](resources/fetching-workflow.md)
+- Follow the fetch workflow preflight, then perform the full download.
+- Store JSON at `@ARTIFACT_ROOT/comments.json` and preflight logs at `@ARTIFACT_ROOT/fetch-preflight.log`.
+- User confirmation gates (e.g., target repo validation) are defined in [references/fetching-workflow.md](references/fetching-workflow.md) using `@ASK_USER_CONFIRMATION` markers.
 
-- Follow the resource workflow: run preflight, pause for **MANDATORY CHECKPOINT 1**, then execute the full fetch.
-- Artifacts: store full fetch JSON at `@ARTIFACT_ROOT/comments.json`; capture any preflight output at `@ARTIFACT_ROOT/fetch-preflight.log`.
-
-### Stage 3: Preprocess & Deduplicate
+### Step 3: Preprocess & deduplicate
 
 **Purpose**: Group similar comments and reduce noise using deterministic preprocessing.
-**Details**: [resources/preprocessing-workflow.md](resources/preprocessing-workflow.md)
 
-- Artifacts: `@ARTIFACT_ROOT/preprocessed.json`.
+- Execute the preprocessing script to produce `@ARTIFACT_ROOT/preprocessed.json`.
+- Follow [references/preprocessing-workflow.md](references/preprocessing-workflow.md) for grouping heuristics and thresholds.
 
-### Stage 4: Pattern Analysis
+### Step 4: Pattern analysis
 
 **Purpose**: Identify recurring patterns and triage against existing rules for the target system.
-**Details**: [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md)
 
-- Artifacts: `@ARTIFACT_ROOT/patterns.json`.
+- Compare grouped comments with existing instruction files.
+- Record findings in `@ARTIFACT_ROOT/patterns.json`.
+- The in-depth checklist lives in [references/pattern-analysis-workflow.md](references/pattern-analysis-workflow.md).
 
-### Stage 5: Interactive Pattern Review
+### Step 5: Pattern review (interactive)
 
-**Purpose**: Review identified patterns and decide on actions (create/strengthen/skip).
-**MANDATORY CHECKPOINT 2**: For each pattern, pause and @ASK_USER_CONFIRMATION.
+**Purpose**: Review identified patterns and decide on actions (create / strengthen / skip).
 
-**Details**: [resources/pattern-analysis-workflow.md](resources/pattern-analysis-workflow.md)
+- Pause for user input before committing to rule changes; checkpoints are scripted in the pattern analysis reference file.
+- Document approvals directly in the artifact directory.
 
-### Stage 6: Generate Rules
+### Step 6: Generate rule drafts
 
 **Purpose**: Create new rules or enhance existing ones with concrete examples.
-**Details**: [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)
 
-- Artifacts: draft markdown lives under `@ARTIFACT_ROOT/drafts/`.
+- Use the templates + prompts in [references/rule-generation-workflow.md](references/rule-generation-workflow.md) and [references/rule-template.md](references/rule-template.md).
+- Save drafts under `@ARTIFACT_ROOT/drafts/`.
 
-### Stage 7: Interactive Rule Wording Review
+### Step 7: Rule wording review (interactive)
 
-**Purpose**: Review and approve generated rule wording before application.
-**MANDATORY CHECKPOINT 3**: For each rule, pause and @ASK_USER_CONFIRMATION.
+**Purpose**: Validate and approve generated rule wording before application.
 
-**Details**: [resources/rule-generation-workflow.md](resources/rule-generation-workflow.md)
+- Collect user confirmation per draft; the detailed `@ASK_USER_CONFIRMATION` prompts live in [references/rule-generation-workflow.md](references/rule-generation-workflow.md).
 
-### Stage 8: Apply Rules
+### Step 8: Apply rules
 
-**Purpose**: Update instruction files for the target system.
-**MANDATORY CHECKPOINT 4**: Pause and @ASK_USER_CONFIRMATION before modifying files.
-**Details**: [resources/apply-rules-workflow.md](resources/apply-rules-workflow.md)
+**Purpose**: Update instruction files for the target system and capture diffs.
 
-- Artifacts: record the apply summary at `@ARTIFACT_ROOT/apply-summary.json` (or `.md`) plus any diff outputs captured during the edit.
+- Follow the apply workflow to edit files safely, record `@ARTIFACT_ROOT/apply-summary.json` (or `.md`), and attach diffs.
+- All approval gates for file edits are described in [references/apply-rules-workflow.md](references/apply-rules-workflow.md).

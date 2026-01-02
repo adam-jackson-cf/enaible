@@ -51,6 +51,17 @@ CATALOG: dict[str, SkillDefinition] = {
                     "SKILL.md",
                 ),
             ),
+            "copilot": SystemSkillConfig(
+                template="docs/system/copilot/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "skills",
+                    "codify-pr-reviews",
+                    "SKILL.md",
+                ),
+            ),
         },
     ),
     "use-parallel-ai": SkillDefinition(
@@ -79,6 +90,17 @@ CATALOG: dict[str, SkillDefinition] = {
                     "SKILL.md",
                 ),
             ),
+            "copilot": SystemSkillConfig(
+                template="docs/system/copilot/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "skills",
+                    "use-parallel-ai",
+                    "SKILL.md",
+                ),
+            ),
         },
     ),
     "docs-scraper": SkillDefinition(
@@ -102,6 +124,17 @@ CATALOG: dict[str, SkillDefinition] = {
                     ".build",
                     "rendered",
                     "codex",
+                    "skills",
+                    "docs-scraper",
+                    "SKILL.md",
+                ),
+            ),
+            "copilot": SystemSkillConfig(
+                template="docs/system/copilot/templates/skill.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
                     "skills",
                     "docs-scraper",
                     "SKILL.md",
