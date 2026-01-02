@@ -1,0 +1,2 @@
+- creates content suitable to the objective
+- needs to cover different aims and patterns for achieving

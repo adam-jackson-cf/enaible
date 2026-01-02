@@ -1,0 +1,3 @@
+- analyse existing designs using that guide we bought
+- learn to apply it to different artefacts, starting with slides
+- link to nanobanana functionality for images
