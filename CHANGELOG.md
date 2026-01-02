@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 2026-01-02
+
+- feat: add new analyzers and fixtures for parity
+- docs: add analysis gaps implementation plan
+- chore: added todos for design, bid proposal and solution analysis skills
+
 ## [0.2.0] - 2026-01-02
 
 - feat: add automated changelog and version bumping
