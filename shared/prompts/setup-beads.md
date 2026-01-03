@@ -57,7 +57,9 @@ Install and configure Beads (bd) for git-backed persistent task tracking.
    - Add or update Beads documentation section:
 
      ```md
-     ### When you need to track tasks across sessions (beads, bd)
+     ### Tool: Beads
+
+     **Purpose** when you need to track tasks across sessions (beads, bd)
 
      If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
 

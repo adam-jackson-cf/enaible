@@ -2,13 +2,7 @@
 
 Frameworks: `pytest` (unit + integration) plus the Enaible CLI (`uv run --project tools/enaible ...`). Prefer the CLI wrappers—they bootstrap the analyzer registry, honor gitignore patterns, and normalize JSON output automatically.
 
-Always run suites under the pyenv-managed Python 3.12 toolchain:
-
-```bash
-export UV_PYTHON="$(pyenv which python3.12 || pyenv which python)"
-```
-
-Prefix every command with `uv run --python "$UV_PYTHON"` so tests never fall back to the system Python 3.9.
+See root `AGENTS.md` for the mandatory Python 3.12 (uv/pyenv) test runner setup.
 
 ### Integration Suites
 

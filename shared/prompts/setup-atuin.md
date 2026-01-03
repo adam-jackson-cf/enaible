@@ -76,7 +76,9 @@ Install Atuin shell history replacement with SQLite storage, fuzzy search, and o
 - Add or update Atuin documentation section:
 
 ```md
-### When you want to search past command execution history
+### Tool: Atuin
+
+**Purpose** when you want to search past command execution history
 
 If `--bash-history` is included in the users request or a request requires searching past bash command execution, you **must** Atuin shell History tool.
 

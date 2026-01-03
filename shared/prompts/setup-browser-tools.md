@@ -73,7 +73,9 @@ Install Chrome DevTools Protocol automation scripts for AI-assisted UI testing a
    - Add or update Browser Tools documentation section at @SYSTEMS_PATH:
 
    ```md
-   ### When you need to perform visual web UI tests
+   ### Tool: Browser tools
+
+   **Purpose** when you need to perform visual web UI tests
 
    If `--browser` is included in a users request or a request requires visual testing of a web ui, you **must** use the below browser tool.
 
