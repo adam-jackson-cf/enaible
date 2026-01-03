@@ -275,6 +275,99 @@ CATALOG: dict[str, PromptDefinition] = {
             ),
         },
     ),
+    "analyze-agentic-readiness": PromptDefinition(
+        prompt_id="analyze-agentic-readiness",
+        source_path=_repo_path("shared", "prompts", "analyze-agentic-readiness.md"),
+        title="analyze-agentic-readiness v1.0",
+        systems={
+            "claude-code": SystemPromptConfig(
+                template="docs/system/claude-code/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "claude-code",
+                    "commands",
+                    "analyze-agentic-readiness.md",
+                ),
+                frontmatter={"argument-hint": "[target-path]"},
+            ),
+            "codex": SystemPromptConfig(
+                template="docs/system/codex/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "codex",
+                    "prompts",
+                    "analyze-agentic-readiness.md",
+                ),
+                metadata={"comment": "codex prompt (frontmatter-free)"},
+            ),
+            "copilot": SystemPromptConfig(
+                template="docs/system/copilot/templates/prompt.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "copilot",
+                    "prompts",
+                    "analyze-agentic-readiness.prompt.md",
+                ),
+                frontmatter={
+                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment",
+                    "mode": "agent",
+                    "tools": ["githubRepo", "search/codebase", "terminal"],
+                },
+            ),
+            "cursor": SystemPromptConfig(
+                template="docs/system/cursor/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "cursor",
+                    "commands",
+                    "analyze-agentic-readiness.md",
+                ),
+            ),
+            "gemini": SystemPromptConfig(
+                template="docs/system/gemini/templates/command.toml.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "gemini",
+                    "commands",
+                    "analyze-agentic-readiness.toml",
+                ),
+                frontmatter={
+                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                },
+            ),
+            "antigravity": SystemPromptConfig(
+                template="docs/system/antigravity/templates/workflow.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "antigravity",
+                    "workflows",
+                    "analyze-agentic-readiness.md",
+                ),
+                frontmatter={
+                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                },
+            ),
+            "pi": SystemPromptConfig(
+                template="docs/system/pi/templates/command.md.j2",
+                output_path=_repo_path(
+                    ".build",
+                    "rendered",
+                    "pi",
+                    "commands",
+                    "analyze-agentic-readiness.md",
+                ),
+                frontmatter={
+                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                },
+            ),
+        },
+    ),
     "analyze-performance": PromptDefinition(
         prompt_id="analyze-performance",
         source_path=_repo_path("shared", "prompts", "analyze-performance.md"),

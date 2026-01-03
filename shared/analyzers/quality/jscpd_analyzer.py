@@ -161,6 +161,12 @@ class JSCPDAnalyzer(BaseAnalyzer):
             files = self.scan_directory(analyze_path)
             self._add_findings_to_result(result, findings)
             self._add_metadata_to_result(result, analyze_path, files, findings)
+            statistics = data.get("statistics") or {}
+            if isinstance(statistics, dict):
+                result.metadata["statistics"] = statistics
+            formats = data.get("formats") or []
+            if formats:
+                result.metadata["formats"] = formats
             return self.complete_analysis(result)
 
     # BaseAnalyzer contract (unused: jscpd runs once for the whole target)

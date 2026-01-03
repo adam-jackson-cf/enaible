@@ -21,6 +21,19 @@ from enaible.runtime.context import WorkspaceContext  # noqa: E402
 
 runner = CliRunner()
 REPO_ROOT = Path(__file__).resolve().parents[3]
+BASE_INSTALL_ARGS = ["--no-sync", "--no-sync-shared", "--no-install-cli"]
+
+
+def run_install(
+    system: str, target: Path | None = None, extra_args: list[str] | None = None
+):
+    args = ["install", system]
+    if target is not None:
+        args.extend(["--target", str(target)])
+    args.extend(BASE_INSTALL_ARGS)
+    if extra_args:
+        args.extend(extra_args)
+    return runner.invoke(app, args)
 
 
 @pytest.fixture(autouse=True)
@@ -34,36 +47,14 @@ def _patch_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_install_merge_project_scope(tmp_path: Path) -> None:
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     destination = tmp_path / ".claude" / "commands" / "analyze-security.md"
     assert destination.exists()
 
 
 def test_install_merges_rules_into_claude_md(tmp_path: Path) -> None:
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     claude_md = tmp_path / "CLAUDE.md"
     assert claude_md.exists()
@@ -74,19 +65,7 @@ def test_install_merges_rules_into_claude_md(tmp_path: Path) -> None:
 
 
 def test_install_dry_run_leaves_destination_clean(tmp_path: Path) -> None:
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--dry-run",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge", "--dry-run"])
     assert result.exit_code == 0, result.stderr or result.stdout
     destination = tmp_path / ".claude"
     assert not destination.exists()
@@ -99,18 +78,7 @@ def test_install_skips_unmanaged_files(tmp_path: Path) -> None:
     target_file = destination / "analyze-security.md"
     target_file.write_text("custom content", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     assert target_file.read_text(encoding="utf-8") == "custom content"
     assert "Skipped" in result.stdout
@@ -118,34 +86,12 @@ def test_install_skips_unmanaged_files(tmp_path: Path) -> None:
 
 def test_install_idempotent_claude_md(tmp_path: Path) -> None:
     # First install to seed files
-    base_result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    base_result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert base_result.exit_code == 0, base_result.stderr or base_result.stdout
     claude_md = tmp_path / "CLAUDE.md"
     original = claude_md.read_text(encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     assert claude_md.read_text(encoding="utf-8") == original
 
@@ -162,18 +108,7 @@ def test_merge_creates_folder_backup_not_per_file(tmp_path: Path) -> None:
     existing_file = commands_dir / "analyze-security.md"
     existing_file.write_text(f"{sentinel}\nold content", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(target),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", target, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # Verify folder-level backup was created (not per-file .bak)
@@ -198,18 +133,7 @@ def test_codex_fresh_backup_preserves_existing_unmanaged(tmp_path: Path) -> None
     (codex_dir / "sessions" / "history.jsonl").write_text("events", encoding="utf-8")
 
     # Run fresh install with backup enabled (default)
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "codex",
-            "--target",
-            str(target),
-            "--mode",
-            "fresh",
-            "--no-sync",
-        ],
-    )
+    result = run_install("codex", target, ["--mode", "fresh"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # Original unmanaged files must remain
@@ -236,18 +160,7 @@ def test_claude_code_merges_rules_into_project_root_claude_md(tmp_path: Path) ->
     """Verify claude-code install merges rules into project root CLAUDE.md."""
     target = tmp_path
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(target),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", target, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # Rules should ALSO be merged into project root CLAUDE.md
@@ -267,18 +180,7 @@ def test_claude_code_appends_to_existing_claude_md(tmp_path: Path) -> None:
         "# My Project\n\nCustom instructions here.\n", encoding="utf-8"
     )
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(target),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", target, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # CLAUDE.md should contain both original content and merged rules
@@ -301,19 +203,8 @@ def test_claude_code_user_scope_places_claude_md_in_dot_claude(
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--scope",
-            "user",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
+    result = run_install(
+        "claude-code", tmp_path, ["--scope", "user", "--mode", "merge"]
     )
     assert result.exit_code == 0, result.stderr or result.stdout
 
@@ -334,18 +225,7 @@ def test_install_update_mode_skips_unmanaged_files(tmp_path: Path) -> None:
     unmanaged_file = destination / "custom-command.md"
     unmanaged_file.write_text("custom", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "update",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "update"])
     assert result.exit_code == 0, result.stderr or result.stdout
     # Unmanaged file should be skipped
     assert "Skipped" in result.stdout
@@ -359,18 +239,7 @@ def test_install_fresh_mode_clears_destination(tmp_path: Path) -> None:
     existing_file = destination / "old-file.md"
     existing_file.write_text("old", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "fresh",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "fresh"])
     assert result.exit_code == 0, result.stderr or result.stdout
     # Old file should be removed
     assert not existing_file.exists()
@@ -380,19 +249,7 @@ def test_install_fresh_mode_clears_destination(tmp_path: Path) -> None:
 
 def test_install_dry_run_no_backup_created(tmp_path: Path) -> None:
     """Verify dry run doesn't create backups."""
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--dry-run",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge", "--dry-run"])
     assert result.exit_code == 0, result.stderr or result.stdout
     backups = list(tmp_path.glob(".claude.bak*"))
     assert not backups, "Dry run should not create backups"
@@ -403,19 +260,7 @@ def test_install_no_backup_flag_skips_backup(tmp_path: Path) -> None:
     destination = tmp_path / ".claude"
     destination.mkdir(parents=True)
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-backup",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge", "--no-backup"])
     assert result.exit_code == 0, result.stderr or result.stdout
     backups = list(tmp_path.glob(".claude.bak*"))
     assert not backups, "Backup should be skipped with --no-backup"
@@ -423,19 +268,7 @@ def test_install_no_backup_flag_skips_backup(tmp_path: Path) -> None:
 
 def test_install_no_sync_shared_skips_workspace_sync(tmp_path: Path) -> None:
     """Verify --no-sync-shared skips workspace synchronization."""
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-            "--no-sync-shared",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     # Should complete without errors even if workspace sync is skipped
     assert (tmp_path / ".claude" / "commands").exists()
@@ -448,18 +281,7 @@ def test_install_merge_mode_preserves_unmanaged(tmp_path: Path) -> None:
     unmanaged = destination / "custom.md"
     unmanaged.write_text("custom content", encoding="utf-8")
 
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
     # Unmanaged file should be preserved
     assert unmanaged.exists()
@@ -478,18 +300,8 @@ def test_copilot_user_scope_uses_vscode_user_dir(
     with patch(
         "enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir
     ):
-        result = runner.invoke(
-            app,
-            [
-                "install",
-                "copilot",
-                "--scope",
-                "user",
-                "--mode",
-                "merge",
-                "--no-sync",
-                "--dry-run",
-            ],
+        result = run_install(
+            "copilot", None, ["--scope", "user", "--mode", "merge", "--dry-run"]
         )
         assert result.exit_code == 0, result.stderr or result.stdout
         # Verify the path resolution uses VS Code user directory
@@ -508,18 +320,7 @@ def test_copilot_user_scope_instructions_file(
     with patch(
         "enaible.commands.install.get_vscode_user_dir", return_value=vscode_user_dir
     ):
-        result = runner.invoke(
-            app,
-            [
-                "install",
-                "copilot",
-                "--scope",
-                "user",
-                "--mode",
-                "merge",
-                "--no-sync",
-            ],
-        )
+        result = run_install("copilot", None, ["--scope", "user", "--mode", "merge"])
         assert result.exit_code == 0, result.stderr or result.stdout
 
         instructions_path = vscode_user_dir / "instructions" / "copilot.instructions.md"
@@ -533,20 +334,7 @@ def test_copilot_user_scope_instructions_file(
 
 def test_copilot_project_scope_instructions_in_github_dir(tmp_path: Path) -> None:
     """Verify copilot project scope install places copilot-instructions.md in .github."""
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "copilot",
-            "--scope",
-            "project",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("copilot", tmp_path, ["--scope", "project", "--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     instructions_path = tmp_path / ".github" / "copilot-instructions.md"
@@ -556,18 +344,7 @@ def test_copilot_project_scope_instructions_in_github_dir(tmp_path: Path) -> Non
 
 def test_claude_code_status_program_is_executable(tmp_path: Path) -> None:
     """Verify claude-code install sets executable permissions on statusline-worktree."""
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     status_file = tmp_path / ".claude" / "statusline-worktree"
@@ -586,19 +363,7 @@ def test_claude_code_status_program_is_executable(tmp_path: Path) -> None:
 
 def test_claude_code_status_program_dry_run_records_chmod(tmp_path: Path) -> None:
     """Verify dry-run mode records chmod action but doesn't change permissions."""
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "claude-code",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--dry-run",
-            "--no-sync",
-        ],
-    )
+    result = run_install("claude-code", tmp_path, ["--mode", "merge", "--dry-run"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # Dry run should mention the status file
@@ -612,20 +377,53 @@ def test_claude_code_status_program_dry_run_records_chmod(tmp_path: Path) -> Non
 def test_claude_code_status_program_only_for_claude_code(tmp_path: Path) -> None:
     """Verify executable permissions are only set for claude-code, not other systems."""
     # Install codex (should not process statusline-worktree)
-    result = runner.invoke(
-        app,
-        [
-            "install",
-            "codex",
-            "--target",
-            str(tmp_path),
-            "--mode",
-            "merge",
-            "--no-sync",
-        ],
-    )
+    result = run_install("codex", tmp_path, ["--mode", "merge"])
     assert result.exit_code == 0, result.stderr or result.stdout
 
     # Codex should not have statusline-worktree
     status_file = tmp_path / ".codex" / "statusline-worktree"
     assert not status_file.exists(), "codex should not have statusline-worktree"
+
+
+def test_install_default_sync_shared_calls_workspace_sync(tmp_path: Path) -> None:
+    with patch("enaible.commands.install._sync_shared_workspace") as sync_shared:
+        result = runner.invoke(
+            app,
+            [
+                "install",
+                "claude-code",
+                "--target",
+                str(tmp_path),
+                "--mode",
+                "merge",
+                "--no-sync",
+                "--no-install-cli",
+            ],
+        )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    sync_shared.assert_called_once()
+
+
+def test_install_default_cli_runs_install_steps(tmp_path: Path) -> None:
+    with (
+        patch("enaible.commands.install._install_cli") as install_cli,
+        patch(
+            "enaible.commands.install._install_playwright_browsers"
+        ) as install_browsers,
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "install",
+                "claude-code",
+                "--target",
+                str(tmp_path),
+                "--mode",
+                "merge",
+                "--no-sync",
+                "--no-sync-shared",
+            ],
+        )
+    assert result.exit_code == 0, result.stderr or result.stdout
+    install_cli.assert_called_once()
+    install_browsers.assert_called_once()

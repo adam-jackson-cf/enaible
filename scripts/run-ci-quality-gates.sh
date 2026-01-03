@@ -56,15 +56,21 @@ require_cmd npx
 
 UV_PYTHON=""
 if command -v pyenv >/dev/null 2>&1; then
-    UV_PYTHON="$(pyenv which python)"
+    if pyenv which python3.12 >/dev/null 2>&1; then
+        UV_PYTHON="$(pyenv which python3.12)"
+    fi
+fi
+if [[ -z "$UV_PYTHON" ]] && command -v python3.12 >/dev/null 2>&1; then
+    UV_PYTHON="$(command -v python3.12)"
 fi
 
-uv_run() {
-    if [[ -n "$UV_PYTHON" ]]; then
-        uv run --python "$UV_PYTHON" "$@"
-    else
-        uv run "$@"
-    fi
+if [[ -z "$UV_PYTHON" ]]; then
+    echo "Python 3.12 is required to run quality gates." >&2
+    exit 1
+fi
+
+uv_project_run() {
+    uv run --project "$ROOT_DIR/tools/enaible" --python "$UV_PYTHON" "$@"
 }
 
 cd "$ROOT_DIR"
@@ -76,22 +82,92 @@ else
 fi
 COVERAGE_FILE="$(mktemp "$TMP_DIR/coverage.XXXXXX")"
 export COVERAGE_FILE
+STEP_LABELS=()
+STEP_DURATIONS=()
+TOOLS_VENV_DIR="$TMP_DIR/uv-tools-venv"
+TOOLS_HASH_FILE="$TMP_DIR/uv-tools.hash"
+TOOL_PACKAGES=(
+    ruff
+    pytest
+    pytest-cov
+    pytest-xdist
+    pytest-timeout
+    mypy
+)
+run_step() {
+    local label="$1"
+    shift
+    echo "[ci-quality] ${label}"
+    local start
+    start="$(date +%s)"
+    "$@"
+    local end
+    end="$(date +%s)"
+    STEP_LABELS+=("$label")
+    STEP_DURATIONS+=("$((end - start))")
+}
+
+sha256_stream() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 | awk '{print $1}'
+    else
+        sha256sum | awk '{print $1}'
+    fi
+}
+
+sha256_file() {
+    if command -v shasum >/dev/null 2>&1; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        sha256sum "$1" | awk '{print $1}'
+    fi
+}
+
+print_timing_summary() {
+    if (( ${#STEP_LABELS[@]} == 0 )); then
+        return
+    fi
+    echo
+    echo "[ci-quality] Timing summary"
+    local total=0
+    for i in "${!STEP_LABELS[@]}"; do
+        local duration="${STEP_DURATIONS[$i]}"
+        total=$((total + duration))
+        printf "[ci-quality]  - %s: %ss\n" "${STEP_LABELS[$i]}" "$duration"
+    done
+    printf "[ci-quality]  - total: %ss\n" "$total"
+}
+
+ensure_tools_venv() {
+    local tools_hash
+    tools_hash="$(
+        printf '%s\n' "${TOOL_PACKAGES[@]}" "$UV_PYTHON" | sha256_stream
+    )"
+    if [[ -f "$TOOLS_HASH_FILE" ]] && [[ -d "$TOOLS_VENV_DIR" ]] && [[ "$(cat "$TOOLS_HASH_FILE")" == "$tools_hash" ]]; then
+        echo "[ci-quality] Tool venv up to date"
+        return
+    fi
+    rm -rf "$TOOLS_VENV_DIR"
+    uv venv --python "$UV_PYTHON" "$TOOLS_VENV_DIR"
+    uv pip install --python "$TOOLS_VENV_DIR/bin/python" "${TOOL_PACKAGES[@]}"
+    echo "$tools_hash" > "$TOOLS_HASH_FILE"
+}
+
 cleanup() {
     rm -f "$COVERAGE_FILE"
+    print_timing_summary
 }
 trap cleanup EXIT
 
-echo "[ci-quality] Prompt lint"
-uv run --project "$ROOT_DIR/tools/enaible" enaible prompts lint
+run_step "Prompts/skills lint + validate" uv_project_run bash -lc '
+  set -euo pipefail
+  enaible prompts lint
+  enaible prompts validate
+  enaible skills lint
+  enaible skills validate
+'
 
-echo "[ci-quality] Prompt validate"
-uv run --project "$ROOT_DIR/tools/enaible" enaible prompts validate
-
-echo "[ci-quality] Skills lint"
-uv run --project "$ROOT_DIR/tools/enaible" enaible skills lint
-
-echo "[ci-quality] Skills validate"
-uv run --project "$ROOT_DIR/tools/enaible" enaible skills validate
+run_step "Prepare shared tool venv" ensure_tools_venv
 
 prettier_files=()
 while IFS= read -r -d '' file; do
@@ -102,15 +178,14 @@ while IFS= read -r -d '' file; do
 done < <(git ls-files -z "*.md" "*.yml" "*.yaml")
 
 if [[ "$MODE" == "fix" ]]; then
-    echo "[ci-quality] Ruff format (fix)"
-    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml --force-exclude
-
-    echo "[ci-quality] Ruff lint (fix)"
-    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --fix --force-exclude
+    run_step "Ruff format + lint (fix)" bash -lc "
+      set -euo pipefail
+      \"$TOOLS_VENV_DIR/bin/ruff\" format --config shared/config/formatters/ruff.toml --force-exclude
+      \"$TOOLS_VENV_DIR/bin/ruff\" check . --config shared/config/formatters/ruff.toml --fix --force-exclude
+    "
 
     if (( ${#prettier_files[@]} )); then
-        echo "[ci-quality] Prettier (fix)"
-        npx --yes prettier --write "${prettier_files[@]}"
+        run_step "Prettier (fix)" npx --yes prettier --cache --cache-location "$TMP_DIR/prettier-cache" --write "${prettier_files[@]}"
     fi
 
     if [[ "$AUTO_STAGE" == "true" ]]; then
@@ -118,20 +193,20 @@ if [[ "$MODE" == "fix" ]]; then
         git add -u
     fi
 else
-    echo "[ci-quality] Ruff format (check)"
-    uv_run --with ruff ruff format --config shared/config/formatters/ruff.toml --check --force-exclude
-
-    echo "[ci-quality] Ruff lint (check)"
-    uv_run --with ruff ruff check . --config shared/config/formatters/ruff.toml --no-fix --force-exclude
+    run_step "Ruff format + lint (check)" bash -lc "
+      set -euo pipefail
+      \"$TOOLS_VENV_DIR/bin/ruff\" format --config shared/config/formatters/ruff.toml --check --force-exclude
+      \"$TOOLS_VENV_DIR/bin/ruff\" check . --config shared/config/formatters/ruff.toml --no-fix --force-exclude
+    "
 
     if (( ${#prettier_files[@]} )); then
-        echo "[ci-quality] Prettier (check)"
-        npx --yes prettier --check "${prettier_files[@]}"
+        run_step "Prettier (check)" npx --yes prettier --cache --cache-location "$TMP_DIR/prettier-cache" --check "${prettier_files[@]}"
     fi
 fi
 
-echo "[ci-quality] Running shared analyzer unit tests + coverage"
-uv_run --with pytest --with pytest-cov --with pytest-xdist --with pytest-timeout pytest -q shared/tests/unit -n auto --dist=loadfile --timeout=60 \
+run_step "Shared analyzer unit tests + coverage + mypy" bash -lc "
+  set -euo pipefail
+  \"$TOOLS_VENV_DIR/bin/pytest\" -q shared/tests/unit -n auto --dist=loadfile --timeout=60 \
     --cov=core.base.analyzer_registry \
     --cov=core.base.validation_rules \
     --cov=core.config.loader \
@@ -139,12 +214,30 @@ uv_run --with pytest --with pytest-cov --with pytest-xdist --with pytest-timeout
     --cov=core.utils.tech_stack_detector \
     --cov-report=term-missing \
     --cov-fail-under=85
+  \"$TOOLS_VENV_DIR/bin/mypy\" --config-file mypy.ini
+"
 
-echo "[ci-quality] Mypy type check"
-uv_run --with mypy mypy --config-file mypy.ini
-
-echo "[ci-quality] Enaible CLI tests (uv)"
-uv sync --project "$ROOT_DIR/tools/enaible" --frozen
-uv run --project "$ROOT_DIR/tools/enaible" python -m pytest tools/enaible/tests -v
+enaible_hash_inputs=(
+    "$ROOT_DIR/tools/enaible/uv.lock"
+    "$ROOT_DIR/tools/enaible/pyproject.toml"
+)
+enaible_hash="$(
+    {
+        sha256_file "${enaible_hash_inputs[0]}"
+        sha256_file "${enaible_hash_inputs[1]}"
+    } | sha256_stream
+)"
+enaible_hash_file="$TMP_DIR/enaible-uv.hash"
+enaible_env_dir="$ROOT_DIR/tools/enaible/.venv"
+run_step "Enaible CLI tests (uv)" bash -lc "
+  set -euo pipefail
+  if [[ -f \"$enaible_hash_file\" ]] && [[ -d \"$enaible_env_dir\" ]] && [[ \"\$(cat \"$enaible_hash_file\")\" == \"$enaible_hash\" ]]; then
+    echo \"[ci-quality] Enaible deps unchanged; skipping uv sync\"
+  else
+    uv sync --project \"$ROOT_DIR/tools/enaible\" --frozen
+    echo \"$enaible_hash\" > \"$enaible_hash_file\"
+  fi
+  uv run --project \"$ROOT_DIR/tools/enaible\" --python \"$UV_PYTHON\" python -m pytest tools/enaible/tests -v
+"
 
 echo "[ci-quality] Completed successfully"
