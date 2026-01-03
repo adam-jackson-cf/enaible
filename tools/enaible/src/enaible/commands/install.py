@@ -250,6 +250,8 @@ def _process_source_files(
     """Process and copy source files to destination based on installation mode."""
     files = _iter_source_files(source_root, system)
     always_managed_prefixes = ALWAYS_MANAGED_PREFIXES.get(system, ())
+    system_rules_rel = SYSTEM_RULES.get(system, (None, None))[0]
+    system_rules_path = Path(system_rules_rel) if system_rules_rel else None
 
     for source_file in files:
         relative = source_file.relative_to(source_root)
@@ -265,6 +267,16 @@ def _process_source_files(
             always_managed_prefixes,
         ):
             summary.record_skip(relative)
+            continue
+
+        if system_rules_path and relative == system_rules_path:
+            rules_body = _load_combined_rules(source_file)
+            if dry_run:
+                summary.record("write", destination_file)
+                continue
+            destination_file.parent.mkdir(parents=True, exist_ok=True)
+            destination_file.write_text(rules_body.rstrip() + "\n", encoding="utf-8")
+            summary.record("write", destination_file)
             continue
 
         if dry_run:
@@ -657,6 +669,23 @@ def _post_install(
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(updated, encoding="utf-8")
     summary.record("merge", target_path)
+
+
+def _load_combined_rules(source_rules: Path) -> str:
+    repo_root = source_rules.parents[3]
+    shared_rules = repo_root / "shared" / "rules" / "systems" / "global.rules.md"
+    parts: list[str] = []
+
+    if shared_rules.exists():
+        shared_body = shared_rules.read_text(encoding="utf-8").strip()
+        if shared_body:
+            parts.append(shared_body)
+
+    specific_body = source_rules.read_text(encoding="utf-8").strip()
+    if specific_body:
+        parts.append(specific_body)
+
+    return "\n\n".join(parts).strip()
 
 
 def _render_managed_prompts(

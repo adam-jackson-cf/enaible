@@ -61,7 +61,9 @@ Install and configure mgrep for natural-language semantic search across code, do
    - Add or update mgrep documentation section:
 
      ```md
-     ### When you need semantic code search
+     ### Tool: Mgrep
+
+     **Purpose** when you need semantic code search
 
      If `--semantic` is included in the user's request or a request requires finding code by intent rather than exact patterns, you **must** use mgrep.
 
