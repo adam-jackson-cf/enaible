@@ -5,8 +5,7 @@ This document is for maintainers of the Enaible toolchain inside the `enaible` r
 ## Audience & Expectations
 
 - You are updating prompt source files, analyzer implementations, or system installers.
-- You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `ruff`, `mypy`, `pytest`) before merging.
-- You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `enaible skills lint`, `enaible skills validate`, `ruff`, `mypy`, `pytest`) before merging.
+- You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `ruff`, `mypy`, `pytest`) before merging. If you edit skills, also run `enaible skills lint` and `enaible skills validate`.
 - You keep managed assets in `.codex/`, `.claude/`, `.github/` synchronized via `enaible install`.
 
 ## Toolchain Requirements
@@ -54,39 +53,7 @@ Install the hook runner once via `pre-commit install`. The lone hook defined in 
 
 ### Commit Message Convention
 
-Use [Conventional Commits](https://www.conventionalcommits.org/) format for all commits. The `version-changelog.yml` workflow uses commit prefixes to auto-bump the version in `tools/enaible/pyproject.toml` and generate changelog entries.
-
-**Format:** `<type>: <description>`
-
-| Prefix      | Version Bump          | When to Use                          |
-| ----------- | --------------------- | ------------------------------------ |
-| `feat:`     | Minor (0.1.0 → 0.2.0) | New feature or capability            |
-| `fix:`      | Patch (0.1.0 → 0.1.1) | Bug fix                              |
-| `perf:`     | Patch                 | Performance improvement              |
-| `chore:`    | None                  | Maintenance, deps, configs           |
-| `docs:`     | None                  | Documentation only                   |
-| `refactor:` | None                  | Code restructure, no behavior change |
-| `test:`     | None                  | Adding or updating tests             |
-
-**Breaking changes:** Include `BREAKING CHANGE` in commit body for major bumps (0.x.x → 1.0.0).
-
-**Examples:**
-
-```bash
-# Minor bump - new feature
-git commit -m "feat: add pi coding agent system support"
-
-# Patch bump - bug fix
-git commit -m "fix: correct token replacement order in renderer"
-
-# No bump - maintenance
-git commit -m "chore: update dependencies"
-
-# Major bump - breaking change
-git commit -m "feat: redesign analyzer API
-
-BREAKING CHANGE: Analyzer.run() now returns Result instead of dict"
-```
+Follow the Conventional Commits rules defined globally in `~/.codex/AGENTS.md`. This repository’s `version-changelog.yml` workflow reads those prefixes to bump `tools/enaible/pyproject.toml`, refresh `README.md` recent changes, and emit CHANGELOG entries. Include `BREAKING CHANGE` in the commit body whenever behavior changes demand a major release so the automation can detect it.
 
 The workflow runs on push to `main`, updates version/changelog/README, and commits with `[skip ci]` to prevent loops.
 
@@ -201,9 +168,7 @@ The following rules are derived from recurring PR review feedback. Follow these 
 
 ### Secret Exposure Prevention
 
-- NEVER echo, print, or log API keys, tokens, passwords, or secrets in command output or transcripts
-- ALWAYS use presence checks instead of value printing when verifying environment variables
-- ALWAYS mask sensitive values if display is required (show first/last 4 chars only)
+Global security requirements already cover these guardrails—never print secret material, always verify with presence checks, and mask any values that must be shown. This repo standardizes on the snippet below; use it instead of echoing environment variables.
 
 ❌ BAD:
 

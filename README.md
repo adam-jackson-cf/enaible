@@ -7,7 +7,12 @@
 ![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg?style=flat-square)
 ![Languages](https://img.shields.io/badge/languages-Python%20%7C%20TS%20%7C%20Go%20%7C%20Rust%20%7C%20C%23-orange?style=flat-square)
 
+</div>
+
+<div align="left">
+
 ### v1.1.0 | Recent Changes
+
 - feat: add agentic readiness prompt and speed up gates
 - feat: filter README recent changes to features and breaking changes
 - feat: add research skill for multi-domain investigations
