@@ -65,7 +65,7 @@ if [[ -z "$UV_PYTHON" ]] && command -v python3.12 >/dev/null 2>&1; then
 fi
 
 if [[ -z "$UV_PYTHON" ]]; then
-    echo "Python 3.12 is required to run quality gates." >&2
+    echo "Python 3.12 is required to run quality gates. Configure pyenv or set UV_PYTHON to a 3.12 binary." >&2
     exit 1
 fi
 

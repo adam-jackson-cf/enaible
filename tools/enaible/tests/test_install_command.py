@@ -36,6 +36,17 @@ def run_install(
     return runner.invoke(app, args)
 
 
+def run_install_default(
+    system: str, target: Path | None = None, extra_args: list[str] | None = None
+):
+    args = ["install", system]
+    if target is not None:
+        args.extend(["--target", str(target)])
+    if extra_args:
+        args.extend(extra_args)
+    return runner.invoke(app, args)
+
+
 @pytest.fixture(autouse=True)
 def _patch_workspace(monkeypatch: pytest.MonkeyPatch) -> None:
     context = WorkspaceContext(
@@ -387,18 +398,8 @@ def test_claude_code_status_program_only_for_claude_code(tmp_path: Path) -> None
 
 def test_install_default_sync_shared_calls_workspace_sync(tmp_path: Path) -> None:
     with patch("enaible.commands.install._sync_shared_workspace") as sync_shared:
-        result = runner.invoke(
-            app,
-            [
-                "install",
-                "claude-code",
-                "--target",
-                str(tmp_path),
-                "--mode",
-                "merge",
-                "--no-sync",
-                "--no-install-cli",
-            ],
+        result = run_install_default(
+            "claude-code", tmp_path, ["--mode", "merge", "--no-sync"]
         )
     assert result.exit_code == 0, result.stderr or result.stdout
     sync_shared.assert_called_once()
@@ -411,18 +412,10 @@ def test_install_default_cli_runs_install_steps(tmp_path: Path) -> None:
             "enaible.commands.install._install_playwright_browsers"
         ) as install_browsers,
     ):
-        result = runner.invoke(
-            app,
-            [
-                "install",
-                "claude-code",
-                "--target",
-                str(tmp_path),
-                "--mode",
-                "merge",
-                "--no-sync",
-                "--no-sync-shared",
-            ],
+        result = run_install_default(
+            "claude-code",
+            tmp_path,
+            ["--mode", "merge", "--no-sync", "--no-sync-shared"],
         )
     assert result.exit_code == 0, result.stderr or result.stdout
     install_cli.assert_called_once()
