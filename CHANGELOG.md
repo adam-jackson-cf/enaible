@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0] - 2026-01-03
+
+- feat: add agentic readiness prompt and speed up gates
+- fix: skip installing system rules files
+- fix: merge shared rules for installs
+- fix: sync rules and setup docs
+- chore: clarify gate python requirement and install helpers
+- chore: restore uv lockfile
+
 ## [1.0.0] - 2026-01-03
 
 - docs: document Cursor hook support
