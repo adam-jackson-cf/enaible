@@ -51,7 +51,7 @@ def test_install_merge_project_scope(tmp_path: Path) -> None:
     assert destination.exists()
 
 
-def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
+def test_install_merges_rules_into_claude_md(tmp_path: Path) -> None:
     result = runner.invoke(
         app,
         [
@@ -65,10 +65,12 @@ def test_install_copies_agents_and_rules(tmp_path: Path) -> None:
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
+    claude_md = tmp_path / "CLAUDE.md"
+    assert claude_md.exists()
+    content = claude_md.read_text(encoding="utf-8")
+    assert "**CRITICAL** Must follow Design Principles" in content
     rules = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
-    assert rules.exists()
-    rules_text = rules.read_text(encoding="utf-8")
-    assert "**CRITICAL** Must follow Design Principles" in rules_text
+    assert not rules.exists()
 
 
 def test_install_dry_run_leaves_destination_clean(tmp_path: Path) -> None:
@@ -114,7 +116,7 @@ def test_install_skips_unmanaged_files(tmp_path: Path) -> None:
     assert "Skipped" in result.stdout
 
 
-def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
+def test_install_idempotent_claude_md(tmp_path: Path) -> None:
     # First install to seed files
     base_result = runner.invoke(
         app,
@@ -129,10 +131,8 @@ def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
         ],
     )
     assert base_result.exit_code == 0, base_result.stderr or base_result.stdout
-    rules_path = tmp_path / ".claude" / "rules" / "global.claude.rules.md"
-    original = rules_path.read_text(encoding="utf-8")
-    # Mutate destination to simulate stale content
-    rules_path.write_text("outdated", encoding="utf-8")
+    claude_md = tmp_path / "CLAUDE.md"
+    original = claude_md.read_text(encoding="utf-8")
 
     result = runner.invoke(
         app,
@@ -147,7 +147,7 @@ def test_install_overwrites_managed_rules(tmp_path: Path) -> None:
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
-    assert rules_path.read_text(encoding="utf-8") == original
+    assert claude_md.read_text(encoding="utf-8") == original
 
 
 def test_merge_creates_folder_backup_not_per_file(tmp_path: Path) -> None:
@@ -220,7 +220,6 @@ def test_codex_fresh_backup_preserves_existing_unmanaged(tmp_path: Path) -> None
 
     # Managed assets should exist after install
     assert (codex_dir / "prompts").exists()
-    assert (codex_dir / "rules").exists()
 
     # A backup snapshot should have been created via copy (not move), path may be timestamped
     backups = list(target.glob(".codex.bak*"))
@@ -250,10 +249,6 @@ def test_claude_code_merges_rules_into_project_root_claude_md(tmp_path: Path) ->
         ],
     )
     assert result.exit_code == 0, result.stderr or result.stdout
-
-    # Rules file should be copied to .claude/rules/
-    rules_copy = target / ".claude" / "rules" / "global.claude.rules.md"
-    assert rules_copy.exists(), "Rules file should be copied to .claude/rules/"
 
     # Rules should ALSO be merged into project root CLAUDE.md
     claude_md = target / "CLAUDE.md"

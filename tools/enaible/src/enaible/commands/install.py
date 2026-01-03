@@ -270,13 +270,7 @@ def _process_source_files(
             continue
 
         if system_rules_path and relative == system_rules_path:
-            rules_body = _load_combined_rules(source_file)
-            if dry_run:
-                summary.record("write", destination_file)
-                continue
-            destination_file.parent.mkdir(parents=True, exist_ok=True)
-            destination_file.write_text(rules_body.rstrip() + "\n", encoding="utf-8")
-            summary.record("write", destination_file)
+            summary.record_skip(relative)
             continue
 
         if dry_run:
