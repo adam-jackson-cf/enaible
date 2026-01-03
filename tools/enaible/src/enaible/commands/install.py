@@ -446,7 +446,6 @@ def _sync_shared_workspace(
         Path("context"),
         Path("config"),
         Path("utils"),
-        Path("web_scraper"),
         Path("tools") / "ai_docs_changelog.py",
         Path("setup") / "install_dependencies.py",
         Path("setup") / "requirements.txt",

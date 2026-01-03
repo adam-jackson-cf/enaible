@@ -66,12 +66,12 @@ The codebase follows a clear **layered architecture** with three primary domains
 
 ## GAP ANALYSIS
 
-| Gap Category               | Status    | Finding                                                                                                                                                                                     | Confidence                             |
-| -------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
-| Business domain alignment  | Inspected | Domain boundaries (analyzers, prompts, skills, systems) align with documented structure in `AGENTS.md`; naming conventions follow `category:subcategory` pattern                            | **High**                               |
-| Team ownership boundaries  | Flagged   | No `CODEOWNERS` file at repo root; ownership unclear for shared vs. CLI code                                                                                                                | **Low** — requires manual verification |
-| Cross-cutting concerns     | Inspected | Logging: 11 files use `logging.getLogger()`; Error handling: centralized in `shared/core/base/error_handler.py` and `shared/web_scraper/error_handler.py`; two separate error systems exist | **Medium**                             |
-| Error handling consistency | Inspected | `CIErrorHandler` (core) vs `ErrorHandler` (web_scraper) — dual error systems may cause confusion                                                                                            | **Medium**                             |
+| Gap Category               | Status    | Finding                                                                                                                                                                                                     | Confidence                             |
+| -------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| Business domain alignment  | Inspected | Domain boundaries (analyzers, prompts, skills, systems) align with documented structure in `AGENTS.md`; naming conventions follow `category:subcategory` pattern                                            | **High**                               |
+| Team ownership boundaries  | Flagged   | No `CODEOWNERS` file at repo root; ownership unclear for shared vs. CLI code                                                                                                                                | **Low** — requires manual verification |
+| Cross-cutting concerns     | Inspected | Logging: 11 files use `logging.getLogger()`; Error handling: centralized in `shared/core/base/error_handler.py` and `shared/skills/docs-scraper/scripts/error_handler.py`; two separate error systems exist | **Medium**                             |
+| Error handling consistency | Inspected | `CIErrorHandler` (core) vs docs-scraper `ErrorHandler` — dual error systems may cause confusion                                                                                                             | **Medium**                             |
 
 ## RECOMMENDATIONS
 
@@ -79,7 +79,7 @@ The codebase follows a clear **layered architecture** with three primary domains
 
 2. **Add thread-safety to global singletons** — Use `threading.Lock` guards or context-local instances in `timing_utils.py`, `error_handler.py`, and `session_manager.py` if concurrent execution is expected. Priority: Medium.
 
-3. **Consolidate error handling** — Consider unifying `CIErrorHandler` and `ErrorHandler` (web_scraper) into a single pattern, or clearly document when each should be used. Priority: Low.
+3. **Consolidate error handling** — Consider unifying `CIErrorHandler` and the docs-scraper `ErrorHandler` into a single pattern, or clearly document when each should be used. Priority: Low.
 
 4. **Add `CODEOWNERS`** — Define ownership for `shared/`, `tools/enaible/`, and `systems/` to clarify review responsibilities. Priority: Low.
 

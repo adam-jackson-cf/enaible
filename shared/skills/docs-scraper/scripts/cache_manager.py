@@ -15,7 +15,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any
 
-from .config import get_config
+from config import get_config
 
 logger = logging.getLogger(__name__)
 

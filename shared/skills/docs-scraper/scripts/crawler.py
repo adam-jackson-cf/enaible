@@ -7,8 +7,8 @@ Provides basic website crawling functionality using Crawl4AI.
 import logging
 from typing import Any
 
-from .session_manager import session_manager
-from .utils import validate_and_normalize_url
+from session_manager import session_manager
+from utils import validate_and_normalize_url
 
 logger = logging.getLogger(__name__)
 

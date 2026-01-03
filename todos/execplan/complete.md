@@ -257,16 +257,22 @@
 │ │ ├── **init**.py
 │ │ ├── clean_claude_config.py +
 │ │ └── path_resolver.py +
-│ ├── web_scraper
-│ │ ├── **init**.py +
-│ │ ├── cache_manager.py +
-│ │ ├── cli.py +
-│ │ ├── config.py +
-│ │ ├── crawler.py +
-│ │ ├── error_handler.py +
-│ │ ├── scraper.py +
-│ │ ├── session_manager.py +
-│ │ └── utils.py +
+│ ├── skills
+│ │ ├── docs-scraper
+│ │ │ ├── references
+│ │ │ │ ├── preflight.md +
+│ │ │ │ ├── fetch.md +
+│ │ │ │ └── clean-and-report.md +
+│ │ │ └── scripts
+│ │ │ ├── cache_manager.py +
+│ │ │ ├── cli.py +
+│ │ │ ├── config.py +
+│ │ │ ├── crawler.py +
+│ │ │ ├── error_handler.py +
+│ │ │ ├── run_docs_scraper.py +
+│ │ │ ├── scraper.py +
+│ │ │ ├── session_manager.py +
+│ │ │ └── utils.py +
 │ ├── **init**.py +
 │ └── conftest.py +
 ├── systems
@@ -6606,32 +6612,6 @@ def context_capture(
  env = _env_with_shared(workspace.shared_root)
  proc = subprocess.run([sys.executable, str(script_path), *args], env=env)
  raise typer.Exit(code=proc.returncode)
-
-
-@app.command("docs_scrape")
-def docs_scrape(
- url: str = typer.Argument(..., help="URL to scrape."),
- out: Path = typer.Argument(..., help="Destination markdown file."),
- title: str | None = typer.Option(None, "--title", help="Override document title."),
- verbose: bool = typer.Option(
-     False, "--verbose", "-v", help="Enable verbose logging for the scraper."
- ),
-) -> None:
- """Scrape documentation and save as markdown using the shared web scraper."""
- workspace = load_workspace()
- env = _env_with_shared(workspace.shared_root)
-
- cmd = [sys.executable, "-m", "web_scraper.cli"]
- if verbose:
-     cmd.append("-v")
- cmd.extend(["save-as-markdown", url, str(out)])
- if title:
-     cmd.extend(["--title", title])
-
- proc = subprocess.run(cmd, env=env)
- raise typer.Exit(code=proc.returncode)
-
-
 @app.command("version")
 def version() -> None:
  """Display CLI version information."""

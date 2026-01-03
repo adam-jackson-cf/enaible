@@ -132,11 +132,19 @@ Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_R
 
 ### Python Quality Checks (for debugging individual steps)
 
+Always target the repo floor (Python 3.12) by routing ad-hoc commands through uv/pyenv:
+
+```bash
+export UV_PYTHON="$(pyenv which python3.12 || pyenv which python)"
+```
+
+Invoke `uv run --python "$UV_PYTHON" ...` for every test/debug command to avoid the system Python 3.9 default.
+
 - **Ruff format/check** (gate script runs `uv run --directory tools/enaible ruff check .` plus `PYTHONPATH=shared uv run ruff check shared/` using `shared/config/formatters/ruff.toml`).
 - **Mypy** (gate script runs `uv run --with mypy mypy --config-file mypy.ini` which covers both shared analyzers and `tools/enaible/src`).
 - **Tests**
-  - Shared analyzers: `PYTHONPATH=shared pytest shared/tests/unit -v`
-  - Enaible CLI: `uv run --directory tools/enaible pytest tests/`
+  - Shared analyzers: `PYTHONPATH=shared uv run --python "$UV_PYTHON" pytest shared/tests/unit -v`
+  - Enaible CLI: `uv run --python "$UV_PYTHON" --directory tools/enaible pytest tests/`
 
 ## Repository Structure (maintainer view)
 

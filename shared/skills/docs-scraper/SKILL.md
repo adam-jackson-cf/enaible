@@ -1,7 +1,7 @@
 ---
 name: docs-scraper
 description: Fetch documentation from URLs and save clean markdown files for offline reference. USE WHEN the user asks to scrape, archive, or analyze docs from the web.
-compatibility: Requires network access, `uv`, and the Enaible CLI with write access to the desired output directory.
+compatibility: Requires uv≥0.4, Python 3.12+ (export `PYTHON_CMD`), and Crawl4AI + Playwright dependencies installed in the active environment.
 allowed-tools: @BASH @READ @WRITE
 ---
 
@@ -15,34 +15,31 @@ Capture documentation from URLs and save it as readable, well-structured markdow
 
 ## Need to...? Read This
 
-| Goal                         | Reference                                                                |
-| ---------------------------- | ------------------------------------------------------------------------ |
-| End-to-end workflow          | [references/docs-scrape-workflow.md](references/docs-scrape-workflow.md) |
-| Command reference + examples | [references/cli-reference.md](references/cli-reference.md)               |
+| Goal                     | Reference                                                        |
+| ------------------------ | ---------------------------------------------------------------- |
+| Preflight & environment  | [references/preflight.md](references/preflight.md)               |
+| Fetch & capture          | [references/fetch.md](references/fetch.md)                       |
+| Clean, attribute, report | [references/clean-and-report.md](references/clean-and-report.md) |
 
 ## Workflow
 
-Detailed commands and success criteria live in the reference files. Use this overview to stay aligned with the standard skill structure.
+Detailed instructions, artifact conventions, and success criteria live in the reference files. Use this overview to stay aligned with the standard skill structure.
 
-### Step 0: Intake
+### Step 0: Preflight + establish run directories
 
-**Purpose**: Confirm URLs, environment readiness, and storage targets before running scripts.
+**Purpose**: Confirm environment readiness and guarantee deterministic storage before scraping.
 
-- Validate provided URLs, deduplicate, and capture any authentication requirements.
-- Confirm `uv` + the Enaible CLI are available, you have write access to the destination directory, and the naming pattern is agreed upon.
-- Record the destination folder, filename pattern, and any required metadata tags.
+- Follow the [Preflight reference](references/preflight.md) to export `PYTHON_CMD`, `RUN_ID`, and `ARTIFACT_ROOT`, install Crawl4AI + Playwright as needed, and lock in filenames plus storage locations.
+- Keep every output/log under `@ARTIFACT_ROOT`; no other destination paths are allowed.
 
 ### Step 1: Fetch
 
-**Purpose**: Run `enaible docs_scrape` (via `uv run` if needed) for each URL and validate outputs.
+**Purpose**: Run the skill-local script for each URL and validate outputs.
 
-- Generate markdown captures plus raw artifacts, storing them under the designated output directory.
-- Follow fetch + verification instructions in [references/docs-scrape-workflow.md](references/docs-scrape-workflow.md).
+- Use the command template + batch loop in the [Fetch reference](references/fetch.md) so every capture has deterministic filenames, log paths, and validation criteria.
 
 ### Step 2: Clean + Save
 
-**Purpose**: Normalize markdown, add source attribution, and save files.
+**Purpose**: Normalize markdown, add source attribution, and save final files.
 
-- Apply any post-processing (frontmatter, link rewrites) described in the workflow reference.
-- Summarize results for the user and highlight manual follow-ups.
-- Consult [references/cli-reference.md](references/cli-reference.md) for command variants and examples.
+- Use [Clean, attribute, report](references/clean-and-report.md) to handle content pruning, metadata verification, and run summaries so all evidence stays inside `@ARTIFACT_ROOT`.

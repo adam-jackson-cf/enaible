@@ -2,9 +2,8 @@ import asyncio
 import logging
 import uuid
 
+from config import get_config
 from crawl4ai import AsyncWebCrawler, BrowserConfig, CacheMode, CrawlerRunConfig
-
-from .config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -153,6 +152,10 @@ class SessionManager:
                 finally:
                     self._crawler = None
 
+    def has_active_crawler(self) -> bool:
+        """Return True when a crawler instance is alive."""
+        return self._crawler is not None
+
     async def handle_session_error(self, session_id: str):
         """Handle session errors by marking as inactive."""
         logger.warning(f"Handling session error for: {session_id}")
@@ -167,4 +170,14 @@ session_manager = SessionManager()
 
 async def cleanup_on_exit():
     """Cleanup function to be called on server shutdown."""
+    await session_manager.cleanup_all_sessions()
+
+
+def has_active_crawler() -> bool:
+    """Module-level helper for tests."""
+    return session_manager.has_active_crawler()
+
+
+async def shutdown() -> None:
+    """Module-level helper used by tests."""
     await session_manager.cleanup_all_sessions()

@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from .config import get_config
+from config import get_config
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +89,7 @@ class TraditionalCrawlFallback(FallbackStrategy):
         )
 
         # Import here to avoid circular imports
-        from .crawl import crawl_website_async
+        from crawler import crawl_website as crawl_website_async
 
         # Extract parameters for traditional crawling
         url = args[0] if args else kwargs.get("url")
@@ -276,7 +276,7 @@ class ErrorHandler:
             return
 
         try:
-            from .session_manager import session_manager
+            from session_manager import session_manager
 
             await session_manager.handle_session_error(session_id)
             logger.info(f"Cleaned up failed session: {session_id}")

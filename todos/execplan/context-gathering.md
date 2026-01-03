@@ -330,16 +330,22 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ ├── **init**.py
 │ │ ├── clean_claude_config.py +
 │ │ └── path_resolver.py +
-│ ├── web_scraper
-│ │ ├── **init**.py +
-│ │ ├── cache_manager.py +
-│ │ ├── cli.py +
-│ │ ├── config.py +
-│ │ ├── crawler.py +
-│ │ ├── error_handler.py +
-│ │ ├── scraper.py +
-│ │ ├── session_manager.py +
-│ │ └── utils.py +
+│ ├── skills
+│ │ ├── docs-scraper
+│ │ │ ├── references
+│ │ │ │ ├── preflight.md +
+│ │ │ │ ├── fetch.md +
+│ │ │ │ └── clean-and-report.md +
+│ │ │ └── scripts
+│ │ │ ├── cache_manager.py +
+│ │ │ ├── cli.py +
+│ │ │ ├── config.py +
+│ │ │ ├── crawler.py +
+│ │ │ ├── error_handler.py +
+│ │ │ ├── run_docs_scraper.py +
+│ │ │ ├── scraper.py +
+│ │ │ ├── session_manager.py +
+│ │ │ └── utils.py +
 │ ├── **init**.py +
 │ └── conftest.py +
 ├── systems

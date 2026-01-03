@@ -11,10 +11,9 @@ import sys
 from pathlib import Path
 
 import click
-
-from .crawler import crawl_website
-from .scraper import scrape_url
-from .utils import extract_filename_from_url
+from crawler import crawl_website
+from scraper import scrape_url
+from utils import extract_filename_from_url
 
 
 @click.group()
