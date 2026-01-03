@@ -4,11 +4,11 @@ This adapter enables enaible shared prompts and skills to render for [GitHub Cop
 
 ## Configuration Structure
 
-| Scope        | Directory                            |
-| ------------ | ------------------------------------ |
-| Repository   | `.github/`                           |
-| Personal     | GitHub.com Settings > Copilot        |
-| Organization | GitHub.com Org Settings (Enterprise) |
+| Scope        | Directory                                                                   |
+| ------------ | --------------------------------------------------------------------------- |
+| Repository   | `.github/`                                                                  |
+| Personal     | VS Code user instructions file (see below) or GitHub.com Settings > Copilot |
+| Organization | GitHub.com Org Settings (Enterprise)                                        |
 
 ## File Formats
 
@@ -16,7 +16,12 @@ This adapter enables enaible shared prompts and skills to render for [GitHub Cop
 
 Instructions guide Copilot's behavior without explicit invocation.
 
-**Basic instructions**: `.github/copilot-instructions.md`
+**Repository instructions**: `.github/copilot-instructions.md`
+
+**User instructions (VS Code)**:
+
+- macOS: `~/Library/Application Support/Code/User/instructions/copilot.instructions.md`
+- Windows: `%APPDATA%\\Code\\User\\instructions\\copilot.instructions.md`
 
 ```markdown
 # Project Instructions
@@ -45,7 +50,7 @@ description: TypeScript and React standards
 - Define explicit return types
 ```
 
-**Agent instructions**: `AGENTS.md` at repository root
+**Note:** `AGENTS.md` is supported by Copilot as an experimental workspace feature, but the adapter uses `copilot-instructions.md` for repository scope and the VS Code user instructions file for user scope.
 
 ### Slash Commands (Prompts)
 

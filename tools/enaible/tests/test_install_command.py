@@ -501,10 +501,10 @@ def test_copilot_user_scope_uses_vscode_user_dir(
         assert str(vscode_user_dir) in result.stdout
 
 
-def test_copilot_user_scope_agents_md_in_github_subdir(
+def test_copilot_user_scope_instructions_file(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    """Verify copilot user scope install places AGENTS.md in .github subdirectory."""
+    """Verify copilot user scope install places instructions file in VS Code user directory."""
     # Mock VS Code user directory to a test location
     vscode_user_dir = tmp_path / "vscode_user"
     vscode_user_dir.mkdir(parents=True)
@@ -527,16 +527,17 @@ def test_copilot_user_scope_agents_md_in_github_subdir(
         )
         assert result.exit_code == 0, result.stderr or result.stdout
 
-        # AGENTS.md should be in .github subdirectory within VS Code user dir
-        agents_md_path = vscode_user_dir / ".github" / "AGENTS.md"
-        assert agents_md_path.exists(), "AGENTS.md should be in .github subdirectory"
-        assert "COPILOT_GLOBAL_RULES_START" in agents_md_path.read_text(
+        instructions_path = vscode_user_dir / "instructions" / "copilot.instructions.md"
+        assert instructions_path.exists(), (
+            "copilot.instructions.md should be in VS Code instructions directory"
+        )
+        assert "COPILOT_GLOBAL_RULES_START" in instructions_path.read_text(
             encoding="utf-8"
         )
 
 
-def test_copilot_project_scope_agents_md_in_github_dir(tmp_path: Path) -> None:
-    """Verify copilot project scope install places AGENTS.md in .github directory."""
+def test_copilot_project_scope_instructions_in_github_dir(tmp_path: Path) -> None:
+    """Verify copilot project scope install places copilot-instructions.md in .github."""
     result = runner.invoke(
         app,
         [
@@ -553,10 +554,9 @@ def test_copilot_project_scope_agents_md_in_github_dir(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.stderr or result.stdout
 
-    # AGENTS.md should be directly in .github directory for project scope
-    agents_md_path = tmp_path / ".github" / "AGENTS.md"
-    assert agents_md_path.exists(), "AGENTS.md should be in .github directory"
-    assert "COPILOT_GLOBAL_RULES_START" in agents_md_path.read_text(encoding="utf-8")
+    instructions_path = tmp_path / ".github" / "copilot-instructions.md"
+    assert instructions_path.exists(), "copilot-instructions.md should be in .github"
+    assert "COPILOT_GLOBAL_RULES_START" in instructions_path.read_text(encoding="utf-8")
 
 
 def test_claude_code_status_program_is_executable(tmp_path: Path) -> None:

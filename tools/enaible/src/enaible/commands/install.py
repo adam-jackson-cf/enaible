@@ -37,7 +37,7 @@ SKIP_FILES = {
 SYSTEM_RULES = {
     "claude-code": ("rules/global.claude.rules.md", "CLAUDE.md"),
     "codex": ("rules/global.codex.rules.md", "AGENTS.md"),
-    "copilot": ("rules/global.copilot.rules.md", "AGENTS.md"),
+    "copilot": ("rules/global.copilot.rules.md", "copilot-instructions.md"),
     "cursor": ("rules/global.cursor.rules.md", "user-rules-setting.md"),
     "gemini": ("rules/global.gemini.rules.md", "GEMINI.md"),
     "antigravity": ("rules/global.antigravity.rules.md", "GEMINI.md"),
@@ -608,6 +608,8 @@ def _post_install(
     # GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/).
     # For codex, target goes inside .codex directory
     # For copilot, target goes inside .github subdirectory (mirrors project scope pattern)
+    combined_rules = _load_combined_rules(source_rules)
+
     if system == "claude-code":
         target_path = (
             destination_root.parent / target_name
@@ -617,9 +619,8 @@ def _post_install(
     elif system == "antigravity":
         target_path = destination_root.parent / target_name
     elif system == "copilot" and scope.lower() == "user":
-        # For user-level copilot installs, place AGENTS.md in .github subdirectory
-        # within VS Code user directory to mirror project scope pattern
-        target_path = destination_root / ".github" / target_name
+        # For user-level copilot installs, use VS Code user instructions file.
+        target_path = destination_root / "instructions" / "copilot.instructions.md"
     else:
         target_path = destination_root / target_name
 
@@ -628,22 +629,22 @@ def _post_install(
         return
 
     if system == "codex":
-        _merge_codex_agents(target_path, source_rules)
+        _merge_codex_agents(target_path, combined_rules)
         summary.record("merge", target_path)
         return
 
     if system == "copilot":
-        _merge_copilot_agents(target_path, source_rules)
+        _merge_copilot_agents(target_path, combined_rules)
         summary.record("merge", target_path)
         return
 
     if system == "pi":
-        _merge_pi_agents(target_path, source_rules)
+        _merge_pi_agents(target_path, combined_rules)
         summary.record("merge", target_path)
         return
 
     if system == "cursor":
-        _create_cursor_user_rules(target_path, source_rules)
+        _create_cursor_user_rules(target_path, combined_rules)
         summary.record("write", target_path)
         typer.echo(
             "\n>>> Cursor requires manual configuration:\n"
@@ -655,7 +656,7 @@ def _post_install(
     header = (
         f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
     )
-    rules_body = source_rules.read_text(encoding="utf-8").strip()
+    rules_body = combined_rules.strip()
 
     if target_path.exists():
         existing = target_path.read_text(encoding="utf-8")
@@ -891,12 +892,11 @@ def _dependency_available(dep: PromptDependency) -> bool:
     return any(shutil.which(cmd) for cmd in dep.check_commands)
 
 
-def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:
+def _merge_codex_agents(target_path: Path, rules_body: str) -> None:
     start_marker = "<!-- CODEx_GLOBAL_RULES_START -->"
     end_marker = "<!-- CODEx_GLOBAL_RULES_END -->"
     header = f"# AI-Assisted Workflows (Codex Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
-    body = source_rules.read_text(encoding="utf-8").strip()
-    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+    block = f"{start_marker}\n{header}\n\n{rules_body.strip()}\n{end_marker}\n"
 
     existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
 
@@ -911,12 +911,11 @@ def _merge_codex_agents(target_path: Path, source_rules: Path) -> None:
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
 
 
-def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
+def _merge_copilot_agents(target_path: Path, rules_body: str) -> None:
     start_marker = "<!-- COPILOT_GLOBAL_RULES_START -->"
     end_marker = "<!-- COPILOT_GLOBAL_RULES_END -->"
     header = f"# AI-Assisted Workflows (Copilot Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
-    body = source_rules.read_text(encoding="utf-8").strip()
-    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+    block = f"{start_marker}\n{header}\n\n{rules_body.strip()}\n{end_marker}\n"
 
     existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
 
@@ -931,12 +930,11 @@ def _merge_copilot_agents(target_path: Path, source_rules: Path) -> None:
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
 
 
-def _merge_pi_agents(target_path: Path, source_rules: Path) -> None:
+def _merge_pi_agents(target_path: Path, rules_body: str) -> None:
     start_marker = "<!-- PI_GLOBAL_RULES_START -->"
     end_marker = "<!-- PI_GLOBAL_RULES_END -->"
     header = f"# AI-Assisted Workflows (Pi Global Rules) v{_enaible_version()} - Auto-generated, do not edit"
-    body = source_rules.read_text(encoding="utf-8").strip()
-    block = f"{start_marker}\n{header}\n\n{body}\n{end_marker}\n"
+    block = f"{start_marker}\n{header}\n\n{rules_body.strip()}\n{end_marker}\n"
 
     existing = target_path.read_text(encoding="utf-8") if target_path.exists() else ""
 
@@ -951,13 +949,11 @@ def _merge_pi_agents(target_path: Path, source_rules: Path) -> None:
     target_path.write_text(updated.rstrip() + "\n", encoding="utf-8")
 
 
-def _create_cursor_user_rules(target_path: Path, source_rules: Path) -> None:
+def _create_cursor_user_rules(target_path: Path, rules_body: str) -> None:
     """Create user-rules-setting.md for Cursor with instructions to copy to IDE settings."""
     header = f"# Cursor User Rules v{_enaible_version()} - Copy to Cursor > Settings > Rules > User"
     instruction = "Copy the contents below into Cursor > Settings > Rules > User Rules."
-    body = source_rules.read_text(encoding="utf-8").strip()
-
-    content = f"{header}\n\n{instruction}\n\n---\n\n{body}\n"
+    content = f"{header}\n\n{instruction}\n\n---\n\n{rules_body.strip()}\n"
 
     target_path.parent.mkdir(parents=True, exist_ok=True)
     target_path.write_text(content, encoding="utf-8")

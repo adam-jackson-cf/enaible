@@ -10,12 +10,6 @@
 
 ## **CRITICAL** Must follow Behaviour Rules - how you carry out actions (Always active)
 
-### Delegation & Parallelization (Always Active)
-
-- **ALWAYS** action concurrent task execution whenever:
-  - a list of tasks can be parallelized
-  - you can invoke new instances of your cli for task runners through the tmux tool.
-
 ### Security Requirements
 
 - **NEVER** commit, echo, print, or log API keys, tokens, passwords, or secrets in command output or transcripts
