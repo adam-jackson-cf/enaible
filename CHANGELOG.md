@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 2026-01-03
+
+- docs: document Cursor hook support
+- chore: migrate docs-scraper skill
+
 ## [1.0.0] - 2026-01-02
 
 - feat: filter README recent changes to features and breaking changes
