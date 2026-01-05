@@ -1,6 +1,6 @@
 # Purpose
 
-Assess agentic readiness and maintenance by scoring consistency, parallelizability, guidelines, guardrails strength, and documentation alignment using deterministic artifacts and KPI formulas.
+Assess agentic readiness and maintenance by scoring consistency, parallelizability, enforcement alignment, and principle risks using deterministic artifacts and KPI formulas.
 
 ## Variables
 
@@ -163,9 +163,10 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
        @EXCLUDE
      ```
 
-4. **Inventory tests and quality gates (local + CI parity)**
-   - Detect test types, frameworks, CI gates, and local gate commands.
+4. **Inventory tests and quality gates (local + CI parity + enforcement)**
+   - Detect test types, frameworks, CI gates, local gate commands, and pre-commit enforcement signals.
    - Produce parity gaps between local and CI quality checks.
+   - Record lint/test enforcement status based on pre-commit + CI evidence.
 
      ```bash
      python - <<'PY'
@@ -257,12 +258,29 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      if (root / "scripts" / "run-ci-quality-gates.sh").exists():
          local_files.append(root / "scripts" / "run-ci-quality-gates.sh")
 
+     precommit_files = []
+     for name in (
+         ".pre-commit-config.yaml",
+         ".pre-commit-config.yml",
+         ".lefthook.yml",
+         "lefthook.yml",
+         ".overcommit.yml",
+         "overcommit.yml",
+         ".husky/pre-commit",
+         ".husky/pre-commit.sh",
+         ".githooks/pre-commit",
+         ".githooks/pre-commit.sh",
+     ):
+         candidate = root / name
+         if candidate.exists():
+             precommit_files.append(candidate)
+
      gate_signals = {
          "lint": ["lint", "eslint", "ruff", "flake8", "golangci-lint", "clippy", "swiftlint", "dotnet format"],
          "format": ["format", "prettier", "black", "gofmt", "ruff format", "dotnet format"],
          "typecheck": ["mypy", "pyright", "tsc", "typecheck", "go vet", "cargo check", "dotnet build"],
          "test": ["pytest", "go test", "cargo test", "dotnet test", "jest", "vitest", "npm test", "pnpm test", "bun test"],
-         "integration": ["integration", "e2e", "playwright", "cypress"],
+         "integration": ["integration", "e2e", "playwright", "cypress", "smoke"],
          "coverage": ["coverage", "lcov", "nyc", "pytest --cov", "go test -cover", "codecov"],
          "duplication": ["jscpd", "duplication", "sonar"],
          "complexity": ["lizard", "complexity", "sonar"],
@@ -315,18 +333,26 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
          return hits
 
      ci_hits = scan_gate_hits(ci_files)
-     local_hits = scan_gate_hits(local_files)
+     local_gate_files = list(dict.fromkeys(local_files + precommit_files))
+     local_hits = scan_gate_hits(local_gate_files)
+     precommit_hits = scan_gate_hits(precommit_files)
      ci_gates = {k: bool(v) for k, v in ci_hits.items()}
      local_gates = {k: bool(v) for k, v in local_hits.items()}
+     precommit_gates = {k: bool(v) for k, v in precommit_hits.items()}
 
      ci_files_present = bool(ci_files)
-     local_files_present = bool(local_files)
+     local_files_present = bool(local_gate_files)
      ci_present = ci_files_present and any(ci_gates.values())
      local_present = local_files_present and any(local_gates.values())
      parity_gaps = {
          "missing_in_ci": [k for k, v in local_gates.items() if v and not ci_gates[k]],
          "missing_local": [k for k, v in ci_gates.items() if v and not local_gates[k]],
      }
+     parity_ok = not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
+
+     lint_config_present = bool(lint_configs)
+     lint_enforced = lint_config_present and ci_gates["lint"] and precommit_gates["lint"]
+     tests_enforced = hard_tests_present and ci_gates["integration"] and precommit_gates["integration"]
 
      (artifact_root / "tests-inventory.json").write_text(
          json.dumps(
@@ -343,17 +369,24 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
              {
                  "ci_files": [str(p) for p in ci_files],
                  "local_files": [str(p) for p in local_files],
+                 "precommit_files": [str(p) for p in precommit_files],
                  "lint_configs": lint_configs,
                  "typecheck_configs": typecheck_configs,
                  "ci_hits": ci_hits,
                  "local_hits": local_hits,
+                 "precommit_hits": precommit_hits,
                  "ci_gates": ci_gates,
                  "local_gates": local_gates,
+                 "precommit_gates": precommit_gates,
                  "ci_files_present": ci_files_present,
                  "local_files_present": local_files_present,
                  "ci_gate_signals_present": ci_present,
                  "local_gate_signals_present": local_present,
                  "parity_gaps": parity_gaps,
+                 "parity_ok": parity_ok,
+                 "lint_config_present": lint_config_present,
+                 "lint_enforced": lint_enforced,
+                 "tests_enforced": tests_enforced,
              },
              indent=2,
          )
@@ -361,8 +394,8 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      PY
      ```
 
-5. **Guidelines, guardrails, and documentation exposure**
-   - Evaluate guidance signals and whether human documentation is referenced or drifting away from execution paths.
+5. **Documentation risk + review standards**
+   - Documentation is not a positive signal by default; detect doc risks, enforceable rules in docs, and missing LLM review standards.
 
      ```bash
      python - <<'PY'
@@ -373,25 +406,15 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      root = Path(os.environ["TARGET_ABS"])
      artifact_root = Path(os.environ["ARTIFACT_ROOT"])
 
-     guideline_candidates = {
-         "agents": root / "AGENTS.md",
-         "contributing": root / "CONTRIBUTING.md",
-         "readme": root / "README.md",
-         "architecture": root / "ARCHITECTURE.md",
-         "docs_dir": root / "docs",
-     }
-     guideline_present = {k: p.exists() for k, p in guideline_candidates.items()}
-     guidelines_score = 1 if sum(guideline_present.values()) >= 2 else 0
-
      quality_gates = json.loads((artifact_root / "quality-gates.json").read_text())
-     tests_inventory = json.loads((artifact_root / "tests-inventory.json").read_text())
+     lint_config_present = quality_gates.get("lint_config_present", False)
 
-     has_ci = quality_gates.get("ci_gate_signals_present", False)
-     has_local_gate = quality_gates.get("local_gate_signals_present", False)
-     hard_tests_present = tests_inventory.get("hard_tests_present", False)
-
-     guardrails_score = 1 if (has_ci and has_local_gate and hard_tests_present) else 0
-
+     doc_candidates = [
+         root / "README.md",
+         root / "CONTRIBUTING.md",
+         root / "AGENTS.md",
+         root / "ARCHITECTURE.md",
+     ]
      doc_roots = [
          root / "docs",
          root / "documentation",
@@ -399,43 +422,79 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
          root / "runbooks",
          root / "guides",
      ]
-     doc_present = [str(p) for p in doc_roots if p.exists()]
 
-     referenced = False
-     for doc in (root / "README.md", root / "AGENTS.md"):
-         if doc.exists():
-             text = doc.read_text(errors="ignore").lower()
-             if "docs/" in text or "documentation" in text or "handbook" in text:
-                 referenced = True
+     doc_files = [p for p in doc_candidates if p.exists()]
+     for doc_root in doc_roots:
+         if doc_root.exists():
+             doc_files.extend(sorted(doc_root.rglob("*.md")))
+     doc_files = list(dict.fromkeys(doc_files))
+
+     enforce_modals = {"must", "required", "should", "shall", "never"}
+     enforce_terms = {
+         "lint",
+         "format",
+         "style",
+         "typecheck",
+         "mypy",
+         "ruff",
+         "eslint",
+         "prettier",
+         "flake8",
+         "golangci",
+         "clippy",
+         "test",
+         "ci",
+         "pre-commit",
+         "precommit",
+         "gate",
+     }
+     review_terms = {"review", "code review", "review criteria", "review checklist", "review standards"}
+     agent_terms = {"llm", "ai", "agent", "assistant"}
+
+     enforceable_hits = []
+     review_standards_present = False
+
+     for doc in doc_files:
+         try:
+             text = doc.read_text(errors="ignore")
+         except Exception:
+             continue
+         lower = text.lower()
+         if any(term in lower for term in agent_terms) and any(term in lower for term in review_terms):
+             review_standards_present = True
+         for line in lower.splitlines():
+             if any(modal in line for modal in enforce_modals) and any(term in line for term in enforce_terms):
+                 enforceable_hits.append(str(doc))
                  break
 
-     (artifact_root / "guidelines.json").write_text(
+     auto_included_docs = [str(root / "AGENTS.md")] if (root / "AGENTS.md").exists() else []
+     guidance_present = bool(doc_files)
+
+     doc_rules_unenforced = bool(enforceable_hits) and not lint_config_present
+
+     risk_reasons = []
+     if auto_included_docs:
+         risk_reasons.append("auto_included_docs_present")
+     if enforceable_hits:
+         risk_reasons.append("enforceable_rules_in_docs")
+     if doc_rules_unenforced:
+         risk_reasons.append("doc_rules_without_lint_config")
+     if guidance_present and not review_standards_present:
+         risk_reasons.append("missing_llm_review_standards")
+
+     risk_score = 1 if risk_reasons else 0
+
+     (artifact_root / "docs-risk.json").write_text(
          json.dumps(
              {
-                 "candidates": {k: str(v) for k, v in guideline_candidates.items()},
-                 "present": guideline_present,
-                 "score": guidelines_score,
-             },
-             indent=2,
-         )
-     )
-     (artifact_root / "guardrails.json").write_text(
-         json.dumps(
-             {
-                 "has_ci": has_ci,
-                 "has_local_gate": has_local_gate,
-                 "hard_tests_present": hard_tests_present,
-                 "score": guardrails_score,
-             },
-             indent=2,
-         )
-     )
-     (artifact_root / "docs-exposure.json").write_text(
-         json.dumps(
-             {
+                 "doc_files": [str(p) for p in doc_files],
                  "doc_roots": [str(p) for p in doc_roots],
-                 "present": doc_present,
-                 "referenced_in_readme_or_agents": referenced,
+                 "auto_included_docs": auto_included_docs,
+                 "enforceable_hits": enforceable_hits,
+                 "review_standards_present": review_standards_present,
+                 "doc_rules_unenforced": doc_rules_unenforced,
+                 "risk_reasons": risk_reasons,
+                 "risk_score": risk_score,
              },
              indent=2,
          )
@@ -443,7 +502,89 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      PY
      ```
 
-6. **Compute concentration + docs freshness**
+6. **Scan for MCP configuration**
+   - MCP configuration/registration is a readiness risk; record any evidence.
+
+     ```bash
+     python - <<'PY'
+     import json
+     import os
+     from pathlib import Path
+
+     root = Path(os.environ["TARGET_ABS"])
+     artifact_root = Path(os.environ["ARTIFACT_ROOT"])
+
+     skip_dirs = {
+         ".git",
+         "node_modules",
+         "dist",
+         "build",
+         "__pycache__",
+         ".next",
+         "vendor",
+         ".venv",
+         ".mypy_cache",
+         ".ruff_cache",
+         ".pytest_cache",
+         ".gradle",
+         "target",
+         "bin",
+         "obj",
+         "coverage",
+         ".turbo",
+         ".svelte-kit",
+         ".cache",
+         ".enaible",
+     }
+
+     direct_candidates = [
+         "mcp.json",
+         ".mcp.json",
+         "mcp.config.json",
+         "mcp.config.toml",
+         "mcp.config.yaml",
+         "mcp.config.yml",
+         ".mcp/config.json",
+         ".mcp/config.toml",
+         ".mcp/config.yaml",
+         ".mcp/config.yml",
+         ".cursor/mcp.json",
+         ".cursor/mcp.yaml",
+         ".cursor/mcp.yml",
+         ".cursor/mcp.toml",
+     ]
+
+     matches = []
+     for rel in direct_candidates:
+         candidate = root / rel
+         if candidate.exists():
+             matches.append(str(candidate))
+
+     for path in root.rglob("*"):
+         parts = path.parts
+         if any(part in skip_dirs for part in parts):
+             continue
+         if path.is_dir():
+             if path.name == ".mcp":
+                 matches.append(str(path))
+             continue
+         if "mcp" in path.name.lower() and path.suffix.lower() in {".json", ".toml", ".yaml", ".yml"}:
+             matches.append(str(path))
+
+     matches = sorted(set(matches))
+     (artifact_root / "mcp-scan.json").write_text(
+         json.dumps(
+             {
+                 "matches": matches,
+                 "mcp_present": bool(matches),
+             },
+             indent=2,
+         )
+     )
+     PY
+     ```
+
+7. **Compute concentration + docs freshness**
    - Create evidence files under @ARTIFACT_ROOT for concentration and documentation freshness:
 
      ```bash
@@ -519,7 +660,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      PY
      ```
 
-7. **Compute Agentic Readiness KPI**
+8. **Compute Agentic Readiness KPI**
    - Parse artifacts and compute the KPI using the formula below; save to `@ARTIFACT_ROOT/agentic-readiness.json`.
 
    **Scoring Primer**
@@ -530,9 +671,9 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Objective score: `O = Σ w_i * norm_i` (weights sum to 1)
 
    **Agentic Readiness**
-   - Signals (w): consistency `0.30`; parallelizability `0.30`; guidelines `0.15`; guardrails `0.15`; docs_freshness `0.10`
-   - Thresholds (bad ≥): dup `20%`; coupling `2.0`; concentration `0.5`; docs_age `180d`
-   - Normalization: invert vs bad thresholds; lower than bad scales up toward `1`
+   - Signals (w): consistency `0.20`; parallelizability `0.20`; lint_enforced `0.20`; tests_enforced `0.20`; ci_local_parity `0.10`; doc_risk `0.05`; mcp_risk `0.05`
+   - Thresholds (bad ≥): dup `20%`; coupling `2.0`; concentration `0.5`
+   - Normalization: lower is better for structural signals; enforcement/parity/risk are binary (`1` good, `0` bad)
    - Use artifact‑derived signals only; anchors are reviewer judgment applied once per KPI
 
      ```bash
@@ -544,10 +685,10 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      artifact_root = Path(os.environ["ARTIFACT_ROOT"])
      jscpd = json.loads((artifact_root / "quality-jscpd.json").read_text())
      coupling = json.loads((artifact_root / "architecture-coupling.json").read_text())
-     guidelines = json.loads((artifact_root / "guidelines.json").read_text())
-     guardrails = json.loads((artifact_root / "guardrails.json").read_text())
      concentration = json.loads((artifact_root / "history-concentration.json").read_text())
-     docs = json.loads((artifact_root / "docs-freshness.json").read_text())
+     quality_gates = json.loads((artifact_root / "quality-gates.json").read_text())
+     docs_risk = json.loads((artifact_root / "docs-risk.json").read_text())
+     mcp_scan = json.loads((artifact_root / "mcp-scan.json").read_text())
 
      dup_pct = (
          jscpd.get("metadata", {})
@@ -565,7 +706,6 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      coupling_score = round(sum(coupling_values) / len(coupling_values), 4) if coupling_values else 0.0
 
      concentration_ratio = concentration.get("concentration_ratio", 0.0)
-     docs_age = docs.get("doc_age_days", 999)
 
      def clamp(value, low=0.0, high=1.0):
          return max(low, min(high, value))
@@ -579,16 +719,21 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      norm_concentration = norm_lower_is_better(concentration_ratio, bad=0.5, good=0.0)
      consistency = round((norm_dup + norm_concentration) / 2, 4)
      parallelizability = norm_lower_is_better(coupling_score, bad=2.0, good=0.0)
-     guidelines_score = 1.0 if guidelines.get("score") == 1 else 0.0
-     guardrails_score = 1.0 if guardrails.get("score") == 1 else 0.0
-     docs_freshness = norm_lower_is_better(docs_age, bad=180.0, good=0.0)
+
+     lint_enforced = 1.0 if quality_gates.get("lint_enforced") else 0.0
+     tests_enforced = 1.0 if quality_gates.get("tests_enforced") else 0.0
+     ci_local_parity = 1.0 if quality_gates.get("parity_ok") else 0.0
+     doc_risk = 0.0 if docs_risk.get("risk_score") == 1 else 1.0
+     mcp_risk = 0.0 if mcp_scan.get("mcp_present") else 1.0
 
      objective = round(
-         (0.30 * consistency)
-         + (0.30 * parallelizability)
-         + (0.15 * guidelines_score)
-         + (0.15 * guardrails_score)
-         + (0.10 * docs_freshness),
+         (0.20 * consistency)
+         + (0.20 * parallelizability)
+         + (0.20 * lint_enforced)
+         + (0.20 * tests_enforced)
+         + (0.10 * ci_local_parity)
+         + (0.05 * doc_risk)
+         + (0.05 * mcp_risk),
          4,
      )
 
@@ -597,16 +742,20 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
              "duplication_percent": dup_pct,
              "concentration_ratio": concentration_ratio,
              "coupling_score": coupling_score,
-             "docs_age_days": docs_age,
-             "guidelines_score": guidelines.get("score"),
-             "guardrails_score": guardrails.get("score"),
+             "lint_enforced": quality_gates.get("lint_enforced"),
+             "tests_enforced": quality_gates.get("tests_enforced"),
+             "ci_local_parity": quality_gates.get("parity_ok"),
+             "doc_risk_reasons": docs_risk.get("risk_reasons", []),
+             "mcp_present": mcp_scan.get("mcp_present"),
          },
          "normalized": {
              "consistency": consistency,
              "parallelizability": parallelizability,
-             "guidelines": guidelines_score,
-             "guardrails": guardrails_score,
-             "docs_freshness": docs_freshness,
+             "lint_enforced": lint_enforced,
+             "tests_enforced": tests_enforced,
+             "ci_local_parity": ci_local_parity,
+             "doc_risk": doc_risk,
+             "mcp_risk": mcp_risk,
          },
          "objective_score": objective,
      }
@@ -614,7 +763,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      PY
      ```
 
-8. **Compute Maintenance Score**
+9. **Compute Maintenance Score**
    - Derive a maintenance score from duplication and complexity evidence; save to `@ARTIFACT_ROOT/maintenance-score.json`.
 
    **Maintenance Scoring**
@@ -692,9 +841,10 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      PY
      ```
 
-9. **Deliver report**
-   - Summarize readiness and maintenance, include KPI scores, list the contributing signals, and reference artifact files directly.
-   - Call out gaps in CI/local parity, missing hard tests, or unreferenced documentation roots.
+10. **Deliver report**
+
+- Summarize agentic readiness and maintenance, include KPI scores, list contributing signals, and reference artifact files directly.
+- Call out gaps in lint/test enforcement, CI/local parity, doc risks, and MCP findings.
 
 ## Output
 
@@ -722,14 +872,17 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
 | Duplication %        | <n>   | quality-jscpd.json         |
 | Coupling score       | <n>   | architecture-coupling.json |
 | Change concentration | <n>   | history-concentration.json |
-| Docs age (days)      | <n>   | docs-freshness.json        |
-| Guidelines present   | <0/1> | guidelines.json            |
-| Guardrails present   | <0/1> | guardrails.json            |
+| Lint enforced        | <0/1> | quality-gates.json         |
+| Tests enforced       | <0/1> | quality-gates.json         |
+| CI/local parity OK   | <0/1> | quality-gates.json         |
+| Doc risk reasons     | <n>   | docs-risk.json             |
+| MCP present          | <0/1> | mcp-scan.json              |
 
 ## QUALITY GATES & TESTS
 
 - Hard tests present: <yes/no> (integration/e2e/smoke/system)
-- Lint configs present: <yes/no> (see quality-gates.json)
+- Lint enforced in pre-commit + CI: <yes/no>
+- Integration/smoke enforced in pre-commit + CI: <yes/no>
 - CI/Local parity gaps: <summary>
 
 ## KPI SCORING
@@ -739,6 +892,14 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
 - Anchor (A): <10/8/5/2/0>
 - Agentic Readiness score (S): <n>
 - Legend: 🟢 7–10 Good, 🟠 4–6 Watch, 🔴 0–3 Risk
+
+## READINESS BLOCKERS
+
+1. <lint not enforced in pre-commit + CI>
+2. <integration/smoke not enforced in pre-commit + CI>
+3. <CI/local parity gaps>
+4. <docs encode enforceable rules or missing review standards>
+5. <MCP configuration present>
 
 ## MAINTENANCE SCORE
 
@@ -766,9 +927,8 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
 - architecture:coupling → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/architecture-coupling.json`
 - tests inventory → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/tests-inventory.json`
 - quality gates → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/quality-gates.json`
-- guidelines evidence → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/guidelines.json`
-- guardrails evidence → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/guardrails.json`
-- docs exposure → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/docs-exposure.json`
+- docs risk → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/docs-risk.json`
+- mcp scan → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/mcp-scan.json`
 - history concentration → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/history-concentration.json`
 - docs freshness → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/docs-freshness.json`
 - readiness score → `.enaible/artifacts/analyze-agentic-readiness/<timestamp>/agentic-readiness.json`

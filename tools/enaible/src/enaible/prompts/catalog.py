@@ -278,7 +278,7 @@ CATALOG: dict[str, PromptDefinition] = {
     "analyze-agentic-readiness": PromptDefinition(
         prompt_id="analyze-agentic-readiness",
         source_path=_repo_path("shared", "prompts", "analyze-agentic-readiness.md"),
-        title="analyze-agentic-readiness v1.0",
+        title="analyze-agentic-readiness v1.1",
         systems={
             "claude-code": SystemPromptConfig(
                 template="docs/system/claude-code/templates/command.md.j2",
@@ -312,7 +312,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "analyze-agentic-readiness.prompt.md",
                 ),
                 frontmatter={
-                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment",
+                    "description": "Assess agentic readiness and score consistency, enforcement alignment, guardrails, and documentation risk",
                     "mode": "agent",
                     "tools": ["githubRepo", "search/codebase", "terminal"],
                 },
@@ -337,7 +337,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "analyze-agentic-readiness.toml",
                 ),
                 frontmatter={
-                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                    "description": "Assess agentic readiness and score consistency, enforcement alignment, guardrails, and documentation risk"
                 },
             ),
             "antigravity": SystemPromptConfig(
@@ -350,7 +350,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "analyze-agentic-readiness.md",
                 ),
                 frontmatter={
-                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                    "description": "Assess agentic readiness and score consistency, enforcement alignment, guardrails, and documentation risk"
                 },
             ),
             "pi": SystemPromptConfig(
@@ -363,7 +363,7 @@ CATALOG: dict[str, PromptDefinition] = {
                     "analyze-agentic-readiness.md",
                 ),
                 frontmatter={
-                    "description": "Assess agentic readiness and score consistency, parallelizability, guardrails, guidelines, and docs alignment"
+                    "description": "Assess agentic readiness and score consistency, enforcement alignment, guardrails, and documentation risk"
                 },
             ),
         },

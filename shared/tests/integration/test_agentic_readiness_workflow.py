@@ -80,17 +80,14 @@ def test_agentic_readiness_workflow_juice_shop(tmp_path: Path) -> None:
     tests_inventory = _inventory_tests(target)
     _write_json(artifact_root / "tests-inventory.json", tests_inventory)
 
-    quality_gates = _inventory_quality_gates(target)
+    quality_gates = _inventory_quality_gates(target, tests_inventory)
     _write_json(artifact_root / "quality-gates.json", quality_gates)
 
-    guidelines = _inventory_guidelines(target)
-    _write_json(artifact_root / "guidelines.json", guidelines)
+    docs_risk = _docs_risk(target, quality_gates)
+    _write_json(artifact_root / "docs-risk.json", docs_risk)
 
-    guardrails = _derive_guardrails(quality_gates, tests_inventory)
-    _write_json(artifact_root / "guardrails.json", guardrails)
-
-    docs_exposure = _docs_exposure(target)
-    _write_json(artifact_root / "docs-exposure.json", docs_exposure)
+    mcp_scan = _mcp_scan(target)
+    _write_json(artifact_root / "mcp-scan.json", mcp_scan)
 
     history = _history_concentration(target, days=180)
     _write_json(artifact_root / "history-concentration.json", history)
@@ -99,7 +96,12 @@ def test_agentic_readiness_workflow_juice_shop(tmp_path: Path) -> None:
     _write_json(artifact_root / "docs-freshness.json", docs_freshness)
 
     readiness = _compute_agentic_readiness(
-        jscpd_result, coupling_result, guidelines, guardrails, history, docs_freshness
+        jscpd_result,
+        coupling_result,
+        history,
+        quality_gates,
+        docs_risk,
+        mcp_scan,
     )
     _write_json(artifact_root / "agentic-readiness.json", readiness)
 
@@ -262,7 +264,9 @@ def _inventory_tests(root: Path) -> dict[str, object]:
     }
 
 
-def _inventory_quality_gates(root: Path) -> dict[str, object]:
+def _inventory_quality_gates(
+    root: Path, tests_inventory: dict[str, object]
+) -> dict[str, object]:
     ci_files: list[Path] = []
     if (root / ".github" / "workflows").exists():
         ci_files.extend((root / ".github" / "workflows").glob("*.y*ml"))
@@ -286,6 +290,23 @@ def _inventory_quality_gates(root: Path) -> dict[str, object]:
             local_files.append(candidate)
     if (root / "scripts" / "run-ci-quality-gates.sh").exists():
         local_files.append(root / "scripts" / "run-ci-quality-gates.sh")
+
+    precommit_files: list[Path] = []
+    for name in (
+        ".pre-commit-config.yaml",
+        ".pre-commit-config.yml",
+        ".lefthook.yml",
+        "lefthook.yml",
+        ".overcommit.yml",
+        "overcommit.yml",
+        ".husky/pre-commit",
+        ".husky/pre-commit.sh",
+        ".githooks/pre-commit",
+        ".githooks/pre-commit.sh",
+    ):
+        candidate = root / name
+        if candidate.exists():
+            precommit_files.append(candidate)
 
     gate_signals = {
         "lint": [
@@ -326,7 +347,7 @@ def _inventory_quality_gates(root: Path) -> dict[str, object]:
             "pnpm test",
             "bun test",
         ],
-        "integration": ["integration", "e2e", "playwright", "cypress"],
+        "integration": ["integration", "e2e", "playwright", "cypress", "smoke"],
         "coverage": [
             "coverage",
             "lcov",
@@ -386,12 +407,15 @@ def _inventory_quality_gates(root: Path) -> dict[str, object]:
         return hits
 
     ci_hits = scan_gate_hits(ci_files)
-    local_hits = scan_gate_hits(local_files)
+    local_gate_files = list(dict.fromkeys(local_files + precommit_files))
+    local_hits = scan_gate_hits(local_gate_files)
+    precommit_hits = scan_gate_hits(precommit_files)
     ci_gates = {k: bool(v) for k, v in ci_hits.items()}
     local_gates = {k: bool(v) for k, v in local_hits.items()}
+    precommit_gates = {k: bool(v) for k, v in precommit_hits.items()}
 
     ci_files_present = bool(ci_files)
-    local_files_present = bool(local_files)
+    local_files_present = bool(local_gate_files)
     ci_gate_signals_present = ci_files_present and any(ci_gates.values())
     local_gate_signals_present = local_files_present and any(local_gates.values())
 
@@ -399,57 +423,50 @@ def _inventory_quality_gates(root: Path) -> dict[str, object]:
         "missing_in_ci": [k for k, v in local_gates.items() if v and not ci_gates[k]],
         "missing_local": [k for k, v in ci_gates.items() if v and not local_gates[k]],
     }
+    parity_ok = not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
+
+    lint_config_present = bool(lint_configs)
+    lint_enforced = lint_config_present and ci_gates["lint"] and precommit_gates["lint"]
+    hard_tests_present = bool(tests_inventory.get("hard_tests_present"))
+    tests_enforced = (
+        hard_tests_present
+        and ci_gates["integration"]
+        and precommit_gates["integration"]
+    )
 
     return {
         "ci_files": [str(p) for p in ci_files],
         "local_files": [str(p) for p in local_files],
+        "precommit_files": [str(p) for p in precommit_files],
         "lint_configs": lint_configs,
         "typecheck_configs": typecheck_configs,
         "ci_hits": ci_hits,
         "local_hits": local_hits,
+        "precommit_hits": precommit_hits,
         "ci_gates": ci_gates,
         "local_gates": local_gates,
+        "precommit_gates": precommit_gates,
         "ci_files_present": ci_files_present,
         "local_files_present": local_files_present,
         "ci_gate_signals_present": ci_gate_signals_present,
         "local_gate_signals_present": local_gate_signals_present,
         "parity_gaps": parity_gaps,
+        "parity_ok": parity_ok,
+        "lint_config_present": lint_config_present,
+        "lint_enforced": lint_enforced,
+        "tests_enforced": tests_enforced,
     }
 
 
-def _inventory_guidelines(root: Path) -> dict[str, object]:
-    guideline_candidates = {
-        "agents": root / "AGENTS.md",
-        "contributing": root / "CONTRIBUTING.md",
-        "readme": root / "README.md",
-        "architecture": root / "ARCHITECTURE.md",
-        "docs_dir": root / "docs",
-    }
-    present = {k: p.exists() for k, p in guideline_candidates.items()}
-    score = 1 if sum(present.values()) >= 2 else 0
-    return {
-        "candidates": {k: str(v) for k, v in guideline_candidates.items()},
-        "present": present,
-        "score": score,
-    }
+def _docs_risk(root: Path, quality_gates: dict[str, object]) -> dict[str, object]:
+    lint_config_present = bool(quality_gates.get("lint_config_present"))
 
-
-def _derive_guardrails(
-    quality_gates: dict[str, object], tests_inventory: dict[str, object]
-) -> dict[str, object]:
-    has_ci = bool(quality_gates.get("ci_gate_signals_present"))
-    has_local_gate = bool(quality_gates.get("local_gate_signals_present"))
-    hard_tests_present = bool(tests_inventory.get("hard_tests_present"))
-    score = 1 if (has_ci and has_local_gate and hard_tests_present) else 0
-    return {
-        "has_ci": has_ci,
-        "has_local_gate": has_local_gate,
-        "hard_tests_present": hard_tests_present,
-        "score": score,
-    }
-
-
-def _docs_exposure(root: Path) -> dict[str, object]:
+    doc_candidates = [
+        root / "README.md",
+        root / "CONTRIBUTING.md",
+        root / "AGENTS.md",
+        root / "ARCHITECTURE.md",
+    ]
     doc_roots = [
         root / "docs",
         root / "documentation",
@@ -457,21 +474,149 @@ def _docs_exposure(root: Path) -> dict[str, object]:
         root / "runbooks",
         root / "guides",
     ]
-    present = [str(p) for p in doc_roots if p.exists()]
 
-    referenced = False
-    for doc in (root / "README.md", root / "AGENTS.md"):
-        if doc.exists():
-            text = doc.read_text(errors="ignore").lower()
-            if "docs/" in text or "documentation" in text or "handbook" in text:
-                referenced = True
+    doc_files = [p for p in doc_candidates if p.exists()]
+    for doc_root in doc_roots:
+        if doc_root.exists():
+            doc_files.extend(sorted(doc_root.rglob("*.md")))
+    doc_files = list(dict.fromkeys(doc_files))
+
+    enforce_modals = {"must", "required", "should", "shall", "never"}
+    enforce_terms = {
+        "lint",
+        "format",
+        "style",
+        "typecheck",
+        "mypy",
+        "ruff",
+        "eslint",
+        "prettier",
+        "flake8",
+        "golangci",
+        "clippy",
+        "test",
+        "ci",
+        "pre-commit",
+        "precommit",
+        "gate",
+    }
+    review_terms = {"review", "code review", "review criteria", "review checklist"}
+    agent_terms = {"llm", "ai", "agent", "assistant"}
+
+    enforceable_hits: list[str] = []
+    review_standards_present = False
+
+    for doc in doc_files:
+        try:
+            text = doc.read_text(errors="ignore")
+        except Exception:
+            continue
+        lower = text.lower()
+        if any(term in lower for term in agent_terms) and any(
+            term in lower for term in review_terms
+        ):
+            review_standards_present = True
+        for line in lower.splitlines():
+            if any(modal in line for modal in enforce_modals) and any(
+                term in line for term in enforce_terms
+            ):
+                enforceable_hits.append(str(doc))
                 break
 
+    auto_included_docs = (
+        [str(root / "AGENTS.md")] if (root / "AGENTS.md").exists() else []
+    )
+    guidance_present = bool(doc_files)
+    doc_rules_unenforced = bool(enforceable_hits) and not lint_config_present
+
+    risk_reasons: list[str] = []
+    if auto_included_docs:
+        risk_reasons.append("auto_included_docs_present")
+    if enforceable_hits:
+        risk_reasons.append("enforceable_rules_in_docs")
+    if doc_rules_unenforced:
+        risk_reasons.append("doc_rules_without_lint_config")
+    if guidance_present and not review_standards_present:
+        risk_reasons.append("missing_llm_review_standards")
+
+    risk_score = 1 if risk_reasons else 0
+
     return {
+        "doc_files": [str(p) for p in doc_files],
         "doc_roots": [str(p) for p in doc_roots],
-        "present": present,
-        "referenced_in_readme_or_agents": referenced,
+        "auto_included_docs": auto_included_docs,
+        "enforceable_hits": enforceable_hits,
+        "review_standards_present": review_standards_present,
+        "doc_rules_unenforced": doc_rules_unenforced,
+        "risk_reasons": risk_reasons,
+        "risk_score": risk_score,
     }
+
+
+def _mcp_scan(root: Path) -> dict[str, object]:
+    skip_dirs = {
+        ".git",
+        "node_modules",
+        "dist",
+        "build",
+        "__pycache__",
+        ".next",
+        "vendor",
+        ".venv",
+        ".mypy_cache",
+        ".ruff_cache",
+        ".pytest_cache",
+        ".gradle",
+        "target",
+        "bin",
+        "obj",
+        "coverage",
+        ".turbo",
+        ".svelte-kit",
+        ".cache",
+        ".enaible",
+    }
+
+    direct_candidates = [
+        "mcp.json",
+        ".mcp.json",
+        "mcp.config.json",
+        "mcp.config.toml",
+        "mcp.config.yaml",
+        "mcp.config.yml",
+        ".mcp/config.json",
+        ".mcp/config.toml",
+        ".mcp/config.yaml",
+        ".mcp/config.yml",
+        ".cursor/mcp.json",
+        ".cursor/mcp.yaml",
+        ".cursor/mcp.yml",
+        ".cursor/mcp.toml",
+    ]
+
+    matches: list[str] = []
+    for rel in direct_candidates:
+        candidate = root / rel
+        if candidate.exists():
+            matches.append(str(candidate))
+
+    for path in root.rglob("*"):
+        if any(part in skip_dirs for part in path.parts):
+            continue
+        if path.is_dir():
+            if path.name == ".mcp":
+                matches.append(str(path))
+            continue
+        if "mcp" in path.name.lower() and path.suffix.lower() in {
+            ".json",
+            ".toml",
+            ".yaml",
+            ".yml",
+        }:
+            matches.append(str(path))
+
+    matches = sorted(set(matches))
+    return {"matches": matches, "mcp_present": bool(matches)}
 
 
 def _history_concentration(root: Path, *, days: int) -> dict[str, object]:
@@ -544,10 +689,10 @@ def _docs_freshness(root: Path) -> dict[str, object]:
 def _compute_agentic_readiness(
     jscpd_result,
     coupling_result,
-    guidelines: dict[str, object],
-    guardrails: dict[str, object],
     concentration: dict[str, object],
-    docs: dict[str, object],
+    quality_gates: dict[str, object],
+    docs_risk: dict[str, object],
+    mcp_scan: dict[str, object],
 ) -> dict[str, object]:
     dup_pct = (
         jscpd_result.metadata.get("statistics", {})
@@ -566,22 +711,24 @@ def _compute_agentic_readiness(
         else 0.0
     )
     concentration_ratio = concentration.get("concentration_ratio", 0.0)
-    docs_age = docs.get("doc_age_days", 999)
-
     norm_dup = _norm_lower_is_better(dup_pct, bad=20.0, good=0.0)
     norm_concentration = _norm_lower_is_better(concentration_ratio, bad=0.5, good=0.0)
     consistency = round((norm_dup + norm_concentration) / 2, 4)
     parallelizability = _norm_lower_is_better(coupling_score, bad=2.0, good=0.0)
-    guidelines_score = 1.0 if guidelines.get("score") == 1 else 0.0
-    guardrails_score = 1.0 if guardrails.get("score") == 1 else 0.0
-    docs_freshness = _norm_lower_is_better(docs_age, bad=180.0, good=0.0)
+    lint_enforced = 1.0 if quality_gates.get("lint_enforced") else 0.0
+    tests_enforced = 1.0 if quality_gates.get("tests_enforced") else 0.0
+    ci_local_parity = 1.0 if quality_gates.get("parity_ok") else 0.0
+    doc_risk = 0.0 if docs_risk.get("risk_score") == 1 else 1.0
+    mcp_risk = 0.0 if mcp_scan.get("mcp_present") else 1.0
 
     objective = round(
-        (0.30 * consistency)
-        + (0.30 * parallelizability)
-        + (0.15 * guidelines_score)
-        + (0.15 * guardrails_score)
-        + (0.10 * docs_freshness),
+        (0.20 * consistency)
+        + (0.20 * parallelizability)
+        + (0.20 * lint_enforced)
+        + (0.20 * tests_enforced)
+        + (0.10 * ci_local_parity)
+        + (0.05 * doc_risk)
+        + (0.05 * mcp_risk),
         4,
     )
 
@@ -590,16 +737,20 @@ def _compute_agentic_readiness(
             "duplication_percent": dup_pct,
             "concentration_ratio": concentration_ratio,
             "coupling_score": coupling_score,
-            "docs_age_days": docs_age,
-            "guidelines_score": guidelines.get("score"),
-            "guardrails_score": guardrails.get("score"),
+            "lint_enforced": quality_gates.get("lint_enforced"),
+            "tests_enforced": quality_gates.get("tests_enforced"),
+            "ci_local_parity": quality_gates.get("parity_ok"),
+            "doc_risk_reasons": docs_risk.get("risk_reasons", []),
+            "mcp_present": mcp_scan.get("mcp_present"),
         },
         "normalized": {
             "consistency": consistency,
             "parallelizability": parallelizability,
-            "guidelines": guidelines_score,
-            "guardrails": guardrails_score,
-            "docs_freshness": docs_freshness,
+            "lint_enforced": lint_enforced,
+            "tests_enforced": tests_enforced,
+            "ci_local_parity": ci_local_parity,
+            "doc_risk": doc_risk,
+            "mcp_risk": mcp_risk,
         },
         "objective_score": objective,
     }
