@@ -26,6 +26,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
 - ALWAYS run Enaible analyzers via the CLI (uv + enaible); never import analyzer modules directly.
 - Store raw analyzer outputs plus derived metrics under `.enaible/artifacts/analyze-agentic-readiness/`.
 - Always read artifacts via absolute paths derived from `@ARTIFACT_ROOT` (avoid relative `.enaible/...` reads).
+- Reuse the standard exclusion list (`dist/`, `build/`, `node_modules/`, `__pycache__/`, `.next/`, `vendor/`, `.venv/`, `.mypy_cache/`, `.ruff_cache/`, `.pytest_cache/`, `.gradle/`, `target/`, `bin/`, `obj/`, `coverage/`, `.turbo/`, `.svelte-kit/`, `.cache/`, `.enaible/artifacts/`) whenever you run analyzers or helper scripts; merge it with user-provided @EXCLUDE flags instead of editing fixtures.
 - Respect `@MIN_SEVERITY` for reporting; do not rerun analyzers at a lower severity to fish for more findings.
 - Run reconnaissance before analyzers so exclusions and stack detection are ready up front.
 - Invoke the shared deterministic scripts for recon, inventory, risk scans, and KPI math exactly as documented; do not inline their logic in the prompt.
@@ -64,6 +65,32 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Artifacts: `recon.json`, `repo-map.json`.
 
 3. **Run analyzers (consistency + coupling + complexity)**
+   - Build an auto-exclusion array from the recon list and merge it with any caller-supplied `@EXCLUDE` flags:
+
+     ```bash
+     AUTO_EXCLUDES=(
+       "--exclude" "dist/"
+       "--exclude" "build/"
+       "--exclude" "node_modules/"
+       "--exclude" "__pycache__/"
+       "--exclude" ".next/"
+       "--exclude" "vendor/"
+       "--exclude" ".venv/"
+       "--exclude" ".mypy_cache/"
+       "--exclude" ".ruff_cache/"
+       "--exclude" ".pytest_cache/"
+       "--exclude" ".gradle/"
+       "--exclude" "target/"
+       "--exclude" "bin/"
+       "--exclude" "obj/"
+       "--exclude" "coverage/"
+       "--exclude" ".turbo/"
+       "--exclude" ".svelte-kit/"
+       "--exclude" ".cache/"
+       "--exclude" ".enaible/artifacts/"
+     )
+     ```
+
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
@@ -71,18 +98,21 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-jscpd.json" \
+       "${AUTO_EXCLUDES[@]}" \
        @EXCLUDE
 
      ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/architecture-coupling.json" \
+       "${AUTO_EXCLUDES[@]}" \
        @EXCLUDE
 
      ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       "${AUTO_EXCLUDES[@]}" \
        @EXCLUDE
      ```
 

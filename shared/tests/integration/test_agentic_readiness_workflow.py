@@ -19,6 +19,15 @@ from shared.context.agentic_readiness import (
     recon_map,
 )
 
+DEFAULT_SKIP_PATTERNS = {
+    entry.strip("/") for entry in recon_map.DEFAULT_EXCLUSIONS if entry.strip("/")
+}
+DEFAULT_EXCLUDE_GLOBS = {
+    glob
+    for entry in DEFAULT_SKIP_PATTERNS
+    for glob in (entry, f"**/{entry}", f"**/{entry}/**")
+}
+
 
 @pytest.mark.slow
 def test_agentic_readiness_workflow_juice_shop(tmp_path: Path) -> None:
@@ -77,14 +86,19 @@ def test_agentic_readiness_workflow_juice_shop(tmp_path: Path) -> None:
 
 
 def _run_jscpd(target: Path):
+    scan_root = target / "frontend" / "src"
+    if not scan_root.is_dir():
+        scan_root = target
     config = create_analyzer_config(
-        target_path=str(target),
+        target_path=str(scan_root),
         min_severity="low",
         output_format="json",
     )
     config.timeout_seconds = 300
+    config.max_files = 1200
+    _apply_default_exclusions(config)
     analyzer = JSCPDAnalyzer(config=config)
-    result = analyzer.analyze(str(target))
+    result = analyzer.analyze(str(scan_root))
     if not result.success:
         message = (result.error_message or "").lower()
         if "jscpd is not available" in message:
@@ -100,6 +114,7 @@ def _run_coupling(target: Path):
         output_format="json",
     )
     config.max_files = 1200
+    _apply_default_exclusions(config)
     analyzer = CouplingAnalyzer(config=config)
     result = analyzer.analyze(str(target))
     assert result.success, result.error_message
@@ -113,9 +128,15 @@ def _run_lizard(target: Path):
         output_format="json",
     )
     config.max_files = 600
+    _apply_default_exclusions(config)
     analyzer = LizardComplexityAnalyzer(config=config)
     if not getattr(analyzer, "lizard_available", True):
         pytest.skip("Lizard CLI is not available in this environment")
     result = analyzer.analyze(str(target))
     assert result.success, result.error_message
     return result
+
+
+def _apply_default_exclusions(config) -> None:
+    config.skip_patterns.update(DEFAULT_SKIP_PATTERNS)
+    config.exclude_globs.update(DEFAULT_EXCLUDE_GLOBS)

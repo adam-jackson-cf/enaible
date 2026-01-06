@@ -5,6 +5,28 @@ import argparse
 import json
 from pathlib import Path
 
+DEFAULT_EXCLUSIONS = [
+    "dist/",
+    "build/",
+    "node_modules/",
+    "__pycache__/",
+    ".next/",
+    "vendor/",
+    ".venv/",
+    ".mypy_cache/",
+    ".ruff_cache/",
+    ".pytest_cache/",
+    ".gradle/",
+    "target/",
+    "bin/",
+    "obj/",
+    "coverage/",
+    ".turbo/",
+    ".svelte-kit/",
+    ".cache/",
+    ".enaible/artifacts/",
+]
+
 
 def detect_languages(root: Path) -> list[str]:
     def has_glob(pattern: str) -> bool:
@@ -58,31 +80,9 @@ def write_json(path: Path, payload: dict | list) -> None:
 
 
 def generate_recon(root: Path, artifact_root: Path) -> None:
-    exclusions = [
-        "dist/",
-        "build/",
-        "node_modules/",
-        "__pycache__/",
-        ".next/",
-        "vendor/",
-        ".venv/",
-        ".mypy_cache/",
-        ".ruff_cache/",
-        ".pytest_cache/",
-        ".gradle/",
-        "target/",
-        "bin/",
-        "obj/",
-        "coverage/",
-        ".turbo/",
-        ".svelte-kit/",
-        ".cache/",
-        ".enaible/artifacts/",
-    ]
-
     write_json(
         artifact_root / "recon.json",
-        {"languages": detect_languages(root), "exclusions": exclusions},
+        {"languages": detect_languages(root), "exclusions": DEFAULT_EXCLUSIONS},
     )
     write_json(artifact_root / "repo-map.json", {"entries": build_repo_map(root)})
 
