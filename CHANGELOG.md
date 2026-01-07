@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.1] - 2026-01-07
+
+- fix: apply exclusions to readiness analyzers
+- refactor: modularize agentic readiness workflow
+- refactor: restore agentic readiness prompt name
+- docs: align README changes and dedupe agents
+
 ## [1.1.0] - 2026-01-03
 
 - feat: add agentic readiness prompt and speed up gates

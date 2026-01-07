@@ -11,8 +11,7 @@
 
 <div align="left">
 
-### v1.1.0 | Recent Changes
-
+### v1.1.1 | Recent Changes
 - feat: add agentic readiness prompt and speed up gates
 - feat: filter README recent changes to features and breaking changes
 - feat: add research skill for multi-domain investigations
