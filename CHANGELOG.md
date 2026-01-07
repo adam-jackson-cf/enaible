@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [1.1.1] - 2026-01-07
 
+- docs: add next session handoff
+
+## [1.1.1] - 2026-01-07
+
 - fix: apply exclusions to readiness analyzers
 - refactor: modularize agentic readiness workflow
 - refactor: restore agentic readiness prompt name
