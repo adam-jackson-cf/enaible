@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1] - 2026-01-08
+
+- fix: format files and fix pre-commit staging for new files
+
 ## [1.2.0] - 2026-01-08
 
 - feat: add CLI workflow runner with E2E smoke test and report generation
