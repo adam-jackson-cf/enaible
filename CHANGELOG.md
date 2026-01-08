@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [1.2.2] - 2026-01-08
 
+
+## [1.2.2] - 2026-01-08
+
 - fix: resolve lint errors in agentic readiness workflow
 
 ## [1.2.1] - 2026-01-08
