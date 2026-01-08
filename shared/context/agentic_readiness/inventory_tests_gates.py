@@ -227,9 +227,13 @@ def generate_inventory(root: Path, artifact_root: Path) -> None:
             "missing_in_ci": [
                 k for k, v in local_gates.items() if v and not ci_gates[k]
             ],
-            "missing_local": [k for k, v in ci_gates.items() if v and not local_gates[k]],
+            "missing_local": [
+                k for k, v in ci_gates.items() if v and not local_gates[k]
+            ],
         }
-        parity_ok = not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
+        parity_ok = (
+            not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
+        )
 
         lint_configs = collect_lint_configs(root)
         lint_config_present = bool(lint_configs)

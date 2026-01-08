@@ -90,9 +90,7 @@ def generate_recon(root: Path, artifact_root: Path) -> None:
                 "exclusions": DEFAULT_EXCLUSIONS,
             },
         )
-        write_json(
-            artifact_root / "repo-map.json", {"entries": build_repo_map(root)}
-        )
+        write_json(artifact_root / "repo-map.json", {"entries": build_repo_map(root)})
 
 
 def main() -> None:

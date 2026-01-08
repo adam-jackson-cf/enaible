@@ -8,7 +8,6 @@ from pathlib import Path
 from shared.context.agentic_readiness.timing import log_phase
 
 
-
 def clamp(value: float, low: float = 0.0, high: float = 1.0) -> float:
     return max(low, min(high, value))
 
@@ -23,7 +22,9 @@ def compute_readiness(artifact_root: Path) -> dict:
     metadata = {"artifact_root": str(artifact_root)}
     with log_phase("helper:readiness_score", metadata):
         jscpd = json.loads((artifact_root / "quality-jscpd.json").read_text())
-        coupling = json.loads((artifact_root / "architecture-coupling.json").read_text())
+        coupling = json.loads(
+            (artifact_root / "architecture-coupling.json").read_text()
+        )
         concentration = json.loads(
             (artifact_root / "history-concentration.json").read_text()
         )

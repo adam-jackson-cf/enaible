@@ -17,9 +17,7 @@ def workflows_run(
     workflow: str = typer.Argument(
         ..., help="Workflow name (e.g., analyze-agentic-readiness)."
     ),
-    target: Path = typer.Option(
-        Path("."), "--target", "-t", help="Path to analyze."
-    ),
+    target: Path = typer.Option(Path("."), "--target", "-t", help="Path to analyze."),
     artifact_root: Path | None = typer.Option(
         None,
         "--artifact-root",
@@ -62,8 +60,7 @@ def workflows_run(
         raise typer.Exit(code=exit_code)
 
     raise typer.BadParameter(
-        f"Unknown workflow: {workflow}. "
-        "Available workflows: analyze-agentic-readiness"
+        f"Unknown workflow: {workflow}. Available workflows: analyze-agentic-readiness"
     )
 
 

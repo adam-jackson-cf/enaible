@@ -69,7 +69,9 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
     docs_risk_data = json.loads((artifact_root / "docs-risk.json").read_text())
     mcp_data = json.loads((artifact_root / "mcp-scan.json").read_text())
     tests_inv = json.loads((artifact_root / "tests-inventory.json").read_text())
-    concentration = json.loads((artifact_root / "history-concentration.json").read_text())
+    concentration = json.loads(
+        (artifact_root / "history-concentration.json").read_text()
+    )
 
     signals = readiness.get("signals", {})
     timestamp = artifact_root.name
@@ -96,28 +98,30 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
     for entry in repo_map.get("entries", []):
         lines.append(f"| {entry.get('path', '')} | {entry.get('category', '')} |")
 
-    lines.extend([
-        "",
-        "## Signals",
-        "",
-        "| Signal | Value | Evidence |",
-        "|--------|-------|----------|",
-        f"| Duplication % | {signals.get('duplication_percent', 0):.1f}% | quality-jscpd.json |",
-        f"| Coupling score | {signals.get('coupling_score', 0):.2f} | architecture-coupling.json |",
-        f"| Change concentration | {signals.get('concentration_ratio', 0):.2f} | history-concentration.json |",
-        f"| Lint enforced | {'Yes' if signals.get('lint_enforced') else 'No'} | quality-gates.json |",
-        f"| Tests enforced | {'Yes' if signals.get('tests_enforced') else 'No'} | quality-gates.json |",
-        f"| CI/local parity | {'OK' if signals.get('ci_local_parity') else 'Gaps'} | quality-gates.json |",
-        f"| Doc risk reasons | {len(signals.get('doc_risk_reasons', []))} | docs-risk.json |",
-        f"| MCP present | {'Yes' if signals.get('mcp_present') else 'No'} | mcp-scan.json |",
-        "",
-        "## Quality Gates & Tests",
-        "",
-        f"- **Hard tests present**: {'Yes' if tests_inv.get('hard_tests_present') else 'No'} (integration/e2e/smoke/system)",
-        f"- **Lint enforced in pre-commit + CI**: {'Yes' if quality_gates.get('lint_enforced') else 'No'}",
-        f"- **Tests enforced in pre-commit + CI**: {'Yes' if quality_gates.get('tests_enforced') else 'No'}",
-        f"- **CI/Local parity**: {'OK' if quality_gates.get('parity_ok') else 'Gaps detected'}",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Signals",
+            "",
+            "| Signal | Value | Evidence |",
+            "|--------|-------|----------|",
+            f"| Duplication % | {signals.get('duplication_percent', 0):.1f}% | quality-jscpd.json |",
+            f"| Coupling score | {signals.get('coupling_score', 0):.2f} | architecture-coupling.json |",
+            f"| Change concentration | {signals.get('concentration_ratio', 0):.2f} | history-concentration.json |",
+            f"| Lint enforced | {'Yes' if signals.get('lint_enforced') else 'No'} | quality-gates.json |",
+            f"| Tests enforced | {'Yes' if signals.get('tests_enforced') else 'No'} | quality-gates.json |",
+            f"| CI/local parity | {'OK' if signals.get('ci_local_parity') else 'Gaps'} | quality-gates.json |",
+            f"| Doc risk reasons | {len(signals.get('doc_risk_reasons', []))} | docs-risk.json |",
+            f"| MCP present | {'Yes' if signals.get('mcp_present') else 'No'} | mcp-scan.json |",
+            "",
+            "## Quality Gates & Tests",
+            "",
+            f"- **Hard tests present**: {'Yes' if tests_inv.get('hard_tests_present') else 'No'} (integration/e2e/smoke/system)",
+            f"- **Lint enforced in pre-commit + CI**: {'Yes' if quality_gates.get('lint_enforced') else 'No'}",
+            f"- **Tests enforced in pre-commit + CI**: {'Yes' if quality_gates.get('tests_enforced') else 'No'}",
+            f"- **CI/Local parity**: {'OK' if quality_gates.get('parity_ok') else 'Gaps detected'}",
+        ]
+    )
 
     parity_gaps = quality_gates.get("parity_gaps", {})
     if parity_gaps.get("missing_in_ci"):
@@ -127,25 +131,27 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
 
     # KPI Scoring
     obj_score = readiness.get("objective_score", 0)
-    lines.extend([
-        "",
-        "## KPI Scoring",
-        "",
-        "### Agentic Readiness",
-        "",
-        "- **Formula**: `S = round(0.7*O + 0.3*A, 1)`",
-        f"- **Objective score (O)**: {obj_score:.2f}",
-        "- **Anchor (A)**: _requires human judgment_",
-        f"- **Readiness indicator**: {_score_indicator(obj_score * 10)}",
-        "",
-        "### Maintenance Score",
-        "",
-        f"- **Objective score (O)**: {maintenance.get('objective_score', 0):.2f}",
-        f"- **Maintenance indicator**: {_score_indicator(maintenance.get('objective_score', 0) * 10)}",
-        "",
-        "## Readiness Blockers",
-        "",
-    ])
+    lines.extend(
+        [
+            "",
+            "## KPI Scoring",
+            "",
+            "### Agentic Readiness",
+            "",
+            "- **Formula**: `S = round(0.7*O + 0.3*A, 1)`",
+            f"- **Objective score (O)**: {obj_score:.2f}",
+            "- **Anchor (A)**: _requires human judgment_",
+            f"- **Readiness indicator**: {_score_indicator(obj_score * 10)}",
+            "",
+            "### Maintenance Score",
+            "",
+            f"- **Objective score (O)**: {maintenance.get('objective_score', 0):.2f}",
+            f"- **Maintenance indicator**: {_score_indicator(maintenance.get('objective_score', 0) * 10)}",
+            "",
+            "## Readiness Blockers",
+            "",
+        ]
+    )
 
     blockers = []
     if not quality_gates.get("lint_enforced"):
@@ -165,24 +171,26 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
     else:
         lines.append("_No blockers identified._")
 
-    lines.extend([
-        "",
-        "## Artifacts",
-        "",
-        f"- recon.json",
-        f"- repo-map.json",
-        f"- quality-jscpd.json",
-        f"- quality-lizard.json",
-        f"- architecture-coupling.json",
-        f"- tests-inventory.json",
-        f"- quality-gates.json",
-        f"- docs-risk.json",
-        f"- mcp-scan.json",
-        f"- history-concentration.json",
-        f"- docs-freshness.json",
-        f"- agentic-readiness.json",
-        f"- maintenance-score.json",
-    ])
+    lines.extend(
+        [
+            "",
+            "## Artifacts",
+            "",
+            f"- recon.json",
+            f"- repo-map.json",
+            f"- quality-jscpd.json",
+            f"- quality-lizard.json",
+            f"- architecture-coupling.json",
+            f"- tests-inventory.json",
+            f"- quality-gates.json",
+            f"- docs-risk.json",
+            f"- mcp-scan.json",
+            f"- history-concentration.json",
+            f"- docs-freshness.json",
+            f"- agentic-readiness.json",
+            f"- maintenance-score.json",
+        ]
+    )
 
     (artifact_root / "report.md").write_text("\n".join(lines) + "\n")
 
@@ -262,7 +270,11 @@ def run_workflow(
     if artifact_root is None:
         timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
         artifact_root = (
-            PROJECT_ROOT / ".enaible" / "artifacts" / "analyze-agentic-readiness" / timestamp
+            PROJECT_ROOT
+            / ".enaible"
+            / "artifacts"
+            / "analyze-agentic-readiness"
+            / timestamp
         )
     artifact_root = artifact_root.resolve()
     artifact_root.mkdir(parents=True, exist_ok=True)

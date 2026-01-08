@@ -40,9 +40,7 @@ def _write_line(payload: dict[str, Any], mirror_stdout: bool = True) -> None:
 
 
 @contextmanager
-def log_phase(
-    phase: str, metadata: dict[str, Any] | None = None
-) -> Iterator[None]:
+def log_phase(phase: str, metadata: dict[str, Any] | None = None) -> Iterator[None]:
     """Context manager that logs start/end timestamps for a phase."""
 
     start = time.perf_counter()
@@ -144,9 +142,7 @@ def run_command_with_timing(
 
 def _parse_args(argv: Sequence[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Run a command with agentic readiness timing instrumentation."
-        )
+        description=("Run a command with agentic readiness timing instrumentation.")
     )
     parser.add_argument(
         "--phase",

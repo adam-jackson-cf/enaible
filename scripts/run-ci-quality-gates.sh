@@ -189,8 +189,8 @@ if [[ "$MODE" == "fix" ]]; then
     fi
 
     if [[ "$AUTO_STAGE" == "true" ]]; then
-        echo "[ci-quality] Staging tracked fixes"
-        git add -u
+        echo "[ci-quality] Staging fixes"
+        git diff --cached --name-only --diff-filter=d | xargs -r git add
     fi
 else
     run_step "Ruff format + lint (check)" bash -lc "
