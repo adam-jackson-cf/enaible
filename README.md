@@ -11,12 +11,12 @@
 
 <div align="left">
 
-### v1.1.1 | Recent Changes
+### v1.2.0 | Recent Changes
+- feat: add CLI workflow runner with E2E smoke test and report generation
 - feat: add agentic readiness prompt and speed up gates
 - feat: filter README recent changes to features and breaking changes
 - feat: add research skill for multi-domain investigations
 - feat: add new analyzers and fixtures for parity
-- feat: add automated changelog and version bumping
 
 [Full Changelog](CHANGELOG.md)
 
