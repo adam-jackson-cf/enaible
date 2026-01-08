@@ -1,156 +1,40 @@
-# AI-Assisted Workflows Developer Guide
+# AGENTS.md
 
-This document is for maintainers of the Enaible toolchain inside the `enaible` repository. It explains how to extend prompts, analyzers, and installers, as well as the checks required before shipping changes. End-user installation and usage live in `README.md`.
+**NEVER** surface or search files in `docs/reference`, may only be access with explicit user consent (ask).
 
-## Audience & Expectations
+## Toolchain
 
-- You are updating prompt source files, analyzer implementations, or system installers.
-- You run all quality gates (`enaible prompts lint`, `enaible prompts validate`, `ruff`, `mypy`, `pytest`) before merging. If you edit skills, also run `enaible skills lint` and `enaible skills validate`.
-- You keep managed assets in `.codex/`, `.claude/`, `.github/` synchronized via `enaible install`.
+- Python 3.12, uv 0.4+
+- Bun 1.2+ for JS/Tailwind
 
-## Toolchain Requirements
+## Commits
 
-- Python 3.12 (local and CI use the same floor; `tools/enaible/pyproject.toml` enforces `<3.13`).
-- `uv` 0.4 or newer for syncing and running Enaible commands.
-- Bun ≥1.2 with the Ultracite preset when you edit JavaScript/Tailwind resources referenced by managed prompts.
+- Atomic commit strategy, but never push without explicity user consent.
+- Conventional Commits (feat|fix|refactor|build|ci|chore|docs|style|perf|test).
 
-## Quality Gates
-
-Run the consolidated gate harness before every commit (triggered automatically by pre commit hook, see below):
-
-```bash
-bash scripts/run-ci-quality-gates.sh --fix --stage
-```
-
-That single entry point executes everything listed:
-
-— prompt lint + validate
-
-- template rendering,
-- Ruff format/check,
-- Prettier,
-- shared analyzer unit tests with coverage,
-- repo-wide mypy,
-- Enaible CLI pytest suite
-
-This is so the same evidence drives both local commits and `.github/workflows/ci-quality-gates-incremental.yml`.
-
-Only fall back to the individual commands when you need to debug a specific failure.
-
-### Testing (All Suites)
-
-Always run tests under the pyenv-managed Python 3.12 toolchain:
-
-```bash
-export UV_PYTHON="$(pyenv which python3.12 || pyenv which python)"
-```
-
-Prefix every test/debug command with `uv run --python "$UV_PYTHON"` so tests never fall back to the system Python 3.9.
-
-### Pre-commit Hooks
-
-Install the hook runner once via `pre-commit install`. The lone hook defined in `.pre-commit-config.yaml` shells out to `scripts/run-ci-quality-gates.sh --fix --stage`, which is the same entry point used by `.github/workflows/ci-quality-gates-incremental.yml`. That script executes every gate above—prompt lint/validate, Ruff format/check (respecting `.gitignore` plus `shared/tests/fixture/`), Prettier, shared analyzer unit tests with coverage, mypy via `mypy.ini`, and the Enaible CLI pytest suite—so local commits and CI stay perfectly aligned. Do **not** add bespoke git hooks; route all future pre-commit behavior through this central `pre-commit` config so we keep a single source of truth.
-
-### Commit Message Convention
-
-Follow the Conventional Commits rules defined globally in `~/.codex/AGENTS.md`. This repository’s `version-changelog.yml` workflow reads those prefixes to bump `tools/enaible/pyproject.toml`, refresh `README.md` recent changes, and emit CHANGELOG entries. Include `BREAKING CHANGE` in the commit body whenever behavior changes demand a major release so the automation can detect it.
-
-The workflow runs on push to `main`, updates version/changelog/README, and commits with `[skip ci]` to prevent loops.
-
-### Prompt Validation
-
-**Lint prompt token usage** (invoked automatically by the gate script):
-
-```bash
-ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts lint
-```
-
-Validates:
-
-- No forbidden `$VAR` tokens outside code blocks (use `@TOKEN` in Variables section instead)
-- All `@TOKEN` references in body are declared in Variables section
-- Variable shape: tokens start with `@`, positional map to `$N`, flags map to `--flag-name`
-
-Checks:
-
-- Managed prompts: `shared/prompts/*.md`
-- Unmanaged prompts: `systems/*/commands/*.md`, `systems/*/prompts/*.md`
-- Skips files with `<!-- generated: enaible -->` comment
-
-**Validate rendered prompts match sources**:
-
-```bash
-ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts validate
-```
-
-Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible prompts render` to sync if drift detected.
-
-### Skill Validation
-
-**Lint skill frontmatter** (invoked automatically by the gate script):
-
-```bash
-ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills lint
-```
-
-Validates:
-
-- Frontmatter includes `name` + `description`
-- `name` matches the parent directory
-- `name` format conforms to the Agent Skills spec
-
-**Validate rendered skills match sources**:
-
-```bash
-ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills validate
-```
-
-Ensures rendered files in `systems/*/` match catalog output. Run `ENAIBLE_REPO_ROOT=$(pwd) uv run --directory tools/enaible enaible skills render` to sync if drift detected.
-
-### Python Quality Checks (for debugging individual steps)
-
-Always target the repo floor (Python 3.12) by routing ad-hoc commands through uv/pyenv:
-
-```bash
-export UV_PYTHON="$(pyenv which python3.12 || pyenv which python)"
-```
-
-Invoke `uv run --python "$UV_PYTHON" ...` for every test/debug command to avoid the system Python 3.9 default.
-
-- **Ruff format/check** (gate script runs `uv run --directory tools/enaible ruff check .` plus `PYTHONPATH=shared uv run ruff check shared/` using `shared/config/formatters/ruff.toml`).
-- **Mypy** (gate script runs `uv run --with mypy mypy --config-file mypy.ini` which covers both shared analyzers and `tools/enaible/src`).
-- **Tests**
-  - Shared analyzers: `PYTHONPATH=shared uv run --python "$UV_PYTHON" pytest shared/tests/unit -v`
-  - Enaible CLI: `uv run --python "$UV_PYTHON" --directory tools/enaible pytest tests/`
-
-## Repository Structure (maintainer view)
+## Structure
 
 ```
-ai-assisted-workflows/
-├── shared/
-│   ├── analyzers/          # Security, quality, architecture, performance, root_cause implementations
-│   ├── core/base/          # Analyzer registry + abstractions
-│   ├── context/            # Context capture scripts invoked by enaible
-│   └── prompts/            # Source prompt catalog rendered into CLI commands
-├── systems/
-│   ├── antigravity/        # Managed workflows for the Antigravity runtime
-│   ├── claude-code/        # Managed outputs (prompts/rules) consumed by Claude Code
-│   ├── codex/              # Managed prompts/rules consumed by the Codex CLI
-│   ├── copilot/            # Copilot adapter prompts/rules (rendered from shared sources)
-│   ├── cursor/             # Cursor-specific agent/rule overlays
-│   └── gemini/             # Gemini adapter commands/templates
-├── tools/enaible/          # uv-packaged Typer CLI providing render/install/run commands
-├── docs/                   # Maintainer guidance (installation, analysis, monitoring)
-└── todos/                  # Planning notes and exec plans
+shared/
+  analyzers/     - analyzer implementations
+  core/base/     - registry + abstractions
+  prompts/       - source prompt catalog
+  prompts/       - source skill catalog
+systems/         - per-adapter outputs (claude-code, codex, copilot, cursor, gemini)
+tools/enaible/   - CLI package
+docs/reference/  - deep docs (load on demand)
 ```
 
-### For detailed development workflows for this codebase, see:
+## Workflows
 
-- `shared/prompts/AGENTS.md` — when you want to add a new shared prompt
-- `systems/AGENTS.md` — when you want to add a new system adapter
-- `docs/testing.md` — active test suites and how to run them
+- Add prompt: `shared/prompts/AGENTS.md`
+- Add adapter: `systems/AGENTS.md`
+- Add skill: `shared/skills/AGENTS.md`
+- Testing: `docs/reference/testing.md`
 
-### When you need to track tasks across sessions
+### Tool: Beads
+
+**Purpose** when you need to track tasks across sessions (beads, bd)
 
 If `--tasks` is included in the users request or a request requires persistent task tracking beyond the current session, you **must** use Beads (bd).
 
@@ -161,96 +45,3 @@ If `--tasks` is included in the users request or a request requires persistent t
 - `bd show <id>` — View task details
 - `bd close <id>` — Mark task complete
 - `bd list --label <name>` — Filter tasks by label
-
-## Codified PR Review Standards
-
-The following rules are derived from recurring PR review feedback. Follow these patterns to avoid common issues.
-
-### Secret Exposure Prevention
-
-Global security requirements already cover these guardrails—never print secret material, always verify with presence checks, and mask any values that must be shown. This repo standardizes on the snippet below; use it instead of echoing environment variables.
-
-❌ BAD:
-
-```bash
-echo $PARALLEL_API_KEY
-echo "Token is: $SECRET_TOKEN"
-```
-
-✅ GOOD:
-
-```bash
-if [ -n "$PARALLEL_API_KEY" ]; then echo "PARALLEL_API_KEY is set"; else echo "PARALLEL_API_KEY is not set"; fi
-```
-
-### YAML and Markdown Formatting
-
-- ALWAYS maintain consistent indentation within YAML files (2 spaces per level)
-- ALWAYS place YAML keys under their parent `with:` block at correct indentation
-- ALWAYS use consistent sub-bullet indentation in markdown numbered lists
-- NEVER mix indentation styles within the same file
-
-❌ BAD:
-
-```yaml
-- uses: actions/github-script@v6
-  with:
-    github-token: ${{ secrets.TOKEN }}
-  script: | # Wrong: script is sibling of with, not child
-```
-
-✅ GOOD:
-
-```yaml
-- uses: actions/github-script@v6
-  with:
-    github-token: ${{ secrets.TOKEN }}
-    script: | # Correct: script is child of with
-```
-
-### Subprocess Error Handling
-
-- ALWAYS wrap subprocess.run calls in try-except when user feedback is needed on failure
-- ALWAYS provide meaningful error messages that help users diagnose the issue
-- ALWAYS catch both FileNotFoundError (missing command) and CalledProcessError (failed execution)
-
-❌ BAD:
-
-```python
-subprocess.run(cmd, check=True)  # Raises uncaught exception on failure
-```
-
-✅ GOOD:
-
-```python
-try:
-    subprocess.run(cmd, check=True)
-except FileNotFoundError:
-    typer.echo("Error: Required command not found. Ensure it is installed.", err=True)
-    raise typer.Exit(1)
-except subprocess.CalledProcessError as exc:
-    typer.echo(f"Error: Command failed with exit code {exc.returncode}", err=True)
-    raise typer.Exit(exc.returncode or 1)
-```
-
-### String/Token Replacement Ordering
-
-- ALWAYS replace longer tokens before shorter ones when tokens share common prefixes
-- NEVER use simple iteration order for token replacement if prefix collisions exist
-
-❌ BAD:
-
-```python
-# @BASH replaces before @BASH_OUTPUT, corrupting "@BASH_OUTPUT" to "Bash_OUTPUT"
-for token, replacement in {"@BASH": "Bash", "@BASH_OUTPUT": "BashOutput"}.items():
-    text = text.replace(token, replacement)
-```
-
-✅ GOOD:
-
-```python
-# Sort by length descending to replace longer tokens first
-tokens = sorted(token_map.items(), key=lambda x: len(x[0]), reverse=True)
-for token, replacement in tokens:
-    text = text.replace(token, replacement)
-```

@@ -372,6 +372,48 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
             },
         }
 
+    def _find_indicator_matches(
+        self, indicator: str, content: str
+    ) -> list[re.Match] | None:
+        """Find matches for a single indicator pattern in content."""
+        try:
+            compiled_pattern = re.compile(indicator, re.MULTILINE | re.IGNORECASE)
+            matches = list(compiled_pattern.finditer(content))
+            return matches[:10] if len(matches) > 10 else matches
+        except re.error:
+            return None
+
+    def _create_pattern_finding(
+        self,
+        match: re.Match,
+        content: str,
+        lines: list[str],
+        file_path: str,
+        pattern_type: str,
+        pattern_name: str,
+        pattern_info: dict,
+        language: str,
+    ) -> dict[str, Any]:
+        """Create a finding dict for a pattern match."""
+        line_num = content[: match.start()].count("\n") + 1
+        context = lines[line_num - 1].strip() if line_num <= len(lines) else ""
+
+        return {
+            "title": f"{pattern_type.title()} Pattern: {pattern_name.title()}",
+            "description": pattern_info["description"],
+            "severity": pattern_info["severity"],
+            "file_path": file_path,
+            "line_number": line_num,
+            "recommendation": self._get_pattern_recommendation(f"{pattern_type}_{pattern_name}"),
+            "metadata": {
+                "pattern_type": pattern_type,
+                "pattern_name": pattern_name,
+                "language": language,
+                "context": context,
+                "confidence": "medium",
+            },
+        }
+
     def _check_patterns(
         self,
         content: str,
@@ -384,88 +426,76 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
         """Check for specific patterns in file content."""
         import signal
 
-        findings = []
+        if len(content) > 10000:
+            return []
 
-        # Safety limit for large files
-        if len(content) > 10000:  # Skip files > 10KB to prevent hangs
-            return findings
-
-        # Timeout protection
         def timeout_handler(signum, frame):
             raise TimeoutError("Pattern analysis timeout")
 
         signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(10)  # 10 second timeout (increased from 5)
+        signal.alarm(10)
 
+        findings = []
         try:
-            for pattern_idx, (pattern_name, pattern_info) in enumerate(
-                pattern_dict.items()
-            ):
-                if pattern_idx > 5:  # Max 5 patterns per type to prevent hangs
+            for pattern_idx, (pattern_name, pattern_info) in enumerate(pattern_dict.items()):
+                if pattern_idx > 5:
                     break
 
-                for indicator_idx, indicator in enumerate(pattern_info["indicators"]):
-                    if indicator_idx > 3:  # Max 3 indicators per pattern
-                        break
-
-                    try:
-                        # Compile pattern with timeout protection
-                        compiled_pattern = re.compile(
-                            indicator, re.MULTILINE | re.IGNORECASE
-                        )
-
-                        matches = list(compiled_pattern.finditer(content))
-
-                        # Limit number of matches processed
-                        if len(matches) > 10:
-                            matches = matches[:10]
-
-                    except re.error:
-                        # Skip invalid regex patterns
+                for indicator_idx, indicator in enumerate(pattern_info["indicators"][:4]):
+                    matches = self._find_indicator_matches(indicator, content)
+                    if matches is None:
                         continue
 
-                    for match_idx, match in enumerate(matches):
-                        if match_idx > 5:  # Max 5 matches per pattern
-                            break
-
-                        line_num = content[: match.start()].count("\n") + 1
-                        context = (
-                            lines[line_num - 1].strip()
-                            if line_num <= len(lines)
-                            else ""
-                        )
-
+                    for match in matches[:6]:
                         findings.append(
-                            {
-                                "title": f"{pattern_type.title()} Pattern: {pattern_name.title()}",
-                                "description": pattern_info["description"],
-                                "severity": pattern_info["severity"],
-                                "file_path": file_path,
-                                "line_number": line_num,
-                                "recommendation": self._get_pattern_recommendation(
-                                    f"{pattern_type}_{pattern_name}"
-                                ),
-                                "metadata": {
-                                    "pattern_type": pattern_type,
-                                    "pattern_name": pattern_name,
-                                    "language": language,
-                                    "context": context,
-                                    "confidence": "medium",
-                                },
-                            }
+                            self._create_pattern_finding(
+                                match, content, lines, file_path,
+                                pattern_type, pattern_name, pattern_info, language
+                            )
                         )
         except TimeoutError:
-            # Return partial findings if timeout occurs
             pass
         finally:
-            signal.alarm(0)  # Cancel the alarm
+            signal.alarm(0)
 
         return findings
+
+    def _is_lizard_output_line(self, line: str) -> bool:
+        """Check if a lizard output line contains function metrics."""
+        line_stripped = line.strip()
+        if not line_stripped:
+            return False
+        skip_prefixes = ("=", "NLOC", "-")
+        skip_contents = ("file analyzed", "Total nloc", "No thresholds exceeded")
+        if any(line.startswith(p) for p in skip_prefixes):
+            return False
+        return not any(s in line for s in skip_contents)
+
+    def _parse_lizard_line(self, parts: list[str]) -> dict[str, Any] | None:
+        """Parse a lizard output line into function metrics."""
+        if len(parts) < 4 or not parts[0].isdigit():
+            return None
+
+        try:
+            ccn = int(parts[0])
+            nloc = int(parts[1])
+            function_name = parts[3] if len(parts) > 3 else "unknown"
+        except (ValueError, IndexError):
+            return None
+
+        invalid_names = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "unknown"}
+        if function_name in invalid_names or nloc <= 1:
+            return None
+
+        return {"name": function_name, "ccn": ccn, "nloc": nloc}
 
     def _get_lizard_metrics(self, file_path: str) -> dict[str, Any]:
         """Get Lizard complexity metrics for the file."""
         if file_path in self._lizard_cache:
             return self._lizard_cache[file_path]
+
+        empty_metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+
         try:
             result = subprocess.run(
                 ["lizard", "-C", "999", "-L", "999", "-a", "999", file_path],
@@ -474,91 +504,40 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                 timeout=10,
             )
 
-            if result.returncode == 0:
-                # Parse lizard output for metrics
-                lines = result.stdout.strip().split("\n")
-                metrics = {
-                    "functions": [],
-                    "avg_ccn": 0,
-                    "max_ccn": 0,
-                    "total_functions": 0,
-                }
+            if result.returncode != 0:
+                self._lizard_cache[file_path] = empty_metrics
+                return empty_metrics
 
-                # Track function names for deduplication
-                seen_functions = set()
+            lines = result.stdout.strip().split("\n")
+            metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+            seen_functions: set[str] = set()
 
-                for line in lines:
-                    if (
-                        line.strip()
-                        and not line.startswith("=")
-                        and not line.startswith("NLOC")
-                        and not line.startswith("-")
-                        and "file analyzed" not in line
-                        and "Total nloc" not in line
-                        and "No thresholds exceeded" not in line
-                    ):
-                        parts = line.split()
-                        if len(parts) >= 4 and parts[0].isdigit():
-                            try:
-                                ccn = int(parts[0])
-                                nloc = int(parts[1])
-                                function_name = (
-                                    parts[3] if len(parts) > 3 else "unknown"
-                                )
+            for line in lines:
+                if not self._is_lizard_output_line(line):
+                    continue
 
-                                # Skip invalid function names from parsing errors
-                                if function_name in [
-                                    "0",
-                                    "1",
-                                    "2",
-                                    "3",
-                                    "4",
-                                    "5",
-                                    "6",
-                                    "7",
-                                    "8",
-                                    "9",
-                                    "unknown",
-                                ]:
-                                    continue
+                parsed = self._parse_lizard_line(line.split())
+                if parsed is None:
+                    continue
 
-                                # Skip if NLOC is 0 or 1 (likely parsing error)
-                                if nloc <= 1:
-                                    continue
+                func_id = f"{parsed['name']}:{parsed['ccn']}:{parsed['nloc']}"
+                if func_id in seen_functions:
+                    continue
+                seen_functions.add(func_id)
 
-                                # Create unique function identifier
-                                func_id = f"{function_name}:{ccn}:{nloc}"
-                                if func_id in seen_functions:
-                                    continue
-                                seen_functions.add(func_id)
+                metrics["functions"].append(parsed)
+                metrics["max_ccn"] = max(metrics["max_ccn"], parsed["ccn"])
+                metrics["total_functions"] += 1
 
-                                metrics["functions"].append(
-                                    {"name": function_name, "ccn": ccn, "nloc": nloc}
-                                )
-                                metrics["max_ccn"] = max(metrics["max_ccn"], ccn)
-                                metrics["total_functions"] += 1
-                            except (ValueError, IndexError):
-                                continue
+            if metrics["total_functions"] > 0:
+                metrics["avg_ccn"] = sum(f["ccn"] for f in metrics["functions"]) / metrics["total_functions"]
 
-                if metrics["total_functions"] > 0:
-                    metrics["avg_ccn"] = (
-                        sum(f["ccn"] for f in metrics["functions"])
-                        / metrics["total_functions"]
-                    )
+            self._lizard_cache[file_path] = metrics
+            return metrics
 
-                self._lizard_cache[file_path] = metrics
-                return metrics
-
-        except (
-            subprocess.TimeoutExpired,
-            subprocess.SubprocessError,
-            FileNotFoundError,
-        ):
-            pass
-
-        metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
-        self._lizard_cache[file_path] = metrics
-        return metrics
+        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+            self._lizard_cache[file_path] = empty_metrics
+            return empty_metrics
 
     def _check_complexity_patterns(
         self, content: str, lines: list[str], file_path: str, language: str = "unknown"

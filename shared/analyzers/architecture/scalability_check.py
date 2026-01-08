@@ -49,73 +49,76 @@ class ScalabilityPatternConfigError(RuntimeError):
     """Raised when scalability pattern configuration is invalid."""
 
 
+def _validate_pattern_spec(pattern_name: str, spec: Any, category: str) -> None:
+    """Validate a single pattern specification."""
+    if not isinstance(pattern_name, str):
+        raise ScalabilityPatternConfigError(
+            f"Pattern keys must be strings in category '{category}'"
+        )
+    if not isinstance(spec, dict):
+        raise ScalabilityPatternConfigError(
+            f"Pattern '{pattern_name}' in '{category}' must be an object"
+        )
+
+    missing = _REQUIRED_PATTERN_FIELDS - set(spec)
+    if missing:
+        raise ScalabilityPatternConfigError(
+            f"Pattern '{pattern_name}' in '{category}' missing keys: {', '.join(sorted(missing))}"
+        )
+
+    indicators = spec["indicators"]
+    if not isinstance(indicators, list) or not all(isinstance(i, str) for i in indicators):
+        raise ScalabilityPatternConfigError(
+            f"Pattern '{pattern_name}' indicators must be a list of strings"
+        )
+
+    if not isinstance(spec["severity"], str) or not isinstance(spec["description"], str):
+        raise ScalabilityPatternConfigError(
+            f"Pattern '{pattern_name}' severity and description must be strings"
+        )
+
+
+def _load_category_config(category: str, path: Path) -> dict[str, Any]:
+    """Load and validate a single category configuration file."""
+    try:
+        raw_data = json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ScalabilityPatternConfigError(f"Scalability pattern config not found: {path}") from exc
+
+    if not isinstance(raw_data, dict):
+        raise ScalabilityPatternConfigError(f"Config for category '{category}' must be a JSON object")
+
+    if raw_data.get("schema_version") != _SCALABILITY_CONFIG_VERSION:
+        raise ScalabilityPatternConfigError(
+            f"Unsupported schema version for '{category}': {raw_data.get('schema_version')}"
+        )
+
+    pattern_block = raw_data.get("patterns")
+    if not isinstance(pattern_block, dict):
+        raise ScalabilityPatternConfigError(
+            f"Config for category '{category}' must contain a 'patterns' object"
+        )
+
+    return pattern_block
+
+
 @lru_cache(maxsize=1)
 def _load_scalability_pattern_bundle() -> dict[str, dict[str, dict[str, Any]]]:
     """Load and validate all scalability pattern categories from JSON."""
     bundle: dict[str, dict[str, dict[str, Any]]] = {}
+
     for category, filename in _SCALABILITY_CATEGORY_FILES.items():
         path = _SCALABILITY_PATTERN_DIR / filename
-        try:
-            raw_data = json.loads(path.read_text(encoding="utf-8"))
-        except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
-            raise ScalabilityPatternConfigError(
-                f"Scalability pattern config not found: {path}"
-            ) from exc
-
-        if not isinstance(raw_data, dict):
-            raise ScalabilityPatternConfigError(
-                f"Config for category '{category}' must be a JSON object"
-            )
-
-        if raw_data.get("schema_version") != _SCALABILITY_CONFIG_VERSION:
-            raise ScalabilityPatternConfigError(
-                f"Unsupported schema version for '{category}':"
-                f" {raw_data.get('schema_version')}"
-            )
-
-        pattern_block = raw_data.get("patterns")
-        if not isinstance(pattern_block, dict):
-            raise ScalabilityPatternConfigError(
-                f"Config for category '{category}' must contain a 'patterns' object"
-            )
+        pattern_block = _load_category_config(category, path)
 
         normalized: dict[str, dict[str, Any]] = {}
         for pattern_name, spec in pattern_block.items():
-            if not isinstance(pattern_name, str):
-                raise ScalabilityPatternConfigError(
-                    f"Pattern keys must be strings in category '{category}'"
-                )
-            if not isinstance(spec, dict):
-                raise ScalabilityPatternConfigError(
-                    f"Pattern '{pattern_name}' in '{category}' must be an object"
-                )
-
-            missing = _REQUIRED_PATTERN_FIELDS - set(spec)
-            if missing:
-                raise ScalabilityPatternConfigError(
-                    f"Pattern '{pattern_name}' in '{category}' missing keys:"
-                    f" {', '.join(sorted(missing))}"
-                )
-
-            indicators = spec["indicators"]
-            if not isinstance(indicators, list) or not all(
-                isinstance(indicator, str) for indicator in indicators
-            ):
-                raise ScalabilityPatternConfigError(
-                    f"Pattern '{pattern_name}' indicators must be a list of strings"
-                )
-
-            severity = spec["severity"]
-            description = spec["description"]
-            if not isinstance(severity, str) or not isinstance(description, str):
-                raise ScalabilityPatternConfigError(
-                    f"Pattern '{pattern_name}' severity and description must be strings"
-                )
+            _validate_pattern_spec(pattern_name, spec, category)
 
             normalized[pattern_name] = {
-                "indicators": list(indicators),
-                "severity": severity,
-                "description": description,
+                "indicators": list(spec["indicators"]),
+                "severity": spec["severity"],
+                "description": spec["description"],
             }
 
         bundle[category] = normalized

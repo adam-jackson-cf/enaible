@@ -47,7 +47,7 @@ pwsh -NoLogo -File .\install.ps1 -Systems claude-code -Scope user
 > Follows same flags as macOS/Linux installer, Supply `-Systems` (same valid values as above) and `-Scope`
 > for project path include `-Project 'C:\path\to\repo'` so the installer can locate the project repo.
 
-See [docs/installation.md](docs/installation.md) for manual install options and complete flag reference.
+See [docs/reference/installation.md](docs/reference/installation.md) for manual install options and complete flag reference.
 
 ---
 
@@ -220,7 +220,7 @@ codify-pr-reviews "create review codex rules from this repo"
 
 <div align="center">
 
-**[Installation Guide](docs/installation.md)** | **[Dev Monitoring](docs/monitoring.md)** | **[Testing](docs/testing.md)**
+**[Installation Guide](docs/reference/installation.md)** | **[Dev Monitoring](docs/reference/monitoring.md)** | **[Testing](docs/reference/testing.md)**
 
 [![MIT License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
