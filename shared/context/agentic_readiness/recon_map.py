@@ -5,6 +5,8 @@ import argparse
 import json
 from pathlib import Path
 
+from shared.context.agentic_readiness.timing import log_phase
+
 DEFAULT_EXCLUSIONS = [
     "dist/",
     "build/",
@@ -80,11 +82,17 @@ def write_json(path: Path, payload: dict | list) -> None:
 
 
 def generate_recon(root: Path, artifact_root: Path) -> None:
-    write_json(
-        artifact_root / "recon.json",
-        {"languages": detect_languages(root), "exclusions": DEFAULT_EXCLUSIONS},
-    )
-    write_json(artifact_root / "repo-map.json", {"entries": build_repo_map(root)})
+    with log_phase("helper:recon", {"target": str(root)}):
+        write_json(
+            artifact_root / "recon.json",
+            {
+                "languages": detect_languages(root),
+                "exclusions": DEFAULT_EXCLUSIONS,
+            },
+        )
+        write_json(
+            artifact_root / "repo-map.json", {"entries": build_repo_map(root)}
+        )
 
 
 def main() -> None:

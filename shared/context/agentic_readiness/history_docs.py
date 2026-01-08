@@ -8,6 +8,8 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 
+from shared.context.agentic_readiness.timing import log_phase
+
 
 def run_git_command(args: list[str]) -> list[str]:
     try:
@@ -71,12 +73,14 @@ def docs_freshness(root: Path) -> dict:
 
 
 def generate_history_docs(root: Path, artifact_root: Path, days: int) -> None:
-    (artifact_root / "history-concentration.json").write_text(
-        json.dumps(history_concentration(root, days), indent=2)
-    )
-    (artifact_root / "docs-freshness.json").write_text(
-        json.dumps(docs_freshness(root), indent=2)
-    )
+    metadata = {"target": str(root), "artifact_root": str(artifact_root), "days": days}
+    with log_phase("helper:history_docs", metadata):
+        (artifact_root / "history-concentration.json").write_text(
+            json.dumps(history_concentration(root, days), indent=2)
+        )
+        (artifact_root / "docs-freshness.json").write_text(
+            json.dumps(docs_freshness(root), indent=2)
+        )
 
 
 def main() -> None:

@@ -53,13 +53,21 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
      mkdir -p "$ARTIFACT_ROOT"
      export PROJECT_ROOT TARGET_ABS ARTIFACT_ROOT
      export DAYS="@DAYS"
+     TIMING_LOG="${AGENTIC_READINESS_TIMING_LOG:-/tmp/agentic_readiness_test.log}"
+     : > "$TIMING_LOG"
+     export AGENTIC_READINESS_TIMING_LOG="$TIMING_LOG"
+     run_with_timing() {
+       phase="$1"
+       shift
+       python shared/context/agentic_readiness/timing.py --phase "$phase" -- "$@"
+     }
      ```
 
 2. **Reconnaissance (language + repo map)**
    - Run the shared recon script to detect supported stacks, map top-level directories, and log applied exclusions:
 
      ```bash
-     python shared/context/agentic_readiness/recon_map.py "$TARGET_ABS" "$ARTIFACT_ROOT"
+     run_with_timing helper:recon python shared/context/agentic_readiness/recon_map.py "$TARGET_ABS" "$ARTIFACT_ROOT"
      ```
 
    - Artifacts: `recon.json`, `repo-map.json`.
@@ -94,21 +102,21 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Execute each Enaible command, storing JSON output beneath @ARTIFACT_ROOT:
 
      ```bash
-     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:jscpd \
+     run_with_timing analyzer:jscpd env ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:jscpd \
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-jscpd.json" \
        "${AUTO_EXCLUDES[@]}" \
        @EXCLUDE
 
-     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
+     run_with_timing analyzer:coupling env ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/architecture-coupling.json" \
        "${AUTO_EXCLUDES[@]}" \
        @EXCLUDE
 
-     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+     run_with_timing analyzer:lizard env ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
        --target "$TARGET_ABS" \
        --min-severity "@MIN_SEVERITY" \
        --out "$ARTIFACT_ROOT/quality-lizard.json" \
@@ -120,7 +128,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Run the shared inventory script to enumerate test directories/frameworks and capture CI/local/pre-commit gate coverage:
 
      ```bash
-     python shared/context/agentic_readiness/inventory_tests_gates.py "$TARGET_ABS" "$ARTIFACT_ROOT"
+     run_with_timing helper:inventory python shared/context/agentic_readiness/inventory_tests_gates.py "$TARGET_ABS" "$ARTIFACT_ROOT"
      ```
 
    - Artifacts: `tests-inventory.json`, `quality-gates.json` (with lint/test enforcement, parity gaps, and gate hits).
@@ -129,7 +137,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Run the docs-risk script to flag enforceable guidance that isn’t encoded in linting and capture LLM review standards:
 
      ```bash
-     python shared/context/agentic_readiness/docs_risk.py "$TARGET_ABS" "$ARTIFACT_ROOT" "$ARTIFACT_ROOT/quality-gates.json"
+     run_with_timing helper:docs_risk python shared/context/agentic_readiness/docs_risk.py "$TARGET_ABS" "$ARTIFACT_ROOT" "$ARTIFACT_ROOT/quality-gates.json"
      ```
 
    - Artifact: `docs-risk.json` (includes risk reasons plus lists of docs and hits).
@@ -138,7 +146,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Run the MCP scan script; MCP registration is an automatic readiness risk:
 
      ```bash
-     python shared/context/agentic_readiness/mcp_scan.py "$TARGET_ABS" "$ARTIFACT_ROOT"
+     run_with_timing helper:mcp_scan python shared/context/agentic_readiness/mcp_scan.py "$TARGET_ABS" "$ARTIFACT_ROOT"
      ```
 
    - Artifact: `mcp-scan.json`.
@@ -147,7 +155,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Use the shared Git-based script (respects @DAYS window) to capture change concentration plus documentation freshness:
 
      ```bash
-     python shared/context/agentic_readiness/history_docs.py "$TARGET_ABS" "$ARTIFACT_ROOT" "${DAYS:-180}"
+     run_with_timing helper:history_docs python shared/context/agentic_readiness/history_docs.py "$TARGET_ABS" "$ARTIFACT_ROOT" "${DAYS:-180}"
      ```
 
    - Artifacts: `history-concentration.json`, `docs-freshness.json` (used later for maintenance).
@@ -156,7 +164,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Run the readiness score script (consumes analyzer + inventory artifacts) to generate `agentic-readiness.json`:
 
      ```bash
-     python shared/context/agentic_readiness/readiness_score.py "$ARTIFACT_ROOT"
+     run_with_timing helper:readiness_score python shared/context/agentic_readiness/readiness_score.py "$ARTIFACT_ROOT"
      ```
 
    **Scoring Primer**
@@ -175,7 +183,7 @@ Assess agentic readiness and maintenance by scoring consistency, parallelizabili
    - Run the maintenance score script to generate `maintenance-score.json` (duplication + complexity + concentration signals):
 
      ```bash
-     python shared/context/agentic_readiness/maintenance_score.py "$ARTIFACT_ROOT"
+     run_with_timing helper:maintenance_score python shared/context/agentic_readiness/maintenance_score.py "$ARTIFACT_ROOT"
      ```
 
    - Interpretation guidance mirrors the readiness scoring (objective score only; anchors applied during reporting).

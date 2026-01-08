@@ -1,142 +1,232 @@
+"""E2E smoke test for the agentic readiness workflow.
+
+This test exercises the full workflow via the CLI runner as a black-box subprocess,
+validating that all expected artifacts are generated and timing logs contain all phases.
+"""
+
 from __future__ import annotations
 
 import json
+import os
+import subprocess
 from pathlib import Path
 
 import pytest
-from analyzers.architecture.coupling_analysis import CouplingAnalyzer
-from analyzers.quality.complexity_lizard import LizardComplexityAnalyzer
-from analyzers.quality.jscpd_analyzer import JSCPDAnalyzer
-from core.base.analyzer_base import create_analyzer_config
 
-from shared.context.agentic_readiness import (
-    docs_risk,
-    history_docs,
-    inventory_tests_gates,
-    maintenance_score,
-    mcp_scan,
-    readiness_score,
-    recon_map,
+# Default fixture path
+DEFAULT_FIXTURE = (
+    Path(__file__).resolve().parents[1]
+    / "fixture"
+    / "test_codebase"
+    / "juice-shop-monorepo"
 )
 
-DEFAULT_SKIP_PATTERNS = {
-    entry.strip("/") for entry in recon_map.DEFAULT_EXCLUSIONS if entry.strip("/")
-}
-DEFAULT_EXCLUDE_GLOBS = {
-    glob
-    for entry in DEFAULT_SKIP_PATTERNS
-    for glob in (entry, f"**/{entry}", f"**/{entry}/**")
-}
+# Expected artifacts from the workflow
+EXPECTED_ARTIFACTS = [
+    "recon.json",
+    "repo-map.json",
+    "quality-jscpd.json",
+    "architecture-coupling.json",
+    "quality-lizard.json",
+    "tests-inventory.json",
+    "quality-gates.json",
+    "docs-risk.json",
+    "mcp-scan.json",
+    "history-concentration.json",
+    "docs-freshness.json",
+    "agentic-readiness.json",
+    "maintenance-score.json",
+    "report.md",
+]
+
+# Expected timing phases
+EXPECTED_PHASES = [
+    "helper:recon",
+    "analyzer:jscpd",
+    "analyzer:coupling",
+    "analyzer:lizard",
+    "helper:inventory_tests",
+    "helper:docs_risk",
+    "helper:mcp_scan",
+    "helper:history_docs",
+    "helper:readiness_score",
+    "helper:maintenance_score",
+]
+
+
+def _get_fixture_path() -> Path:
+    """Get the fixture path from environment or use default."""
+    env_path = os.environ.get("AGENTIC_READINESS_FIXTURE")
+    if env_path:
+        return Path(env_path).resolve()
+    return DEFAULT_FIXTURE
+
+
+def _get_project_root() -> Path:
+    """Get the project root directory."""
+    return Path(__file__).resolve().parents[3]
 
 
 @pytest.mark.slow
-def test_agentic_readiness_workflow_juice_shop(tmp_path: Path) -> None:
-    project_root = Path(__file__).resolve().parents[3]
-    target = (
-        project_root
-        / "shared"
-        / "tests"
-        / "fixture"
-        / "test_codebase"
-        / "juice-shop-monorepo"
-    )
-    assert target.is_dir(), f"Expected fixture at {target}"
+def test_agentic_readiness_workflow_e2e(tmp_path: Path) -> None:
+    """Test the full agentic readiness workflow via CLI subprocess."""
+    fixture_path = _get_fixture_path()
+    if not fixture_path.is_dir():
+        pytest.skip(f"Fixture not found: {fixture_path}")
 
-    artifact_root = tmp_path / "agentic-readiness"
-    artifact_root.mkdir(parents=True, exist_ok=True)
+    timing_log = tmp_path / "timing.log"
+    artifact_root = tmp_path / "artifacts"
+    project_root = _get_project_root()
 
-    jscpd_result = _run_jscpd(target)
-    (artifact_root / "quality-jscpd.json").write_text(jscpd_result.to_json())
+    # Prepare environment
+    env = {
+        **os.environ,
+        "AGENTIC_READINESS_TIMING_LOG": str(timing_log),
+        "PYTHONPATH": str(project_root / "shared"),
+    }
 
-    coupling_result = _run_coupling(target)
-    (artifact_root / "architecture-coupling.json").write_text(coupling_result.to_json())
+    # Run the workflow via CLI
+    command = [
+        "uv",
+        "run",
+        "--directory",
+        str(project_root / "tools" / "enaible"),
+        "enaible",
+        "workflows",
+        "run",
+        "analyze-agentic-readiness",
+        "--target",
+        str(fixture_path),
+        "--artifact-root",
+        str(artifact_root),
+        "--auto",
+    ]
 
-    lizard_result = _run_lizard(target)
-    (artifact_root / "quality-lizard.json").write_text(lizard_result.to_json())
-
-    recon_map.generate_recon(target, artifact_root)
-    inventory_tests_gates.generate_inventory(target, artifact_root)
-    docs_risk.generate_docs_risk(
-        target,
-        artifact_root,
-        artifact_root / "quality-gates.json",
-    )
-    matches = mcp_scan.scan_mcp(target)
-    (artifact_root / "mcp-scan.json").write_text(
-        json.dumps({"matches": matches, "mcp_present": bool(matches)}, indent=2)
-    )
-    history_docs.generate_history_docs(target, artifact_root, 180)
-
-    readiness_payload = readiness_score.compute_readiness(artifact_root)
-    (artifact_root / "agentic-readiness.json").write_text(
-        json.dumps(readiness_payload, indent=2)
-    )
-
-    maintenance_payload = maintenance_score.compute_maintenance(artifact_root)
-    (artifact_root / "maintenance-score.json").write_text(
-        json.dumps(maintenance_payload, indent=2)
+    result = subprocess.run(
+        command,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=600,
+        cwd=str(project_root),
     )
 
-    assert (artifact_root / "recon.json").exists()
-    assert (artifact_root / "repo-map.json").exists()
-    assert readiness_payload["objective_score"] >= 0
-    assert readiness_payload["objective_score"] <= 1
-    assert maintenance_payload["objective_score"] >= 0
-    assert maintenance_payload["objective_score"] <= 1
+    # Write captured output to log file for debugging
+    (tmp_path / "stdout.log").write_text(result.stdout)
+    (tmp_path / "stderr.log").write_text(result.stderr)
 
-
-def _run_jscpd(target: Path):
-    scan_root = target / "frontend" / "src"
-    if not scan_root.is_dir():
-        scan_root = target
-    config = create_analyzer_config(
-        target_path=str(scan_root),
-        min_severity="low",
-        output_format="json",
+    # Assert exit code
+    assert result.returncode == 0, (
+        f"Workflow failed with exit code {result.returncode}.\n"
+        f"STDOUT:\n{result.stdout}\n"
+        f"STDERR:\n{result.stderr}"
     )
-    config.timeout_seconds = 300
-    config.max_files = 1200
-    _apply_default_exclusions(config)
-    analyzer = JSCPDAnalyzer(config=config)
-    result = analyzer.analyze(str(scan_root))
-    if not result.success:
-        message = (result.error_message or "").lower()
-        if "jscpd is not available" in message:
-            pytest.skip("jscpd not available in environment")
-        pytest.fail(result.error_message or "jscpd analysis failed")
-    return result
 
+    # Assert all expected artifacts exist
+    missing_artifacts = []
+    for artifact in EXPECTED_ARTIFACTS:
+        if not (artifact_root / artifact).exists():
+            missing_artifacts.append(artifact)
 
-def _run_coupling(target: Path):
-    config = create_analyzer_config(
-        target_path=str(target),
-        min_severity="low",
-        output_format="json",
+    assert not missing_artifacts, (
+        f"Missing artifacts: {missing_artifacts}\n"
+        f"Available: {list(p.name for p in artifact_root.iterdir()) if artifact_root.exists() else 'directory not created'}"
     )
-    config.max_files = 1200
-    _apply_default_exclusions(config)
-    analyzer = CouplingAnalyzer(config=config)
-    result = analyzer.analyze(str(target))
-    assert result.success, result.error_message
-    return result
+
+    # Assert timing log contains all phases
+    if timing_log.exists():
+        timing_content = timing_log.read_text()
+        missing_phases = []
+        for phase in EXPECTED_PHASES:
+            if f'"phase": "{phase}"' not in timing_content:
+                missing_phases.append(phase)
+
+        assert not missing_phases, (
+            f"Missing timing phases: {missing_phases}\n"
+            f"Timing log contents:\n{timing_content[:2000]}..."
+        )
+
+        # Parse and validate timing entries
+        timing_entries = []
+        for line in timing_content.strip().split("\n"):
+            if line.strip():
+                try:
+                    timing_entries.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+        # Check we have start/end pairs for phases
+        starts = {e["phase"] for e in timing_entries if e.get("event") == "start"}
+        ends = {e["phase"] for e in timing_entries if e.get("event") == "end"}
+        unfinished = starts - ends
+        assert not unfinished, f"Phases started but not finished: {unfinished}"
+
+    # Validate readiness score structure
+    readiness_path = artifact_root / "agentic-readiness.json"
+    readiness_data = json.loads(readiness_path.read_text())
+    assert "objective_score" in readiness_data
+    assert 0 <= readiness_data["objective_score"] <= 1
+    assert "signals" in readiness_data
+    assert "normalized" in readiness_data
+
+    # Validate maintenance score structure
+    maintenance_path = artifact_root / "maintenance-score.json"
+    maintenance_data = json.loads(maintenance_path.read_text())
+    assert "objective_score" in maintenance_data
+    assert 0 <= maintenance_data["objective_score"] <= 1
+    assert "signals" in maintenance_data
 
 
-def _run_lizard(target: Path):
-    config = create_analyzer_config(
-        target_path=str(target),
-        min_severity="low",
-        output_format="json",
+@pytest.mark.slow
+def test_agentic_readiness_workflow_list() -> None:
+    """Test the workflow list command."""
+    project_root = _get_project_root()
+    command = [
+        "uv",
+        "run",
+        "--directory",
+        str(project_root / "tools" / "enaible"),
+        "enaible",
+        "workflows",
+        "list",
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=str(project_root),
     )
-    config.max_files = 600
-    _apply_default_exclusions(config)
-    analyzer = LizardComplexityAnalyzer(config=config)
-    if not getattr(analyzer, "lizard_available", True):
-        pytest.skip("Lizard CLI is not available in this environment")
-    result = analyzer.analyze(str(target))
-    assert result.success, result.error_message
-    return result
+
+    assert result.returncode == 0
+    assert "analyze-agentic-readiness" in result.stdout
 
 
-def _apply_default_exclusions(config) -> None:
-    config.skip_patterns.update(DEFAULT_SKIP_PATTERNS)
-    config.exclude_globs.update(DEFAULT_EXCLUDE_GLOBS)
+@pytest.mark.slow
+def test_agentic_readiness_workflow_unknown() -> None:
+    """Test that unknown workflow names are rejected."""
+    project_root = _get_project_root()
+    command = [
+        "uv",
+        "run",
+        "--directory",
+        str(project_root / "tools" / "enaible"),
+        "enaible",
+        "workflows",
+        "run",
+        "unknown-workflow",
+        "--target",
+        ".",
+    ]
+
+    result = subprocess.run(
+        command,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        cwd=str(project_root),
+    )
+
+    assert result.returncode != 0
+    assert "Unknown workflow" in result.stderr or "unknown-workflow" in result.stderr

@@ -5,6 +5,8 @@ import argparse
 import json
 from pathlib import Path
 
+from shared.context.agentic_readiness.timing import log_phase
+
 SKIP_DIRS = {
     ".git",
     "node_modules",
@@ -80,10 +82,12 @@ def main() -> None:
     root = Path(args.target).resolve()
     artifact_root = Path(args.artifact_root).resolve()
     artifact_root.mkdir(parents=True, exist_ok=True)
-    matches = scan_mcp(root)
-    (artifact_root / "mcp-scan.json").write_text(
-        json.dumps({"matches": matches, "mcp_present": bool(matches)}, indent=2)
-    )
+    metadata = {"target": str(root), "artifact_root": str(artifact_root)}
+    with log_phase("helper:mcp_scan", metadata):
+        matches = scan_mcp(root)
+        (artifact_root / "mcp-scan.json").write_text(
+            json.dumps({"matches": matches, "mcp_present": bool(matches)}, indent=2)
+        )
 
 
 if __name__ == "__main__":

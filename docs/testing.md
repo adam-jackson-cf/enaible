@@ -46,6 +46,41 @@ uv run --project tools/enaible pytest shared/tests/integration -v \
 
 Tests that depended on external CLIs or backlog todos have been removed to reduce flakiness.
 
+## Agentic Readiness E2E Smoke Test
+
+Location: `shared/tests/integration/test_agentic_readiness_workflow.py`
+
+This test exercises the full agentic readiness workflow as defined in `shared/prompts/analyze-agentic-readiness.md`. It:
+
+1. Invokes the CLI workflow runner as a black-box subprocess
+2. Validates all expected artifacts are generated
+3. Checks timing logs for phase coverage
+
+### Running the E2E Test
+
+```bash
+uv run --directory tools/enaible pytest shared/tests/integration/test_agentic_readiness_workflow.py -v -s
+```
+
+Expected runtime: 2-5 minutes depending on fixture size.
+
+### Overriding the Target Fixture
+
+By default, the test uses `shared/tests/fixture/test_codebase/juice-shop-monorepo`. Override with:
+
+```bash
+AGENTIC_READINESS_FIXTURE=/path/to/repo uv run --directory tools/enaible \
+  pytest shared/tests/integration/test_agentic_readiness_workflow.py -v -s
+```
+
+### Viewing Timing Results
+
+After running, inspect phase durations:
+
+```bash
+cat /tmp/agentic_readiness_test.log | jq -s 'map(select(.event=="end")) | sort_by(.duration_seconds) | reverse | .[:10]'
+```
+
 ## Troubleshooting
 
 - All prompt artifacts are stored under `.enaible/artifacts/prompt-e2e/<prompt-id>/` for manual inspection.

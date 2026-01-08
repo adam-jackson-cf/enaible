@@ -6,6 +6,8 @@ import json
 import os
 from pathlib import Path
 
+from shared.context.agentic_readiness.timing import log_phase
+
 SKIP_DIRS = {
     ".git",
     "node_modules",
@@ -190,76 +192,82 @@ def write_json(path: Path, payload: dict) -> None:
 
 
 def generate_inventory(root: Path, artifact_root: Path) -> None:
-    tests = walk_tests(root)
-    hard_tests_present = any(
-        tests[cat] for cat in ("integration", "e2e", "smoke", "system")
-    )
-    write_json(
-        artifact_root / "tests-inventory.json",
-        {
-            "frameworks": detect_frameworks(root),
-            "categories": tests,
-            "hard_tests_present": hard_tests_present,
-        },
-    )
+    metadata = {"target": str(root), "artifact_root": str(artifact_root)}
+    with log_phase("helper:inventory_tests", metadata):
+        tests = walk_tests(root)
+        hard_tests_present = any(
+            tests[cat] for cat in ("integration", "e2e", "smoke", "system")
+        )
+        write_json(
+            artifact_root / "tests-inventory.json",
+            {
+                "frameworks": detect_frameworks(root),
+                "categories": tests,
+                "hard_tests_present": hard_tests_present,
+            },
+        )
 
-    ci_files = collect_ci_files(root)
-    local_files = collect_paths(root, LOCAL_GATE_FILES)
-    precommit_files = collect_paths(root, PRECOMMIT_FILES)
-    hook_script = root / "scripts" / "run-ci-quality-gates.sh"
-    if hook_script.exists():
-        local_files.append(hook_script)
+        ci_files = collect_ci_files(root)
+        local_files = collect_paths(root, LOCAL_GATE_FILES)
+        precommit_files = collect_paths(root, PRECOMMIT_FILES)
+        hook_script = root / "scripts" / "run-ci-quality-gates.sh"
+        if hook_script.exists():
+            local_files.append(hook_script)
 
-    ci_hits = scan_files(ci_files)
-    local_gate_files = list(dict.fromkeys(local_files + precommit_files))
-    local_hits = scan_files(local_gate_files)
-    precommit_hits = scan_files(precommit_files)
+        ci_hits = scan_files(ci_files)
+        local_gate_files = list(dict.fromkeys(local_files + precommit_files))
+        local_hits = scan_files(local_gate_files)
+        precommit_hits = scan_files(precommit_files)
 
-    ci_gates = {k: bool(v) for k, v in ci_hits.items()}
-    local_gates = {k: bool(v) for k, v in local_hits.items()}
-    precommit_gates = {k: bool(v) for k, v in precommit_hits.items()}
+        ci_gates = {k: bool(v) for k, v in ci_hits.items()}
+        local_gates = {k: bool(v) for k, v in local_hits.items()}
+        precommit_gates = {k: bool(v) for k, v in precommit_hits.items()}
 
-    parity_gaps = {
-        "missing_in_ci": [k for k, v in local_gates.items() if v and not ci_gates[k]],
-        "missing_local": [k for k, v in ci_gates.items() if v and not local_gates[k]],
-    }
-    parity_ok = not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
+        parity_gaps = {
+            "missing_in_ci": [
+                k for k, v in local_gates.items() if v and not ci_gates[k]
+            ],
+            "missing_local": [k for k, v in ci_gates.items() if v and not local_gates[k]],
+        }
+        parity_ok = not parity_gaps["missing_in_ci"] and not parity_gaps["missing_local"]
 
-    lint_configs = collect_lint_configs(root)
-    lint_config_present = bool(lint_configs)
-    lint_enforced = lint_config_present and ci_gates["lint"] and precommit_gates["lint"]
-    tests_enforced = (
-        hard_tests_present
-        and ci_gates["integration"]
-        and precommit_gates["integration"]
-    )
+        lint_configs = collect_lint_configs(root)
+        lint_config_present = bool(lint_configs)
+        lint_enforced = (
+            lint_config_present and ci_gates["lint"] and precommit_gates["lint"]
+        )
+        tests_enforced = (
+            hard_tests_present
+            and ci_gates["integration"]
+            and precommit_gates["integration"]
+        )
 
-    write_json(
-        artifact_root / "quality-gates.json",
-        {
-            "ci_files": [str(p) for p in ci_files],
-            "local_files": [str(p) for p in local_files],
-            "precommit_files": [str(p) for p in precommit_files],
-            "lint_configs": lint_configs,
-            "typecheck_configs": collect_typecheck_configs(root),
-            "ci_hits": ci_hits,
-            "local_hits": local_hits,
-            "precommit_hits": precommit_hits,
-            "ci_gates": ci_gates,
-            "local_gates": local_gates,
-            "precommit_gates": precommit_gates,
-            "ci_files_present": bool(ci_files),
-            "local_files_present": bool(local_gate_files),
-            "ci_gate_signals_present": bool(ci_files) and any(ci_gates.values()),
-            "local_gate_signals_present": bool(local_gate_files)
-            and any(local_gates.values()),
-            "parity_gaps": parity_gaps,
-            "parity_ok": parity_ok,
-            "lint_config_present": lint_config_present,
-            "lint_enforced": lint_enforced,
-            "tests_enforced": tests_enforced,
-        },
-    )
+        write_json(
+            artifact_root / "quality-gates.json",
+            {
+                "ci_files": [str(p) for p in ci_files],
+                "local_files": [str(p) for p in local_files],
+                "precommit_files": [str(p) for p in precommit_files],
+                "lint_configs": lint_configs,
+                "typecheck_configs": collect_typecheck_configs(root),
+                "ci_hits": ci_hits,
+                "local_hits": local_hits,
+                "precommit_hits": precommit_hits,
+                "ci_gates": ci_gates,
+                "local_gates": local_gates,
+                "precommit_gates": precommit_gates,
+                "ci_files_present": bool(ci_files),
+                "local_files_present": bool(local_gate_files),
+                "ci_gate_signals_present": bool(ci_files) and any(ci_gates.values()),
+                "local_gate_signals_present": bool(local_gate_files)
+                and any(local_gates.values()),
+                "parity_gaps": parity_gaps,
+                "parity_ok": parity_ok,
+                "lint_config_present": lint_config_present,
+                "lint_enforced": lint_enforced,
+                "tests_enforced": tests_enforced,
+            },
+        )
 
 
 def detect_frameworks(root: Path) -> list[str]:

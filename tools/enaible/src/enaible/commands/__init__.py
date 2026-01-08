@@ -14,6 +14,7 @@ _COMMAND_MODULES: Iterable[str] = (
     "enaible.commands.install",
     "enaible.commands.ci",
     "enaible.commands.setup",
+    "enaible.commands.workflows",
 )
 
 
