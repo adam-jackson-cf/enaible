@@ -130,7 +130,7 @@ def test_agentic_readiness_workflow_e2e(tmp_path: Path) -> None:
 
     assert not missing_artifacts, (
         f"Missing artifacts: {missing_artifacts}\n"
-        f"Available: {list(p.name for p in artifact_root.iterdir()) if artifact_root.exists() else 'directory not created'}"
+        f"Available: {[p.name for p in artifact_root.iterdir()] if artifact_root.exists() else 'directory not created'}"
     )
 
     # Assert timing log contains all phases

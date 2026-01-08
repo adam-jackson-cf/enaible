@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Sequence
 
 # Ensure shared modules are importable
 # Add project root to PYTHONPATH so 'shared' package is importable
@@ -15,7 +14,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[5]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from shared.context.agentic_readiness import (
+from shared.context.agentic_readiness import (  # noqa: E402
     docs_risk,
     history_docs,
     inventory_tests_gates,
@@ -24,8 +23,10 @@ from shared.context.agentic_readiness import (
     readiness_score,
     recon_map,
 )
-from shared.context.agentic_readiness.timing import log_phase, run_command_with_timing
-
+from shared.context.agentic_readiness.timing import (  # noqa: E402
+    log_phase,
+    run_command_with_timing,
+)
 
 DEFAULT_EXCLUDES = [
     "dist/",
@@ -58,6 +59,24 @@ def _build_exclude_args(excludes: Sequence[str]) -> list[str]:
     return args
 
 
+def _collect_blockers(
+    quality_gates: dict, docs_risk_data: dict, mcp_data: dict
+) -> list[str]:
+    """Collect readiness blockers from analysis results."""
+    blockers = []
+    if not quality_gates.get("lint_enforced"):
+        blockers.append("Lint not enforced in pre-commit + CI")
+    if not quality_gates.get("tests_enforced"):
+        blockers.append("Integration/smoke not enforced in pre-commit + CI")
+    if not quality_gates.get("parity_ok"):
+        blockers.append("CI/local parity gaps detected")
+    if docs_risk_data.get("risk_reasons"):
+        blockers.append(f"Doc risks: {', '.join(docs_risk_data['risk_reasons'])}")
+    if mcp_data.get("mcp_present"):
+        blockers.append("MCP configuration present (requires review)")
+    return blockers
+
+
 def _generate_report(artifact_root: Path, target: Path) -> None:
     """Generate report.md summarizing the workflow results."""
     # Load all artifacts
@@ -69,12 +88,10 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
     docs_risk_data = json.loads((artifact_root / "docs-risk.json").read_text())
     mcp_data = json.loads((artifact_root / "mcp-scan.json").read_text())
     tests_inv = json.loads((artifact_root / "tests-inventory.json").read_text())
-    concentration = json.loads(
-        (artifact_root / "history-concentration.json").read_text()
-    )
+    # Load history concentration (used for validation only, data in signals)
+    json.loads((artifact_root / "history-concentration.json").read_text())
 
     signals = readiness.get("signals", {})
-    timestamp = artifact_root.name
 
     # Build report sections
     lines = [
@@ -153,18 +170,7 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
         ]
     )
 
-    blockers = []
-    if not quality_gates.get("lint_enforced"):
-        blockers.append("Lint not enforced in pre-commit + CI")
-    if not quality_gates.get("tests_enforced"):
-        blockers.append("Integration/smoke not enforced in pre-commit + CI")
-    if not quality_gates.get("parity_ok"):
-        blockers.append("CI/local parity gaps detected")
-    if docs_risk_data.get("risk_reasons"):
-        blockers.append(f"Doc risks: {', '.join(docs_risk_data['risk_reasons'])}")
-    if mcp_data.get("mcp_present"):
-        blockers.append("MCP configuration present (requires review)")
-
+    blockers = _collect_blockers(quality_gates, docs_risk_data, mcp_data)
     if blockers:
         for i, blocker in enumerate(blockers, 1):
             lines.append(f"{i}. {blocker}")
@@ -176,19 +182,19 @@ def _generate_report(artifact_root: Path, target: Path) -> None:
             "",
             "## Artifacts",
             "",
-            f"- recon.json",
-            f"- repo-map.json",
-            f"- quality-jscpd.json",
-            f"- quality-lizard.json",
-            f"- architecture-coupling.json",
-            f"- tests-inventory.json",
-            f"- quality-gates.json",
-            f"- docs-risk.json",
-            f"- mcp-scan.json",
-            f"- history-concentration.json",
-            f"- docs-freshness.json",
-            f"- agentic-readiness.json",
-            f"- maintenance-score.json",
+            "- recon.json",
+            "- repo-map.json",
+            "- quality-jscpd.json",
+            "- quality-lizard.json",
+            "- architecture-coupling.json",
+            "- tests-inventory.json",
+            "- quality-gates.json",
+            "- docs-risk.json",
+            "- mcp-scan.json",
+            "- history-concentration.json",
+            "- docs-freshness.json",
+            "- agentic-readiness.json",
+            "- maintenance-score.json",
         ]
     )
 
@@ -232,12 +238,73 @@ def _run_analyzer(
         str(output_file),
         *exclude_args,
     ]
-    env = {**os.environ, "ENAIBLE_REPO_ROOT": str(PROJECT_ROOT)}
     return run_command_with_timing(
         f"analyzer:{name}",
         command,
         metadata={"tool": tool_key, "target": str(target)},
     )
+
+
+def _setup_artifact_root(artifact_root: Path | None) -> Path:
+    """Set up and return the artifact directory."""
+    if artifact_root is None:
+        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+        artifact_root = (
+            PROJECT_ROOT
+            / ".enaible"
+            / "artifacts"
+            / "analyze-agentic-readiness"
+            / timestamp
+        )
+    artifact_root = artifact_root.resolve()
+    artifact_root.mkdir(parents=True, exist_ok=True)
+    return artifact_root
+
+
+def _run_mcp_scan(target: Path, artifact_root: Path) -> None:
+    """Run MCP scan phase with timing instrumentation."""
+    metadata = {"target": str(target), "artifact_root": str(artifact_root)}
+    with log_phase("helper:mcp_scan", metadata):
+        matches = mcp_scan.scan_mcp(target)
+        (artifact_root / "mcp-scan.json").write_text(
+            json.dumps({"matches": matches, "mcp_present": bool(matches)}, indent=2)
+        )
+
+
+def _run_docs_risk_phase(target: Path, artifact_root: Path, errors: list[str]) -> None:
+    """Run documentation risk analysis phase."""
+    quality_gates_path = artifact_root / "quality-gates.json"
+    if not quality_gates_path.exists():
+        errors.append("docs_risk: quality-gates.json not found")
+        return
+    try:
+        docs_risk.generate_docs_risk(target, artifact_root, quality_gates_path)
+    except Exception as exc:
+        errors.append(f"docs_risk: {exc}")
+
+
+def _run_scoring_phases(artifact_root: Path, target: Path, errors: list[str]) -> None:
+    """Run readiness score, maintenance score, and report generation."""
+    try:
+        readiness_payload = readiness_score.compute_readiness(artifact_root)
+        (artifact_root / "agentic-readiness.json").write_text(
+            json.dumps(readiness_payload, indent=2)
+        )
+    except Exception as exc:
+        errors.append(f"readiness_score: {exc}")
+
+    try:
+        maintenance_payload = maintenance_score.compute_maintenance(artifact_root)
+        (artifact_root / "maintenance-score.json").write_text(
+            json.dumps(maintenance_payload, indent=2)
+        )
+    except Exception as exc:
+        errors.append(f"maintenance_score: {exc}")
+
+    try:
+        _generate_report(artifact_root, target)
+    except Exception as exc:
+        errors.append(f"report: {exc}")
 
 
 def run_workflow(
@@ -257,27 +324,14 @@ def run_workflow(
         min_severity: Minimum severity for analyzer findings.
         excludes: Additional glob patterns to exclude.
 
-    Returns:
+    Returns
+    -------
         Exit code: 0 on success, 1 on failure.
     """
     target = target.resolve()
-    all_excludes = list(DEFAULT_EXCLUDES)
-    if excludes:
-        all_excludes.extend(excludes)
+    all_excludes = list(DEFAULT_EXCLUDES) + list(excludes or [])
     exclude_args = _build_exclude_args(all_excludes)
-
-    # Set up artifact directory
-    if artifact_root is None:
-        timestamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
-        artifact_root = (
-            PROJECT_ROOT
-            / ".enaible"
-            / "artifacts"
-            / "analyze-agentic-readiness"
-            / timestamp
-        )
-    artifact_root = artifact_root.resolve()
-    artifact_root.mkdir(parents=True, exist_ok=True)
+    artifact_root = _setup_artifact_root(artifact_root)
 
     errors: list[str] = []
 
@@ -288,12 +342,11 @@ def run_workflow(
         errors.append(f"recon: {exc}")
 
     # Phase 2: Run analyzers
-    analyzer_results = [
+    for name, tool_key in [
         ("jscpd", "quality:jscpd"),
         ("coupling", "architecture:coupling"),
         ("lizard", "quality:lizard"),
-    ]
-    for name, tool_key in analyzer_results:
+    ]:
         exit_code = _run_analyzer(
             name, tool_key, target, artifact_root, min_severity, exclude_args
         )
@@ -307,23 +360,11 @@ def run_workflow(
         errors.append(f"inventory: {exc}")
 
     # Phase 4: Documentation risk
-    quality_gates_path = artifact_root / "quality-gates.json"
-    if quality_gates_path.exists():
-        try:
-            docs_risk.generate_docs_risk(target, artifact_root, quality_gates_path)
-        except Exception as exc:
-            errors.append(f"docs_risk: {exc}")
-    else:
-        errors.append("docs_risk: quality-gates.json not found")
+    _run_docs_risk_phase(target, artifact_root, errors)
 
     # Phase 5: MCP scan
     try:
-        metadata = {"target": str(target), "artifact_root": str(artifact_root)}
-        with log_phase("helper:mcp_scan", metadata):
-            matches = mcp_scan.scan_mcp(target)
-            (artifact_root / "mcp-scan.json").write_text(
-                json.dumps({"matches": matches, "mcp_present": bool(matches)}, indent=2)
-            )
+        _run_mcp_scan(target, artifact_root)
     except Exception as exc:
         errors.append(f"mcp_scan: {exc}")
 
@@ -333,29 +374,8 @@ def run_workflow(
     except Exception as exc:
         errors.append(f"history_docs: {exc}")
 
-    # Phase 7: Compute readiness score
-    try:
-        readiness_payload = readiness_score.compute_readiness(artifact_root)
-        (artifact_root / "agentic-readiness.json").write_text(
-            json.dumps(readiness_payload, indent=2)
-        )
-    except Exception as exc:
-        errors.append(f"readiness_score: {exc}")
-
-    # Phase 8: Compute maintenance score
-    try:
-        maintenance_payload = maintenance_score.compute_maintenance(artifact_root)
-        (artifact_root / "maintenance-score.json").write_text(
-            json.dumps(maintenance_payload, indent=2)
-        )
-    except Exception as exc:
-        errors.append(f"maintenance_score: {exc}")
-
-    # Phase 9: Generate report
-    try:
-        _generate_report(artifact_root, target)
-    except Exception as exc:
-        errors.append(f"report: {exc}")
+    # Phases 7-9: Scoring and report
+    _run_scoring_phases(artifact_root, target, errors)
 
     # Report results
     if errors:

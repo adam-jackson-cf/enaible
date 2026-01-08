@@ -9,10 +9,11 @@ import os
 import subprocess
 import sys
 import time
+from collections.abc import Iterator, Sequence
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, Iterator, Sequence
+from typing import Any
 
 TIMING_ENV_VAR = "AGENTIC_READINESS_TIMING_LOG"
 DEFAULT_LOG_PATH = Path("/tmp/agentic_readiness_test.log")
@@ -42,7 +43,6 @@ def _write_line(payload: dict[str, Any], mirror_stdout: bool = True) -> None:
 @contextmanager
 def log_phase(phase: str, metadata: dict[str, Any] | None = None) -> Iterator[None]:
     """Context manager that logs start/end timestamps for a phase."""
-
     start = time.perf_counter()
     payload = {
         "event": "start",
@@ -80,7 +80,6 @@ def log_summary(
     phase: str, duration_seconds: float, metadata: dict[str, Any] | None = None
 ) -> None:
     """Append a summary line for quick tailing dashboards."""
-
     payload = {
         "event": "summary",
         "phase": phase,
@@ -106,7 +105,6 @@ def run_command_with_timing(
     phase: str, command: Sequence[str], metadata: dict[str, Any] | None = None
 ) -> int:
     """Execute a command while logging its start/end timestamps."""
-
     combined_metadata = _combine_metadata(metadata, command)
     payload = {
         "event": "start",
