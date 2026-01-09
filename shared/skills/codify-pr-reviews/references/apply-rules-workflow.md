@@ -6,9 +6,10 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 
 ### Required
 
-- @APPROVED_RULES_PATH — approved rules JSON (`@ARTIFACT_ROOT/patterns.json` or per-rule approvals under `@ARTIFACT_ROOT/drafts/`)
+- @APPROVED_RULES_PATH — approved doc patterns JSON (`@ARTIFACT_ROOT/doc-patterns.json`) or per-rule approvals under `@ARTIFACT_ROOT/drafts/`
 - @TARGET_SYSTEM — target system identifier (`claude-code`, `codex`, `copilot`, `cursor`, or `gemini`)
 - @INSTRUCTION_FILES — mapping of instruction files to update (derived from @TARGET_SYSTEM)
+- @TOOLING_CHANGES_PATH — tooling change plan (`@ARTIFACT_ROOT/tooling-changes.md` + `.json`)
 
 ## Instructions
 
@@ -16,7 +17,8 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 - Resolve @TARGET_SYSTEM and derive @INSTRUCTION_FILES using `references/system-targeting.md`.
 - Pause and @ASK_USER_CONFIRMATION before modifying files.
 - Apply edits and record a summary.
-- Persist the change log at `@ARTIFACT_ROOT/apply-summary.json` (or `.md`) alongside any supporting diffs.
+- Apply tooling changes listed in @TOOLING_CHANGES_PATH and capture diffs alongside doc updates.
+- Persist the change log at `@ARTIFACT_ROOT/apply-summary.json` (or `.md`) alongside any supporting diffs, noting whether changes were in tooling, docs, or both.
 
 ## Workflow
 
@@ -28,6 +30,7 @@ Apply approved rule drafts to instruction files with a final user confirmation c
 
 3. **Apply edits**
    - Update target files and record a summary of changes under `@ARTIFACT_ROOT/apply-summary.json` (or `.md`) plus any diff logs required for audit.
+   - Apply tooling updates from @TOOLING_CHANGES_PATH and log which config/rule files changed.
 
 ## Output
 

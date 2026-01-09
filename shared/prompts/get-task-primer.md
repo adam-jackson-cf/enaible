@@ -1,6 +1,6 @@
 # Purpose
 
-Explore the codebase and produce a task primer tailored to @USER_PROMPT, covering context, risks, and next actions.
+Explore the codebase and produce a task primer tailored to @USER_PROMPT, covering context, risks, and next actions with deterministic evidence.
 
 ## Variables
 
@@ -16,76 +16,119 @@ Explore the codebase and produce a task primer tailored to @USER_PROMPT, coverin
 - @DAYS = --days — history window for insights (default 20)
 - @EXCLUDE_GLOBS = --exclude [repeatable] — CSV or repeated flags (e.g., node_modules,dist)
 
+### Derived (internal)
+
+- @PROJECT_ROOT = <derived> — absolute path to repository root
+- @TARGET_ABS = <derived> — resolved absolute path for analysis
+- @ARTIFACT_ROOT = <derived> — timestamped artifact directory for task primer evidence
+
 ## Instructions
 
-- Operate read-only (apart from writing the report). Do not run builds or install tools.
-- Use repository commands (`ls`, `rg`, `git`, `sed`, etc.) to gather facts, then summarize findings in clear prose;
-- Avoid dumping raw command syntax unless you are showing an illustrative example.
-- Format every section for quick scanning: short paragraphs, bullet lists, and tables. Keep guidance concise and documentation-focused.
-- When secrets are encountered, note file and nature only—never print the secret.
-- Default to the repository root when @TARGET_PATH is not supplied; respect @EXCLUDE_GLOBS for all searches.
+- Establish @ARTIFACT_ROOT before running commands; store every referenced output under this directory for auditing.
+- Operate read-only except for writing artifacts/report; capture deterministic command outputs (`ls`, `rg`, `git`, analyzers) into files within @ARTIFACT_ROOT.
+- Run Enaible analyzers relevant to the scoped task to ground architecture/code-quality/security claims; cite the resulting JSON files.
+- Respect @EXCLUDE_GLOBS and document applied exclusions in the artifact set.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. **Scope & Setup**
-   - Resolve @TARGET_PATH, record the working directory, and respect @EXCLUDE_GLOBS by deriving EXCLUDE_ARG from `.gitignore` (and `.git/info/exclude` when present).
-   - Confirm the command operates read-only except for writing the final report to @OUT.
-
-2. **Deep Analysis (LLM + file-driven)**
-   - Dispatch parallel task agents to review how the project supports @USER_PROMPT across:
-     - Architecture & Orchestration
-     - Backend Patterns & Practices
-     - Frontend Patterns & Practices
-     - Data & State
-     - Performance & Security
-     - Observability
-     - Quality gates and Testing Practices
-     - Entry points, services, CLIs, routing surfaces, configurations, manifests, and framework signals
-   - Capture supporting facts with repository commands (`ls`, `rg`, `git`, `sed`, etc.) and convert them into concise documentation-ready notes.
-
-3. **Git History & Pattern Recognition (last @DAYS days)**
-   - Run history commands to surface recent themes, key contributors, and churn hotspots:
+1. **Scope, resolve paths, create artifact root**
+   - Resolve directories:
 
      ```bash
-     git status
-     git log --since="${DAYS:-20} days ago"
-     git shortlog -sn --since="${DAYS:-20} days ago"
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     TARGET_ABS="$(cd "$TARGET_PATH" && pwd)"
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/get-task-primer/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     export PROJECT_ROOT TARGET_ABS ARTIFACT_ROOT
      ```
 
-   - Summarize new features, notable fixes, regressions, and recurring smells that impact the upcoming work.
+   - Save the task brief, assumptions, and STOP responses into `"$ARTIFACT_ROOT/notes.md"`.
+   - Derive exclusion arguments (merge `.gitignore`, `.git/info/exclude`, and @EXCLUDE_GLOBS) and persist them to `"$ARTIFACT_ROOT/excludes.txt"`.
 
-4. **Synthesis**
-   - Populate the provided report template with structured bullets, tables, and short paragraphs tailored to @USER_PROMPT.
-   - Keep guidance action-oriented, avoid duplicating file paths, and write the final Markdown to @OUT while echoing the same content to stdout (no prefaces, fences, or tool logs).
+2. **Run targeted analyzers**
+   - Execute Enaible analyzers necessary for the task scope (adjust severity/exclusions when needed):
+
+     ```bash
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:coupling \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/architecture-coupling.json" \
+       @EXCLUDE_GLOBS
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       --summary-out "$ARTIFACT_ROOT/quality-lizard-summary.json" \
+       @EXCLUDE_GLOBS
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run security:semgrep \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/security-semgrep.json" \
+       @EXCLUDE_GLOBS
+     ```
+
+   - Log analyzer rationale and any skips in `notes.md`.
+
+3. **Repository reconnaissance**
+   - Capture deterministic evidence for architecture, components, configs, and entry points:
+
+     ```bash
+     ls "$TARGET_ABS" > "$ARTIFACT_ROOT/dir-listing.txt"
+     rg --files "$TARGET_ABS" > "$ARTIFACT_ROOT/file-inventory.txt"
+     ```
+
+   - Use `rg`, `sed`, or helper scripts to extract signals (e.g., service manifests, routes). Summaries belong in `notes.md` with file references.
+
+4. **Git history & pattern recognition**
+   - Gather git status/history for the specified window:
+
+     ```bash
+     (cd "$TARGET_ABS" && git status) > "$ARTIFACT_ROOT/git-status.txt"
+     (cd "$TARGET_ABS" && git log --since="${DAYS:-20} days ago" --stat --date=iso) > "$ARTIFACT_ROOT/git-log.txt"
+     (cd "$TARGET_ABS" && git shortlog -sn --since="${DAYS:-20} days ago") > "$ARTIFACT_ROOT/git-shortlog.txt"
+     ```
+
+   - Note recurring themes, regressions, and contributor hotspots referencing these files.
+
+5. **Synthesis**
+   - Populate the output template below, citing artifacts for every major claim (architecture → `architecture-coupling.json`, complexity hotspots → `quality-lizard-summary.json`, recent failures → `git-log.txt`).
+   - Write the final Markdown to @OUT if provided and store the same content at `"$ARTIFACT_ROOT/report.md"`.
 
 ## Output
 
 ````markdown
 # Project: <Name>
 
+Artifacts: `<@ARTIFACT_ROOT>`
+
 ---
 
 ## Executive Summary
 
-[Concise description of what this project is and does]
+[Concise description of what this project is and does, citing analyzer artifacts and repo notes]
 
-- **Current Readiness**: <headline insight>
-- **Immediate Gaps**: <headline risk or opportunity>
+- **Current Readiness**: <headline insight + artifact reference>
+- **Immediate Gaps**: <headline risk or opportunity + artifact reference>
 
 ## Features
 
-- [Key feature 1]
+- [Key feature 1 (cite README/notes)]
 - [Key feature 2]
 - [Additional features...]
 
 ## Tech Stack
 
-- **Languages**: [e.g., TypeScript, Python, Rust]
-- **Frameworks**: [e.g., React, FastAPI, Actix]
-- **Build Tools**: [e.g., Webpack, Poetry, Cargo]
-- **Package Managers**: [e.g., npm, pip, cargo]
-- **Testing**: [e.g., Jest, pytest, cargo test]
+- **Languages**: [...]
+- **Frameworks**: [...]
+- **Build Tools**: [...]
+- **Package Managers**: [...]
+- **Testing**: [...]
 
 ## Structure
 
@@ -96,75 +139,59 @@ project-root/
 ├── docs/ # [Description]
 └── ... # [Other key directories]
 ```
-````
 
-**Key Files**:
+**Key Files**
 
-- `[file]` - [Purpose]
-- `[file]` - [Purpose]
+- `[file]` – [Purpose, cite evidence]
+- `[file]` – [...]
 
-**Entry Points**:
+**Entry Points**
 
-- `[file]` - [Description]
+- `[file]` – [Description/evidence]
 
 ## Architecture
 
-[Description of how components interact, main modules, data flow]
+[Description referencing `architecture-coupling.json`, repo configs, etc.]
 
-### Key Components:
+### Key Components
 
-- **[Component]**: [Role and responsibility]
-- **[Component]**: [Role and responsibility]
+- **[Component]** – [Role/responsibility + evidence]
+- **[Component]** – [...]
 
 ## Backend Patterns and Practices
 
-[Description for how to implement backend, database and service code in keeping with existing project standards]
-
-- <observation1>
-- <observation2>
-- <...>
+- <observation + artifact reference>
+- <observation>
 
 ## Frontend Patterns and Practices
 
-[Description for how to implement frontend, visual design and user experience approach in keeping with existing project standards]
-
-- <observation1>
-- <observation2>
-- <...>
+- <observation + artifact reference>
 
 ## Data & State
 
-[Description for how to implement data persistence]
-
-- <observation1>
-- <observation2>
-- <...>
+- <observation + evidence>
 
 ## Performance & Security
 
-[Description on performance considerations and security practices adopted]
-
-- <observation1>
-- <observation2>
-- <...>
+- <observation referencing analyzers/security artifacts>
 
 ## Observability
 
-| Aspect          | Current State | Note |
-| --------------- | ------------- | ---- |
-| Logging         | <…>           | <…>  |
-| Metrics         | <…>           | <…>  |
-| Analytics/Flags | <…>           | <…>  |
+| Aspect          | Current State | Note (artifact/source) |
+| --------------- | ------------- | ---------------------- |
+| Logging         | <…>           | <…>                    |
+| Metrics         | <…>           | <…>                    |
+| Analytics/Flags | <…>           | <…>                    |
 
 ## Build & Quality Gates
 
-| Purpose     | Command | Notes         |
-| ----------- | ------- | ------------- |
-| Lint        | `<cmd>` | <tool/config> |
-| Type        | `<cmd>` | <tool/config> |
-| Test        | `<cmd>` | <scope>       |
-| Duplication | `<cmd>` | <threshold>   |
-| Complexity  | `<cmd>` | <threshold>   |
+| Purpose     | Command | Notes / Evidence    |
+| ----------- | ------- | ------------------- |
+| Lint        | `<cmd>` | README/scripts refs |
+| Type        | `<cmd>` | README/scripts refs |
+| Test        | `<cmd>` | README/scripts refs |
+| Duplication | `<cmd>` | analyzer references |
+| Complexity  | `<cmd>` | analyzer references |
 
 ## Testing Practices
 
@@ -177,37 +204,30 @@ project-root/
 
 ## Git History Insights (<@DAYS> days)
 
-- Theme or initiative • supporting evidence
-- Notable fix/feature • reference
+- Theme or initiative • reference `git-log.txt`
+- Notable fix/feature • reference `git-log.txt`
+- Contributor focus • reference `git-shortlog.txt`
 
 ---
 
 ## Task Impact Analysis
 
-| File/Area   | Rationale                      |
-| ----------- | ------------------------------ |
-| `path:line` | <why change impacts this area> |
+| File/Area   | Rationale (cite artifacts)         |
+| ----------- | ---------------------------------- |
+| `path:line` | Impact reason referencing evidence |
 
 ---
 
 ## Risks & Recommendations
 
-| Risk   | Mitigation           |
-| ------ | -------------------- |
-| <risk> | <recommended action> |
+| Risk   | Mitigation (artifact support) |
+| ------ | ----------------------------- |
+| <risk> | <recommended action>          |
 
 ---
 
 ## Open Questions
 
-<!-- optional section -->
-
-[Desription of unclear or unfinished implementation]
-
-- <question1>
+- <question1 + evidence>
 - <question2>
-- <...>
-
-```
-
-```
+````

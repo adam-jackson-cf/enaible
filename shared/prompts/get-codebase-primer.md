@@ -1,6 +1,6 @@
 # Purpose
 
-Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices.
+Generate a comprehensive project primer covering purpose, architecture, tech stack, commands, and testing practices backed by deterministic artifacts.
 
 ## Variables
 
@@ -12,64 +12,119 @@ Generate a comprehensive project primer covering purpose, architecture, tech sta
 
 - @AUTO = --auto — skip STOP confirmations (auto-approve checkpoints)
 - @TARGET_PATH = --target-path — path to analyze; defaults to the project
+- @OUT = --out — write the final Markdown to this path (also print to stdout)
 
 ### Derived (internal)
 
-- (none)
+- @PROJECT_ROOT = <derived> — absolute path to repository root
+- @TARGET_ABS = <derived> — resolved absolute path for analysis
+- @ARTIFACT_ROOT = <derived> — timestamped artifact directory for analyzers + evidence
 
 ## Instructions
 
-- Read all relevant docs (CLAUDE.md, AGENTS.md, README variants) before synthesizing conclusions.
-- Capture findings for purpose, features, tech stack, architecture, commands, and testing.
-- Summaries must be concise yet comprehensive, referencing concrete files and directories.
-- Include recent git history insights to surface active development themes.
+- Establish @ARTIFACT_ROOT before collecting evidence; every command output cited in the report must live under that directory.
+- Run Enaible analyzers (architecture, quality, security) to support conclusions and cite their JSON artifacts directly.
+- After analyzers succeed, read supporting docs (README, AGENTS, CLAUDE) to add narrative context tied to the artifact evidence.
+- Redirect git status/history output to files under @ARTIFACT_ROOT so future sessions can audit the same facts.
 - Respect STOP confirmations unless @AUTO is provided; when auto is active, treat checkpoints as approved without altering other behavior.
 
 ## Workflow
 
-1. **Deep Analysis** (LLM + file-driven)
+1. **Establish paths + artifact root**
+   - Resolve directories and create the artifact path:
 
-Analyse the following aspects of the target codebase:
+     ```bash
+     PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+     TARGET_PATH="@TARGET_PATH"
+     if [ -z "$TARGET_PATH" ] || [ "$TARGET_PATH" = "." ]; then
+       TARGET_PATH="$PROJECT_ROOT"
+     elif [ "${TARGET_PATH#/}" = "$TARGET_PATH" ]; then
+       TARGET_PATH="$PROJECT_ROOT/$TARGET_PATH"
+     fi
+     TARGET_ABS="$(cd "$TARGET_PATH" && pwd)"
+     ARTIFACT_ROOT="$PROJECT_ROOT/.enaible/artifacts/get-codebase-primer/$(date -u +%Y%m%dT%H%M%SZ)"
+     mkdir -p "$ARTIFACT_ROOT"
+     export PROJECT_ROOT TARGET_ABS ARTIFACT_ROOT
+     ```
 
-- Architecture & Orchestration
-- Backend Patterns & Practices
-- Frontend Patterns & Practices
-- Data & State
-- Performance & Security
-- Observability
-- Quality gates and Testing Practices
-- Identify entry points, apps/services, CLIs, servers, and routing surfaces.
-- Locate key configurations and framework signals
-- Documentation, Global rules files and configs
+   - Record STOP confirmations and manual observations inside `"$ARTIFACT_ROOT/notes.md"` for traceability.
 
-2. **Git history review**
-   - Run `git status`, `git log --since="30 days ago"`, and `git shortlog -sn --since="30 days ago"` (adjust window when @TARGET_PATH differs).
-   - Capture recent themes, active contributors, and churn hotspots for inclusion in the primer.
+2. **Run mandatory analyzers**
+   - Execute Enaible analyzers, writing results beneath @ARTIFACT_ROOT:
 
-3. **Generate Project Primer**
-   - Compile findings into standardized markdown format.
-   - Present comprehensive project overview.
+     ```bash
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run architecture:patterns \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/architecture-patterns.json"
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run quality:lizard \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/quality-lizard.json" \
+       --summary-out "$ARTIFACT_ROOT/quality-lizard-summary.json"
+
+     ENAIBLE_REPO_ROOT="$PROJECT_ROOT" uv run --directory tools/enaible enaible analyzers run security:semgrep \
+       --target "$TARGET_ABS" --min-severity high \
+       --out "$ARTIFACT_ROOT/security-semgrep.json"
+     ```
+
+   - Log analyzer selection + exclusions in `"$ARTIFACT_ROOT/analyzers.log"` so downstream reviewers understand coverage.
+
+3. **Collect repository facts**
+   - Inventory structure, frameworks, and tooling using deterministic commands and store the outputs:
+
+     ```bash
+     ls "$TARGET_ABS" > "$ARTIFACT_ROOT/dir-listing.txt"
+     rg --files "$TARGET_ABS" > "$ARTIFACT_ROOT/file-inventory.txt"
+     ```
+
+   - Extract snippets from README/AGENTS/CLAUDE as needed, referencing the lines inside `notes.md`.
+   - Map architecture, backend/frontend practices, data, observability, and quality gates using analyzer artifacts plus captured listings.
+
+4. **Git status & history review**
+   - Capture source control signals for at least the last 30 days (adjust window when @TARGET_PATH differs):
+
+     ```bash
+     (cd "$TARGET_ABS" && git status) > "$ARTIFACT_ROOT/git-status.txt"
+     (cd "$TARGET_ABS" && git log --since="30 days ago" --stat --date=iso) > "$ARTIFACT_ROOT/git-log.txt"
+     (cd "$TARGET_ABS" && git shortlog -sn --since="30 days ago") > "$ARTIFACT_ROOT/git-shortlog.txt"
+     ```
+
+   - Summarize themes, contributors, and churn hotspots with references to these files.
+
+5. **Generate the primer**
+   - Compile findings into the standardized markdown format below.
+   - Cite artifacts for every major claim (e.g., “architecture boundary” → `architecture-patterns.json`, “hot functions” → `quality-lizard-summary.json`).
+   - Write the final report to @OUT and save a copy as `"$ARTIFACT_ROOT/report.md"` to keep evidence + narrative together.
 
 ## Output
 
 ````markdown
-# Project: [Name]
+# Project: <Name>
 
-[Concise description of what this project is and does]
+Artifacts: `<@ARTIFACT_ROOT>`
+
+---
+
+## Executive Summary
+
+[Concise description of what this project is and does with citations, e.g., README.md §Overview, architecture-patterns.json]
+
+- **Current Readiness**: <headline insight with artifact reference>
+- **Immediate Gaps**: <headline risk or opportunity with artifact reference>
 
 ## Features
 
-- [Key feature 1]
+- [Key feature 1 (cite README/notes)]
 - [Key feature 2]
 - [Additional features...]
 
 ## Tech Stack
 
-- **Languages**: [e.g., TypeScript, Python, Rust]
-- **Frameworks**: [e.g., React, FastAPI, Actix]
-- **Build Tools**: [e.g., Webpack, Poetry, Cargo]
-- **Package Managers**: [e.g., npm, pip, cargo]
-- **Testing**: [e.g., Jest, pytest, cargo test]
+- **Languages**: [...]
+- **Frameworks**: [...]
+- **Build Tools**: [...]
+- **Package Managers**: [...]
+- **Testing**: [...]
 
 ## Structure
 
@@ -80,41 +135,32 @@ project-root/
 ├── docs/ # [Description]
 └── ... # [Other key directories]
 ```
-````
-
-**Key Files**:
-
-- `[file]` - [Purpose]
-- `[file]` - [Purpose]
-
-**Entry Points**:
-
-- `[file]` - [Description]
 
 ## Architecture
 
-[Description of how components interact, main modules, data flow]
+[Description with references to `architecture-patterns.json` and supporting evidence]
 
 ### Key Components:
 
-- **[Component]**: [Role and responsibility]
-- **[Component]**: [Role and responsibility]
+- **[Component]**: [Role and responsibility + artifact reference]
+- **[Component]**: [...]
 
-## Backend Patterns and Practices to follow
+## Backend Patterns and Practices to Follow
 
-[Description for how to implement backend, database and service code in keeping with existing project standards]
+[Grounded summary referencing analyzer outputs and repo docs]
 
-## Frontend Patterns and Practices to follow
+## Frontend Patterns and Practices to Follow
 
-[Description for how to implement frontend, visual design and user experience approach in keeping with existing project standards]
+[Grounded summary referencing analyzer outputs and repo docs]
 
 ## Build & Quality Gate Commands
 
-- **Build**: `[command]` - [Description if needed]
-- **Test**: `[command]` - [Description if needed]
-- **Lint**: `[command]` - [Description if needed]
-- **Dev/Run**: `[command]` - [Description if needed]
-- **[Other]**: `[command]` - [Description if needed]
+| Purpose | Command | Notes / Evidence |
+| ------- | ------- | ---------------- |
+| Build   | `<cmd>` | README / scripts |
+| Test    | `<cmd>` | README / scripts |
+| Lint    | `<cmd>` | README / scripts |
+| Dev     | `<cmd>` | README / scripts |
 
 ## Testing
 
@@ -127,8 +173,13 @@ project-root/
 ```
 
 **Creating New Tests**:
-[Instructions on where tests go and basic test structure example]
+[Instructions on where tests go and basic structure]
 
-```
+## Git History Insights (last 30 days unless overridden)
 
-```
+- Theme or initiative • reference `git-log.txt`
+- Notable fix/feature • reference `git-log.txt`
+- Contributor focus • reference `git-shortlog.txt`
+
+---
+````

@@ -6,23 +6,7 @@ These rules are used to assess codebase adoption and adherence to agentic engine
 
 ---
 
-## 1. Verified Starting Base
-
-**Intent:** Start from a known-good baseline before introducing agentic changes.
-
-### Assessment Rules
-
-| ID    | Rule                                                   | Signals Present                                                         | Signals Absent                             |
-| ----- | ------------------------------------------------------ | ----------------------------------------------------------------------- | ------------------------------------------ |
-| VSB-1 | Project uses maintained templates or proven generators | Package.json with established framework CLI, standard project structure | Custom scaffolding, non-standard layouts   |
-| VSB-2 | Baseline builds pass before agentic work               | CI passing on main branch, build scripts present                        | Broken builds, missing build configuration |
-| VSB-3 | Baseline tests pass before agentic work                | Test suite exists and passes, test coverage present                     | No tests, failing tests on main            |
-| VSB-4 | Dependencies are version-pinned                        | Lock files present (package-lock.json, poetry.lock, etc.)               | Missing lock files, unpinned versions      |
-| VSB-5 | Toolchain versions are pinned                          | .nvmrc, .python-version, tool-versions present                          | No version pinning for runtime/toolchain   |
-
----
-
-## 2. Implementation as First Class Documentation
+## 1. Implementation as First Class Documentation
 
 **Intent:** Minimize documentation overhead and doc drift risk by using implementation as the source of truth.
 
@@ -38,7 +22,7 @@ These rules are used to assess codebase adoption and adherence to agentic engine
 
 ---
 
-## 3. Coding Guidance via System Docs
+## 2. Coding Guidance via System Docs
 
 **Intent:** Use system docs for guidance where deterministic tools are insufficient.
 
@@ -55,43 +39,27 @@ These rules are used to assess codebase adoption and adherence to agentic engine
 
 ---
 
-## 4. Planning is Fundamental
+## 3. Global Context Hygiene
 
-**Intent:** Agentic tasks start with explicit intent, constraints, and acceptance checks.
-
-### Assessment Rules
-
-| ID    | Rule                                 | Signals Present                                | Signals Absent                         |
-| ----- | ------------------------------------ | ---------------------------------------------- | -------------------------------------- |
-| PIF-1 | Tasks have clear goals and non-goals | Documented objectives, scope boundaries        | Vague or missing task definitions      |
-| PIF-2 | Constraints are explicit             | Security, compliance, client limits documented | Implicit assumptions about constraints |
-| PIF-3 | Acceptance criteria defined          | Measurable success conditions                  | No definition of done                  |
-| PIF-4 | Verification plan exists             | Local/CI test plan, expected outcomes          | Ad-hoc verification approach           |
-| PIF-5 | Planning separated from execution    | Planning artifacts in separate context         | Large plans polluting build sessions   |
-| PIF-6 | Plans reviewed before execution      | PR review process, plan approval workflow      | Direct execution without review        |
-
----
-
-## 5. Context Efficiency
-
-**Intent:** Keep context minimal to complete tasks successfully without diluting critical information.
+**Intent:** Minimize context footprint through progressive disclosure, concise system files, and deterministic scripts so sessions stay lean and auditable.
 
 ### Assessment Rules
 
-| ID   | Rule                                                   | Signals Present                            | Signals Absent                              |
-| ---- | ------------------------------------------------------ | ------------------------------------------ | ------------------------------------------- |
-| CE-1 | Tools provide context transparency                     | Visible context usage, action history      | Obfuscated context, hidden actions          |
-| CE-2 | MCP avoided for permanent workflows                    | Bash implementations for stable workflows  | Heavy MCP usage for non-experimental tasks  |
-| CE-3 | Context sessions kept lean (<40% threshold)            | Session management practices               | Bloated, long-running sessions              |
-| CE-4 | Planning and build execution separated                 | Distinct sessions for planning vs building | Mixed planning/execution in same context    |
-| CE-5 | Planning artifacts stored externally                   | Files/docs outside context window          | Plans only in session memory                |
-| CE-6 | System files not overly polluted                       | Minimal AGENTS.md, progressive disclosure  | Large system files with everything included |
-| CE-7 | Rules automated where possible                         | Linting/tooling over documentation         | Manual rule enforcement via docs            |
-| CE-8 | Tasks encapsulated (start > action > complete > reset) | Clear task boundaries, session hygiene     | Open-ended, unbounded sessions              |
+| ID    | Rule                                                   | Signals Present                                            | Signals Absent                                |
+| ----- | ------------------------------------------------------ | ---------------------------------------------------------- | --------------------------------------------- |
+| GCH-1 | Tools provide context transparency                     | Visible context usage, action history                      | Obfuscated context, hidden actions            |
+| GCH-2 | No persistent MCP configs for stable workflows         | Bash/scripts for permanent flows, MCP only for experiments | MCP registrations used for ongoing automation |
+| GCH-3 | Sessions kept lean (<40% context)                      | Session management practices                               | Bloated, long-running sessions                |
+| GCH-4 | Planning/build execution separated                     | Distinct plan vs build sessions                            | Planning and execution intermingled           |
+| GCH-5 | Planning artifacts stored externally                   | Files/docs outside the session window                      | Plans only in transient context               |
+| GCH-6 | System rules concise & progressive disclosure          | Minimal AGENTS.md with layered references                  | Rules crammed into single oversized files     |
+| GCH-7 | Permanent workflows scripted with clear I/O            | Makefiles, CLI commands, documented inputs/outputs         | Workflows only described in prompts           |
+| GCH-8 | Token usage controlled                                 | Caching, trimmed prompts, context windows monitored        | No awareness of token/latency cost            |
+| GCH-9 | Tasks encapsulated (start → action → complete → reset) | Clear task boundaries and reset rituals                    | Open-ended sessions without hygiene           |
 
 ---
 
-## 6. Verification as First Class Requirement
+## 4. Verification as First Class Requirement
 
 **Intent:** Verification at all stages via deterministic actions that cannot be bypassed.
 
@@ -109,41 +77,7 @@ These rules are used to assess codebase adoption and adherence to agentic engine
 
 ---
 
-## 7. Agentic Harnesses
-
-**Intent:** Prefer transparent, inspectable tooling where prompts and execution are visible.
-
-### Assessment Rules
-
-| ID   | Rule                                 | Signals Present                             | Signals Absent                         |
-| ---- | ------------------------------------ | ------------------------------------------- | -------------------------------------- |
-| AH-1 | System prompts visible and versioned | Versioned prompt files, visible configs     | Hidden or proprietary prompts          |
-| AH-2 | Tool configuration versioned         | Config in source control                    | Unversioned tool settings              |
-| AH-3 | Workflows reproducible               | Same inputs produce same outputs            | Non-deterministic workflows            |
-| AH-4 | Open-source harnesses preferred      | OSS tooling where practical                 | Proprietary lock-in without mitigation |
-| AH-5 | LLM actions have visibility          | Logging, audit trails for AI actions        | Black-box AI operations                |
-| AH-6 | Vendor lock-in avoided               | Portable configurations, abstraction layers | Deep vendor-specific integrations      |
-
----
-
-## 8. Complement LLM with Deterministic Code
-
-**Intent:** Minimize context pollution with code-based workflows; mitigate LLM weaknesses.
-
-### Assessment Rules
-
-| ID     | Rule                                     | Signals Present                            | Signals Absent                        |
-| ------ | ---------------------------------------- | ------------------------------------------ | ------------------------------------- |
-| CLDC-1 | Permanent workflows are scripts/commands | Makefile, task runners, shell scripts      | Workflows only in prompts/docs        |
-| CLDC-2 | Scripts have clear inputs/outputs        | Documented CLI interfaces                  | Implicit or undocumented I/O          |
-| CLDC-3 | Tooling mitigates LLM weaknesses         | Deduplication tools, structure enforcement | Reliance on LLM consistency           |
-| CLDC-4 | Token costs actively reduced             | Efficient context usage, caching           | No consideration for token efficiency |
-| CLDC-5 | Code duplication detection in place      | Automated review catches duplicates        | Manual duplicate detection only       |
-| CLDC-6 | God class prevention measures            | Size limits, complexity checks             | No structural guardrails              |
-
----
-
-## 9. Observability - Empower LLMs with Feedback
+## 5. Observability - Empower LLMs with Feedback
 
 **Intent:** Provide mechanisms for LLMs to get feedback and course correct.
 
@@ -163,16 +97,12 @@ These rules are used to assess codebase adoption and adherence to agentic engine
 
 ## Summary: Assessment Categories
 
-| Category                               | Rule Count | Focus Area                  |
-| -------------------------------------- | ---------- | --------------------------- |
-| Verified Starting Base                 | 5          | Project foundation quality  |
-| Implementation as Documentation        | 5          | Documentation efficiency    |
-| Coding Guidance via System Docs        | 6          | Rule quality and automation |
-| Planning is Fundamental                | 6          | Task structure and review   |
-| Context Efficiency                     | 8          | Context management          |
-| Verification as First Class            | 7          | Quality assurance           |
-| Agentic Harnesses                      | 6          | Tooling transparency        |
-| Complement LLM with Deterministic Code | 6          | Workflow automation         |
-| Observability                          | 7          | Feedback mechanisms         |
+| Category                        | Rule Count | Focus Area                  |
+| ------------------------------- | ---------- | --------------------------- |
+| Implementation as Documentation | 5          | Documentation efficiency    |
+| Coding Guidance via System Docs | 6          | Rule quality and automation |
+| Global Context Hygiene          | 9          | Context minimization        |
+| Verification as First Class     | 7          | Quality assurance           |
+| Observability                   | 7          | Feedback mechanisms         |
 
-**Total Assessment Rules: 56**
+**Total Assessment Rules: 34**

@@ -74,6 +74,8 @@ For adding a single rule to an existing file:
 
 ## Rule Title
 
+Rule-ID: <stable-id>
+
 - ALWAYS [positive directive - what to do]
 - NEVER [what to avoid, if critical]
 - [Additional context or specifics]
@@ -91,6 +93,11 @@ For adding a single rule to an existing file:
 \`\`\`
 
 **Note**: [Optional additional notes, edge cases, or context]
+
+### Deterministic enforcement?
+
+- If tooling exists, note the recommended analyzer/lint rule and why it is preferred.
+- If tooling is infeasible, state “Why not deterministic?” and cite `coverage.json`.
 
 ---
 

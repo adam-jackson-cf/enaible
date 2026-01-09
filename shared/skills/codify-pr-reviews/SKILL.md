@@ -9,23 +9,27 @@ allowed-tools: @BASH @READ @WRITE
 
 Turn historical PR review comments into actionable instruction rules so repeat feedback becomes automated guidance.
 
-- You want to codify recurring PR feedback into enforceable instruction rules.
+- You want to codify recurring PR feedback into enforceable checks, preferring tooling before system docs.
 - You need a deterministic workflow with human approval gates before rules change.
 - You must keep artifacts for auditability across analyzers and adapters.
 
 ## Need to...? Read This
 
-| Goal                              | Reference                                                                          |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
-| Detect stack + red flags          | [references/stack-analysis-workflow.md](references/stack-analysis-workflow.md)     |
-| Fetch PR review comments          | [references/fetching-workflow.md](references/fetching-workflow.md)                 |
-| Deduplicate + group comments      | [references/preprocessing-workflow.md](references/preprocessing-workflow.md)       |
-| Triage patterns vs existing rules | [references/pattern-analysis-workflow.md](references/pattern-analysis-workflow.md) |
-| Generate rule drafts              | [references/rule-generation-workflow.md](references/rule-generation-workflow.md)   |
-| Apply approved rules              | [references/apply-rules-workflow.md](references/apply-rules-workflow.md)           |
-| Resolve system targets            | [references/system-targeting.md](references/system-targeting.md)                   |
-| Rule template                     | [references/rule-template.md](references/rule-template.md)                         |
-| Troubleshoot issues               | [references/troubleshooting.md](references/troubleshooting.md)                     |
+| Goal                            | Reference                                                                                |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| Detect stack + red flags        | [references/stack-analysis-workflow.md](references/stack-analysis-workflow.md)           |
+| Fetch PR review comments        | [references/fetching-workflow.md](references/fetching-workflow.md)                       |
+| Deduplicate + group comments    | [references/preprocessing-workflow.md](references/preprocessing-workflow.md)             |
+| Extract normalized patterns     | [references/extract-patterns-workflow.md](references/extract-patterns-workflow.md)       |
+| Inventory deterministic tooling | [references/tooling-inventory-workflow.md](references/tooling-inventory-workflow.md)     |
+| Inventory system doc rules      | [references/doc-rules-inventory-workflow.md](references/doc-rules-inventory-workflow.md) |
+| Compare coverage (tools + docs) | [references/coverage-compare-workflow.md](references/coverage-compare-workflow.md)       |
+| Enforcement review + approvals  | [references/enforcement-review-workflow.md](references/enforcement-review-workflow.md)   |
+| Generate rule drafts            | [references/rule-generation-workflow.md](references/rule-generation-workflow.md)         |
+| Apply approved rules            | [references/apply-rules-workflow.md](references/apply-rules-workflow.md)                 |
+| Resolve system targets          | [references/system-targeting.md](references/system-targeting.md)                         |
+| Rule template                   | [references/rule-template.md](references/rule-template.md)                               |
+| Troubleshoot issues             | [references/troubleshooting.md](references/troubleshooting.md)                           |
 
 ## Workflow
 
@@ -63,37 +67,65 @@ Detailed instructions, artifacts, and checkpoint prompts live in the `references
 - Execute the preprocessing script to produce `@ARTIFACT_ROOT/preprocessed.json`.
 - Follow [references/preprocessing-workflow.md](references/preprocessing-workflow.md) for grouping heuristics and thresholds.
 
-### Step 4: Pattern analysis
+### Step 4: Extract normalized patterns
 
-**Purpose**: Identify recurring patterns and triage against existing rules for the target system.
+**Purpose**: Convert grouped comments into normalized patterns without enforcement decisions.
 
-- Compare grouped comments with existing instruction files.
-- Record findings in `@ARTIFACT_ROOT/patterns.json`.
-- The in-depth checklist lives in [references/pattern-analysis-workflow.md](references/pattern-analysis-workflow.md).
+- Run the pattern extraction helper to produce `@ARTIFACT_ROOT/patterns.json`.
+- Workflow: [references/extract-patterns-workflow.md](references/extract-patterns-workflow.md).
 
-### Step 5: Pattern review (interactive)
+### Step 5: Inventory deterministic tooling
 
-**Purpose**: Review identified patterns and decide on actions (create / strengthen / skip).
+**Purpose**: Capture current lint/analyzer configurations and rule identifiers.
 
-- Pause for user input before committing to rule changes; checkpoints are scripted in the pattern analysis reference file.
-- Document approvals directly in the artifact directory.
+- Run the tooling inventory helper to produce `@ARTIFACT_ROOT/tooling-inventory.json`.
+- Workflow: [references/tooling-inventory-workflow.md](references/tooling-inventory-workflow.md).
 
-### Step 6: Generate rule drafts
+### Step 6: Inventory system doc rules
+
+**Purpose**: Snapshot existing system doc rules for coverage comparison.
+
+- Resolve `@TARGET_SYSTEM` and `@INSTRUCTION_FILES` using [references/system-targeting.md](references/system-targeting.md).
+- Run the doc rules inventory helper to produce `@ARTIFACT_ROOT/doc-rules.json`.
+- Workflow: [references/doc-rules-inventory-workflow.md](references/doc-rules-inventory-workflow.md).
+
+### Step 7: Compare coverage (tools + docs)
+
+**Purpose**: Determine whether patterns are already covered by tooling or docs, and suggest enforcement paths.
+
+- Run the coverage comparison helper to produce `@ARTIFACT_ROOT/coverage.json`.
+- Workflow: [references/coverage-compare-workflow.md](references/coverage-compare-workflow.md).
+
+### Step 8: Enforcement review (interactive)
+
+**Purpose**: Approve enforcement decisions for tooling, docs, or both.
+
+- Review `coverage.json` with the user and capture decisions in `@ARTIFACT_ROOT/approved-enforcement.json`.
+- Workflow: [references/enforcement-review-workflow.md](references/enforcement-review-workflow.md).
+
+### Step 9: Prepare enforcement outputs
+
+**Purpose**: Generate doc-only pattern list and tooling change plan from approvals.
+
+- Run the enforcement output helper to produce `@ARTIFACT_ROOT/doc-patterns.json`, `@ARTIFACT_ROOT/tooling-changes.md`, and `@ARTIFACT_ROOT/tooling-changes.json`.
+- Workflow: [references/enforcement-review-workflow.md](references/enforcement-review-workflow.md).
+
+### Step 10: Generate rule drafts
 
 **Purpose**: Create new rules or enhance existing ones with concrete examples.
 
-- Use the templates + prompts in [references/rule-generation-workflow.md](references/rule-generation-workflow.md) and [references/rule-template.md](references/rule-template.md).
+- Use `@ARTIFACT_ROOT/doc-patterns.json` from enforcement outputs with the templates in [references/rule-generation-workflow.md](references/rule-generation-workflow.md) and [references/rule-template.md](references/rule-template.md).
 - Save drafts under `@ARTIFACT_ROOT/drafts/`.
 
-### Step 7: Rule wording review (interactive)
+### Step 11: Rule wording review (interactive)
 
 **Purpose**: Validate and approve generated rule wording before application.
 
 - Collect user confirmation per draft; the detailed `@ASK_USER_CONFIRMATION` prompts live in [references/rule-generation-workflow.md](references/rule-generation-workflow.md).
 
-### Step 8: Apply rules
+### Step 12: Apply enforcement changes
 
-**Purpose**: Update instruction files for the target system and capture diffs.
+**Purpose**: Update instruction files and tooling configs, then capture diffs.
 
-- Follow the apply workflow to edit files safely, record `@ARTIFACT_ROOT/apply-summary.json` (or `.md`), and attach diffs.
-- All approval gates for file edits are described in [references/apply-rules-workflow.md](references/apply-rules-workflow.md).
+- Apply doc rule updates following [references/apply-rules-workflow.md](references/apply-rules-workflow.md).
+- Apply tooling changes listed in `tooling-changes.md` (and mirrored in `tooling-changes.json`) and capture diffs alongside doc updates.

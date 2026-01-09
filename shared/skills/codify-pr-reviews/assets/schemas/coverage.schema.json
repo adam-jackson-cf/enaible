@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["patterns"],
+  "properties": {
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "docCoverage", "toolingCoverage", "enforcementSuggestion"],
+        "properties": {
+          "id": { "type": "string" },
+          "docCoverage": {
+            "type": "object",
+            "required": ["status"],
+            "properties": {
+              "status": { "type": "string" }
+            }
+          },
+          "toolingCoverage": { "type": "array" },
+          "deterministicOptions": { "type": "array" },
+          "enforcementSuggestion": { "type": "string" }
+        }
+      }
+    }
+  }
+}

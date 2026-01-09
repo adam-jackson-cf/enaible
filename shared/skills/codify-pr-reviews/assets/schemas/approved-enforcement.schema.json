@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["patterns"],
+  "properties": {
+    "patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "decision"],
+        "properties": {
+          "id": { "type": "string" },
+          "decision": {
+            "type": "object",
+            "required": ["enforcementPath", "action"],
+            "properties": {
+              "enforcementPath": { "type": "string" },
+              "action": { "type": "string" },
+              "toolingAction": { "type": "string" },
+              "rationale": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
