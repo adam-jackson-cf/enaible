@@ -44,137 +44,23 @@ async def crawl_website(
         config.only_text = True
         config.page_timeout = 30000
 
-        crawled_pages = []
-        urls_to_crawl = [url]
-        crawled_urls = set()
-        current_depth = 0
+        crawled_pages: list[dict[str, Any]] = []
+        crawled_urls: set[str] = set()
 
         logger.info(
             f"Starting crawl of {url} with depth {crawl_depth} and max pages {max_pages}"
         )
         if query:
             logger.info(f"Using keyword filtering with query: '{query}'")
-
-        while (
-            urls_to_crawl
-            and len(crawled_pages) < max_pages
-            and current_depth <= crawl_depth
-        ):
-            current_level_urls = urls_to_crawl.copy()
-            urls_to_crawl = []
-
-            for current_url in current_level_urls:
-                if len(crawled_pages) >= max_pages:
-                    break
-
-                if current_url in crawled_urls:
-                    continue
-
-                try:
-                    # Create fresh session config for this page
-                    fresh_config = await session_manager.get_session_config(
-                        "crawl_page"
-                    )
-                    fresh_config.word_threshold = 10
-                    fresh_config.only_text = True
-                    fresh_config.page_timeout = 30000
-
-                    # Perform the crawl
-                    result = await crawler.arun(url=current_url, config=fresh_config)
-                    crawled_urls.add(current_url)
-
-                    if result.success:
-                        # Basic keyword matching if query provided
-                        matches_query = True
-                        if query:
-                            content = (
-                                result.markdown.raw_markdown if result.markdown else ""
-                            )
-                            title = (
-                                result.metadata.get("title", "")
-                                if result.metadata
-                                else ""
-                            )
-                            matches_query = _matches_keywords(
-                                content + " " + title, query
-                            )
-
-                        page_data = {
-                            "success": True,
-                            "url": result.url,
-                            "title": result.metadata.get("title", "")
-                            if result.metadata
-                            else "",
-                            "status_code": result.status_code,
-                            "markdown": result.markdown.raw_markdown
-                            if result.markdown
-                            else "",
-                            "cleaned_html": result.cleaned_html[:3000]
-                            if result.cleaned_html
-                            else "",
-                            "depth": current_depth,
-                            "links_found": len(result.links.get("internal", []))
-                            if result.links
-                            else 0,
-                            "metadata": result.metadata if result.metadata else {},
-                            "matches_query": matches_query,
-                            "session_id": fresh_config.session_id,
-                        }
-
-                        crawled_pages.append(page_data)
-                        logger.info(
-                            f"Successfully crawled {current_url} (depth {current_depth})"
-                        )
-
-                        # Add internal links for next depth level
-                        if (
-                            current_depth < crawl_depth
-                            and result.links
-                            and "internal" in result.links
-                        ):
-                            internal_links = result.links["internal"][
-                                :10
-                            ]  # Limit to 10 links per page
-
-                            for link in internal_links:
-                                if (
-                                    link not in crawled_urls
-                                    and link not in urls_to_crawl
-                                    and (not query or _matches_keywords(link, query))
-                                ):
-                                    urls_to_crawl.append(link)
-
-                        # Clean up this page's session
-                        await session_manager.cleanup_session(fresh_config.session_id)
-
-                    else:
-                        # Log failed crawl
-                        logger.warning(
-                            f"Failed to crawl {current_url}: {result.error_message}"
-                        )
-                        page_data = {
-                            "success": False,
-                            "url": current_url,
-                            "error": result.error_message or "Unknown error",
-                            "depth": current_depth,
-                            "session_id": fresh_config.session_id
-                            if fresh_config
-                            else None,
-                        }
-                        crawled_pages.append(page_data)
-
-                except Exception as e:
-                    logger.error(f"Error crawling {current_url}: {str(e)}")
-                    error_page = {
-                        "success": False,
-                        "url": current_url,
-                        "error": f"Crawling failed: {str(e)}",
-                        "error_type": type(e).__name__,
-                        "depth": current_depth,
-                    }
-                    crawled_pages.append(error_page)
-
-            current_depth += 1
+        await _crawl_loop(
+            crawler,
+            url,
+            query,
+            crawl_depth,
+            max_pages,
+            crawled_urls,
+            crawled_pages,
+        )
 
         # Clean up main session
         if session_id:
@@ -199,6 +85,142 @@ async def crawl_website(
                 "error_type": type(e).__name__,
             }
         ]
+
+
+async def _crawl_loop(
+    crawler,
+    start_url: str,
+    query: str,
+    crawl_depth: int,
+    max_pages: int,
+    crawled_urls: set[str],
+    crawled_pages: list[dict[str, Any]],
+) -> None:
+    urls_to_crawl = [start_url]
+    current_depth = 0
+    while (
+        urls_to_crawl
+        and len(crawled_pages) < max_pages
+        and current_depth <= crawl_depth
+    ):
+        current_level_urls = urls_to_crawl.copy()
+        urls_to_crawl = []
+        for current_url in current_level_urls:
+            if len(crawled_pages) >= max_pages:
+                break
+            if current_url in crawled_urls:
+                continue
+            new_links = await _process_crawl_url(
+                crawler,
+                current_url,
+                query,
+                current_depth,
+                crawl_depth,
+                crawled_urls,
+                crawled_pages,
+            )
+            for link in new_links:
+                if link not in urls_to_crawl:
+                    urls_to_crawl.append(link)
+        current_depth += 1
+
+
+async def _process_crawl_url(
+    crawler,
+    current_url: str,
+    query: str,
+    current_depth: int,
+    crawl_depth: int,
+    crawled_urls: set[str],
+    crawled_pages: list[dict[str, Any]],
+) -> list[str]:
+    try:
+        fresh_config = await session_manager.get_session_config("crawl_page")
+        fresh_config.word_threshold = 10
+        fresh_config.only_text = True
+        fresh_config.page_timeout = 30000
+
+        result = await crawler.arun(url=current_url, config=fresh_config)
+        crawled_urls.add(current_url)
+        if result.success:
+            page_data = _build_success_page(
+                result, current_depth, query, fresh_config.session_id
+            )
+            crawled_pages.append(page_data)
+            logger.info(f"Successfully crawled {current_url} (depth {current_depth})")
+            new_links = _extract_internal_links(
+                result, current_depth, crawl_depth, query, crawled_urls
+            )
+            await session_manager.cleanup_session(fresh_config.session_id)
+            return new_links
+        logger.warning(f"Failed to crawl {current_url}: {result.error_message}")
+        crawled_pages.append(
+            {
+                "success": False,
+                "url": current_url,
+                "error": result.error_message or "Unknown error",
+                "depth": current_depth,
+                "session_id": fresh_config.session_id,
+            }
+        )
+        return []
+    except Exception as e:
+        logger.error(f"Error crawling {current_url}: {str(e)}")
+        crawled_pages.append(
+            {
+                "success": False,
+                "url": current_url,
+                "error": f"Crawling failed: {str(e)}",
+                "error_type": type(e).__name__,
+                "depth": current_depth,
+            }
+        )
+        return []
+
+
+def _build_success_page(
+    result, current_depth: int, query: str, session_id: str
+) -> dict:
+    matches_query = True
+    if query:
+        content = result.markdown.raw_markdown if result.markdown else ""
+        title = result.metadata.get("title", "") if result.metadata else ""
+        matches_query = _matches_keywords(content + " " + title, query)
+    return {
+        "success": True,
+        "url": result.url,
+        "title": result.metadata.get("title", "") if result.metadata else "",
+        "status_code": result.status_code,
+        "markdown": result.markdown.raw_markdown if result.markdown else "",
+        "cleaned_html": result.cleaned_html[:3000] if result.cleaned_html else "",
+        "depth": current_depth,
+        "links_found": len(result.links.get("internal", [])) if result.links else 0,
+        "metadata": result.metadata if result.metadata else {},
+        "matches_query": matches_query,
+        "session_id": session_id,
+    }
+
+
+def _extract_internal_links(
+    result,
+    current_depth: int,
+    crawl_depth: int,
+    query: str,
+    crawled_urls: set[str],
+) -> list[str]:
+    if current_depth >= crawl_depth:
+        return []
+    if not result.links or "internal" not in result.links:
+        return []
+    internal_links = result.links["internal"][:10]
+    links: list[str] = []
+    for link in internal_links:
+        if link in crawled_urls:
+            continue
+        if query and not _matches_keywords(link, query):
+            continue
+        links.append(link)
+    return links
 
 
 def _matches_keywords(text: str, query: str) -> bool:

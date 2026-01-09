@@ -166,32 +166,12 @@ def main():
     platform_name, package_manager = detect_platform_and_package_manager()
 
     if not package_manager:
-        print(f"\nError: No supported package manager found on {platform_name}")
-        if platform_name == "macos":
-            print("Please install Homebrew: https://brew.sh")
-        elif platform_name == "linux":
-            print(
-                "Please install a supported package manager (apt, dnf, yum, or pacman)"
-            )
-        elif platform_name == "windows":
-            print("Please install winget, chocolatey, or scoop")
+        _print_missing_package_manager(platform_name)
         return 1
 
     print(f"Detected: {platform_name} with {package_manager}")
 
-    # Check which tools are missing
-    tools_to_check = ["make", "watchexec", "shoreman"]
-    missing_tools = []
-
-    for tool in tools_to_check:
-        # Special case: check for both shoreman and foreman for process manager
-        if tool == "shoreman":
-            if not (
-                check_tool_installed("shoreman") or check_tool_installed("foreman")
-            ):
-                missing_tools.append("foreman")
-        elif not check_tool_installed(tool):
-            missing_tools.append(tool)
+    missing_tools = _collect_missing_tools()
 
     if not missing_tools:
         print("\n✓ All required tools are already installed!")
@@ -204,29 +184,62 @@ def main():
 
     # Install missing tools
     print(f"\nInstalling tools using {package_manager}...")
-    failed_installations = []
+    failed_installations = _install_missing_tools(
+        missing_tools, platform_name, package_manager
+    )
+    return _print_install_summary(failed_installations)
 
+
+def _print_missing_package_manager(platform_name: str) -> None:
+    print(f"\nError: No supported package manager found on {platform_name}")
+    if platform_name == "macos":
+        print("Please install Homebrew: https://brew.sh")
+    elif platform_name == "linux":
+        print("Please install a supported package manager (apt, dnf, yum, or pacman)")
+    elif platform_name == "windows":
+        print("Please install winget, chocolatey, or scoop")
+
+
+def _collect_missing_tools() -> list[str]:
+    tools_to_check = ["make", "watchexec", "shoreman"]
+    missing_tools: list[str] = []
+    for tool in tools_to_check:
+        if tool == "shoreman":
+            if not (
+                check_tool_installed("shoreman") or check_tool_installed("foreman")
+            ):
+                missing_tools.append("foreman")
+            continue
+        if not check_tool_installed(tool):
+            missing_tools.append(tool)
+    return missing_tools
+
+
+def _install_missing_tools(
+    missing_tools: list[str], platform_name: str, package_manager: str
+) -> list[str]:
+    failed_installations: list[str] = []
     for tool in missing_tools:
         if tool == "make":
-            success, stdout, stderr = install_make(platform_name, package_manager)
+            success, _stdout, stderr = install_make(platform_name, package_manager)
         elif tool == "watchexec":
-            success, stdout, stderr = install_watchexec(platform_name, package_manager)
-        elif tool == "foreman":
-            success, stdout, stderr = install_foreman_from_github(platform_name)
-
+            success, _stdout, stderr = install_watchexec(platform_name, package_manager)
+        else:
+            success, _stdout, stderr = install_foreman_from_github(platform_name)
         if success:
             print(f"  ✓ {tool} installed successfully")
         else:
             print(f"  ✗ Failed to install {tool}: {stderr}")
             failed_installations.append(tool)
+    return failed_installations
 
-    # Summary
+
+def _print_install_summary(failed_installations: list[str]) -> int:
     if failed_installations:
         print(f"\n⚠️  Failed to install: {', '.join(failed_installations)}")
         return 1
-    else:
-        print("\n✓ All monitoring dependencies installed successfully!")
-        return 0
+    print("\n✓ All monitoring dependencies installed successfully!")
+    return 0
 
 
 if __name__ == "__main__":

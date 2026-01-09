@@ -597,46 +597,52 @@ def _post_install(
     if not source_rules.exists():
         return
 
-    # For claude-code user scope, CLAUDE.md lives inside ~/.claude. For project scope
-    # the file belongs at the project root (parent of .claude/). For antigravity,
-    # GEMINI.md goes in ~/.gemini/ (parent of ~/.gemini/antigravity/).
-    # For codex, target goes inside .codex directory
-    # For copilot, target goes inside .github subdirectory (mirrors project scope pattern)
     combined_rules = _load_combined_rules(source_rules)
-
-    if system == "claude-code":
-        target_path = (
-            destination_root.parent / target_name
-            if scope.lower() == "project"
-            else destination_root / target_name
-        )
-    elif system == "antigravity":
-        target_path = destination_root.parent / target_name
-    elif system == "copilot" and scope.lower() == "user":
-        # For user-level copilot installs, use VS Code user instructions file.
-        target_path = destination_root / "instructions" / "copilot.instructions.md"
-    else:
-        target_path = destination_root / target_name
+    target_path = _resolve_target_path(system, scope, destination_root, target_name)
 
     if dry_run:
         summary.record("merge", target_path)
         return
 
+    if _handle_system_specific_merge(system, target_path, combined_rules, summary):
+        return
+
+    _merge_generic_rules(target_path, combined_rules, summary)
+
+
+def _resolve_target_path(
+    system: str, scope: str, destination_root: Path, target_name: str
+) -> Path:
+    """Resolve the target path based on system and scope."""
+    if system == "claude-code":
+        return (
+            destination_root.parent / target_name
+            if scope.lower() == "project"
+            else destination_root / target_name
+        )
+    if system == "antigravity":
+        return destination_root.parent / target_name
+    if system == "copilot" and scope.lower() == "user":
+        return destination_root / "instructions" / "copilot.instructions.md"
+    return destination_root / target_name
+
+
+def _handle_system_specific_merge(
+    system: str, target_path: Path, combined_rules: str, summary: InstallSummary
+) -> bool:
+    """Handle system-specific merge operations. Returns True if handled."""
     if system == "codex":
         _merge_codex_agents(target_path, combined_rules)
         summary.record("merge", target_path)
-        return
-
+        return True
     if system == "copilot":
         _merge_copilot_agents(target_path, combined_rules)
         summary.record("merge", target_path)
-        return
-
+        return True
     if system == "pi":
         _merge_pi_agents(target_path, combined_rules)
         summary.record("merge", target_path)
-        return
-
+        return True
     if system == "cursor":
         _create_cursor_user_rules(target_path, combined_rules)
         summary.record("write", target_path)
@@ -645,8 +651,14 @@ def _post_install(
             f"    Copy the contents of {target_path}\n"
             "    into Cursor > Settings > Rules > User Rules\n"
         )
-        return
+        return True
+    return False
 
+
+def _merge_generic_rules(
+    target_path: Path, combined_rules: str, summary: InstallSummary
+) -> None:
+    """Merge rules using generic append strategy."""
     header = (
         f"# AI-Assisted Workflows v{_enaible_version()} - Auto-generated, do not edit"
     )
@@ -804,14 +816,25 @@ def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
         return True
     if prompt_id in _PROMPT_DEP_CACHE:
         return _PROMPT_DEP_CACHE[prompt_id]
+
     deps = PROMPT_DEPENDENCIES.get(prompt_id)
     if not deps:
         _PROMPT_DEP_CACHE[prompt_id] = True
         return True
+
     missing = [dep for dep in deps if not _dependency_available(dep)]
     if not missing:
         _PROMPT_DEP_CACHE[prompt_id] = True
         return True
+
+    _display_missing_deps_warning(prompt_id, missing)
+    result = _handle_dependency_install(prompt_id, deps, missing, dry_run)
+    _PROMPT_DEP_CACHE[prompt_id] = result
+    return result
+
+
+def _display_missing_deps_warning(prompt_id: str, missing: list) -> None:
+    """Display warning about missing dependencies."""
     dep_names = ", ".join(dep.name for dep in missing)
     typer.secho(
         f"Prompt '{prompt_id}' requires {dep_names} which are not installed.",
@@ -821,30 +844,35 @@ def _prompt_dependencies_ready(prompt_id: str | None, dry_run: bool) -> bool:
         typer.echo(f"- {dep.name}: {dep.install_hint}")
         if dep.auto_install_env:
             typer.echo(f"  Auto-install: set {dep.auto_install_env}=true")
+
+
+def _handle_dependency_install(
+    prompt_id: str, deps: list, missing: list, dry_run: bool
+) -> bool:
+    """Handle the interactive dependency install flow."""
     if dry_run:
         typer.secho(
             "Dry-run mode: dependencies not installed, prompt will be skipped.",
             fg=typer.colors.YELLOW,
         )
-        _PROMPT_DEP_CACHE[prompt_id] = False
         return False
-    install = _confirm_install_dependencies()
-    if install:
+
+    if _confirm_install_dependencies():
         for dep in missing:
             _install_dependency(dep)
         missing = [dep for dep in deps if not _dependency_available(dep)]
+
     if missing:
         typer.secho(
             f"Dependencies still missing for '{prompt_id}'. Prompt will not be installed.",
             fg=typer.colors.RED,
         )
-        _PROMPT_DEP_CACHE[prompt_id] = False
         return False
+
     typer.secho(
         f"All dependencies for '{prompt_id}' detected. Proceeding with install.",
         fg=typer.colors.GREEN,
     )
-    _PROMPT_DEP_CACHE[prompt_id] = True
     return True
 
 

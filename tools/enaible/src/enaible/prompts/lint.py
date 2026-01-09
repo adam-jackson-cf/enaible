@@ -38,9 +38,18 @@ def _strip_code_blocks(text: str) -> str:
 def lint_content(path: Path, content: str) -> list[LintIssue]:
     issues: list[LintIssue] = []
     variables, body = extract_variables(content)
-
-    # 1) $-prefixed tokens are forbidden outside code blocks and mapping bullets
     scrubbed = _strip_code_blocks(content)
+
+    issues.extend(_check_dollar_tokens(path, scrubbed))
+    issues.extend(_check_at_tokens(path, body, {v.token for v in variables}))
+    issues.extend(_check_variable_shapes(path, variables))
+
+    return issues
+
+
+def _check_dollar_tokens(path: Path, scrubbed: str) -> list[LintIssue]:
+    """Check for forbidden $VAR tokens outside code blocks and mapping bullets."""
+    issues: list[LintIssue] = []
     for idx, line in enumerate(scrubbed.splitlines(), start=1):
         if line.strip().startswith(("- @", "###", "## ")):
             continue
@@ -52,9 +61,12 @@ def lint_content(path: Path, content: str) -> list[LintIssue]:
                     "Found forbidden $VAR token; use @TOKEN mapping in Variables.",
                 )
             )
+    return issues
 
-    # 2) Every @TOKEN in body must be declared in Variables
-    declared = {v.token for v in variables}
+
+def _check_at_tokens(path: Path, body: str, declared: set[str]) -> list[LintIssue]:
+    """Check that every @TOKEN in body is declared in Variables."""
+    issues: list[LintIssue] = []
     for idx, line in enumerate(body.splitlines(), start=1):
         for m in _AT_TOKEN.finditer(line):
             token = f"@{m.group(1)}"
@@ -62,8 +74,12 @@ def lint_content(path: Path, content: str) -> list[LintIssue]:
                 issues.append(
                     LintIssue(path, idx, f"Undeclared token {token} used in body.")
                 )
+    return issues
 
-    # 3) Shape checks for variables
+
+def _check_variable_shapes(path: Path, variables: list) -> list[LintIssue]:
+    """Check shape constraints for variable declarations."""
+    issues: list[LintIssue] = []
     for v in variables:
         if not v.token.startswith("@"):
             issues.append(
@@ -77,7 +93,6 @@ def lint_content(path: Path, content: str) -> list[LintIssue]:
             issues.append(
                 LintIssue(path, 1, f"Optional {v.token} must map to a --flag.")
             )
-
     return issues
 
 

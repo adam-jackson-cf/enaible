@@ -128,80 +128,100 @@ def main():
 
     args = parser.parse_args()
 
+    components = _load_components(args.components)
+    if components is None:
+        return 1
+
+    watch_patterns = _load_watch_patterns(args.watch_patterns)
+    procfile_lines = _build_procfile_lines(
+        components, watch_patterns, args.include_health, args.include_watcher
+    )
+    output_path = Path(args.output_dir) / args.output_file
+    return _write_procfile(
+        output_path,
+        procfile_lines,
+        components,
+        args.include_health,
+        args.include_watcher,
+        watch_patterns,
+        args.output_file,
+    )
+
+
+def _load_components(components_json: str) -> list[dict] | None:
     try:
-        components = json.loads(args.components)
+        components = json.loads(components_json)
     except json.JSONDecodeError as e:
         print(f"Error parsing components JSON: {e}")
-        return 1
-
+        return None
     if not isinstance(components, list):
         print("Components must be a JSON array")
-        return 1
+        return None
+    return components
 
-    # Parse watch patterns if provided
-    watch_patterns = []
-    if args.watch_patterns:
-        try:
-            watch_patterns = json.loads(args.watch_patterns)
-        except json.JSONDecodeError:
-            print("Warning: Could not parse watch patterns, skipping file watcher")
 
-    # Generate Procfile content
-    procfile_lines = []
+def _load_watch_patterns(watch_patterns_json: str | None) -> list[str]:
+    if not watch_patterns_json:
+        return []
+    try:
+        patterns = json.loads(watch_patterns_json)
+        return patterns if isinstance(patterns, list) else []
+    except json.JSONDecodeError:
+        print("Warning: Could not parse watch patterns, skipping file watcher")
+        return []
 
-    # Add header comment
-    procfile_lines.append(generate_procfile_header(components))
-    procfile_lines.append("")  # Empty line after header
 
-    # Add service definitions
+def _build_procfile_lines(
+    components: list[dict],
+    watch_patterns: list[str],
+    include_health: bool,
+    include_watcher: bool,
+) -> list[str]:
+    procfile_lines = [generate_procfile_header(components), ""]
     for component in components:
-        service_def = generate_service_definition(component)
-        procfile_lines.append(service_def)
-
-    procfile_lines.append("")  # Empty line before optional services
-
-    # Add optional services
-    if args.include_health:
+        procfile_lines.append(generate_service_definition(component))
+    procfile_lines.append("")
+    if include_health:
         health_service = generate_health_check_service(components)
         if health_service:
             procfile_lines.append(health_service)
-
-    if args.include_watcher and watch_patterns:
+    if include_watcher and watch_patterns:
         watcher_service = generate_file_watcher_service(watch_patterns)
         if watcher_service:
             procfile_lines.append(watcher_service)
+    return procfile_lines
 
-    # Skip log aggregation service - use make tail-logs instead
-    # Individual services already pipe to dev.log via tee
 
-    # Write Procfile
-    output_path = Path(args.output_dir) / args.output_file
+def _write_procfile(
+    output_path: Path,
+    procfile_lines: list[str],
+    components: list[dict],
+    include_health: bool,
+    include_watcher: bool,
+    watch_patterns: list[str],
+    output_file: str,
+) -> int:
     try:
         with open(output_path, "w") as f:
             f.write("\n".join(procfile_lines))
-
-        print(f"Generated Procfile: {output_path}")
-        print(f"Components: {len(components)}")
-        for component in components:
-            name = component.get("name", "unknown")
-            label = component.get("label", name.upper())
-            port = component.get("port", "N/A")
-            print(f"  - {name} ({label}) - Port: {port}")
-
-        if args.include_health:
-            print("Included health monitoring service")
-        if args.include_watcher and watch_patterns:
-            print(f"Included file watcher for {len(watch_patterns)} patterns")
-
-        print("\nUsage:")
-        print("  foreman start              # Start all services")
-        print(f"  shoreman {args.output_file}   # Alternative process manager")
-
-        return 0
-
     except Exception as e:
         print(f"Error writing Procfile: {e}")
         return 1
+    print(f"Generated Procfile: {output_path}")
+    print(f"Components: {len(components)}")
+    for component in components:
+        name = component.get("name", "unknown")
+        label = component.get("label", name.upper())
+        port = component.get("port", "N/A")
+        print(f"  - {name} ({label}) - Port: {port}")
+    if include_health:
+        print("Included health monitoring service")
+    if include_watcher and watch_patterns:
+        print(f"Included file watcher for {len(watch_patterns)} patterns")
+    print("\nUsage:")
+    print("  foreman start              # Start all services")
+    print(f"  shoreman {output_file}   # Alternative process manager")
+    return 0
 
 
 if __name__ == "__main__":

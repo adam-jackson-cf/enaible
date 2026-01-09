@@ -130,35 +130,51 @@ class OsvScannerAnalyzer(BaseAnalyzer):
         return findings
 
     def _severity_from_vuln(self, vuln: dict[str, Any]) -> str:
+        severity = self._extract_database_severity(vuln)
+        if severity:
+            return severity
+        return self._extract_score_severity(vuln)
+
+    def _extract_database_severity(self, vuln: dict[str, Any]) -> str | None:
+        """Extract severity from database_specific field."""
         database_specific = vuln.get("database_specific", {}) or {}
         severity = database_specific.get("severity")
-        if isinstance(severity, str):
-            severity_upper = severity.upper()
-            if severity_upper in {"CRITICAL", "HIGH"}:
-                return "high"
-            if severity_upper in {"MEDIUM"}:
-                return "medium"
-            if severity_upper in {"LOW"}:
-                return "low"
+        if not isinstance(severity, str):
+            return None
+        severity_map = {
+            "CRITICAL": "high",
+            "HIGH": "high",
+            "MEDIUM": "medium",
+            "LOW": "low",
+        }
+        return severity_map.get(severity.upper())
 
+    def _extract_score_severity(self, vuln: dict[str, Any]) -> str:
+        """Extract severity from CVSS score array."""
+        scores = self._collect_scores(vuln.get("severity", []) or [])
+        if not scores:
+            return "medium"
+        return self._score_to_severity(max(scores))
+
+    def _collect_scores(self, severity_array: list[Any]) -> list[float]:
+        """Safely extract numeric scores from severity array."""
         scores = []
-        for entry in vuln.get("severity", []) or []:
-            score = entry.get("score")
+        for entry in severity_array:
+            score = entry.get("score") if isinstance(entry, dict) else None
             if score:
                 try:
                     scores.append(float(score))
-                except ValueError:
+                except (ValueError, TypeError):
                     continue
+        return scores
 
-        if scores:
-            max_score = max(scores)
-            if max_score >= 7.0:
-                return "high"
-            if max_score >= 4.0:
-                return "medium"
-            return "low"
-
-        return "medium"
+    def _score_to_severity(self, score: float) -> str:
+        """Map CVSS score to severity level."""
+        if score >= 7.0:
+            return "high"
+        if score >= 4.0:
+            return "medium"
+        return "low"
 
 
 if __name__ == "__main__":

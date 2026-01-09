@@ -211,99 +211,89 @@ class SemgrepAnalyzer(BaseAnalyzer):
     def _run_semgrep_batch_analysis(
         self, file_paths: list[str]
     ) -> list[dict[str, Any]]:
-        """
-        Run Semgrep analysis on multiple files efficiently with combined rulesets.
-
-        This replaces the old per-file, per-ruleset approach with a single invocation.
-        """
-        findings = []
-
+        """Run Semgrep analysis on multiple files efficiently with combined rulesets."""
+        findings: list[dict[str, Any]] = []
         try:
-            # Build semgrep command with configurable rulesets
-            cmd = [
-                "semgrep",
-                "scan",
-                "--json",
-                "--timeout",
-                "10",  # Faster timeout per file
-                "--timeout-threshold",
-                "3",  # Skip slow files quickly
-                "--max-target-bytes",
-                "500000",  # Skip files > 500KB
-                "--jobs",
-                "4",  # Parallel processing
-                "--optimizations",
-                "all",  # Enable all optimizations
-            ]
-
-            # Config override via env
-            configs_str = os.environ.get("AAW_SEMGREP_CONFIGS", "").strip()
-            configs: list[str]
-            if configs_str:
-                configs = [
-                    c.strip() for c in re.split(r"[\n,]+", configs_str) if c.strip()
-                ]
-            else:
-                configs = ["auto"]
-            for cfg in configs:
-                if cfg == "auto":
-                    cmd.append("--config=auto")
-                else:
-                    cmd.extend(["--config", cfg])
-
-            # OSS-only toggle (defaults true)
-            oss_only = os.environ.get("AAW_SEMGREP_OSS_ONLY", "true").lower() != "false"
-            if oss_only:
-                cmd.append("--oss-only")
-            # Add custom Rust security rules if analyzing Rust files
-            rust_files = [fp for fp in file_paths if fp.endswith(".rs")]
-            if rust_files:
-                rust_rules_path = os.path.join(
-                    os.path.dirname(__file__), "rules", "rust-security.yml"
-                )
-                if os.path.exists(rust_rules_path):
-                    cmd.extend(["--config", rust_rules_path])
-                    # Debug output for custom rules
-                    import sys
-
-                    print(
-                        f"Added custom Rust rules for {len(rust_files)} Rust files: {rust_rules_path}",
-                        file=sys.stderr,
-                    )
-
-            # Add all file paths to analyze in batch
-            cmd.extend(file_paths)
-
+            cmd = self._build_semgrep_batch_command(file_paths)
             self.logger.info(f"Running semgrep on {len(file_paths)} files in batch")
-
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60,  # 1 minute total timeout for batch
-            )
-
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             if result.stdout:
-                semgrep_output = json.loads(result.stdout)
-
-                # Process Semgrep findings
-                for finding in semgrep_output.get("results", []):
-                    processed_finding = self._process_semgrep_finding(
-                        finding,
-                        "auto",  # Mark as auto-detected ruleset
-                    )
-                    if processed_finding:
-                        findings.append(processed_finding)
-
+                findings = self._parse_semgrep_results(result.stdout)
         except (
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             json.JSONDecodeError,
         ) as e:
             self.logger.warning(f"Semgrep batch analysis failed: {e}")
-            # Fallback to individual file analysis if batch fails
             return self._fallback_individual_analysis(file_paths)
+        return findings
 
+    def _build_semgrep_batch_command(self, file_paths: list[str]) -> list[str]:
+        """Build semgrep command with all configurations."""
+        cmd = [
+            "semgrep",
+            "scan",
+            "--json",
+            "--timeout",
+            "10",
+            "--timeout-threshold",
+            "3",
+            "--max-target-bytes",
+            "500000",
+            "--jobs",
+            "4",
+            "--optimizations",
+            "all",
+        ]
+        self._add_semgrep_configs(cmd)
+        self._add_semgrep_oss_flag(cmd)
+        self._add_rust_rules_if_needed(cmd, file_paths)
+        cmd.extend(file_paths)
+        return cmd
+
+    def _add_semgrep_configs(self, cmd: list[str]) -> None:
+        """Add config specifications to semgrep command."""
+        configs_str = os.environ.get("AAW_SEMGREP_CONFIGS", "").strip()
+        configs = (
+            [c.strip() for c in re.split(r"[\n,]+", configs_str) if c.strip()]
+            if configs_str
+            else ["auto"]
+        )
+        for cfg in configs:
+            if cfg == "auto":
+                cmd.append("--config=auto")
+            else:
+                cmd.extend(["--config", cfg])
+
+    def _add_semgrep_oss_flag(self, cmd: list[str]) -> None:
+        """Add OSS-only flag if configured."""
+        oss_only = os.environ.get("AAW_SEMGREP_OSS_ONLY", "true").lower() != "false"
+        if oss_only:
+            cmd.append("--oss-only")
+
+    def _add_rust_rules_if_needed(self, cmd: list[str], file_paths: list[str]) -> None:
+        """Add custom Rust rules if analyzing Rust files."""
+        rust_files = [fp for fp in file_paths if fp.endswith(".rs")]
+        if not rust_files:
+            return
+        rust_rules_path = os.path.join(
+            os.path.dirname(__file__), "rules", "rust-security.yml"
+        )
+        if os.path.exists(rust_rules_path):
+            cmd.extend(["--config", rust_rules_path])
+            print(
+                f"Added custom Rust rules for {len(rust_files)} Rust files: {rust_rules_path}",
+                file=sys.stderr,
+            )
+
+    def _parse_semgrep_results(self, stdout: str) -> list[dict[str, Any]]:
+        """Parse Semgrep JSON output and convert findings."""
+        findings: list[dict[str, Any]] = []
+        semgrep_output = json.loads(stdout)
+        for finding in semgrep_output.get("results", []):
+            processed = self._process_semgrep_finding(finding, "auto")
+            if processed:
+                findings.append(processed)
         return findings
 
     def _fallback_individual_analysis(
@@ -437,127 +427,108 @@ class SemgrepAnalyzer(BaseAnalyzer):
         )
 
     def _run_semgrep_on_directory(self, directory_path: str) -> list[dict[str, Any]]:
-        """
-        Run Semgrep on entire directory, letting it handle exclusions.
-
-        This bypasses BaseAnalyzer's file discovery and lets Semgrep use its own
-        .gitignore logic and built-in exclusions for optimal performance.
-        """
-        findings = []
-
+        """Run Semgrep on entire directory, letting it handle exclusions."""
+        findings: list[dict[str, Any]] = []
         try:
-            # Run Semgrep on the entire directory with configurable rulesets
-            cmd = [
-                "semgrep",
-                "scan",
-                "--json",
-                "--timeout",
-                "10",  # Per-file timeout
-                "--timeout-threshold",
-                "3",  # Skip slow files
-                "--max-target-bytes",
-                "500000",  # Skip files > 500KB
-                "--jobs",
-                "4",  # Parallel processing
-                "--optimizations",
-                "all",  # Enable all optimizations
-            ]
-
-            # Config override via env
-            configs_str = os.environ.get("AAW_SEMGREP_CONFIGS", "").strip()
-            configs: list[str]
-            if configs_str:
-                configs = [
-                    c.strip() for c in re.split(r"[\n,]+", configs_str) if c.strip()
-                ]
-            else:
-                configs = ["auto"]
-            for cfg in configs:
-                if cfg == "auto":
-                    cmd.append("--config=auto")
-                else:
-                    cmd.extend(["--config", cfg])
-
-            # OSS-only toggle (defaults true)
-            oss_only = os.environ.get("AAW_SEMGREP_OSS_ONLY", "true").lower() != "false"
-            if oss_only:
-                cmd.append("--oss-only")
-
-            ignore_patterns: set[str] = set()
-
-            for pattern in getattr(self.config, "exclude_globs", set()):
-                trimmed = pattern.strip()
-                if trimmed:
-                    ignore_patterns.add(trimmed)
-
-            for skip in self.config.skip_patterns:
-                sanitized = skip.strip("/")
-                if not sanitized:
-                    continue
-                ignore_patterns.add(sanitized)
-                ignore_patterns.add(f"**/{sanitized}")
-                ignore_patterns.add(f"{sanitized}/**")
-
-                if sanitized.endswith("*") and not sanitized.startswith("**/"):
-                    ignore_patterns.add(f"**/{sanitized}")
-
-            for pattern in getattr(self.config, "gitignore_patterns", []):
-                trimmed = pattern.strip()
-                if not trimmed or trimmed.startswith("#") or trimmed.startswith("!"):
-                    continue
-                ignore_patterns.add(trimmed)
-                if trimmed.endswith("/"):
-                    base = trimmed.rstrip("/")
-                    ignore_patterns.add(f"{trimmed}**")
-                    ignore_patterns.add(f"**/{base}/**")
-
-            for pattern in sorted(p for p in ignore_patterns if p):
-                cmd.extend(["--exclude", pattern])
-
-            cmd.append(directory_path)  # Pass directory, not individual files
-
+            cmd = self._build_semgrep_directory_command(directory_path)
             self.logger.info(f"Running Semgrep on directory: {directory_path}")
-
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=300,  # 5 minute total timeout
-            )
-
-            if result.stdout:
-                semgrep_output = json.loads(result.stdout)
-
-                # Log how many files Semgrep actually scanned
-                results = semgrep_output.get("results", [])
-                scanned_files = set()
-                for finding in results:
-                    scanned_files.add(finding.get("path", ""))
-
-                self.logger.info(
-                    f"Semgrep scanned {len(scanned_files)} files (down from BaseAnalyzer's file discovery)"
-                )
-
-                # Process Semgrep findings
-                for finding in results:
-                    processed_finding = self._process_semgrep_finding(finding, "auto")
-                    if processed_finding:
-                        findings.append(processed_finding)
-
-                self.logger.info(f"Found {len(findings)} security findings")
-
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            findings = self._process_directory_results(result)
             if result.stderr:
                 self.logger.warning(f"Semgrep warnings: {result.stderr[:500]}")
-
         except (
             subprocess.TimeoutExpired,
             subprocess.CalledProcessError,
             json.JSONDecodeError,
         ) as e:
             self.logger.error(f"Semgrep directory analysis failed: {e}")
-            # Don't fallback to file-by-file - let it fail cleanly
             raise
+        return findings
 
+    def _build_semgrep_directory_command(self, directory_path: str) -> list[str]:
+        """Build semgrep command for directory analysis."""
+        cmd = [
+            "semgrep",
+            "scan",
+            "--json",
+            "--timeout",
+            "10",
+            "--timeout-threshold",
+            "3",
+            "--max-target-bytes",
+            "500000",
+            "--jobs",
+            "4",
+            "--optimizations",
+            "all",
+        ]
+        self._add_semgrep_configs(cmd)
+        self._add_semgrep_oss_flag(cmd)
+        self._add_exclusion_patterns(cmd)
+        cmd.append(directory_path)
+        return cmd
+
+    def _add_exclusion_patterns(self, cmd: list[str]) -> None:
+        """Build and add all exclusion patterns to command."""
+        patterns = self._collect_ignore_patterns()
+        for pattern in sorted(p for p in patterns if p):
+            cmd.extend(["--exclude", pattern])
+
+    def _collect_ignore_patterns(self) -> set[str]:
+        """Collect all ignore patterns from config."""
+        patterns: set[str] = set()
+        self._add_exclude_globs(patterns)
+        self._add_skip_patterns(patterns)
+        self._add_gitignore_patterns(patterns)
+        return patterns
+
+    def _add_exclude_globs(self, patterns: set[str]) -> None:
+        """Add exclude globs to pattern set."""
+        for pattern in getattr(self.config, "exclude_globs", set()):
+            trimmed = pattern.strip()
+            if trimmed:
+                patterns.add(trimmed)
+
+    def _add_skip_patterns(self, patterns: set[str]) -> None:
+        """Add skip patterns with variations to pattern set."""
+        for skip in self.config.skip_patterns:
+            sanitized = skip.strip("/")
+            if not sanitized:
+                continue
+            patterns.add(sanitized)
+            patterns.add(f"**/{sanitized}")
+            patterns.add(f"{sanitized}/**")
+            if sanitized.endswith("*") and not sanitized.startswith("**/"):
+                patterns.add(f"**/{sanitized}")
+
+    def _add_gitignore_patterns(self, patterns: set[str]) -> None:
+        """Add gitignore-style patterns to pattern set."""
+        for pattern in getattr(self.config, "gitignore_patterns", []):
+            trimmed = pattern.strip()
+            if not trimmed or trimmed.startswith("#") or trimmed.startswith("!"):
+                continue
+            patterns.add(trimmed)
+            if trimmed.endswith("/"):
+                base = trimmed.rstrip("/")
+                patterns.add(f"{trimmed}**")
+                patterns.add(f"**/{base}/**")
+
+    def _process_directory_results(
+        self, result: subprocess.CompletedProcess[str]
+    ) -> list[dict[str, Any]]:
+        """Process semgrep results from directory analysis."""
+        findings: list[dict[str, Any]] = []
+        if not result.stdout:
+            return findings
+        semgrep_output = json.loads(result.stdout)
+        results = semgrep_output.get("results", [])
+        scanned_files = {finding.get("path", "") for finding in results}
+        self.logger.info(f"Semgrep scanned {len(scanned_files)} files")
+        for finding in results:
+            processed = self._process_semgrep_finding(finding, "auto")
+            if processed:
+                findings.append(processed)
+        self.logger.info(f"Found {len(findings)} security findings")
         return findings
 
     def analyze(self, target_path: str | None = None) -> Any:

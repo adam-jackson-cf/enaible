@@ -67,12 +67,16 @@ def _validate_pattern_spec(pattern_name: str, spec: Any, category: str) -> None:
         )
 
     indicators = spec["indicators"]
-    if not isinstance(indicators, list) or not all(isinstance(i, str) for i in indicators):
+    if not isinstance(indicators, list) or not all(
+        isinstance(i, str) for i in indicators
+    ):
         raise ScalabilityPatternConfigError(
             f"Pattern '{pattern_name}' indicators must be a list of strings"
         )
 
-    if not isinstance(spec["severity"], str) or not isinstance(spec["description"], str):
+    if not isinstance(spec["severity"], str) or not isinstance(
+        spec["description"], str
+    ):
         raise ScalabilityPatternConfigError(
             f"Pattern '{pattern_name}' severity and description must be strings"
         )
@@ -83,10 +87,14 @@ def _load_category_config(category: str, path: Path) -> dict[str, Any]:
     try:
         raw_data = json.loads(path.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:
-        raise ScalabilityPatternConfigError(f"Scalability pattern config not found: {path}") from exc
+        raise ScalabilityPatternConfigError(
+            f"Scalability pattern config not found: {path}"
+        ) from exc
 
     if not isinstance(raw_data, dict):
-        raise ScalabilityPatternConfigError(f"Config for category '{category}' must be a JSON object")
+        raise ScalabilityPatternConfigError(
+            f"Config for category '{category}' must be a JSON object"
+        )
 
     if raw_data.get("schema_version") != _SCALABILITY_CONFIG_VERSION:
         raise ScalabilityPatternConfigError(

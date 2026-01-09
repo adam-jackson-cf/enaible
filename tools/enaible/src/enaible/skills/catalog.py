@@ -30,7 +30,7 @@ CATALOG: dict[str, SkillDefinition] = {
         source_path=_repo_path("shared", "skills", "codify-pr-reviews", "SKILL.md"),
         systems={
             "claude-code": SystemSkillConfig(
-                template="docs/system/claude-code/templates/skill.md.j2",
+                template="docs/reference/system/claude-code/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -41,7 +41,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "codex": SystemSkillConfig(
-                template="docs/system/codex/templates/skill.md.j2",
+                template="docs/reference/system/codex/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -52,7 +52,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "copilot": SystemSkillConfig(
-                template="docs/system/copilot/templates/skill.md.j2",
+                template="docs/reference/system/copilot/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -63,7 +63,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "pi": SystemSkillConfig(
-                template="docs/system/pi/templates/skill.md.j2",
+                template="docs/reference/system/pi/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -80,7 +80,7 @@ CATALOG: dict[str, SkillDefinition] = {
         source_path=_repo_path("shared", "skills", "docs-scraper", "SKILL.md"),
         systems={
             "claude-code": SystemSkillConfig(
-                template="docs/system/claude-code/templates/skill.md.j2",
+                template="docs/reference/system/claude-code/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -91,7 +91,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "codex": SystemSkillConfig(
-                template="docs/system/codex/templates/skill.md.j2",
+                template="docs/reference/system/codex/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -102,7 +102,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "copilot": SystemSkillConfig(
-                template="docs/system/copilot/templates/skill.md.j2",
+                template="docs/reference/system/copilot/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -113,7 +113,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "pi": SystemSkillConfig(
-                template="docs/system/pi/templates/skill.md.j2",
+                template="docs/reference/system/pi/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -130,7 +130,7 @@ CATALOG: dict[str, SkillDefinition] = {
         source_path=_repo_path("shared", "skills", "research", "SKILL.md"),
         systems={
             "claude-code": SystemSkillConfig(
-                template="docs/system/claude-code/templates/skill.md.j2",
+                template="docs/reference/system/claude-code/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -141,7 +141,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "codex": SystemSkillConfig(
-                template="docs/system/codex/templates/skill.md.j2",
+                template="docs/reference/system/codex/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -152,7 +152,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "copilot": SystemSkillConfig(
-                template="docs/system/copilot/templates/skill.md.j2",
+                template="docs/reference/system/copilot/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -163,7 +163,7 @@ CATALOG: dict[str, SkillDefinition] = {
                 ),
             ),
             "pi": SystemSkillConfig(
-                template="docs/system/pi/templates/skill.md.j2",
+                template="docs/reference/system/pi/templates/skill.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",

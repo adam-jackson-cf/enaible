@@ -485,7 +485,9 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
             "patterns_checked": len(self._compiled_patterns),
         }
 
-    def _get_pattern_groups_for_extension(self, file_ext: str) -> list[tuple[str, dict]]:
+    def _get_pattern_groups_for_extension(
+        self, file_ext: str
+    ) -> list[tuple[str, dict]]:
         """Get the appropriate pattern groups based on file extension."""
         css_extensions = {".css", ".scss", ".sass", ".less", ".styl"}
         js_extensions = {".js", ".jsx", ".ts", ".tsx", ".vue", ".svelte"}
@@ -754,30 +756,71 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
 
     def _is_comment_or_doc(self, line_stripped: str, line_lower: str) -> bool:
         """Check if line is a comment, documentation, or metadata."""
-        comment_prefixes = ("//", "#", "/*", "*", "<!--", "'''", '"""', "* @", "/**", "*/")
+        comment_prefixes = (
+            "//",
+            "#",
+            "/*",
+            "*",
+            "<!--",
+            "'''",
+            '"""',
+            "* @",
+            "/**",
+            "*/",
+        )
         if any(line_stripped.startswith(prefix) for prefix in comment_prefixes):
             return True
 
         doc_indicators = (
-            "@example", "@param", "@returns", "@type", "@description",
-            "docstring", "readme", "documentation", "license", "copyright",
+            "@example",
+            "@param",
+            "@returns",
+            "@type",
+            "@description",
+            "docstring",
+            "readme",
+            "documentation",
+            "license",
+            "copyright",
         )
         return any(indicator in line_lower for indicator in doc_indicators)
 
     def _is_test_or_fixture(self, line_lower: str) -> bool:
         """Check if line appears to be from test/fixture context."""
         test_indicators = (
-            "test", "spec", "mock", "fixture", "storybook", "config", "example",
-            ".d.ts", "jest", "vitest", "mocha", "cypress", "playwright",
-            "setup", "teardown", "beforeeach", "aftereach",
+            "test",
+            "spec",
+            "mock",
+            "fixture",
+            "storybook",
+            "config",
+            "example",
+            ".d.ts",
+            "jest",
+            "vitest",
+            "mocha",
+            "cypress",
+            "playwright",
+            "setup",
+            "teardown",
+            "beforeeach",
+            "aftereach",
         )
         return any(indicator in line_lower for indicator in test_indicators)
 
     def _is_package_or_artifact(self, line_lower: str) -> bool:
         """Check if line appears to be from package or build artifact."""
         package_indicators = (
-            "package.json", "package-lock.json", "yarn.lock", "node_modules",
-            ".min.", "bundle.", "chunk.", "vendor.", "polyfill.", "shim.",
+            "package.json",
+            "package-lock.json",
+            "yarn.lock",
+            "node_modules",
+            ".min.",
+            "bundle.",
+            "chunk.",
+            "vendor.",
+            "polyfill.",
+            "shim.",
         )
         return any(indicator in line_lower for indicator in package_indicators)
 
@@ -794,23 +837,41 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
         """Check if line uses category-specific optimization patterns."""
         if category == "react":
             react_optimized = (
-                "memo(", "usememo(", "usecallback(", "react.memo",
-                "usememo", "usecallback", "useoptimistic", "usetransition",
-                "react-dom", "__react", "_react",
+                "memo(",
+                "usememo(",
+                "usecallback(",
+                "react.memo",
+                "usememo",
+                "usecallback",
+                "useoptimistic",
+                "usetransition",
+                "react-dom",
+                "__react",
+                "_react",
             )
             return any(opt in line_lower for opt in react_optimized)
 
         if category == "bundle":
             bundle_optimized = (
-                "dynamic", "lazy", "import(", "loadable", "loadasync",
-                "code-splitting", "webpack:", "rollup:",
+                "dynamic",
+                "lazy",
+                "import(",
+                "loadable",
+                "loadasync",
+                "code-splitting",
+                "webpack:",
+                "rollup:",
             )
             return any(opt in line_lower for opt in bundle_optimized)
 
         if category == "css":
             css_optimized = (
-                "will-change", "contain:", "content-visibility",
-                "@media", "@layer", "@container",
+                "will-change",
+                "contain:",
+                "content-visibility",
+                "@media",
+                "@layer",
+                "@container",
             )
             return any(opt in line_lower for opt in css_optimized)
 
@@ -823,18 +884,15 @@ class FrontendPerformanceAnalyzer(BaseAnalyzer):
         line_lower = line_content.lower()
         line_stripped = line_content.strip()
 
-        if self._is_comment_or_doc(line_stripped, line_lower):
-            return True
-        if self._is_test_or_fixture(line_lower):
-            return True
-        if self._is_package_or_artifact(line_lower):
-            return True
-        if self._is_minimal_content(line_stripped):
-            return True
-        if self._is_category_optimized(line_lower, category):
-            return True
-
-        return False
+        return any(
+            (
+                self._is_comment_or_doc(line_stripped, line_lower),
+                self._is_test_or_fixture(line_lower),
+                self._is_package_or_artifact(line_lower),
+                self._is_minimal_content(line_stripped),
+                self._is_category_optimized(line_lower, category),
+            )
+        )
 
     def analyze_target(self, target_path: str) -> list[dict[str, Any]]:
         """

@@ -404,7 +404,9 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
             "severity": pattern_info["severity"],
             "file_path": file_path,
             "line_number": line_num,
-            "recommendation": self._get_pattern_recommendation(f"{pattern_type}_{pattern_name}"),
+            "recommendation": self._get_pattern_recommendation(
+                f"{pattern_type}_{pattern_name}"
+            ),
             "metadata": {
                 "pattern_type": pattern_type,
                 "pattern_name": pattern_name,
@@ -437,11 +439,15 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
 
         findings = []
         try:
-            for pattern_idx, (pattern_name, pattern_info) in enumerate(pattern_dict.items()):
+            for pattern_idx, (pattern_name, pattern_info) in enumerate(
+                pattern_dict.items()
+            ):
                 if pattern_idx > 5:
                     break
 
-                for indicator_idx, indicator in enumerate(pattern_info["indicators"][:4]):
+                for _indicator_idx, indicator in enumerate(
+                    pattern_info["indicators"][:4]
+                ):
                     matches = self._find_indicator_matches(indicator, content)
                     if matches is None:
                         continue
@@ -449,8 +455,14 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                     for match in matches[:6]:
                         findings.append(
                             self._create_pattern_finding(
-                                match, content, lines, file_path,
-                                pattern_type, pattern_name, pattern_info, language
+                                match,
+                                content,
+                                lines,
+                                file_path,
+                                pattern_type,
+                                pattern_name,
+                                pattern_info,
+                                language,
                             )
                         )
         except TimeoutError:
@@ -494,7 +506,12 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
         if file_path in self._lizard_cache:
             return self._lizard_cache[file_path]
 
-        empty_metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+        empty_metrics = {
+            "functions": [],
+            "avg_ccn": 0,
+            "max_ccn": 0,
+            "total_functions": 0,
+        }
 
         try:
             result = subprocess.run(
@@ -509,7 +526,12 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                 return empty_metrics
 
             lines = result.stdout.strip().split("\n")
-            metrics = {"functions": [], "avg_ccn": 0, "max_ccn": 0, "total_functions": 0}
+            metrics = {
+                "functions": [],
+                "avg_ccn": 0,
+                "max_ccn": 0,
+                "total_functions": 0,
+            }
             seen_functions: set[str] = set()
 
             for line in lines:
@@ -530,12 +552,19 @@ class PatternEvaluationAnalyzer(BaseAnalyzer):
                 metrics["total_functions"] += 1
 
             if metrics["total_functions"] > 0:
-                metrics["avg_ccn"] = sum(f["ccn"] for f in metrics["functions"]) / metrics["total_functions"]
+                metrics["avg_ccn"] = (
+                    sum(f["ccn"] for f in metrics["functions"])
+                    / metrics["total_functions"]
+                )
 
             self._lizard_cache[file_path] = metrics
             return metrics
 
-        except (subprocess.TimeoutExpired, subprocess.SubprocessError, FileNotFoundError):
+        except (
+            subprocess.TimeoutExpired,
+            subprocess.SubprocessError,
+            FileNotFoundError,
+        ):
             self._lizard_cache[file_path] = empty_metrics
             return empty_metrics
 

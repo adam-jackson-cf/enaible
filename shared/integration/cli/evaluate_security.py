@@ -58,58 +58,54 @@ def count_expected_vulnerabilities(
     """Count expected vulnerabilities for an application, optionally filtered by analyzer capabilities."""
     app_data = expected_data.get("applications", {}).get(app_name, {})
     vulns = app_data.get("expected_vulnerabilities", {})
-
-    # Get analyzer-specific vulnerability types if analyzer is specified
-    analyzer_types = None
-    if analyzer:
-        analyzer_mapping = expected_data.get("analyzer_mapping", {})
-        analyzer_config = analyzer_mapping.get(f"{analyzer}_analyzer", {})
-        analyzer_types = set(analyzer_config.get("should_detect", []))
-        if getattr(count_expected_vulnerabilities, "_verbose_mode", False):
-            print(f"    {analyzer} should detect: {analyzer_types}")
-
-    def count_recursive(obj, path=""):
-        """Recursively count vulnerabilities with 'locations' field."""
-        if isinstance(obj, dict):
-            if "locations" in obj:
-                # This is a vulnerability entry
-                if analyzer_types is None:
-                    # Count all vulnerabilities if no analyzer specified
-                    return len(obj.get("locations", []))
-                else:
-                    # Check if this vulnerability type should be detected by the analyzer
-                    # Extract the vulnerability type from the path or key
-                    current_key = path.split(".")[-1] if path else ""
-                    if current_key in analyzer_types:
-                        if getattr(
-                            count_expected_vulnerabilities, "_verbose_mode", False
-                        ):
-                            print(
-                                f"    Counting {current_key} vulnerability (matches analyzer)"
-                            )
-                        return len(obj.get("locations", []))
-                    else:
-                        if getattr(
-                            count_expected_vulnerabilities, "_verbose_mode", False
-                        ):
-                            print(
-                                f"    Skipping {current_key} vulnerability (not for this analyzer)"
-                            )
-                        return 0
-            else:
-                total = 0
-                for key, value in obj.items():
-                    new_path = f"{path}.{key}" if path else key
-                    total += count_recursive(value, new_path)
-                return total
-        return 0
-
-    result = count_recursive(vulns)
-    if getattr(count_expected_vulnerabilities, "_verbose_mode", False):
+    verbose = getattr(count_expected_vulnerabilities, "_verbose_mode", False)
+    analyzer_types = _get_analyzer_types(expected_data, analyzer, verbose)
+    result = _count_expected_recursive(vulns, analyzer_types, "", verbose)
+    if verbose:
         print(
             f"    Total expected vulnerabilities for {app_name} with {analyzer}: {result}"
         )
     return result
+
+
+def _get_analyzer_types(expected_data: dict, analyzer: str | None, verbose: bool):
+    if not analyzer:
+        return None
+    analyzer_mapping = expected_data.get("analyzer_mapping", {})
+    analyzer_config = analyzer_mapping.get(f"{analyzer}_analyzer", {})
+    analyzer_types = set(analyzer_config.get("should_detect", []))
+    if verbose:
+        print(f"    {analyzer} should detect: {analyzer_types}")
+    return analyzer_types
+
+
+def _count_expected_recursive(
+    obj: Any, analyzer_types: set | None, path: str, verbose: bool
+) -> int:
+    if not isinstance(obj, dict):
+        return 0
+    if "locations" in obj:
+        return _count_locations_entry(obj, analyzer_types, path, verbose)
+    total = 0
+    for key, value in obj.items():
+        new_path = f"{path}.{key}" if path else key
+        total += _count_expected_recursive(value, analyzer_types, new_path, verbose)
+    return total
+
+
+def _count_locations_entry(
+    obj: dict, analyzer_types: set | None, path: str, verbose: bool
+) -> int:
+    if analyzer_types is None:
+        return len(obj.get("locations", []))
+    current_key = path.split(".")[-1] if path else ""
+    if current_key in analyzer_types:
+        if verbose:
+            print(f"    Counting {current_key} vulnerability (matches analyzer)")
+        return len(obj.get("locations", []))
+    if verbose:
+        print(f"    Skipping {current_key} vulnerability (not for this analyzer)")
+    return 0
 
 
 def calculate_simplified_metrics(

@@ -67,92 +67,120 @@ class PackageMonitoringSetup:
             print(f"⚠️  Specified package file {package_file} does not exist")
             return ecosystems
 
-        # Get the directory containing the package file
         package_dir = (
             package_path.parent if package_path.parent != Path(".") else Path(".")
         )
-
-        # Determine ecosystem type from file name
         file_name = package_path.name
 
-        if file_name in [
-            "requirements.txt",
-            "requirements-dev.txt",
-            "setup.py",
-            "setup.cfg",
+        handlers = {
+            "requirements.txt": self._python_ecosystem_from_path,
+            "requirements-dev.txt": self._python_ecosystem_from_path,
+            "setup.py": self._python_ecosystem_from_path,
+            "setup.cfg": self._python_ecosystem_from_path,
+            "pyproject.toml": self._python_ecosystem_from_path,
+            "Pipfile": self._python_ecosystem_from_path,
+            "package.json": self._javascript_ecosystem_from_path,
+            "go.mod": self._go_ecosystem_from_path,
+            "Cargo.toml": self._rust_ecosystem_from_path,
+        }
+
+        handler = handlers.get(file_name)
+        if handler:
+            ecosystem = handler(file_name, package_path, package_dir)
+            if ecosystem:
+                ecosystems.update(ecosystem)
+
+        return ecosystems
+
+    def _python_ecosystem_from_path(
+        self, file_name: str, package_path: Path, package_dir: Path
+    ) -> dict:
+        manager_map = {
+            "pyproject.toml": "poetry",
+            "Pipfile": "pipenv",
+        }
+        manager = manager_map.get(file_name, "pip")
+        return {
+            "python": {
+                "managers": [manager],
+                "files": [str(package_path)],
+                "directory": str(package_dir),
+            }
+        }
+
+    def _javascript_ecosystem_from_path(
+        self, _file_name: str, package_path: Path, package_dir: Path
+    ) -> dict:
+        js_files = ["package.json"]
+        managers = ["npm"]
+        for lock_file, manager in [
+            ("package-lock.json", "npm"),
+            ("yarn.lock", "yarn"),
+            ("pnpm-lock.yaml", "pnpm"),
+            ("bun.lockb", "bun"),
         ]:
-            ecosystems["python"] = {
-                "managers": ["pip"],
-                "files": [str(package_path)],
-                "directory": str(package_dir),
-            }
-        elif file_name == "pyproject.toml":
-            ecosystems["python"] = {
-                "managers": ["poetry"],
-                "files": [str(package_path)],
-                "directory": str(package_dir),
-            }
-        elif file_name == "Pipfile":
-            ecosystems["python"] = {
-                "managers": ["pipenv"],
-                "files": [str(package_path)],
-                "directory": str(package_dir),
-            }
-        elif file_name == "package.json":
-            # Look for JavaScript lock files in the same directory
-            js_files = ["package.json"]
-            managers = ["npm"]  # default
-
-            for lock_file, manager in [
-                ("package-lock.json", "npm"),
-                ("yarn.lock", "yarn"),
-                ("pnpm-lock.yaml", "pnpm"),
-                ("bun.lockb", "bun"),
-            ]:
-                if (package_dir / lock_file).exists():
-                    js_files.append(str(package_dir / lock_file))
-                    managers = [manager]
-                    break
-
-            ecosystems["javascript"] = {
+            if (package_dir / lock_file).exists():
+                js_files.append(str(package_dir / lock_file))
+                managers = [manager]
+                break
+        return {
+            "javascript": {
                 "managers": managers,
                 "files": js_files,
                 "directory": str(package_dir),
             }
-        elif file_name == "go.mod":
-            files = [str(package_path)]
-            if (package_dir / "go.sum").exists():
-                files.append(str(package_dir / "go.sum"))
-            ecosystems["go"] = {
-                "managers": ["gomod"],
-                "files": files,
-                "directory": str(package_dir),
-            }
-        elif file_name == "Cargo.toml":
-            files = [str(package_path)]
-            if (package_dir / "Cargo.lock").exists():
-                files.append(str(package_dir / "Cargo.lock"))
-            ecosystems["rust"] = {
+        }
+
+    def _go_ecosystem_from_path(
+        self, _file_name: str, package_path: Path, package_dir: Path
+    ) -> dict:
+        files = [str(package_path)]
+        go_sum = package_dir / "go.sum"
+        if go_sum.exists():
+            files.append(str(go_sum))
+        return {
+            "go": {"managers": ["gomod"], "files": files, "directory": str(package_dir)}
+        }
+
+    def _rust_ecosystem_from_path(
+        self, _file_name: str, package_path: Path, package_dir: Path
+    ) -> dict:
+        files = [str(package_path)]
+        cargo_lock = package_dir / "Cargo.lock"
+        if cargo_lock.exists():
+            files.append(str(cargo_lock))
+        return {
+            "rust": {
                 "managers": ["cargo"],
                 "files": files,
                 "directory": str(package_dir),
             }
-
-        return ecosystems
+        }
 
     def _detect_all_ecosystems(self) -> dict:
         """Detect all package ecosystems in the project with exclusions."""
         ecosystems = {}
+        python = self._detect_python_ecosystems()
+        javascript = self._detect_javascript_ecosystems()
+        go = self._detect_go_ecosystems()
+        rust = self._detect_rust_ecosystems()
+        dotnet = self._detect_dotnet_ecosystems()
 
-        # Helper function to check if a path should be excluded
-        def is_excluded(path):
-            path_str = str(path)
-            for exclude in self.exclude_paths:
-                if exclude in path_str or path_str.startswith(exclude):
-                    return True
-            return False
+        ecosystems.update(python)
+        ecosystems.update(javascript)
+        ecosystems.update(go)
+        ecosystems.update(rust)
+        ecosystems.update(dotnet)
+        return ecosystems
 
-        # Python detection
+    def _is_excluded(self, path: Path) -> bool:
+        path_str = str(path)
+        for exclude in self.exclude_paths:
+            if exclude in path_str or path_str.startswith(exclude):
+                return True
+        return False
+
+    def _detect_python_ecosystems(self) -> dict:
         python_files = {
             "requirements.txt": "pip",
             "requirements-dev.txt": "pip",
@@ -161,90 +189,95 @@ class PackageMonitoringSetup:
             "setup.py": "pip",
             "setup.cfg": "pip",
         }
-
-        python_detected = []
-        # Search in current directory and subdirectories
-        for pattern in python_files:
+        detected: list[tuple[str, str]] = []
+        for pattern, manager in python_files.items():
             for file_path in Path(".").rglob(pattern):
-                if not is_excluded(file_path):
-                    python_detected.append((str(file_path), python_files[pattern]))
-
-        if python_detected:
-            ecosystems["python"] = {
-                "managers": list({manager for _, manager in python_detected}),
-                "files": [file_name for file_name, _ in python_detected],
+                if not self._is_excluded(file_path):
+                    detected.append((str(file_path), manager))
+        if not detected:
+            return {}
+        return {
+            "python": {
+                "managers": list({manager for _, manager in detected}),
+                "files": [file_name for file_name, _ in detected],
             }
+        }
 
-        # JavaScript detection
+    def _detect_javascript_ecosystems(self) -> dict:
         js_files = {
             "package-lock.json": "npm",
             "yarn.lock": "yarn",
             "pnpm-lock.yaml": "pnpm",
             "bun.lockb": "bun",
         }
-
-        js_detected = []
-        # Find package.json files first
+        detected: list[tuple[str, str]] = []
         for package_json in Path(".").rglob("package.json"):
-            if not is_excluded(package_json):
-                package_dir = package_json.parent
-                js_detected.append((str(package_json), "npm"))  # default manager
-
-                # Look for lock files in the same directory
-                for lock_file, manager in js_files.items():
-                    if (package_dir / lock_file).exists():
-                        js_detected.append((str(package_dir / lock_file), manager))
-
-        if js_detected:
-            ecosystems["javascript"] = {
-                "managers": list({manager for _, manager in js_detected}),
-                "files": [file_name for file_name, _ in js_detected],
+            if self._is_excluded(package_json):
+                continue
+            package_dir = package_json.parent
+            detected.append((str(package_json), "npm"))
+            for lock_file, manager in js_files.items():
+                if (package_dir / lock_file).exists():
+                    detected.append((str(package_dir / lock_file), manager))
+        if not detected:
+            return {}
+        return {
+            "javascript": {
+                "managers": list({manager for _, manager in detected}),
+                "files": [file_name for file_name, _ in detected],
             }
+        }
 
-        # Go detection
-        go_detected = []
+    def _detect_go_ecosystems(self) -> dict:
+        detected: list[tuple[str, str]] = []
         for go_mod in Path(".").rglob("go.mod"):
-            if not is_excluded(go_mod):
-                go_detected.append((str(go_mod), "gomod"))
-                go_sum = go_mod.parent / "go.sum"
-                if go_sum.exists():
-                    go_detected.append((str(go_sum), "gomod"))
-
-        if go_detected:
-            ecosystems["go"] = {
+            if self._is_excluded(go_mod):
+                continue
+            detected.append((str(go_mod), "gomod"))
+            go_sum = go_mod.parent / "go.sum"
+            if go_sum.exists():
+                detected.append((str(go_sum), "gomod"))
+        if not detected:
+            return {}
+        return {
+            "go": {
                 "managers": ["gomod"],
-                "files": [file_name for file_name, _ in go_detected],
+                "files": [file_name for file_name, _ in detected],
             }
+        }
 
-        # Rust detection
-        rust_detected = []
+    def _detect_rust_ecosystems(self) -> dict:
+        detected: list[tuple[str, str]] = []
         for cargo_toml in Path(".").rglob("Cargo.toml"):
-            if not is_excluded(cargo_toml):
-                rust_detected.append((str(cargo_toml), "cargo"))
-                cargo_lock = cargo_toml.parent / "Cargo.lock"
-                if cargo_lock.exists():
-                    rust_detected.append((str(cargo_lock), "cargo"))
-
-        if rust_detected:
-            ecosystems["rust"] = {
+            if self._is_excluded(cargo_toml):
+                continue
+            detected.append((str(cargo_toml), "cargo"))
+            cargo_lock = cargo_toml.parent / "Cargo.lock"
+            if cargo_lock.exists():
+                detected.append((str(cargo_lock), "cargo"))
+        if not detected:
+            return {}
+        return {
+            "rust": {
                 "managers": ["cargo"],
-                "files": [file_name for file_name, _ in rust_detected],
+                "files": [file_name for file_name, _ in detected],
             }
+        }
 
-        # .NET detection
-        dotnet_files = []
+    def _detect_dotnet_ecosystems(self) -> dict:
+        dotnet_files: list[str] = []
         for pattern in ["**/*.csproj", "**/*.sln"]:
             for file_path in Path(".").glob(pattern):
-                if not is_excluded(file_path):
+                if not self._is_excluded(file_path):
                     dotnet_files.append(str(file_path))
-
-        if dotnet_files:
-            ecosystems["dotnet"] = {
+        if not dotnet_files:
+            return {}
+        return {
+            "dotnet": {
                 "managers": ["nuget"],
                 "files": dotnet_files + ["**/packages.config"],
             }
-
-        return ecosystems
+        }
 
     def _get_path_filters(self) -> str:
         """Generate path filters for dorny/paths-filter action."""
@@ -557,130 +590,90 @@ jobs:
             print(f"⚠️  {dependabot_path} already exists, skipping...")
             return None
 
-        ecosystems = []
-        start_time = 3  # Start at 3 AM
+        ecosystems: list[str] = []
+        start_time = 3
 
-        # Python ecosystem
-        if "python" in self.detected_ecosystems:
-            python_dir = self.detected_ecosystems["python"].get("directory", "/")
-            if python_dir == ".":
-                python_dir = "/"
-            elif not python_dir.startswith("/"):
-                python_dir = f"/{python_dir}"
-            ecosystems.append(
-                f"""  # Python dependencies
-  - package-ecosystem: "pip"
-    directory: "{python_dir}"
-    schedule:
-      interval: "daily"
-      time: "{start_time:02d}:00"
-    labels: ["dependencies", "python"]
-    open-pull-requests-limit: 3
-    groups:
-      python-minor:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    commit-message:
-      prefix: "deps(python)"
-      include: "scope"""
+        start_time = self._append_language_dependabot(
+            ecosystems, "python", "pip", start_time, daily=True
+        )
+        start_time = self._append_language_dependabot(
+            ecosystems, "javascript", "npm", start_time, daily=True
+        )
+        start_time = self._append_language_dependabot(
+            ecosystems, "go", "gomod", start_time, daily=False
+        )
+        start_time = self._append_language_dependabot(
+            ecosystems, "rust", "cargo", start_time, daily=False
+        )
+        start_time = self._append_language_dependabot(
+            ecosystems, "dotnet", "nuget", start_time, daily=False
+        )
+        ecosystems.append(self._github_actions_dependabot(start_time))
+
+        dependabot_content = f"""version: 2
+updates:
+{chr(10).join(ecosystems)}"""
+        with open(dependabot_path, "w") as f:
+            f.write(dependabot_content)
+
+        print(f"✅ Created {dependabot_path}")
+        return dependabot_path
+
+    def _normalize_dependabot_dir(self, directory: str) -> str:
+        if directory == ".":
+            return "/"
+        return directory if directory.startswith("/") else f"/{directory}"
+
+    def _append_language_dependabot(
+        self,
+        ecosystems: list[str],
+        key: str,
+        ecosystem_name: str,
+        start_time: int,
+        *,
+        daily: bool,
+    ) -> int:
+        if key not in self.detected_ecosystems:
+            return start_time
+        directory = self._normalize_dependabot_dir(
+            self.detected_ecosystems[key].get("directory", "/")
+        )
+        schedule = "daily" if daily else "weekly"
+        day_line = "" if daily else '      day: "monday"\n'
+        labels = f'["dependencies", "{key}"]'
+        limit = 3 if daily else 2
+        group_block = ""
+        if key == "python":
+            group_block = (
+                "    groups:\n"
+                "      python-minor:\n"
+                '        patterns: ["*"]\n'
+                '        update-types: ["minor", "patch"]\n'
             )
-            start_time += 1
-
-        # JavaScript ecosystem
-        if "javascript" in self.detected_ecosystems:
-            js_dir = self.detected_ecosystems["javascript"].get("directory", "/")
-            if js_dir == ".":
-                js_dir = "/"
-            elif not js_dir.startswith("/"):
-                js_dir = f"/{js_dir}"
-            ecosystems.append(
-                f"""  # JavaScript/TypeScript dependencies
-  - package-ecosystem: "npm"
-    directory: "{js_dir}"
-    schedule:
-      interval: "daily"
-      time: "{start_time:02d}:00"
-    labels: ["dependencies", "javascript"]
-    open-pull-requests-limit: 3
-    groups:
-      js-minor:
-        patterns: ["*"]
-        update-types: ["minor", "patch"]
-    commit-message:
-      prefix: "deps(js)"
-      include: "scope"""
+        if key == "javascript":
+            group_block = (
+                "    groups:\n"
+                "      js-minor:\n"
+                '        patterns: ["*"]\n'
+                '        update-types: ["minor", "patch"]\n'
             )
-            start_time += 1
-
-        # Go ecosystem
-        if "go" in self.detected_ecosystems:
-            go_dir = self.detected_ecosystems["go"].get("directory", "/")
-            if go_dir == ".":
-                go_dir = "/"
-            elif not go_dir.startswith("/"):
-                go_dir = f"/{go_dir}"
-            ecosystems.append(
-                f"""  # Go dependencies
-  - package-ecosystem: "gomod"
-    directory: "{go_dir}"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "{start_time:02d}:00"
-    labels: ["dependencies", "go"]
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: "deps(go)"
-      include: "scope"""
-            )
-
-        # Rust ecosystem
-        if "rust" in self.detected_ecosystems:
-            rust_dir = self.detected_ecosystems["rust"].get("directory", "/")
-            if rust_dir == ".":
-                rust_dir = "/"
-            elif not rust_dir.startswith("/"):
-                rust_dir = f"/{rust_dir}"
-            ecosystems.append(
-                f"""  # Rust dependencies
-  - package-ecosystem: "cargo"
-    directory: "{rust_dir}"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "{start_time:02d}:00"
-    labels: ["dependencies", "rust"]
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: "deps(rust)"
-      include: "scope"""
-            )
-
-        # .NET ecosystem
-        if "dotnet" in self.detected_ecosystems:
-            dotnet_dir = self.detected_ecosystems["dotnet"].get("directory", "/")
-            if dotnet_dir == ".":
-                dotnet_dir = "/"
-            elif not dotnet_dir.startswith("/"):
-                dotnet_dir = f"/{dotnet_dir}"
-            ecosystems.append(
-                f"""  # .NET dependencies
-  - package-ecosystem: "nuget"
-    directory: "{dotnet_dir}"
-    schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "{start_time:02d}:00"
-    labels: ["dependencies", "dotnet"]
-    open-pull-requests-limit: 2
-    commit-message:
-      prefix: "deps(dotnet)"
-      include: "scope"""
-            )
-
-        # Always include GitHub Actions
         ecosystems.append(
-            f"""  # GitHub Actions
+            f"""  # {key.capitalize()} dependencies
+  - package-ecosystem: "{ecosystem_name}"
+    directory: "{directory}"
+    schedule:
+      interval: "{schedule}"
+{day_line}      time: "{start_time:02d}:00"
+    labels: {labels}
+    open-pull-requests-limit: {limit}
+{group_block}    commit-message:
+      prefix: "deps({key if key != "javascript" else "js"})"
+      include: "scope"""
+        )
+        return start_time + (1 if daily else 0)
+
+    def _github_actions_dependabot(self, start_time: int) -> str:
+        return f"""  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -692,17 +685,6 @@ jobs:
     commit-message:
       prefix: "deps(actions)"
       include: "scope"""
-        )
-
-        dependabot_content = f"""version: 2
-updates:
-{chr(10).join(ecosystems)}"""
-
-        with open(dependabot_path, "w") as f:
-            f.write(dependabot_content)
-
-        print(f"✅ Created {dependabot_path}")
-        return dependabot_path
 
     def _setup_branch_protection(self, results: dict):
         """Set up branch protection rules via GitHub API."""

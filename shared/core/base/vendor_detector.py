@@ -139,69 +139,75 @@ class VendorDetector:
         -------
             VendorDetection result with confidence score and reasons
         """
-        reasons = []
+        reasons: list[str] = []
         confidence = 0.0
         detected_library = None
 
-        # Check if file exists and is readable
         if not file_path.exists() or not file_path.is_file():
             return VendorDetection(False, 0.0, ["File not found or not readable"])
 
-        # Path-based detection
-        path_result = self._check_vendor_paths(file_path)
-        if path_result[0]:
-            confidence += path_result[1]
-            reasons.extend(path_result[2])
+        confidence, reasons = self._apply_detection_result(
+            (confidence, reasons), self._check_vendor_paths(file_path)
+        )
+        confidence, reasons = self._apply_detection_result(
+            (confidence, reasons), self._check_filename_patterns(file_path)
+        )
 
-        # File name pattern detection
-        filename_result = self._check_filename_patterns(file_path)
-        if filename_result[0]:
-            confidence += filename_result[1]
-            reasons.extend(filename_result[2])
-
-        # Content-based detection (only if not already high confidence)
         if confidence < 0.8:
-            try:
-                # Read first 2KB for performance (headers usually at top)
-                with open(file_path, encoding="utf-8", errors="ignore") as f:
-                    header_content = f.read(2048)
+            content_confidence, content_reasons, content_library = (
+                self._check_content_markers(file_path)
+            )
+            confidence += content_confidence
+            reasons.extend(content_reasons)
+            if content_library:
+                detected_library = content_library
 
-                # Check for copyright/license markers
-                license_result = self._check_license_markers(header_content)
-                if license_result[0]:
-                    confidence += license_result[1]
-                    reasons.extend(license_result[2])
-
-                # Check for library signatures
-                library_result = self._check_library_signatures(header_content)
-                if library_result[0]:
-                    confidence += library_result[1]
-                    reasons.extend(library_result[2])
-                    if library_result[3]:  # detected_library
-                        detected_library = library_result[3]
-
-                # Check for minification
-                minify_result = self._check_minification(header_content)
-                if minify_result[0]:
-                    confidence += minify_result[1]
-                    reasons.extend(minify_result[2])
-
-                # Check for generated file markers
-                generated_result = self._check_generated_markers(header_content)
-                if generated_result[0]:
-                    confidence += generated_result[1]
-                    reasons.extend(generated_result[2])
-
-            except (UnicodeDecodeError, PermissionError, OSError):
-                reasons.append("Could not read file content")
-
-        # Cap confidence at 1.0
         confidence = min(confidence, 1.0)
+        return VendorDetection(confidence > 0.3, confidence, reasons, detected_library)
 
-        # Consider it vendor code if confidence > 0.3
-        is_vendor = confidence > 0.3
+    def _apply_detection_result(
+        self,
+        current: tuple[float, list[str]],
+        result: tuple[bool, float, list[str], str | None],
+    ) -> tuple[float, list[str]]:
+        confidence, reasons = current
+        if result[0]:
+            confidence += result[1]
+            reasons.extend(result[2])
+        return confidence, reasons
 
-        return VendorDetection(is_vendor, confidence, reasons, detected_library)
+    def _check_content_markers(
+        self, file_path: Path
+    ) -> tuple[float, list[str], str | None]:
+        """Check content-based vendor markers."""
+        reasons: list[str] = []
+        confidence = 0.0
+        detected_library = None
+        try:
+            with open(file_path, encoding="utf-8", errors="ignore") as f:
+                header_content = f.read(2048)
+        except (UnicodeDecodeError, PermissionError, OSError):
+            reasons.append("Could not read file content")
+            return confidence, reasons, detected_library
+
+        for check in (
+            self._check_license_markers,
+            self._check_minification,
+            self._check_generated_markers,
+        ):
+            result = check(header_content)
+            if result[0]:
+                confidence += result[1]
+                reasons.extend(result[2])
+
+        library_result = self._check_library_signatures(header_content)
+        if library_result[0]:
+            confidence += library_result[1]
+            reasons.extend(library_result[2])
+            if library_result[3]:
+                detected_library = library_result[3]
+
+        return confidence, reasons, detected_library
 
     def _check_vendor_paths(
         self, file_path: Path

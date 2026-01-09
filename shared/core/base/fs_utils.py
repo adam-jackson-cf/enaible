@@ -210,51 +210,78 @@ class FileSystemUtils:
             List of matching file paths
         """
         root = Path(root_path)
-
-        if not root.exists():
-            CIErrorHandler.fatal_error(
-                f"Root path does not exist: {root}",
-                error_code=4,  # FILE_NOT_FOUND
-                file_path=root,
-            )
-
-        files = []
+        FileSystemUtils._ensure_root_exists(root)
         patterns = patterns or ["*"]
         exclude_patterns = exclude_patterns or []
         extensions = [ext.lower() for ext in (extensions or [])]
+        files = FileSystemUtils._collect_files(
+            root,
+            patterns,
+            exclude_patterns,
+            extensions,
+            max_depth,
+            follow_symlinks,
+        )
+        return sorted(files)
+
+    @staticmethod
+    def _matches_any(path_str: str, patterns: list[str]) -> bool:
+        return any(fnmatch.fnmatch(path_str, pattern) for pattern in patterns)
+
+    @staticmethod
+    def _is_scannable_file(path: Path, follow_symlinks: bool) -> bool:
+        return path.is_file() or (follow_symlinks and path.is_symlink())
+
+    @staticmethod
+    def _is_walkable_dir(path: Path, follow_symlinks: bool) -> bool:
+        return path.is_dir() and (follow_symlinks or not path.is_symlink())
+
+    @staticmethod
+    def _ensure_root_exists(root: Path) -> None:
+        if root.exists():
+            return
+        CIErrorHandler.fatal_error(
+            f"Root path does not exist: {root}",
+            error_code=4,
+            file_path=root,
+        )
+
+    @staticmethod
+    def _collect_files(
+        root: Path,
+        patterns: list[str],
+        exclude_patterns: list[str],
+        extensions: list[str],
+        max_depth: int | None,
+        follow_symlinks: bool,
+    ) -> list[Path]:
+        files: list[Path] = []
 
         def should_include_file(file_path: Path) -> bool:
-            # Check extensions
             if extensions and file_path.suffix.lower() not in extensions:
                 return False
-
-            # Check include patterns
             path_str = str(file_path.relative_to(root))
-            if not any(fnmatch.fnmatch(path_str, pattern) for pattern in patterns):
+            if not FileSystemUtils._matches_any(path_str, patterns):
                 return False
+            return not FileSystemUtils._matches_any(path_str, exclude_patterns)
 
-            # Check exclude patterns
-            return not any(
-                fnmatch.fnmatch(path_str, pattern) for pattern in exclude_patterns
-            )
-
-        def walk_directory(dir_path: Path, current_depth: int = 0):
+        def walk_directory(dir_path: Path, current_depth: int = 0) -> None:
             if max_depth is not None and current_depth > max_depth:
                 return
-
             try:
                 for item in dir_path.iterdir():
-                    if item.is_file() or (item.is_symlink() and follow_symlinks):
-                        if should_include_file(item):
-                            files.append(item)
-                    elif item.is_dir() and (not item.is_symlink() or follow_symlinks):
+                    if FileSystemUtils._is_walkable_dir(item, follow_symlinks):
                         walk_directory(item, current_depth + 1)
+                        continue
+                    if FileSystemUtils._is_scannable_file(
+                        item, follow_symlinks
+                    ) and should_include_file(item):
+                        files.append(item)
             except PermissionError:
-                # Skip directories we can't access
                 pass
 
         walk_directory(root)
-        return sorted(files)
+        return files
 
     @staticmethod
     def get_directory_size(path: str | Path) -> int:

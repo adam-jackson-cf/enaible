@@ -58,131 +58,141 @@ def _load_error_pattern_bundle() -> tuple[
     dict[str, dict[str, Any]], dict[str, dict[str, Any]]
 ]:
     """Load and validate general and language-specific error patterns."""
-    try:
-        general_raw = json.loads(_ERROR_PATTERNS_PATH.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
-        raise ErrorPatternConfigError(
-            f"Error pattern config not found: {_ERROR_PATTERNS_PATH}"
-        ) from exc
+    general_patterns = _load_and_validate_general_patterns()
+    language_patterns = _load_and_validate_language_patterns()
+    return general_patterns, language_patterns
 
-    if not isinstance(general_raw, dict):
+
+def _load_config_json(path: Path, description: str) -> dict[str, Any]:
+    """Load JSON config file with error handling."""
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+        raise ErrorPatternConfigError(f"{description} not found: {path}") from exc
+
+
+def _load_and_validate_general_patterns() -> dict[str, dict[str, Any]]:
+    """Load and validate general error patterns config."""
+    raw = _load_config_json(_ERROR_PATTERNS_PATH, "Error pattern config")
+    _validate_general_config_structure(raw)
+
+    general_patterns: dict[str, dict[str, Any]] = {}
+    for name, spec in raw.get("patterns").items():
+        _validate_error_pattern_entry(name, spec)
+        general_patterns[name] = {
+            "patterns": list(spec["patterns"]),
+            "severity": spec["severity"],
+            "category": spec["category"],
+            "description": spec["description"],
+        }
+    return general_patterns
+
+
+def _validate_general_config_structure(raw: Any) -> None:
+    """Validate general error pattern config structure."""
+    if not isinstance(raw, dict):
         raise ErrorPatternConfigError(
             "General error pattern config must be a JSON object"
         )
-
-    if general_raw.get("schema_version") != _ERROR_PATTERN_SCHEMA_VERSION:
+    if raw.get("schema_version") != _ERROR_PATTERN_SCHEMA_VERSION:
         raise ErrorPatternConfigError(
-            "Unsupported error pattern schema version:"
-            f" {general_raw.get('schema_version')}"
+            f"Unsupported error pattern schema version: {raw.get('schema_version')}"
         )
-
-    general_block = general_raw.get("patterns")
-    if not isinstance(general_block, dict):
+    if not isinstance(raw.get("patterns"), dict):
         raise ErrorPatternConfigError(
             "Error pattern config must contain a 'patterns' object"
         )
 
-    general_patterns: dict[str, dict[str, Any]] = {}
-    for name, spec in general_block.items():
-        if not isinstance(name, str):
-            raise ErrorPatternConfigError("Error pattern keys must be strings")
-        if not isinstance(spec, dict):
-            raise ErrorPatternConfigError(
-                f"Error pattern '{name}' must be a JSON object"
-            )
 
-        missing = _REQUIRED_ERROR_PATTERN_FIELDS - set(spec)
-        if missing:
-            raise ErrorPatternConfigError(
-                f"Error pattern '{name}' missing keys: {', '.join(sorted(missing))}"
-            )
+def _validate_error_pattern_entry(name: str, spec: Any) -> None:
+    """Validate a single error pattern entry."""
+    if not isinstance(name, str):
+        raise ErrorPatternConfigError("Error pattern keys must be strings")
+    if not isinstance(spec, dict):
+        raise ErrorPatternConfigError(f"Error pattern '{name}' must be a JSON object")
 
-        indicators = spec["patterns"]
-        if not isinstance(indicators, list) or not all(
-            isinstance(pattern, str) for pattern in indicators
-        ):
-            raise ErrorPatternConfigError(
-                f"Error pattern '{name}' must define a list of string patterns"
-            )
-
-        severity = spec["severity"]
-        category = spec["category"]
-        description = spec["description"]
-        if not all(
-            isinstance(value, str) for value in (severity, category, description)
-        ):
-            raise ErrorPatternConfigError(
-                f"Error pattern '{name}' severity, category, and description must be strings"
-            )
-
-        general_patterns[name] = {
-            "patterns": list(indicators),
-            "severity": severity,
-            "category": category,
-            "description": description,
-        }
-
-    try:
-        language_raw = json.loads(_LANGUAGE_PATTERNS_PATH.read_text(encoding="utf-8"))
-    except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
+    missing = _REQUIRED_ERROR_PATTERN_FIELDS - set(spec)
+    if missing:
         raise ErrorPatternConfigError(
-            f"Language pattern config not found: {_LANGUAGE_PATTERNS_PATH}"
-        ) from exc
+            f"Error pattern '{name}' missing keys: {', '.join(sorted(missing))}"
+        )
 
-    if not isinstance(language_raw, dict):
+    indicators = spec["patterns"]
+    if not isinstance(indicators, list) or not all(
+        isinstance(p, str) for p in indicators
+    ):
+        raise ErrorPatternConfigError(
+            f"Error pattern '{name}' must define a list of string patterns"
+        )
+
+    if not all(
+        isinstance(spec[k], str) for k in ("severity", "category", "description")
+    ):
+        raise ErrorPatternConfigError(
+            f"Error pattern '{name}' severity, category, and description must be strings"
+        )
+
+
+def _load_and_validate_language_patterns() -> dict[str, dict[str, Any]]:
+    """Load and validate language-specific patterns config."""
+    raw = _load_config_json(_LANGUAGE_PATTERNS_PATH, "Language pattern config")
+    _validate_language_config_structure(raw)
+
+    language_patterns: dict[str, dict[str, Any]] = {}
+    for extension, spec in raw.get("languages").items():
+        _validate_language_pattern_entry(extension, spec)
+        language_patterns[extension] = {
+            "patterns": list(spec["patterns"]),
+            "severity": spec["severity"],
+        }
+    return language_patterns
+
+
+def _validate_language_config_structure(raw: Any) -> None:
+    """Validate language-specific pattern config structure."""
+    if not isinstance(raw, dict):
         raise ErrorPatternConfigError(
             "Language-specific pattern config must be a JSON object"
         )
-
-    if language_raw.get("schema_version") != _LANGUAGE_PATTERN_SCHEMA_VERSION:
+    if raw.get("schema_version") != _LANGUAGE_PATTERN_SCHEMA_VERSION:
         raise ErrorPatternConfigError(
-            "Unsupported language pattern schema version:"
-            f" {language_raw.get('schema_version')}"
+            f"Unsupported language pattern schema version: {raw.get('schema_version')}"
         )
-
-    language_block = language_raw.get("languages")
-    if not isinstance(language_block, dict):
+    if not isinstance(raw.get("languages"), dict):
         raise ErrorPatternConfigError(
             "Language pattern config must contain a 'languages' object"
         )
 
-    language_patterns: dict[str, dict[str, Any]] = {}
-    for extension, spec in language_block.items():
-        if not isinstance(extension, str):
-            raise ErrorPatternConfigError(
-                "Language pattern keys must be file extensions as strings"
-            )
-        if not isinstance(spec, dict):
-            raise ErrorPatternConfigError(
-                f"Language pattern '{extension}' must be a JSON object"
-            )
 
-        missing = _REQUIRED_LANGUAGE_PATTERN_FIELDS - set(spec)
-        if missing:
-            raise ErrorPatternConfigError(
-                f"Language pattern '{extension}' missing keys: {', '.join(sorted(missing))}"
-            )
+def _validate_language_pattern_entry(extension: str, spec: Any) -> None:
+    """Validate a single language pattern entry."""
+    if not isinstance(extension, str):
+        raise ErrorPatternConfigError(
+            "Language pattern keys must be file extensions as strings"
+        )
+    if not isinstance(spec, dict):
+        raise ErrorPatternConfigError(
+            f"Language pattern '{extension}' must be a JSON object"
+        )
 
-        indicators = spec["patterns"]
-        if not isinstance(indicators, list) or not all(
-            isinstance(pattern, str) for pattern in indicators
-        ):
-            raise ErrorPatternConfigError(
-                f"Language pattern '{extension}' must define a list of string patterns"
-            )
+    missing = _REQUIRED_LANGUAGE_PATTERN_FIELDS - set(spec)
+    if missing:
+        raise ErrorPatternConfigError(
+            f"Language pattern '{extension}' missing keys: {', '.join(sorted(missing))}"
+        )
 
-        severity = spec["severity"]
-        if not isinstance(severity, str):
-            raise ErrorPatternConfigError(
-                f"Language pattern '{extension}' severity must be a string"
-            )
+    indicators = spec["patterns"]
+    if not isinstance(indicators, list) or not all(
+        isinstance(p, str) for p in indicators
+    ):
+        raise ErrorPatternConfigError(
+            f"Language pattern '{extension}' must define a list of string patterns"
+        )
 
-        language_patterns[extension] = {
-            "patterns": list(indicators),
-            "severity": severity,
-        }
-
-    return general_patterns, language_patterns
+    if not isinstance(spec["severity"], str):
+        raise ErrorPatternConfigError(
+            f"Language pattern '{extension}' severity must be a string"
+        )
 
 
 @lru_cache(maxsize=1)

@@ -230,23 +230,31 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
         -------
             True if file should be scanned
         """
-        # Check if file path matches any skip patterns
-        for skip_pattern in self.config.skip_patterns:
-            # Check individual path parts for exact matches only
-            if skip_pattern in file_path.parts:
-                return False
-
+        if self._matches_skip_patterns(file_path):
+            return False
         if self._matches_exclude_globs(file_path):
             return False
-
         if self._is_gitignored(file_path):
             return False
+        if self._matches_common_skip_paths(file_path):
+            return False
+        if not self._has_allowed_extension(file_path):
+            return False
+        if not self._within_size_limit(file_path):
+            return False
+        return not self._is_vendor_file(file_path)
 
-        # Enhanced skip pattern checking for dot directories and paths
+    def _matches_skip_patterns(self, file_path: Path) -> bool:
+        """Return True if file path parts match configured skip patterns."""
+        for skip_pattern in self.config.skip_patterns:
+            if skip_pattern in file_path.parts:
+                return True
+        return False
+
+    def _matches_common_skip_paths(self, file_path: Path) -> bool:
+        """Return True if file path matches common build/cache skip patterns."""
         path_str = str(file_path).lower()
         path_parts = file_path.parts
-
-        # Skip common build/cache directories that might not be in skip_patterns
         skip_path_patterns = [
             ".angular",
             ".next",
@@ -262,46 +270,47 @@ class BaseAnalyzer(CIAnalysisModule, ABC):
             "dist/cache",
             "build/cache",
         ]
-
         for skip_pattern in skip_path_patterns:
             if skip_pattern in path_str or skip_pattern in path_parts:
                 self.log_operation(
                     "file_skipped_pattern",
                     {"file": str(file_path), "pattern": skip_pattern},
                 )
-                return False
+                return True
+        return False
 
-        # Check file extension
-        suffix = file_path.suffix.lower()
-        if suffix not in self.config.code_extensions:
-            return False
+    def _has_allowed_extension(self, file_path: Path) -> bool:
+        """Return True if file extension is configured for analysis."""
+        return file_path.suffix.lower() in self.config.code_extensions
 
-        # Check file size
+    def _within_size_limit(self, file_path: Path) -> bool:
+        """Return True if file size is within configured limits."""
         try:
             file_size_mb = file_path.stat().st_size / (1024 * 1024)
-            if file_size_mb > self.config.max_file_size_mb:
-                self.log_operation(
-                    "file_skipped_size",
-                    {"file": str(file_path), "size_mb": round(file_size_mb, 2)},
-                )
-                return False
         except (OSError, FileNotFoundError):
             return False
-
-        # Check for vendor/third-party code using vendor detector
-        if self.vendor_detector.should_exclude_file(file_path):
-            vendor_detection = self.vendor_detector.detect_vendor_code(file_path)
+        if file_size_mb > self.config.max_file_size_mb:
             self.log_operation(
-                "file_skipped_vendor",
-                {
-                    "file": str(file_path),
-                    "confidence": vendor_detection.confidence,
-                    "reasons": vendor_detection.reasons[:2],  # Limit to first 2 reasons
-                    "detected_library": vendor_detection.detected_library,
-                },
+                "file_skipped_size",
+                {"file": str(file_path), "size_mb": round(file_size_mb, 2)},
             )
             return False
+        return True
 
+    def _is_vendor_file(self, file_path: Path) -> bool:
+        """Return True if vendor detector excludes the file."""
+        if not self.vendor_detector.should_exclude_file(file_path):
+            return False
+        vendor_detection = self.vendor_detector.detect_vendor_code(file_path)
+        self.log_operation(
+            "file_skipped_vendor",
+            {
+                "file": str(file_path),
+                "confidence": vendor_detection.confidence,
+                "reasons": vendor_detection.reasons[:2],
+                "detected_library": vendor_detection.detected_library,
+            },
+        )
         return True
 
     def _matches_exclude_globs(self, file_path: Path) -> bool:

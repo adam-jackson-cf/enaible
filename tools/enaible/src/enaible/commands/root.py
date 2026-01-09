@@ -136,59 +136,80 @@ def doctor(
         "checks": {},
         "errors": [],
     }
-    exit_code = 0
-
     checks: dict[str, bool] = report["checks"]  # type: ignore[assignment]
+    errors: list[str] = report["errors"]  # type: ignore[assignment]
 
+    exit_code = _check_shared_workspace(checks, errors, report)
+    context = _check_workspace_context(checks, errors, report)
+    _check_schema(checks, context)
+
+    _output_report(report, checks, json_output)
+    raise typer.Exit(code=exit_code)
+
+
+def _check_shared_workspace(
+    checks: dict[str, bool], errors: list[str], report: dict[str, object]
+) -> int:
+    """Check shared workspace and analyzer registry."""
     shared_root = find_shared_root()
     if shared_root is None:
         checks["shared_workspace"] = False
         checks["analyzer_registry"] = False
-        report["errors"].append(
+        errors.append(
             "Shared workspace not found. Re-run `enaible install ... --sync-shared`."
         )
-        exit_code = 1
-    else:
-        checks["shared_workspace"] = True
-        report["shared_root"] = str(shared_root)
-        registry_stub = shared_root / "core" / "base" / "analyzer_registry.py"
-        registry_exists = registry_stub.exists()
-        checks["analyzer_registry"] = registry_exists
-        if not registry_exists:
-            report["errors"].append(
-                "Analyzer registry module not found under shared/core/base."
-            )
-            exit_code = 1
+        return 1
 
+    checks["shared_workspace"] = True
+    report["shared_root"] = str(shared_root)
+    registry_stub = shared_root / "core" / "base" / "analyzer_registry.py"
+    registry_exists = registry_stub.exists()
+    checks["analyzer_registry"] = registry_exists
+    if not registry_exists:
+        errors.append("Analyzer registry module not found under shared/core/base.")
+        return 1
+    return 0
+
+
+def _check_workspace_context(
+    checks: dict[str, bool], errors: list[str], report: dict[str, object]
+) -> object | None:
+    """Load and check workspace context."""
     try:
         context = load_workspace()
     except typer.BadParameter as exc:  # pragma: no cover - defensive
         checks["workspace"] = False
-        report["errors"].append(str(exc))
-        context = None  # type: ignore[assignment]
-    else:
-        checks["workspace"] = True
-        report["repo_root"] = str(context.repo_root)
+        errors.append(str(exc))
+        return None
+    checks["workspace"] = True
+    report["repo_root"] = str(context.repo_root)
+    return context
 
-    if context is not None:
-        schema_path = context.repo_root / ".enaible" / "schema.json"
-        schema_exists = schema_path.exists()
-        checks["schema_exists"] = schema_exists
 
+def _check_schema(checks: dict[str, bool], context: object | None) -> None:
+    """Check schema exists if context is available."""
+    if context is None:
+        return
+    schema_path = context.repo_root / ".enaible" / "schema.json"  # type: ignore[union-attr]
+    checks["schema_exists"] = schema_path.exists()
+
+
+def _output_report(
+    report: dict[str, object], checks: dict[str, bool], json_output: bool
+) -> None:
+    """Output the diagnostic report in the requested format."""
     if json_output:
         typer.echo(json.dumps(report, indent=2, sort_keys=True))
-    else:
-        typer.echo("Enaible Diagnostics")
-        if "repo_root" in report:
-            typer.echo(f"  Repo root: {report['repo_root']}")
-        typer.echo(f"  Python: {report['python']}")
-        typer.echo(f"  Typer: {report['typer_version']}")
-        for name, passed in checks.items():
-            status = "OK" if passed else "FAIL"
-            typer.echo(f"  {name.replace('_', ' ').title()}: {status}")
-        if report.get("errors"):
-            typer.echo("Errors:")
-            for err in report["errors"]:
-                typer.echo(f"  - {err}")
-
-    raise typer.Exit(code=exit_code)
+        return
+    typer.echo("Enaible Diagnostics")
+    if "repo_root" in report:
+        typer.echo(f"  Repo root: {report['repo_root']}")
+    typer.echo(f"  Python: {report['python']}")
+    typer.echo(f"  Typer: {report['typer_version']}")
+    for name, passed in checks.items():
+        status = "OK" if passed else "FAIL"
+        typer.echo(f"  {name.replace('_', ' ').title()}: {status}")
+    if report.get("errors"):
+        typer.echo("Errors:")
+        for err in report["errors"]:  # type: ignore[union-attr]
+            typer.echo(f"  - {err}")

@@ -209,23 +209,9 @@ class AnalysisRunner:
         """Generate high-level recommendations based on findings."""
         recommendations = []
 
-        # Security recommendations
-        security_critical = 0
-        security_high = 0
-        for category in [
-            "security_semgrep",
-            "security_secrets",
-        ]:
-            if category in summary["by_category"]:
-                security_critical += (
-                    summary["by_category"][category]
-                    .get("summary", {})
-                    .get("critical", 0)
-                )
-                security_high += (
-                    summary["by_category"][category].get("summary", {}).get("high", 0)
-                )
-
+        security_critical, security_high = self._sum_severity_counts(
+            summary, ["security_semgrep", "security_secrets"]
+        )
         if security_critical > 0:
             recommendations.append(
                 f"🚨 URGENT: Address {security_critical} critical security vulnerabilities immediately"
@@ -235,26 +221,16 @@ class AnalysisRunner:
                 f"🔒 HIGH: Fix {security_high} high-severity security issues"
             )
 
-        # Performance recommendations
-        perf_critical = 0
-        perf_high = 0
-        for category in [
-            "performance_frontend",
-            "performance_python",
-            "performance_sql",
-            "performance_semgrep",
-            "performance_baseline",
-        ]:
-            if category in summary["by_category"]:
-                perf_critical += (
-                    summary["by_category"][category]
-                    .get("summary", {})
-                    .get("critical", 0)
-                )
-                perf_high += (
-                    summary["by_category"][category].get("summary", {}).get("high", 0)
-                )
-
+        perf_critical, perf_high = self._sum_severity_counts(
+            summary,
+            [
+                "performance_frontend",
+                "performance_python",
+                "performance_sql",
+                "performance_semgrep",
+                "performance_baseline",
+            ],
+        )
         if perf_critical > 0:
             recommendations.append(
                 f"🚨 CRITICAL: Fix {perf_critical} critical performance issues"
@@ -264,37 +240,22 @@ class AnalysisRunner:
                 f"⚡ HIGH: Optimize {perf_high} performance bottlenecks affecting user experience"
             )
 
-        # Code quality recommendations
-        quality_total = 0
-        for category in [
-            "code_quality",
-            "code_quality_coverage",
-        ]:
-            quality_total += summary["by_category"].get(category, {}).get("total", 0)
-
+        quality_total = self._sum_totals(
+            summary, ["code_quality", "code_quality_coverage"]
+        )
         if quality_total > 50:
             recommendations.append(
                 f"🏗 MEDIUM: Address code complexity issues to improve maintainability ({quality_total} findings)"
             )
 
-        # Architecture recommendations
-        arch_critical = 0
-        arch_high = 0
-        for category in [
-            "architecture_patterns",
-            "architecture_scalability",
-            "architecture_coupling",
-        ]:
-            if category in summary["by_category"]:
-                arch_critical += (
-                    summary["by_category"][category]
-                    .get("summary", {})
-                    .get("critical", 0)
-                )
-                arch_high += (
-                    summary["by_category"][category].get("summary", {}).get("high", 0)
-                )
-
+        arch_critical, arch_high = self._sum_severity_counts(
+            summary,
+            [
+                "architecture_patterns",
+                "architecture_scalability",
+                "architecture_coupling",
+            ],
+        )
         if arch_critical > 0:
             recommendations.append(
                 f"🚨 CRITICAL: Fix {arch_critical} critical architectural issues"
@@ -304,16 +265,15 @@ class AnalysisRunner:
                 f"🔗 HIGH: Resolve {arch_high} architectural design issues"
             )
 
-        # Root cause analysis recommendations
-        root_cause_total = 0
-        for category in [
-            "root_cause_errors",
-            "root_cause_changes",
-            "root_cause_trace",
-            "root_cause_execution",
-        ]:
-            root_cause_total += summary["by_category"].get(category, {}).get("total", 0)
-
+        root_cause_total = self._sum_totals(
+            summary,
+            [
+                "root_cause_errors",
+                "root_cause_changes",
+                "root_cause_trace",
+                "root_cause_execution",
+            ],
+        )
         if root_cause_total > 10:
             recommendations.append(
                 f"🔍 MEDIUM: Investigate {root_cause_total} potential root cause indicators"
@@ -325,6 +285,24 @@ class AnalysisRunner:
             )
 
         return recommendations
+
+    def _sum_severity_counts(
+        self, summary: dict[str, Any], categories: list[str]
+    ) -> tuple[int, int]:
+        critical = 0
+        high = 0
+        for category in categories:
+            bucket = summary["by_category"].get(category, {})
+            severity = bucket.get("summary", {})
+            critical += severity.get("critical", 0)
+            high += severity.get("high", 0)
+        return critical, high
+
+    def _sum_totals(self, summary: dict[str, Any], categories: list[str]) -> int:
+        total = 0
+        for category in categories:
+            total += summary["by_category"].get(category, {}).get("total", 0)
+        return total
 
     def _validate_test_result_quality(
         self, script_name: str, result: dict[str, Any], stderr: str

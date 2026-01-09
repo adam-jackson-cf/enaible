@@ -375,173 +375,254 @@ def extract_jsonl_operations(
     session_cwd: str | None = None
     ops: list[dict[str, Any]] = []
     try:
-        with open(jsonl_path, encoding="utf-8") as f:
-            for raw in f:
-                raw = raw.strip()
-                if not raw:
-                    continue
-                try:
-                    evt = json.loads(raw)
-                except Exception:
-                    continue
-                ts = (
-                    evt.get("timestamp")
-                    or datetime.utcfromtimestamp(
-                        parse_date_from_path(jsonl_path).timestamp()
-                    ).isoformat()
-                    + "Z"
+        for evt in _iter_jsonl_events(jsonl_path):
+            ts = _event_timestamp(evt, jsonl_path)
+            etype = evt.get("type")
+            payload = _event_payload(evt)
+
+            if etype == "session_meta":
+                session_id, session_cwd = _handle_session_meta(
+                    payload,
+                    ts,
+                    session_id,
+                    session_cwd,
+                    ops,
+                    config,
+                    search_term,
+                    semantic_variations,
                 )
-                etype = evt.get("type")
-                payload = (
-                    evt.get("payload") if isinstance(evt.get("payload"), dict) else {}
+                continue
+
+            if etype in {"item.started", "item.updated", "item.completed"}:
+                _handle_item_event(
+                    evt,
+                    payload,
+                    ts,
+                    session_id,
+                    ops,
+                    config,
+                    search_term,
+                    semantic_variations,
                 )
+                continue
 
-                if etype == "session_meta":
-                    session_id = (
-                        payload.get("id") or payload.get("thread_id") or session_id
-                    )
-                    session_cwd = payload.get("cwd") or session_cwd
-                    op = build_operation(
-                        timestamp=ts,
-                        operation="session_meta",
-                        session_id=session_id,
-                        data={
-                            "cwd": payload.get("cwd"),
-                            "cli_version": payload.get("cli_version"),
-                            "originator": payload.get("originator"),
-                        },
-                        config=config,
-                        search_term=search_term,
-                        semantic_variations=semantic_variations,
-                    )
-                    if op:
-                        ops.append(op)
-                    continue
+            if etype == "response_item":
+                _handle_response_item(
+                    payload,
+                    ts,
+                    session_id,
+                    ops,
+                    config,
+                    search_term,
+                    semantic_variations,
+                )
+                continue
 
-                # item.* events per docs
-                if etype in {"item.started", "item.updated", "item.completed"}:
-                    item = evt.get("item") or payload.get("item") or {}
-                    itype = item.get("item_type") or item.get("type")
-                    if itype == "file_change":
-                        data = {
-                            k: item.get(k)
-                            for k in ("file_path", "diff", "change_type")
-                            if k in item
-                        }
-                        op = build_operation(
-                            timestamp=ts,
-                            operation="file_change",
-                            session_id=session_id,
-                            data=data,
-                            config=config,
-                            search_term=search_term,
-                            semantic_variations=semantic_variations,
-                        )
-                        if op:
-                            ops.append(op)
-                        continue
-                    if itype == "assistant_message":
-                        text = item.get("text") or item.get("content")
-                        if text and not should_exclude_prompt(text, config):
-                            short = text[:500] + ("..." if len(text) > 500 else "")
-                            op = build_operation(
-                                timestamp=ts,
-                                operation="assistant_message",
-                                session_id=session_id,
-                                data={"text": short},
-                                config=config,
-                                search_term=search_term,
-                                semantic_variations=semantic_variations,
-                            )
-                            if op:
-                                ops.append(op)
-                        continue
-
-                # response_item events observed in local logs
-                if etype == "response_item":
-                    ptype = payload.get("type")
-                    if ptype == "function_call":
-                        name = payload.get("name")
-                        args = payload.get("arguments")
-                        cmd_str: str | None = None
-                        try:
-                            if isinstance(args, str):
-                                args_json = json.loads(args)
-                                cmd = args_json.get("command")
-                                if isinstance(cmd, list):
-                                    cmd_str = " ".join(str(x) for x in cmd)
-                                elif isinstance(cmd, str):
-                                    cmd_str = cmd
-                        except Exception:
-                            cmd_str = None
-
-                        if (
-                            name == "shell"
-                            and cmd_str
-                            and not should_exclude_bash_command(cmd_str, config)
-                        ):
-                            op = build_operation(
-                                timestamp=ts,
-                                operation="bash",
-                                session_id=session_id,
-                                data={"command": cmd_str},
-                                config=config,
-                                search_term=search_term,
-                                semantic_variations=semantic_variations,
-                            )
-                            if op:
-                                ops.append(op)
-                        else:
-                            op = build_operation(
-                                timestamp=ts,
-                                operation="tool_call",
-                                session_id=session_id,
-                                data={"tool": name, "arguments": args},
-                                config=config,
-                                search_term=search_term,
-                                semantic_variations=semantic_variations,
-                            )
-                            if op:
-                                ops.append(op)
-                        continue
-                    if ptype == "function_call_output":
-                        out = payload.get("output")
-                        if isinstance(out, str):
-                            short = _summarize_tool_output(out)
-                        else:
-                            short = out
-                        op = build_operation(
-                            timestamp=ts,
-                            operation="tool_output",
-                            session_id=session_id,
-                            data={"output": short},
-                            config=config,
-                            search_term=search_term,
-                            semantic_variations=semantic_variations,
-                        )
-                        if op:
-                            ops.append(op)
-                        continue
-
-                if etype in {"turn.started", "turn.completed", "turn.failed"}:
-                    op = build_operation(
-                        timestamp=ts,
-                        operation=etype,
-                        session_id=session_id,
-                        data={},
-                        config=config,
-                        search_term=search_term,
-                        semantic_variations=semantic_variations,
-                    )
-                    if op:
-                        ops.append(op)
-                    continue
-
+            if etype in {"turn.started", "turn.completed", "turn.failed"}:
+                op = build_operation(
+                    timestamp=ts,
+                    operation=etype,
+                    session_id=session_id,
+                    data={},
+                    config=config,
+                    search_term=search_term,
+                    semantic_variations=semantic_variations,
+                )
+                if op:
+                    ops.append(op)
     except Exception:
         # Skip unreadable files
         pass
 
     return (session_id or jsonl_path.stem, session_cwd, ops)
+
+
+def _iter_jsonl_events(jsonl_path: Path):
+    with open(jsonl_path, encoding="utf-8") as f:
+        for raw in f:
+            raw = raw.strip()
+            if not raw:
+                continue
+            try:
+                yield json.loads(raw)
+            except Exception:
+                continue
+
+
+def _event_payload(evt: dict[str, Any]) -> dict[str, Any]:
+    payload = evt.get("payload")
+    return payload if isinstance(payload, dict) else {}
+
+
+def _event_timestamp(evt: dict[str, Any], jsonl_path: Path) -> str:
+    ts = evt.get("timestamp")
+    if ts:
+        return ts
+    return (
+        datetime.utcfromtimestamp(
+            parse_date_from_path(jsonl_path).timestamp()
+        ).isoformat()
+        + "Z"
+    )
+
+
+def _handle_session_meta(
+    payload: dict[str, Any],
+    ts: str,
+    session_id: str | None,
+    session_cwd: str | None,
+    ops: list[dict[str, Any]],
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> tuple[str | None, str | None]:
+    session_id = payload.get("id") or payload.get("thread_id") or session_id
+    session_cwd = payload.get("cwd") or session_cwd
+    op = build_operation(
+        timestamp=ts,
+        operation="session_meta",
+        session_id=session_id,
+        data={
+            "cwd": payload.get("cwd"),
+            "cli_version": payload.get("cli_version"),
+            "originator": payload.get("originator"),
+        },
+        config=config,
+        search_term=search_term,
+        semantic_variations=semantic_variations,
+    )
+    if op:
+        ops.append(op)
+    return session_id, session_cwd
+
+
+def _handle_item_event(
+    evt: dict[str, Any],
+    payload: dict[str, Any],
+    ts: str,
+    session_id: str | None,
+    ops: list[dict[str, Any]],
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> None:
+    item = evt.get("item") or payload.get("item") or {}
+    itype = item.get("item_type") or item.get("type")
+    if itype == "file_change":
+        data = {
+            k: item.get(k) for k in ("file_path", "diff", "change_type") if k in item
+        }
+        op = build_operation(
+            timestamp=ts,
+            operation="file_change",
+            session_id=session_id,
+            data=data,
+            config=config,
+            search_term=search_term,
+            semantic_variations=semantic_variations,
+        )
+        if op:
+            ops.append(op)
+        return
+    if itype == "assistant_message":
+        text = item.get("text") or item.get("content")
+        if text and not should_exclude_prompt(text, config):
+            short = text[:500] + ("..." if len(text) > 500 else "")
+            op = build_operation(
+                timestamp=ts,
+                operation="assistant_message",
+                session_id=session_id,
+                data={"text": short},
+                config=config,
+                search_term=search_term,
+                semantic_variations=semantic_variations,
+            )
+            if op:
+                ops.append(op)
+
+
+def _handle_response_item(
+    payload: dict[str, Any],
+    ts: str,
+    session_id: str | None,
+    ops: list[dict[str, Any]],
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> None:
+    ptype = payload.get("type")
+    if ptype == "function_call":
+        _handle_function_call(
+            payload, ts, session_id, ops, config, search_term, semantic_variations
+        )
+        return
+    if ptype == "function_call_output":
+        out = payload.get("output")
+        short = _summarize_tool_output(out) if isinstance(out, str) else out
+        op = build_operation(
+            timestamp=ts,
+            operation="tool_output",
+            session_id=session_id,
+            data={"output": short},
+            config=config,
+            search_term=search_term,
+            semantic_variations=semantic_variations,
+        )
+        if op:
+            ops.append(op)
+
+
+def _handle_function_call(
+    payload: dict[str, Any],
+    ts: str,
+    session_id: str | None,
+    ops: list[dict[str, Any]],
+    config: dict[str, Any],
+    search_term: str | None,
+    semantic_variations: dict[str, list[str]] | None,
+) -> None:
+    name = payload.get("name")
+    args = payload.get("arguments")
+    cmd_str = _extract_shell_command(args)
+    if name == "shell" and cmd_str and not should_exclude_bash_command(cmd_str, config):
+        op = build_operation(
+            timestamp=ts,
+            operation="bash",
+            session_id=session_id,
+            data={"command": cmd_str},
+            config=config,
+            search_term=search_term,
+            semantic_variations=semantic_variations,
+        )
+        if op:
+            ops.append(op)
+        return
+    op = build_operation(
+        timestamp=ts,
+        operation="tool_call",
+        session_id=session_id,
+        data={"tool": name, "arguments": args},
+        config=config,
+        search_term=search_term,
+        semantic_variations=semantic_variations,
+    )
+    if op:
+        ops.append(op)
+
+
+def _extract_shell_command(args: Any) -> str | None:
+    if not isinstance(args, str):
+        return None
+    try:
+        args_json = json.loads(args)
+    except Exception:
+        return None
+    cmd = args_json.get("command")
+    if isinstance(cmd, list):
+        return " ".join(str(x) for x in cmd)
+    if isinstance(cmd, str):
+        return cmd
+    return None
 
 
 def capture_codex_context() -> None:

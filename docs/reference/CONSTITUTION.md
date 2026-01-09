@@ -39,11 +39,11 @@ Enforced by Ruff, Prettier, MyPy:
 
 ## Enforcement Reference
 
-| Principle | Enforced By |
-|-----------|-------------|
-| Complexity limit | `ruff.toml` (C901) |
-| Code style | `ruff.toml`, `.prettierrc` |
-| Type safety | `mypy.ini` |
-| Pre-commit gates | `.pre-commit-config.yaml` |
-| CI gates | `.github/workflows/ci-quality-gates-incremental.yml` |
-| Constitution compliance | `.github/workflows/constitution-compliance.yml` |
+| Principle               | Enforced By                                          |
+| ----------------------- | ---------------------------------------------------- |
+| Complexity limit        | `ruff.toml` (C901)                                   |
+| Code style              | `ruff.toml`, `.prettierrc`                           |
+| Type safety             | `mypy.ini`                                           |
+| Pre-commit gates        | `.pre-commit-config.yaml`                            |
+| CI gates                | `.github/workflows/ci-quality-gates-incremental.yml` |
+| Constitution compliance | `.github/workflows/constitution-compliance.yml`      |

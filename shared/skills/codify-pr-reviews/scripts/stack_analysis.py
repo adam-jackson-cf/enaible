@@ -64,7 +64,22 @@ def detect_stack(project_root: Path) -> dict[str, str]:
     gemfile = (project_root / "Gemfile").exists()
 
     stack: dict[str, str] = {}
+    backend = _detect_backend(deps, py_deps, go_mod, pom, gemfile)
+    if backend:
+        stack["backend"] = backend
+    frontend = _detect_frontend(deps)
+    if frontend:
+        stack["frontend"] = frontend
+    database = _detect_database(deps)
+    if database:
+        stack["database"] = database
+    stack["language"] = _detect_language(project_root)
+    return stack
 
+
+def _detect_backend(
+    deps: set[str], py_deps: set[str], go_mod: str, pom: bool, gemfile: bool
+) -> str | None:
     backend_map = {
         "express": "Express.js",
         "fastify": "Fastify",
@@ -74,25 +89,25 @@ def detect_stack(project_root: Path) -> dict[str, str]:
     }
     for pkg, name in backend_map.items():
         if pkg in deps:
-            stack["backend"] = name
-            break
+            return name
+    if "fastapi" in py_deps:
+        return "FastAPI"
+    if "django" in py_deps:
+        return "Django"
+    if "flask" in py_deps:
+        return "Flask"
+    if "gin" in go_mod:
+        return "Gin"
+    if "echo" in go_mod:
+        return "Echo"
+    if pom:
+        return "Spring Boot"
+    if gemfile:
+        return "Rails"
+    return None
 
-    if "backend" not in stack:
-        if "fastapi" in py_deps:
-            stack["backend"] = "FastAPI"
-        elif "django" in py_deps:
-            stack["backend"] = "Django"
-        elif "flask" in py_deps:
-            stack["backend"] = "Flask"
-        elif "gin" in go_mod:
-            stack["backend"] = "Gin"
-        elif "echo" in go_mod:
-            stack["backend"] = "Echo"
-        elif pom:
-            stack["backend"] = "Spring Boot"
-        elif gemfile:
-            stack["backend"] = "Rails"
 
+def _detect_frontend(deps: set[str]) -> str | None:
     frontend_map = {
         "react": "React",
         "vue": "Vue",
@@ -101,14 +116,15 @@ def detect_stack(project_root: Path) -> dict[str, str]:
     }
     for pkg, name in frontend_map.items():
         if pkg in deps:
-            stack["frontend"] = name
-            break
-
+            return name
     if "next" in deps:
-        stack["frontend"] = "Next.js (React)"
+        return "Next.js (React)"
     if "nuxt" in deps:
-        stack["frontend"] = "Nuxt (Vue)"
+        return "Nuxt (Vue)"
+    return None
 
+
+def _detect_database(deps: set[str]) -> str | None:
     database_map = {
         "sqlite3": "SQLite",
         "better-sqlite3": "SQLite",
@@ -118,36 +134,36 @@ def detect_stack(project_root: Path) -> dict[str, str]:
         "mysql2": "MySQL",
         "mongodb": "MongoDB",
     }
+    base = None
     for pkg, name in database_map.items():
         if pkg in deps:
-            stack["database"] = name
+            base = name
             break
-
     if "prisma" in deps:
-        stack["database"] = f"{stack.get('database', 'Database')} (via Prisma)"
+        return f"{base or 'Database'} (via Prisma)"
     if "typeorm" in deps:
-        stack["database"] = f"{stack.get('database', 'Database')} (via TypeORM)"
+        return f"{base or 'Database'} (via TypeORM)"
     if "sequelize" in deps:
-        stack["database"] = f"{stack.get('database', 'Database')} (via Sequelize)"
+        return f"{base or 'Database'} (via Sequelize)"
+    return base
 
+
+def _detect_language(project_root: Path) -> str:
     if (project_root / "tsconfig.json").exists() or scan_extensions(
         project_root, {".ts", ".tsx"}
     ):
-        stack["language"] = "TypeScript"
-    elif scan_extensions(project_root, {".py"}):
-        stack["language"] = "Python"
-    elif scan_extensions(project_root, {".go"}):
-        stack["language"] = "Go"
-    elif scan_extensions(project_root, {".java"}):
-        stack["language"] = "Java"
-    elif scan_extensions(project_root, {".rb"}):
-        stack["language"] = "Ruby"
-    elif scan_extensions(project_root, {".cs"}):
-        stack["language"] = "C#"
-    else:
-        stack["language"] = "JavaScript"
-
-    return stack
+        return "TypeScript"
+    if scan_extensions(project_root, {".py"}):
+        return "Python"
+    if scan_extensions(project_root, {".go"}):
+        return "Go"
+    if scan_extensions(project_root, {".java"}):
+        return "Java"
+    if scan_extensions(project_root, {".rb"}):
+        return "Ruby"
+    if scan_extensions(project_root, {".cs"}):
+        return "C#"
+    return "JavaScript"
 
 
 def build_red_flags(stack: dict[str, str]) -> list[str]:

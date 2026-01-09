@@ -43,69 +43,88 @@ def _load_language_config_bundle() -> tuple[dict[str, dict[str, Any]], dict[str,
 
     Returns a tuple of (language_configs_without_extensions, extension_map).
     """
+    raw_data = _load_language_config_file()
+    _validate_language_config_structure(raw_data)
+    return _process_languages(raw_data.get("languages"))
+
+
+def _load_language_config_file() -> dict[str, Any]:
+    """Load and parse the language config JSON file."""
     try:
-        raw_data = json.loads(_LANGUAGE_CONFIG_PATH.read_text(encoding="utf-8"))
+        return json.loads(_LANGUAGE_CONFIG_PATH.read_text(encoding="utf-8"))
     except FileNotFoundError as exc:  # pragma: no cover - configuration must exist
         raise CoverageConfigError(
             f"Coverage language config not found: {_LANGUAGE_CONFIG_PATH}"
         ) from exc
 
+
+def _validate_language_config_structure(raw_data: Any) -> None:
+    """Validate root-level config structure."""
     if not isinstance(raw_data, dict):
         raise CoverageConfigError("Coverage language config must be a JSON object")
-
     if raw_data.get("schema_version") != _LANGUAGE_CONFIG_VERSION:
         raise CoverageConfigError(
-            "Unsupported coverage language config version:"
-            f" {raw_data.get('schema_version')}"
+            f"Unsupported coverage language config version: {raw_data.get('schema_version')}"
         )
-
-    languages = raw_data.get("languages")
-    if not isinstance(languages, dict):
+    if not isinstance(raw_data.get("languages"), dict):
         raise CoverageConfigError(
             "Coverage language config must provide a 'languages' mapping"
         )
 
+
+def _process_languages(
+    languages: dict[str, Any],
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
+    """Process and validate each language specification."""
     normalized: dict[str, dict[str, Any]] = {}
     extension_map: dict[str, str] = {}
 
     for language, spec in languages.items():
-        if not isinstance(language, str):
-            raise CoverageConfigError("Language keys must be strings")
-        if not isinstance(spec, dict):
-            raise CoverageConfigError(f"Config for {language} must be a JSON object")
-
-        missing = _REQUIRED_LANGUAGE_KEYS - set(spec)
-        if missing:
-            raise CoverageConfigError(
-                f"Config for {language} missing keys: {', '.join(sorted(missing))}"
-            )
-
-        for key in _REQUIRED_LANGUAGE_KEYS:
-            values = spec[key]
-            if not isinstance(values, list) or not all(
-                isinstance(item, str) for item in values
-            ):
-                raise CoverageConfigError(
-                    f"Config list '{key}' for {language} must contain strings"
-                )
-
-        for extension in spec["extensions"]:
-            ext_lower = extension.lower()
-            if not ext_lower.startswith("."):
-                raise CoverageConfigError(
-                    f"Extension '{extension}' for {language} must start with '.'"
-                )
-            if ext_lower in extension_map and extension_map[ext_lower] != language:
-                raise CoverageConfigError(
-                    f"Extension '{extension}' mapped to multiple languages"
-                )
-            extension_map[ext_lower] = language
-
+        _validate_language_spec(language, spec)
+        _validate_extensions(spec["extensions"], language, extension_map)
         normalized[language] = {
             key: list(spec[key]) for key in spec if key != "extensions"
         }
 
     return normalized, extension_map
+
+
+def _validate_language_spec(language: str, spec: Any) -> None:
+    """Validate a single language specification."""
+    if not isinstance(language, str):
+        raise CoverageConfigError("Language keys must be strings")
+    if not isinstance(spec, dict):
+        raise CoverageConfigError(f"Config for {language} must be a JSON object")
+
+    missing = _REQUIRED_LANGUAGE_KEYS - set(spec)
+    if missing:
+        raise CoverageConfigError(
+            f"Config for {language} missing keys: {', '.join(sorted(missing))}"
+        )
+
+    for key in _REQUIRED_LANGUAGE_KEYS:
+        values = spec[key]
+        if not isinstance(values, list) or not all(isinstance(v, str) for v in values):
+            raise CoverageConfigError(
+                f"Config list '{key}' for {language} must contain strings"
+            )
+
+
+def _validate_extensions(
+    extensions: list[str], language: str, extension_map: dict[str, str]
+) -> None:
+    """Validate and register file extensions for a language."""
+    for extension in extensions:
+        ext_lower = extension.lower()
+        if not ext_lower.startswith("."):
+            raise CoverageConfigError(
+                f"Extension '{extension}' for {language} must start with '.'"
+            )
+        if ext_lower in extension_map and extension_map[ext_lower] != language:
+            raise CoverageConfigError(
+                f"Extension '{extension}' mapped to multiple languages"
+            )
+        extension_map[ext_lower] = language
 
 
 @lru_cache(maxsize=1)

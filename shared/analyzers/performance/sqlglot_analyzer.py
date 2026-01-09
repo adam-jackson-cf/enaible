@@ -53,7 +53,17 @@ class SQLGlotAnalyzer(BaseAnalyzer):
         lines = content.splitlines() or [""]
         findings: list[dict[str, Any]] = []
 
-        # 1) Config-driven regex indicators (cheap and deterministic)
+        findings.extend(self._check_pattern_indicators(lines, target))
+        if sqlglot is not None:
+            findings.extend(self._check_ast_heuristics(content, target))
+
+        return findings
+
+    def _check_pattern_indicators(
+        self, lines: list[str], target: Path
+    ) -> list[dict[str, Any]]:
+        """Check config-driven regex indicators (cheap and deterministic)."""
+        findings: list[dict[str, Any]] = []
         for name, spec in self.patterns.items():
             indicators: list[str] = spec.get("indicators", [])
             severity: str = spec.get("severity", "medium")
@@ -71,33 +81,33 @@ class SQLGlotAnalyzer(BaseAnalyzer):
                             "metadata": {"pattern": name},
                         }
                     )
+        return findings
 
-        # 2) AST-based heuristics when SQLGlot is available (e.g., no LIMIT on SELECT *)
-        if sqlglot is not None:
-            for stmt in _split_sql_statements(content):
-                try:
-                    expr = parse_one(stmt, error_level="ignore")
-                except Exception:
-                    continue
-                if not expr:
-                    continue
+    def _check_ast_heuristics(self, content: str, target: Path) -> list[dict[str, Any]]:
+        """Check AST-based heuristics when SQLGlot is available."""
+        findings: list[dict[str, Any]] = []
+        for stmt in _split_sql_statements(content):
+            try:
+                expr = parse_one(stmt, error_level="ignore")
+            except Exception:
+                continue
+            if not expr:
+                continue
 
-                # Simple heuristics: SELECT without LIMIT may be large result set
-                if expr.find("select"):
-                    has_limit = bool(list(expr.find_all("limit")))
-                    if not has_limit:
-                        findings.append(
-                            {
-                                "title": "SQL: SELECT without LIMIT",
-                                "description": "Statement may return an unbounded result set",
-                                "severity": "medium",
-                                "file_path": str(target),
-                                "line_number": 1,
-                                "recommendation": "Consider LIMIT/OFFSET or pagination where appropriate.",
-                                "metadata": {"ast_check": "no_limit"},
-                            }
-                        )
-
+            if expr.find("select"):
+                has_limit = bool(list(expr.find_all("limit")))
+                if not has_limit:
+                    findings.append(
+                        {
+                            "title": "SQL: SELECT without LIMIT",
+                            "description": "Statement may return an unbounded result set",
+                            "severity": "medium",
+                            "file_path": str(target),
+                            "line_number": 1,
+                            "recommendation": "Consider LIMIT/OFFSET or pagination where appropriate.",
+                            "metadata": {"ast_check": "no_limit"},
+                        }
+                    )
         return findings
 
     def _load_db_patterns(self) -> dict[str, dict[str, Any]]:

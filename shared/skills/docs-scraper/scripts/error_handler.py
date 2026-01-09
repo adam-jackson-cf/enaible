@@ -306,60 +306,67 @@ class ErrorHandler:
                 return result
 
             except Exception as error:
-                # Classify the error
-                if error_context is None:
-                    error_context = self._classify_error(error, operation)
-                else:
-                    error_context.increment_retry()
-
-                # Add to error history
-                self.error_history.append(error_context)
-                if len(self.error_history) > self.max_history_size:
-                    self.error_history.pop(0)
-
-                logger.warning(f"Error in {operation} (attempt {attempt + 1}): {error}")
-
-                # Check if we should retry
-                if (
-                    attempt < self.config.llm_models.max_retries
-                    and error_context.can_retry()
-                ):
-                    # Calculate backoff delay
-                    delay = self._calculate_backoff_delay(
-                        attempt, error_context.error_type
-                    )
-
-                    # Special handling for rate limits
-                    if error_context.error_type == ErrorType.RATE_LIMIT_ERROR:
-                        delay = min(delay * 2, 300)  # Up to 5 minutes for rate limits
-
-                    logger.info(f"Waiting {delay:.1f}s before retry...")
-                    await asyncio.sleep(delay)
+                error_context = self._record_error(operation, error, error_context)
+                if self._should_retry(attempt, error_context):
+                    await self._apply_backoff(attempt, error_context)
                     continue
-
-                # No more retries - try fallback
                 logger.error(f"All retry attempts failed for {operation}: {error}")
-
-                # Clean up session if needed
                 if error_context.error_type == ErrorType.SESSION_ERROR:
                     await self._cleanup_failed_session(session_id)
-
-                # Try fallback strategy
-                if operation in self.fallback_strategies:
-                    try:
-                        logger.info(f"Attempting fallback strategy for {operation}")
-                        fallback_result = await self.fallback_strategies[
-                            operation
-                        ].execute(error_context, func, *args, **kwargs)
-                        logger.info(f"Fallback strategy succeeded for {operation}")
-                        return fallback_result
-                    except Exception as fallback_error:
-                        logger.error(
-                            f"Fallback strategy also failed for {operation}: {fallback_error}"
-                        )
-
-                # No fallback available or fallback failed - re-raise original error
+                fallback = await self._attempt_fallback(
+                    operation, error_context, func, *args, **kwargs
+                )
+                if fallback is not None:
+                    return fallback
                 raise error
+
+    def _record_error(self, operation: str, error: Exception, error_context):
+        if error_context is None:
+            error_context = self._classify_error(error, operation)
+        else:
+            error_context.increment_retry()
+        self.error_history.append(error_context)
+        if len(self.error_history) > self.max_history_size:
+            self.error_history.pop(0)
+        logger.warning(
+            f"Error in {operation} (attempt {error_context.retry_count + 1}): {error}"
+        )
+        return error_context
+
+    def _should_retry(self, attempt: int, error_context) -> bool:
+        return (
+            attempt < self.config.llm_models.max_retries and error_context.can_retry()
+        )
+
+    async def _apply_backoff(self, attempt: int, error_context) -> None:
+        delay = self._calculate_backoff_delay(attempt, error_context.error_type)
+        if error_context.error_type == ErrorType.RATE_LIMIT_ERROR:
+            delay = min(delay * 2, 300)
+        logger.info(f"Waiting {delay:.1f}s before retry...")
+        await asyncio.sleep(delay)
+
+    async def _attempt_fallback(
+        self,
+        operation: str,
+        error_context,
+        func: Callable[..., Awaitable[Any]],
+        *args,
+        **kwargs,
+    ) -> Any | None:
+        if operation not in self.fallback_strategies:
+            return None
+        try:
+            logger.info(f"Attempting fallback strategy for {operation}")
+            result = await self.fallback_strategies[operation].execute(
+                error_context, func, *args, **kwargs
+            )
+            logger.info(f"Fallback strategy succeeded for {operation}")
+            return result
+        except Exception as fallback_error:
+            logger.error(
+                f"Fallback strategy also failed for {operation}: {fallback_error}"
+            )
+            return None
 
     def get_error_statistics(self) -> dict[str, Any]:
         """Get error statistics."""

@@ -34,7 +34,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-security v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -45,14 +45,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[target-path] [--verbose]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "analyze-security.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -67,13 +67,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "analyze-security.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "analyze-security.toml"
                 ),
@@ -82,7 +82,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -95,7 +95,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "analyze-security.md"
                 ),
@@ -111,7 +111,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-architecture v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -122,14 +122,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "analyze-architecture.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -144,7 +144,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -154,7 +154,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -167,7 +167,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -180,7 +180,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "analyze-architecture.md"
                 ),
@@ -196,7 +196,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-code-quality v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -207,14 +207,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "analyze-code-quality.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -229,7 +229,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -239,7 +239,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -252,7 +252,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -265,7 +265,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "analyze-code-quality.md"
                 ),
@@ -281,7 +281,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-agentic-readiness v1.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -292,7 +292,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -303,7 +303,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -318,7 +318,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -328,7 +328,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -341,7 +341,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -354,7 +354,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -374,7 +374,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-performance v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -385,14 +385,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[target-path]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "analyze-performance.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -407,13 +407,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "analyze-performance.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -426,7 +426,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -439,7 +439,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "analyze-performance.md"
                 ),
@@ -455,7 +455,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="analyze-root-cause v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -466,14 +466,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[issue-description]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "analyze-root-cause.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -488,13 +488,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "analyze-root-cause.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -507,7 +507,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -520,7 +520,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "analyze-root-cause.md"
                 ),
@@ -536,21 +536,21 @@ CATALOG: dict[str, PromptDefinition] = {
         title="plan-refactor v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "claude-code", "commands", "plan-refactor.md"
                 ),
                 frontmatter={"argument-hint": "<refactor-scope-or-area>"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "plan-refactor.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -565,13 +565,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "plan-refactor.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "plan-refactor.toml"
                 ),
@@ -580,7 +580,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -593,7 +593,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "plan-refactor.md"
                 ),
@@ -609,21 +609,21 @@ CATALOG: dict[str, PromptDefinition] = {
         title="plan-solution v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "claude-code", "commands", "plan-solution.md"
                 ),
                 frontmatter={"argument-hint": "<technical-challenge> [--critique]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "plan-solution.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -638,13 +638,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "plan-solution.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "plan-solution.toml"
                 ),
@@ -653,7 +653,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -666,7 +666,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "plan-solution.md"
                 ),
@@ -682,7 +682,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="get-codebase-primer v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -692,14 +692,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "get-codebase-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -714,13 +714,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "get-codebase-primer.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -733,7 +733,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -746,7 +746,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "get-codebase-primer.md"
                 ),
@@ -762,7 +762,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-code-precommit-checks v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -772,7 +772,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -783,7 +783,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -798,7 +798,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -808,7 +808,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -821,7 +821,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -834,7 +834,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -854,21 +854,21 @@ CATALOG: dict[str, PromptDefinition] = {
         title="create-rule v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "claude-code", "commands", "create-rule.md"
                 ),
                 frontmatter={"argument-hint": "<technology> [--out <path>]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "create-rule.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "copilot", "prompts", "create-rule.prompt.md"
                 ),
@@ -879,13 +879,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "create-rule.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "create-rule.toml"
                 ),
@@ -894,7 +894,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -907,7 +907,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "create-rule.md"
                 ),
@@ -923,7 +923,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="create-hand-off v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -933,14 +933,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "create-hand-off.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -955,7 +955,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -965,7 +965,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "create-hand-off.toml"
                 ),
@@ -974,7 +974,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -987,7 +987,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "create-hand-off.md"
                 ),
@@ -1003,7 +1003,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="codify-session-history v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1014,7 +1014,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[--days] [--uuid] [--search-term]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1025,7 +1025,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "codify-session-history.md"
                 ),
@@ -1041,7 +1041,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="get-recent-context v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1052,7 +1052,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[--uuid] [--verbose] [--search-term]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1063,7 +1063,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "get-recent-context.md"
                 ),
@@ -1079,21 +1079,21 @@ CATALOG: dict[str, PromptDefinition] = {
         title="plan-ux-prd v0.3",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "claude-code", "commands", "plan-ux-prd.md"
                 ),
                 frontmatter={"argument-hint": "<product-brief>"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "plan-ux-prd.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "copilot", "prompts", "plan-ux-prd.prompt.md"
                 ),
@@ -1104,13 +1104,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "plan-ux-prd.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "plan-ux-prd.toml"
                 ),
@@ -1119,7 +1119,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1132,7 +1132,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "plan-ux-prd.md"
                 ),
@@ -1148,7 +1148,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="review-docs-drift v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1158,14 +1158,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "review-docs-drift.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1180,7 +1180,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1190,7 +1190,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "review-docs-drift.toml"
                 ),
@@ -1199,7 +1199,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1212,7 +1212,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "review-docs-drift.md"
                 ),
@@ -1228,7 +1228,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-dev-monitoring v0.4",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1238,14 +1238,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "setup-dev-monitoring.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1260,7 +1260,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1270,7 +1270,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1283,7 +1283,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1296,7 +1296,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "setup-dev-monitoring.md"
                 ),
@@ -1312,7 +1312,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-package-monitoring v1.0",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1322,7 +1322,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1333,7 +1333,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1348,7 +1348,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1358,7 +1358,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1371,7 +1371,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1384,7 +1384,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1404,7 +1404,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="get-task-primer v0.3",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1415,14 +1415,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "<task-brief> [--target <path>]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "get-task-primer.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1437,13 +1437,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "get-task-primer.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1456,7 +1456,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1469,7 +1469,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "get-task-primer.md"
                 ),
@@ -1485,7 +1485,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-react-grab v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1496,14 +1496,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[--auto] [--entry-point <path>]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "setup-react-grab.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1518,13 +1518,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-react-grab.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "setup-react-grab.toml"
                 ),
@@ -1533,7 +1533,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1546,7 +1546,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "setup-react-grab.md"
                 ),
@@ -1562,7 +1562,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-browser-tools v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1573,14 +1573,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[--auto] [--install-dir <path>]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "setup-browser-tools.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1595,13 +1595,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-browser-tools.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1614,7 +1614,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1627,7 +1627,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "setup-browser-tools.md"
                 ),
@@ -1643,7 +1643,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-atuin v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1656,14 +1656,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "setup-atuin.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1678,13 +1678,13 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-atuin.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "setup-atuin.toml"
                 ),
@@ -1693,7 +1693,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "antigravity", "workflows", "setup-atuin.md"
                 ),
@@ -1702,7 +1702,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "setup-atuin.md"
                 ),
@@ -1718,7 +1718,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="setup-mgrep v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1729,14 +1729,14 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"argument-hint": "[--auto] [--api-key <key>]"},
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "codex", "prompts", "setup-mgrep.md"
                 ),
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1751,20 +1751,20 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "cursor", "commands", "setup-mgrep.md"
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "gemini", "commands", "setup-mgrep.toml"
                 ),
                 frontmatter={"description": "Install mgrep for semantic code search"},
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1775,88 +1775,11 @@ CATALOG: dict[str, PromptDefinition] = {
                 frontmatter={"description": "Install mgrep for semantic code search"},
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "setup-mgrep.md"
                 ),
                 frontmatter={"description": "Install mgrep for semantic code search"},
-            ),
-        },
-    ),
-    "setup-beads": PromptDefinition(
-        prompt_id="setup-beads",
-        source_path=_repo_path("shared", "prompts", "setup-beads.md"),
-        title="setup-beads v0.3",
-        systems={
-            "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "claude-code",
-                    "commands",
-                    "setup-beads.md",
-                ),
-                frontmatter={"argument-hint": "[--auto]"},
-            ),
-            "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "codex", "prompts", "setup-beads.md"
-                ),
-                metadata={"comment": "codex prompt (frontmatter-free)"},
-            ),
-            "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "copilot",
-                    "prompts",
-                    "setup-beads.prompt.md",
-                ),
-                frontmatter={
-                    "description": "Install Beads (bd) for git-backed persistent task tracking",
-                    "mode": "agent",
-                    "tools": ["edit", "search/codebase", "terminal"],
-                },
-            ),
-            "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "cursor", "commands", "setup-beads.md"
-                ),
-            ),
-            "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "gemini", "commands", "setup-beads.toml"
-                ),
-                frontmatter={
-                    "description": "Install Beads (bd) for git-backed persistent task tracking"
-                },
-            ),
-            "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
-                output_path=_repo_path(
-                    ".build",
-                    "rendered",
-                    "antigravity",
-                    "workflows",
-                    "setup-beads.md",
-                ),
-                frontmatter={
-                    "description": "Install Beads (bd) for git-backed persistent task tracking"
-                },
-            ),
-            "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
-                output_path=_repo_path(
-                    ".build", "rendered", "pi", "commands", "setup-beads.md"
-                ),
-                frontmatter={
-                    "description": "Install Beads (bd) for git-backed persistent task tracking"
-                },
             ),
         },
     ),
@@ -1866,7 +1789,7 @@ CATALOG: dict[str, PromptDefinition] = {
         title="task-background v0.1",
         systems={
             "claude-code": SystemPromptConfig(
-                template="docs/system/claude-code/templates/command.md.j2",
+                template="docs/reference/system/claude-code/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1879,7 +1802,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "codex": SystemPromptConfig(
-                template="docs/system/codex/templates/prompt.md.j2",
+                template="docs/reference/system/codex/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1890,7 +1813,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 metadata={"comment": "codex prompt (frontmatter-free)"},
             ),
             "copilot": SystemPromptConfig(
-                template="docs/system/copilot/templates/prompt.md.j2",
+                template="docs/reference/system/copilot/templates/prompt.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1905,7 +1828,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "cursor": SystemPromptConfig(
-                template="docs/system/cursor/templates/command.md.j2",
+                template="docs/reference/system/cursor/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1915,7 +1838,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 ),
             ),
             "gemini": SystemPromptConfig(
-                template="docs/system/gemini/templates/command.toml.j2",
+                template="docs/reference/system/gemini/templates/command.toml.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1928,7 +1851,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "antigravity": SystemPromptConfig(
-                template="docs/system/antigravity/templates/workflow.md.j2",
+                template="docs/reference/system/antigravity/templates/workflow.md.j2",
                 output_path=_repo_path(
                     ".build",
                     "rendered",
@@ -1941,7 +1864,7 @@ CATALOG: dict[str, PromptDefinition] = {
                 },
             ),
             "pi": SystemPromptConfig(
-                template="docs/system/pi/templates/command.md.j2",
+                template="docs/reference/system/pi/templates/command.md.j2",
                 output_path=_repo_path(
                     ".build", "rendered", "pi", "commands", "task-background.md"
                 ),

@@ -69,52 +69,18 @@ def generate_docs_risk(
     with log_phase("helper:docs_risk", metadata):
         quality_gates = json.loads(quality_gates_path.read_text())
         lint_config_present = bool(quality_gates.get("lint_config_present"))
-
-        doc_files: list[Path] = []
-        for rel in DOC_CANDIDATES:
-            candidate = root / rel
-            if candidate.exists():
-                doc_files.append(candidate)
-        for rel in DOC_ROOTS:
-            root_dir = root / rel
-            if root_dir.exists():
-                doc_files.extend(sorted(root_dir.rglob("*.md")))
-        doc_files = list(dict.fromkeys(doc_files))
-
-        enforceable_hits: list[str] = []
-        review_standards_present = False
-        for doc in doc_files:
-            text = read_text(doc)
-            lower = text.lower()
-            if (
-                lower
-                and any(term in lower for term in AGENT_TERMS)
-                and any(term in lower for term in REVIEW_TERMS)
-            ):
-                review_standards_present = True
-            for line in lower.splitlines():
-                if any(modal in line for modal in ENFORCE_MODALS) and any(
-                    term in line for term in ENFORCE_TERMS
-                ):
-                    enforceable_hits.append(str(doc))
-                    break
-
-        auto_included_docs = (
-            [str(root / "AGENTS.md")] if (root / "AGENTS.md").exists() else []
-        )
+        doc_files = _collect_doc_files(root)
+        enforceable_hits, review_standards_present = _scan_docs(doc_files)
+        auto_included_docs = _auto_included_docs(root)
         guidance_present = bool(doc_files)
         doc_rules_unenforced = bool(enforceable_hits) and not lint_config_present
-
-        risk_reasons: list[str] = []
-        if auto_included_docs:
-            risk_reasons.append("auto_included_docs_present")
-        if enforceable_hits:
-            risk_reasons.append("enforceable_rules_in_docs")
-        if doc_rules_unenforced:
-            risk_reasons.append("doc_rules_without_lint_config")
-        if guidance_present and not review_standards_present:
-            risk_reasons.append("missing_llm_review_standards")
-
+        risk_reasons = _build_risk_reasons(
+            auto_included_docs,
+            enforceable_hits,
+            doc_rules_unenforced,
+            guidance_present,
+            review_standards_present,
+        )
         payload = {
             "doc_files": [str(p) for p in doc_files],
             "doc_roots": [str(root / rel) for rel in DOC_ROOTS],
@@ -126,6 +92,64 @@ def generate_docs_risk(
             "risk_score": 1 if risk_reasons else 0,
         }
         (artifact_root / "docs-risk.json").write_text(json.dumps(payload, indent=2))
+
+
+def _collect_doc_files(root: Path) -> list[Path]:
+    doc_files: list[Path] = []
+    for rel in DOC_CANDIDATES:
+        candidate = root / rel
+        if candidate.exists():
+            doc_files.append(candidate)
+    for rel in DOC_ROOTS:
+        root_dir = root / rel
+        if root_dir.exists():
+            doc_files.extend(sorted(root_dir.rglob("*.md")))
+    return list(dict.fromkeys(doc_files))
+
+
+def _scan_docs(doc_files: list[Path]) -> tuple[list[str], bool]:
+    enforceable_hits: list[str] = []
+    review_standards_present = False
+    for doc in doc_files:
+        text = read_text(doc)
+        lower = text.lower()
+        if (
+            lower
+            and any(term in lower for term in AGENT_TERMS)
+            and any(term in lower for term in REVIEW_TERMS)
+        ):
+            review_standards_present = True
+        for line in lower.splitlines():
+            if any(modal in line for modal in ENFORCE_MODALS) and any(
+                term in line for term in ENFORCE_TERMS
+            ):
+                enforceable_hits.append(str(doc))
+                break
+    return enforceable_hits, review_standards_present
+
+
+def _auto_included_docs(root: Path) -> list[str]:
+    agents_doc = root / "AGENTS.md"
+    return [str(agents_doc)] if agents_doc.exists() else []
+
+
+def _build_risk_reasons(
+    auto_included_docs: list[str],
+    enforceable_hits: list[str],
+    doc_rules_unenforced: bool,
+    guidance_present: bool,
+    review_standards_present: bool,
+) -> list[str]:
+    risk_reasons: list[str] = []
+    if auto_included_docs:
+        risk_reasons.append("auto_included_docs_present")
+    if enforceable_hits:
+        risk_reasons.append("enforceable_rules_in_docs")
+    if doc_rules_unenforced:
+        risk_reasons.append("doc_rules_without_lint_config")
+    if guidance_present and not review_standards_present:
+        risk_reasons.append("missing_llm_review_standards")
+    return risk_reasons
 
 
 def main() -> None:
