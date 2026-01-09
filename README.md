@@ -11,12 +11,12 @@
 
 <div align="left">
 
-### v1.3.0 | Recent Changes
+### v1.4.0 | Recent Changes
+- feat: refactor research skill workflow
 - feat: add constitution and compliance infrastructure
 - feat: add CLI workflow runner with E2E smoke test and report generation
 - feat: add agentic readiness prompt and speed up gates
 - feat: filter README recent changes to features and breaking changes
-- feat: add research skill for multi-domain investigations
 
 [Full Changelog](CHANGELOG.md)
 

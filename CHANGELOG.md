@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-01-09
+
+- feat: refactor research skill workflow
+- fix: allow insights without ids in citation audit
+- refactor: align codify-pr-reviews enforcement flow
+- chore: removed redundant todos
+
 ## [1.3.0] - 2026-01-09
 
 - feat: add constitution and compliance infrastructure
