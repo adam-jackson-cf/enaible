@@ -1,13 +1,6 @@
 repos:
   - repo: local
     hooks:
-      - id: beads-flush
-        name: Flush beads workspace
-        entry: bash .github/hooks/beads-precommit.sh
-        language: system
-        pass_filenames: false
-        always_run: true
-        stages: [pre-commit]
       - id: ci-quality-gates
         name: Run CI quality gates (auto-fix supported)
         entry: bash scripts/run-ci-quality-gates.sh --fix --stage

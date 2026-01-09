@@ -90,7 +90,6 @@ See [docs/reference/installation.md](docs/reference/installation.md) for manual 
 ```bash
 /setup-dev-monitoring                   # Makefile + Procfile with central logging
 /setup-code-precommit-checks            # Git hooks for quality gates
-/setup-beads                            # Git-backed task tracking with Beads
 ```
 
 ### Preparing for Code Review / Handoff
@@ -141,7 +140,6 @@ SETUP TOOLING
 /setup-dev-monitoring /setup-browser-tools
 /setup-code-precommit-checks /setup-atuin
 /setup-package-monitoring /setup-mgrep
-/setup-beads
 /setup-react-grab
 
 SKILLS (use by name in your request)
@@ -186,7 +184,6 @@ codify-pr-reviews "create review codex rules from this repo"
 | setup-browser-tools         | Install Chrome DevTools Protocol automation        |
 | setup-atuin                 | Install Atuin shell history with SQLite            |
 | setup-mgrep                 | Install mgrep for semantic search across code/docs |
-| setup-beads                 | Initialize Beads (bd) git-backed task tracking     |
 | setup-react-grab            | Install react-grab for element capture             |
 | setup-code-precommit-checks | Add git hooks for language-specific quality gates  |
 
