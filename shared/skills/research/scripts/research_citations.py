@@ -52,14 +52,20 @@ def build_report_entries(
     min_sources: int,
     importance_mode: bool = False,
     args: argparse.Namespace | None = None,
+    allow_missing_id: bool = False,
+    id_prefix: str | None = None,
 ) -> tuple[list[dict[str, Any]], bool]:
     report_entries: list[dict[str, Any]] = []
     has_failures = False
-    for entity in entities:
+    for idx, entity in enumerate(entities, start=1):
         entity_id = entity.get("id")
         source_ids = entity.get("sourceIds") or []
         if not entity_id:
-            raise SystemExit(f"Each {entity_type} must include 'id'.")
+            if allow_missing_id:
+                prefix = id_prefix or entity_type
+                entity_id = f"{prefix}-{idx:03d}"
+            else:
+                raise SystemExit(f"Each {entity_type} must include 'id'.")
         required = min_sources
         if importance_mode:
             importance = entity.get("importance")
@@ -110,7 +116,12 @@ def main() -> int:
     has_failures = has_failures or findings_failed
 
     insights_report, insights_failed = build_report_entries(
-        "insight", insights, sources, args.min_sources_insight
+        "insight",
+        insights,
+        sources,
+        args.min_sources_insight,
+        allow_missing_id=True,
+        id_prefix="insight",
     )
     report.extend(insights_report)
     has_failures = has_failures or insights_failed
