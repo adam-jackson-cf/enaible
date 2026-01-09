@@ -21,7 +21,7 @@
 
 ## analysis
 
-Here’s what I’d change in shared/prompts/analyze-agentic-readiness.md to align with todos/agentic-readiness/principles.md and make the assessment explicitly about migration readiness to those principles (vs. generic readiness):
+Here’s what I’d change in shared/prompts/analyze-agentic-readiness.md to align with docs/reference/todos/agentic-readiness/principles.md and make the assessment explicitly about migration readiness to those principles (vs. generic readiness):
 
 ### Add/adjust signals to reflect principles, not just presence of docs
 

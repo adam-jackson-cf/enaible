@@ -9,7 +9,6 @@
 │ │ ├── copilot-doc-review.yml
 │ │ └── install-smoke.yml
 │ ├── hooks
-│ │ └── beads-precommit.sh
 │ └── dependabot.yml
 ├── docs
 │ ├── system
@@ -88,7 +87,6 @@
 │ │ ├── plan-ux-prd.md
 │ │ ├── review-docs-drift.md
 │ │ ├── setup-atuin.md
-│ │ ├── setup-beads.md
 │ │ ├── setup-browser-tools.md
 │ │ ├── setup-code-precommit-checks.md
 │ │ ├── setup-dev-monitoring.md
@@ -5303,10 +5301,6 @@ CATALOG: dict[str, PromptDefinition] = {
          ),
      },
  ),
- "setup-beads": PromptDefinition(
-     prompt_id="setup-beads",
-     source_path=_repo_path("shared", "prompts", "setup-beads.md"),
-     title="setup-beads v0.3",
      systems={
          "claude-code": SystemPromptConfig(
              template="docs/system/claude-code/templates/command.md.j2",
@@ -5315,14 +5309,12 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "claude-code",
                  "commands",
-                 "setup-beads.md",
              ),
              frontmatter={"argument-hint": "[--auto]"},
          ),
          "codex": SystemPromptConfig(
              template="docs/system/codex/templates/prompt.md.j2",
              output_path=_repo_path(
-                 ".build", "rendered", "codex", "prompts", "setup-beads.md"
              ),
              metadata={"comment": "codex prompt (frontmatter-free)"},
          ),
@@ -5333,7 +5325,6 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "copilot",
                  "prompts",
-                 "setup-beads.prompt.md",
              ),
              frontmatter={
                  "description": "Install Beads (bd) for git-backed persistent task tracking",
@@ -5344,13 +5335,11 @@ CATALOG: dict[str, PromptDefinition] = {
          "cursor": SystemPromptConfig(
              template="docs/system/cursor/templates/command.md.j2",
              output_path=_repo_path(
-                 ".build", "rendered", "cursor", "commands", "setup-beads.md"
              ),
          ),
          "gemini": SystemPromptConfig(
              template="docs/system/gemini/templates/command.toml.j2",
              output_path=_repo_path(
-                 ".build", "rendered", "gemini", "commands", "setup-beads.toml"
              ),
              frontmatter={
                  "description": "Install Beads (bd) for git-backed persistent task tracking"
@@ -5363,7 +5352,6 @@ CATALOG: dict[str, PromptDefinition] = {
                  "rendered",
                  "antigravity",
                  "workflows",
-                 "setup-beads.md",
              ),
              frontmatter={
                  "description": "Install Beads (bd) for git-backed persistent task tracking"

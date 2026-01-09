@@ -82,7 +82,6 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ ├── copilot-doc-review.yml
 │ │ └── install-smoke.yml
 │ ├── hooks
-│ │ └── beads-precommit.sh
 │ └── dependabot.yml
 ├── docs
 │ ├── system
@@ -161,7 +160,6 @@ Build a new shared prompt `shared/prompts/create-rules-eval.md` (Purpose → Var
 │ │ ├── plan-ux-prd.md
 │ │ ├── review-docs-drift.md
 │ │ ├── setup-atuin.md
-│ │ ├── setup-beads.md
 │ │ ├── setup-browser-tools.md
 │ │ ├── setup-code-precommit-checks.md
 │ │ ├── setup-dev-monitoring.md

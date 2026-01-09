@@ -6,10 +6,10 @@ Design output templates for a new skill (`shared/skills/onboard-ai-sdlc/`) that 
 
 This plan consolidates analysis of:
 
-- `todos/onboarding-skill/brief.md` - Original requirements
+- `docs/reference/todos/onboarding-skill/brief.md` - Original requirements
 - `shared/prompts/analyze-agentic-readiness.md` - Existing readiness workflow
-- `todos/agentic-readiness/rules.md` - 56 assessment rules across 9 categories
-- `todos/agentic-readiness/analyse-repo.md` - Repository analysis workflow
+- `docs/reference/todos/agentic-readiness/rules.md` - 56 assessment rules across 9 categories
+- `docs/reference/todos/agentic-readiness/analyse-repo.md` - Repository analysis workflow
 
 ---
 
@@ -101,16 +101,16 @@ This plan consolidates analysis of:
 
 ### Category 5: Context Efficiency (CE) - 8 Rules
 
-| ID   | Rule                                   | Category      | Rationale                                                    |
-| ---- | -------------------------------------- | ------------- | ------------------------------------------------------------ |
-| CE-1 | Tools provide context transparency     | **HYBRID**    | Tool choice detectable but usage patterns need interview     |
-| CE-2 | MCP avoided for permanent workflows    | **AUTOMATED** | Scan for MCP config files                                    |
-| CE-3 | Context sessions kept lean             | **INTERVIEW** | Session management is operational practice                   |
-| CE-4 | Planning and build execution separated | **INTERVIEW** | Session hygiene is operational practice                      |
-| CE-5 | Planning artifacts stored externally   | **HYBRID**    | Can detect todos/plans directories but usage needs interview |
-| CE-6 | System files not overly polluted       | **AUTOMATED** | Measure AGENTS.md line count                                 |
-| CE-7 | Rules automated where possible         | **AUTOMATED** | Check linting coverage vs doc rules                          |
-| CE-8 | Tasks encapsulated                     | **INTERVIEW** | Session hygiene practices                                    |
+| ID   | Rule                                   | Category      | Rationale                                                                   |
+| ---- | -------------------------------------- | ------------- | --------------------------------------------------------------------------- |
+| CE-1 | Tools provide context transparency     | **HYBRID**    | Tool choice detectable but usage patterns need interview                    |
+| CE-2 | MCP avoided for permanent workflows    | **AUTOMATED** | Scan for MCP config files                                                   |
+| CE-3 | Context sessions kept lean             | **INTERVIEW** | Session management is operational practice                                  |
+| CE-4 | Planning and build execution separated | **INTERVIEW** | Session hygiene is operational practice                                     |
+| CE-5 | Planning artifacts stored externally   | **HYBRID**    | Can detect docs/reference/todos/plans directories but usage needs interview |
+| CE-6 | System files not overly polluted       | **AUTOMATED** | Measure AGENTS.md line count                                                |
+| CE-7 | Rules automated where possible         | **AUTOMATED** | Check linting coverage vs doc rules                                         |
+| CE-8 | Tasks encapsulated                     | **INTERVIEW** | Session hygiene practices                                                   |
 
 ### Category 6: Verification as First Class Requirement (VFCR) - 7 Rules
 
