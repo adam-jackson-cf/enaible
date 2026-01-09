@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-01-09
+
+- feat: add constitution and compliance infrastructure
+- refactor: reduce complexity hotspots
+- docs: require quality gates for completion
+- chore: removed some of the constitution items, backed out of that idea, renamed rules to guidance
+- chore: format docs after merge
+- chore: move todos into docs reference
+- chore: remove beads integration
+
 ## [1.2.2] - 2026-01-08
 
 ## [1.2.2] - 2026-01-08

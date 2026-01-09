@@ -11,13 +11,12 @@
 
 <div align="left">
 
-### v1.2.2 | Recent Changes
-
+### v1.3.0 | Recent Changes
+- feat: add constitution and compliance infrastructure
 - feat: add CLI workflow runner with E2E smoke test and report generation
 - feat: add agentic readiness prompt and speed up gates
 - feat: filter README recent changes to features and breaking changes
 - feat: add research skill for multi-domain investigations
-- feat: add new analyzers and fixtures for parity
 
 [Full Changelog](CHANGELOG.md)
 
