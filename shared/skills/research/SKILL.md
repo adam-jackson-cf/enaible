@@ -1,121 +1,109 @@
 ---
 name: research
-description: Conduct structured multi-domain research with validated sources and synthesized findings. USE WHEN the user needs market analysis, competitive intelligence, technical research, user research, or comprehensive multi-domain investigations.
-compatibility: Requires network access for web search/fetch.
-allowed-tools: @WEB_SEARCH @WEB_FETCH @READ @WRITE
+description: Conduct structured multi-domain research with validated sources, deterministic logging, and synthesized findings. USE WHEN the user needs market analysis, competitive intelligence, technical research, user research, or comprehensive multi-domain investigations.
+compatibility: Requires network access for web search/fetch and Python 3.12+ for deterministic scripts.
+allowed-tools: @BASH @WEB_SEARCH @WEB_FETCH @READ @WRITE
 ---
 
 # Research
 
-Orchestrate thorough research investigations across market, technical, and user domains with validated sources and synthesized findings.
+Run auditable, multi-domain research with deterministic logging, validation, and report assembly.
 
-- You need competitive intelligence, market sizing, or industry analysis
-- You require technical documentation research, implementation pattern analysis, or architectural review
-- You want user persona development, journey mapping, or behavioral analysis
-- You must synthesize findings from multiple research domains into actionable recommendations
+- You need market/competitive analysis with verifiable sources
+- You need technical or implementation research grounded in primary docs
+- You need user/behavioral synthesis with explicit evidence trails
+- You must produce a report backed by logged searches and citation checks
 
 ## Need to...? Read This
 
-| Goal                             | Reference                                                                  |
-| -------------------------------- | -------------------------------------------------------------------------- |
-| Gather and validate requirements | [references/requirement-gathering.md](references/requirement-gathering.md) |
-| Validate sources and citations   | [references/source-validation.md](references/source-validation.md)         |
-| Conduct market research          | [references/market-research.md](references/market-research.md)             |
-| Research technical topics        | [references/technical-research.md](references/technical-research.md)       |
-| Analyze user behavior            | [references/user-research.md](references/user-research.md)                 |
-| Structure the final report       | [references/report-structure.md](references/report-structure.md)           |
+| Goal                             | Reference                                                                    |
+| -------------------------------- | ---------------------------------------------------------------------------- |
+| Capture requirements + artifacts | [references/requirement-gathering.md](references/requirement-gathering.md)   |
+| Map questions to domains         | [references/domain-mapping.md](references/domain-mapping.md)                 |
+| Log searches + sources           | [references/research-execution.md](references/research-execution.md)         |
+| Normalize evidence               | [references/evidence-normalization.md](references/evidence-normalization.md) |
+| Validate sources + recency       | [references/source-validation.md](references/source-validation.md)           |
+| Assemble analysis                | [references/analysis-assembly.md](references/analysis-assembly.md)           |
+| Validate citations               | [references/citation-audit.md](references/citation-audit.md)                 |
+| Structure the final report       | [references/report-structure.md](references/report-structure.md)             |
+| Conduct market research          | [references/market-research.md](references/market-research.md)               |
+| Research technical topics        | [references/technical-research.md](references/technical-research.md)         |
+| Analyze user behavior            | [references/user-research.md](references/user-research.md)                   |
 
 ## Workflow
 
-### Step 0: Requirement Gathering
+### Step 0: Preflight + requirements
 
-**Purpose**: Validate research scope, constraints, and output expectations before beginning.
+**Purpose**: Capture the research brief and create a deterministic artifact root.
 
-- Confirm the research objective and specific questions to answer
-- Identify scope boundaries (geographic, temporal, domain-specific)
-- Establish output format requirements and decision context
-- Determine applicable research domains (market, technical, user, or combination)
-- Plan required online research channels (search engines, documentation portals, APIs) and confirm @WEB_SEARCH/@WEB_FETCH access is available
-- Create artifact directory at `.enaible/artifacts/research/<timestamp>/`
+- Validate the research objective, scope, decision context, and online research constraints.
+- Run `scripts/research_init.py` to write `requirements.json` under `.enaible/artifacts/research/<timestamp>/`.
+- Stop and clarify missing requirements before continuing.
 
-See [references/requirement-gathering.md](references/requirement-gathering.md) for the intake checklist.
+See [references/requirement-gathering.md](references/requirement-gathering.md).
 
-### Step 1: Domain Allocation
+### Step 1: Domain mapping
 
-**Purpose**: Map research questions to appropriate research methodologies.
+**Purpose**: Deterministically map each question to a research domain.
 
-- Classify each research question by domain type
-- For multi-domain investigations, dispatch research tasks concurrently where feasible
-- Coordinate cross-domain dependencies (e.g., technical constraints affecting market sizing)
+- Run `scripts/research_domain_plan.py` to generate `domain-plan.json` from `requirements.json`.
+- Use `--override` only when the domain map is ambiguous or missing coverage.
 
-**Domain allocation matrix:**
+See [references/domain-mapping.md](references/domain-mapping.md).
 
-| Question Type                              | Domain    | Reference                                                 |
-| ------------------------------------------ | --------- | --------------------------------------------------------- |
-| Competitor analysis, market size, pricing  | Market    | [market-research.md](references/market-research.md)       |
-| API patterns, architecture, implementation | Technical | [technical-research.md](references/technical-research.md) |
-| User needs, personas, journeys             | User      | [user-research.md](references/user-research.md)           |
+### Step 2: Execute research with logging
 
-### Step 2: Execute Research
+**Purpose**: Collect sources while logging every search and source record.
 
-**Purpose**: Conduct domain-specific research following established methodologies.
+- Use `scripts/research_execute.py search` for each query and `scripts/research_execute.py source` for each source.
+- Ensure every source references a question ID and has a published date (or approved undated rationale).
+- Produce `evidence.json` in the artifact root.
+- Use `scripts/research_execute.py batch` for CSV/JSON imports and `scripts/research_execute.py snapshot` to attach metadata snapshots when needed.
 
-- Apply the appropriate research framework for each domain
-- Execute fresh online research for each question using @WEB_SEARCH/@WEB_FETCH (or equivalent live data sources) unless the user explicitly prohibits external access
-- Gather minimum 3 sources per key finding, ensuring at least one comes from online research conducted during this engagement
-- Document source URLs, access dates, and relevance scores
-- Capture conflicting information for synthesis
+See [references/research-execution.md](references/research-execution.md) and the domain playbooks.
 
-Detailed workflows in domain-specific reference files.
+### Step 3: Normalize evidence
 
-### Step 3: Source Validation
+**Purpose**: Normalize publisher names and deduplicate sources before validation.
 
-**Purpose**: Verify source quality and cross-validate key findings.
+- Run `scripts/research_normalize.py` to update `evidence.json` in place.
+- Re-run normalization after any new sources are logged.
 
-- Assess source credibility (authority, recency, bias indicators)
-- Cross-validate claims across multiple independent sources
-- Flag findings with single-source support
-- Document validation status for each major finding
+See [references/evidence-normalization.md](references/evidence-normalization.md).
 
-See [references/source-validation.md](references/source-validation.md) for validation criteria.
+### Step 4: Source validation
 
-### Step 4: Synthesis
+**Purpose**: Enforce minimum source counts, recency, and diversity before synthesis.
 
-**Purpose**: Integrate findings across domains and resolve conflicts.
+- Run `scripts/research_validate.py` to generate `validation.json`.
+- If validation fails, gather additional sources and rerun validation.
 
-- Identify patterns and correlations across research domains
-- Resolve conflicting findings with evidence-based reasoning
-- Generate actionable insights from synthesized data
-- Document confidence levels for conclusions
+See [references/source-validation.md](references/source-validation.md).
 
-### Step 5: Report Generation
+### Step 5: Analysis + citation audit
 
-**Purpose**: Produce structured deliverable matching output requirements.
+**Purpose**: Consolidate analysis artifacts and verify citations against logged sources.
 
-- Follow the report structure template for the requested format
-- Include executive summary with key findings and recommendations
-- Document methodology, sources, and limitations
-- Provide appendices for detailed evidence
+- Draft an analysis input JSON with findings, insights, recommendations, and limitations.
+- Run `scripts/research_analyze.py` to generate `analysis.json`.
+- Run `scripts/research_citations.py` to generate `citation-report.json`.
 
-See [references/report-structure.md](references/report-structure.md) for output templates.
+See [references/citation-audit.md](references/citation-audit.md).
+
+### Step 6: Assemble the report
+
+**Purpose**: Produce the final report from validated artifacts.
+
+- Use `analysis.json` with validated findings and recommendations.
+- Run `scripts/research_report.py` to output the final report markdown.
+
+See [references/report-structure.md](references/report-structure.md).
 
 ## Quality Standards
 
-### Source Requirements
-
-- Minimum 3 sources per key finding, must include citations direct to referenced material
-- Diverse source types (primary data, industry reports, documentation)
-- Recency appropriate to topic (prefer last 12 months for market data); rerun online searches or seek updated sources whenever findings rely on older material
-- Record search terms, engines/APIs queried, and timestamps for every online research action to prove recency
-
-### Citation Format
-
-All findings must include inline citations: `[Source Name, Date]`
-
-Full source details in References section of final report.
-
-### Confidence Levels
-
-- **High**: 3+ corroborating sources, no conflicts
-- **Medium**: 2 sources or minor conflicts resolved
-- **Low**: Single source or unresolved conflicts (flag explicitly)
+- Every run must produce: `requirements.json`, `domain-plan.json`, `evidence.json`, `validation.json`, `analysis.json`, `citation-report.json`, and the final `report.md`.
+- Each key finding must be backed by ≥3 sources and at least one source collected during this engagement.
+- Recency rules must be enforced through `validation.json`; no report should be delivered if validation fails.
+- Inline citations must map to `evidence.json` sources and pass `research_citations.py`.
+- Artifacts should conform to the JSON schemas in `assets/schemas/`.
+- Run evidence normalization before validation to ensure deduped sources and canonical publishers.

@@ -1,0 +1,97 @@
+{
+  "version": "2026-01-09",
+  "domains": {
+    "market": {
+      "keywords": [
+        "market",
+        "pricing",
+        "competitor",
+        "competition",
+        "tAM",
+        "sAM",
+        "sOM",
+        "growth",
+        "share",
+        "revenue",
+        "segment",
+        "industry",
+        "benchmark",
+        "positioning"
+      ],
+      "patterns": [
+        "\\bTAM\\b",
+        "\\bSAM\\b",
+        "\\bSOM\\b",
+        "price(ing)?",
+        "market size",
+        "competitive landscape"
+      ],
+      "sourceTypes": [
+        "industry-report",
+        "financial",
+        "government",
+        "news",
+        "company"
+      ]
+    },
+    "technical": {
+      "keywords": [
+        "api",
+        "architecture",
+        "implementation",
+        "sdk",
+        "performance",
+        "security",
+        "scalability",
+        "benchmark",
+        "integration",
+        "framework",
+        "documentation",
+        "release",
+        "changelog"
+      ],
+      "patterns": [
+        "\\bSDK\\b",
+        "\\bAPI\\b",
+        "reference implementation",
+        "technical debt",
+        "performance benchmark"
+      ],
+      "sourceTypes": [
+        "official-docs",
+        "repository",
+        "academic",
+        "industry-report",
+        "community"
+      ]
+    },
+    "user": {
+      "keywords": [
+        "persona",
+        "journey",
+        "behavior",
+        "adoption",
+        "user",
+        "customer",
+        "pain point",
+        "workflow",
+        "onboarding",
+        "retention",
+        "feedback"
+      ],
+      "patterns": [
+        "user journey",
+        "pain point",
+        "behavior(al)?",
+        "customer feedback"
+      ],
+      "sourceTypes": [
+        "industry-report",
+        "survey",
+        "support",
+        "community",
+        "review"
+      ]
+    }
+  }
+}

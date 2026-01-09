@@ -159,6 +159,8 @@ def _load_generic_indicators() -> list[str]:
 class TestCoverageAnalyzer(BaseAnalyzer):
     """Language-agnostic test coverage analyzer extending BaseAnalyzer infrastructure."""
 
+    __test__ = False
+
     def __init__(self, config: AnalyzerConfig | None = None):
         super().__init__("test_coverage", config)
 

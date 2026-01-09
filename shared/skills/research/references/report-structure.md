@@ -2,6 +2,69 @@
 
 Standardize research deliverable formats for consistency and actionability.
 
+## Deterministic Report Assembly
+
+Generate the final report using the structured artifacts produced in this skill:
+
+- `requirements.json`
+- `domain-plan.json`
+- `analysis.json`
+- `evidence.json`
+
+Run the report generator:
+
+```bash
+"$PYTHON_CMD" scripts/research_report.py \
+  --title "<Report Title>" \
+  --requirements-path "@ARTIFACT_ROOT/requirements.json" \
+  --domain-plan-path "@ARTIFACT_ROOT/domain-plan.json" \
+  --analysis-path "@ARTIFACT_ROOT/analysis.json" \
+  --evidence-path "@ARTIFACT_ROOT/evidence.json" \
+  --output-path "@ARTIFACT_ROOT/report.md"
+```
+
+### Analysis JSON format
+
+```json
+{
+  "analysisAt": "2026-01-09T00:00:00Z",
+  "executiveSummary": "2-3 paragraph summary",
+  "findings": [
+    {
+      "id": "f1",
+      "title": "Finding title",
+      "statement": "Finding statement",
+      "confidence": "high",
+      "importance": "key",
+      "sourceIds": ["src-001", "src-002", "src-003"]
+    }
+  ],
+  "insights": [
+    {
+      "id": "i1",
+      "statement": "Cross-domain insight",
+      "sourceIds": ["src-001"]
+    }
+  ],
+  "recommendations": [
+    {
+      "id": "r1",
+      "action": "Do the thing",
+      "rationale": "Why this matters",
+      "priority": "high",
+      "sourceIds": ["src-001"]
+    }
+  ],
+  "limitations": ["Constraint or caveat"]
+}
+```
+
+Allowed values:
+
+- `confidence`: `high`, `medium`, `low`
+- `importance`: `key`, `supporting`, `background`
+- `priority`: `high`, `medium`, `low`
+
 ## Report Structure Template
 
 ```markdown

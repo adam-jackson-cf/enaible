@@ -2,6 +2,10 @@
 
 Research technical topics, analyze implementations, and evaluate solutions using structured methodologies.
 
+## Deterministic Logging
+
+Log each retained source with `scripts/research_execute.py source` and associate it with a question ID.
+
 ## Documentation Research Patterns
 
 ### Source Priority Order

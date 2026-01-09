@@ -10,6 +10,8 @@ Standardize the intake process to ensure complete research briefs before investi
 - @SCOPE — What to include/exclude in the investigation
 - @OUTPUT_FORMAT — Depth of analysis and presentation needs
 - @DECISION_CONTEXT — How the research findings will be used
+- @ONLINE_RESEARCH — `allowed` or `disallowed`
+- @QUESTIONS — list of concrete research questions
 
 ### Optional
 
@@ -17,6 +19,8 @@ Standardize the intake process to ensure complete research briefs before investi
 - @TARGET_AUDIENCE — Who will consume the research
 - @DOMAIN_FOCUS — Specific industry or domain emphasis
 - @EXISTING_KNOWLEDGE — Assumptions to validate or build upon
+- @ALLOWED_SOURCES — Approved sources or domains
+- @BLOCKED_SOURCES — Sources or domains to avoid
 
 ## Instructions
 
@@ -24,6 +28,7 @@ Standardize the intake process to ensure complete research briefs before investi
 - Confirm online research expectations: allowed domains/APIs, required search engines, and any restrictions on external data collection
 - If requirements are missing, request clarification using the template below
 - Establish artifact directory for all research outputs and note approved web-research channels
+- Run the requirements initializer to persist inputs in `requirements.json`
 
 ## Minimum Information Checklist
 
@@ -60,6 +65,23 @@ I need additional information to conduct effective research. Please provide:
 
 Once I have this information, I'll proceed with the appropriate research methodology.
 ```
+
+## Initialize the research run
+
+```bash
+"$PYTHON_CMD" scripts/research_init.py \
+  --objective "@RESEARCH_OBJECTIVE" \
+  --scope "@SCOPE" \
+  --output-format "@OUTPUT_FORMAT" \
+  --decision-context "@DECISION_CONTEXT" \
+  --online-research "@ONLINE_RESEARCH" \
+  --question "<question 1>" \
+  --question "<question 2>"
+```
+
+This command writes `requirements.json` under `.enaible/artifacts/research/<timestamp>/` and prints the path.
+
+For large question sets, provide a JSON array via `--questions-file`.
 
 ## Scope Definition Examples
 

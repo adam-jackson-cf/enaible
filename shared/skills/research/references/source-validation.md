@@ -43,6 +43,28 @@ Ensure research quality through rigorous source assessment and cross-validation.
 3. Note alignment or conflict between sources
 4. Document validation status for each claim along with search terms, engines/APIs, and access dates
 
+## Deterministic Validation Workflow
+
+### Required inputs
+
+- `requirements.json`
+- `domain-plan.json`
+- `evidence.json` (normalized)
+
+### Run validation
+
+```bash
+"$PYTHON_CMD" scripts/research_validate.py \
+  --requirements-path "@ARTIFACT_ROOT/requirements.json" \
+  --domain-plan-path "@ARTIFACT_ROOT/domain-plan.json" \
+  --evidence-path "@ARTIFACT_ROOT/evidence.json" \
+  --output-path "@ARTIFACT_ROOT/validation.json"
+```
+
+The validator fails fast if minimum source counts, recency, or diversity requirements are not met.
+
+Use `--allow-undated <question-id>` or `--allow-single-type <question-id>` only when explicitly approved, and capture the rationale in the final report limitations.
+
 ### Conflict Resolution
 
 When sources conflict:

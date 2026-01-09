@@ -1,0 +1,17 @@
+{
+  "version": "2026-01-09",
+  "policies": {
+    "market": {
+      "preferredMonths": 6,
+      "maxMonths": 12
+    },
+    "technical": {
+      "preferredMonths": 12,
+      "maxMonths": 24
+    },
+    "user": {
+      "preferredMonths": 12,
+      "maxMonths": 24
+    }
+  }
+}

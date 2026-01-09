@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["searches"],
+  "properties": {
+    "searches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "questionId", "query", "engine", "searchedAt"],
+        "properties": {
+          "id": {"type": "string"},
+          "questionId": {"type": "string"},
+          "query": {"type": "string"},
+          "engine": {"type": "string"},
+          "filters": {"type": "string"},
+          "resultCount": {"type": "integer"},
+          "notes": {"type": "string"},
+          "searchedAt": {"type": "string"}
+        }
+      }
+    }
+  }
+}

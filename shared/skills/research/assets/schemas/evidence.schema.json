@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["evidenceVersion", "searches", "sources"],
+  "properties": {
+    "evidenceVersion": {"type": "string"},
+    "createdAt": {"type": "string"},
+    "updatedAt": {"type": "string"},
+    "searches": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "questionId", "query", "engine", "searchedAt"],
+        "properties": {
+          "id": {"type": "string"},
+          "questionId": {"type": "string"},
+          "query": {"type": "string"},
+          "engine": {"type": "string"},
+          "filters": {"type": "string"},
+          "resultCount": {"type": "integer"},
+          "notes": {"type": "string"},
+          "searchedAt": {"type": "string"}
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "questionId", "url", "title", "sourceType", "origin", "retrievedAt"],
+        "properties": {
+          "id": {"type": "string"},
+          "questionId": {"type": "string"},
+          "url": {"type": "string"},
+          "canonicalUrl": {"type": "string"},
+          "title": {"type": "string"},
+          "publisher": {"type": "string"},
+          "sourceType": {"type": "string"},
+          "publishedDate": {"type": "string"},
+          "undatedReason": {"type": "string"},
+          "retrievedAt": {"type": "string"},
+          "origin": {"type": "string", "enum": ["engagement", "prior"]},
+          "searchId": {"type": "string"},
+          "citationLabel": {"type": "string"},
+          "notes": {"type": "string"},
+          "snapshot": {
+            "type": "object",
+            "properties": {
+              "title": {"type": "string"},
+              "publishedDate": {"type": "string"},
+              "observedAt": {"type": "string"},
+              "notes": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+    ,
+    "normalization": {
+      "type": "object",
+      "properties": {
+        "normalizedAt": {"type": "string"},
+        "duplicates": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["canonicalUrl", "keptId", "removedIds"],
+            "properties": {
+              "canonicalUrl": {"type": "string"},
+              "keptId": {"type": "string"},
+              "removedIds": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "publisherMapVersion": {"type": "string"}
+      }
+    }
+  }
+}

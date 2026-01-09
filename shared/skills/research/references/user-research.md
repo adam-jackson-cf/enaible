@@ -2,6 +2,10 @@
 
 Understand user behaviors, needs, and contexts to inform user-centered product decisions.
 
+## Deterministic Logging
+
+Log each retained source with `scripts/research_execute.py source` and associate it with a question ID.
+
 ## Persona Development Framework
 
 ### Persona Components

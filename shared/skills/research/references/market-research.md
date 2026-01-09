@@ -2,6 +2,11 @@
 
 Conduct market research, competitive analysis, and strategic business intelligence using structured methodologies.
 
+## Deterministic Logging
+
+Every source collected in this workflow must be logged via `scripts/research_execute.py source`
+and tied to a question ID from `requirements.json`.
+
 ## Competitive Intelligence Framework
 
 ### Competitor Identification

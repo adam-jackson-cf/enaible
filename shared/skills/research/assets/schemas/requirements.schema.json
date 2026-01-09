@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "runId",
+    "startedAt",
+    "artifactRoot",
+    "objective",
+    "scope",
+    "outputFormat",
+    "decisionContext",
+    "onlineResearch",
+    "questions"
+  ],
+  "properties": {
+    "runId": {"type": "string"},
+    "startedAt": {"type": "string"},
+    "artifactRoot": {"type": "string"},
+    "objective": {"type": "string"},
+    "scope": {"type": "string"},
+    "outputFormat": {"type": "string"},
+    "decisionContext": {"type": "string"},
+    "onlineResearch": {"type": "string", "enum": ["allowed", "disallowed"]},
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": {"type": "string"},
+          "text": {"type": "string"}
+        }
+      }
+    },
+    "constraints": {"type": "object"},
+    "sources": {"type": "object"}
+  }
+}

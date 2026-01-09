@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["plannedAt", "questions"],
+  "properties": {
+    "plannedAt": {"type": "string"},
+    "domainMapVersion": {"type": "string"},
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "primaryDomain"],
+        "properties": {
+          "id": {"type": "string"},
+          "text": {"type": "string"},
+          "domains": {"type": "array", "items": {"type": "string"}},
+          "primaryDomain": {"type": "string"},
+          "recencyPolicy": {"type": "object"},
+          "expectedSourceTypes": {"type": "array", "items": {"type": "string"}},
+          "rationale": {"type": "object"}
+        }
+      }
+    },
+    "summary": {"type": "object"}
+  }
+}
