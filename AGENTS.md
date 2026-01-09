@@ -30,4 +30,7 @@ docs/reference/  - deep docs (load on demand)
 - Add prompt: `shared/prompts/AGENTS.md`
 - Add adapter: `systems/AGENTS.md`
 - Add skill: `shared/skills/AGENTS.md`
-- Testing: `docs/reference/testing.md`
+
+## Task completion
+
+- Requires `scripts/run-ci-quality-gates.sh` to pass.
